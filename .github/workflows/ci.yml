@@ -1,18 +1,114 @@
 name: CI
 
-on:
+"on":
   push:
   pull_request:
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  test:
+  core:
+    name: Core / Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Set up Python
+        uses: actions/setup-python@v7
         with:
-          python-version: "3.12"
-      - run: python -m pip install -e ".[test]"
-      - run: pytest -q
-      - run: quarto-needs scan
-      - run: quarto-needs check
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install project and test dependencies
+        run: python -m pip install -e ".[test]"
+      - name: Run test suite
+        run: python -m pytest -q
+      - name: Scan Aegis showcase
+        run: quarto-needs --root examples/book scan
+      - name: Check Aegis showcase
+        run: quarto-needs --root examples/book check
+
+  quarto:
+    name: Quarto render smoke
+    needs: core
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+          cache: pip
+      - name: Install project and test dependencies
+        run: make setup
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: "1.10.18"
+          tinytex: true
+      - name: Synchronize extension and graph
+        run: make sync-example
+      - name: Render HTML, DOCX, and PDF
+        run: make render-example-all
+      - name: Enforce showcase gates
+        run: make check-example
+
+  quality:
+    name: Quality artifacts
+    needs: core
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+          cache: pip
+      - name: Install project and test dependencies
+        run: python -m pip install -e ".[test]"
+      - name: Generate deterministic quality artifacts
+        env:
+          SOURCE_DATE_EPOCH: "1787702400"
+        run: |
+          mkdir -p artifacts
+          quarto-needs --root examples/book export --format json --output "$GITHUB_WORKSPACE/artifacts/needs.json"
+          quarto-needs --root examples/book export --format csv --output "$GITHUB_WORKSPACE/artifacts/csv"
+          quarto-needs --root examples/book export --format sarif --output "$GITHUB_WORKSPACE/artifacts/findings.sarif"
+          quarto-needs --root examples/book export --format junit --output "$GITHUB_WORKSPACE/artifacts/gates.xml"
+          quarto-needs --root examples/book export --format markdown --output "$GITHUB_WORKSPACE/artifacts/summary.md" --baseline examples/book/baselines/quarto-needs.json
+          quarto-needs --root examples/book quality --format json --output "$GITHUB_WORKSPACE/artifacts/quality.json"
+      - name: Publish job summary
+        if: always()
+        run: |
+          if [[ -f artifacts/summary.md ]]
+          then
+            cat artifacts/summary.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Quarto-Needs summary was not produced." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Upload quality artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quarto-needs-quality
+          path: artifacts/
+          if-no-files-found: warn
+      - name: Upload SARIF to code scanning
+        if: always() && github.event_name != 'pull_request'
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: artifacts/findings.sarif

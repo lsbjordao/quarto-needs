@@ -161,7 +161,7 @@ def test_reference_date_change_suppresses_date_derived_deltas(tmp_path: Path) ->
     assert report.findings_added == ()
 
 
-def test_recompute_clears_the_guards(tmp_path: Path) -> None:
+def test_recompute_keeps_suppressed_categories_visible(tmp_path: Path) -> None:
     write(tmp_path)
     before = baseline_of(tmp_path)
     before = {**before, "referenceDate": "1999-01-01"}
@@ -169,13 +169,15 @@ def test_recompute_clears_the_guards(tmp_path: Path) -> None:
 
     report = diff.compare(before, snapshot, config, recompute=True)
 
-    assert report.notices == ()
+    assert report.notices == ("reference-date-changed",)
+    assert report.suppressed == ("findings", "metrics", "gates")
+    assert report.is_empty()
     assert report.recomputed is True
 
 
 def test_recompute_does_not_manufacture_derived_deltas_from_a_config_change(tmp_path: Path) -> None:
     """The baseline stores its derived results; they cannot be re-derived, so a
-    config-only change must stay silent even under recompute.
+    config-only change must not manufacture derived deltas under recompute.
 
     REQ-2 is approved but unverified, so verification coverage is 1 of 2 (50%).
     The baseline is taken under the default configuration (no verification
@@ -198,7 +200,8 @@ def test_recompute_does_not_manufacture_derived_deltas_from_a_config_change(tmp_
 
     report = diff.compare(before, snapshot, config, recompute=True)
 
-    assert report.notices == ()
+    assert report.notices == ("configuration-changed",)
+    assert report.suppressed == ("findings", "metrics", "gates")
     assert report.modified == ()
     assert report.gate_regressions == ()
     assert report.metric_deltas == ()

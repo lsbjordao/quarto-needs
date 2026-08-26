@@ -266,8 +266,9 @@ def test_aegis_baseline_validates_against_the_baseline_schema():
     Draft202012Validator(schema).validate(payload)
 
 
-def test_aegis_impact_explains_a_removed_verification(tmp_path: Path):
-    """Removing an edge in a copy of the book must reach the requirement."""
+def test_aegis_impact_explains_a_removed_verification(tmp_path: Path, capsys):
+    """Removing a verification edge must retain its explicit impact path."""
+    import json as _json
     import shutil as _shutil
     from quarto_needs import cli
 
@@ -288,6 +289,10 @@ def test_aegis_impact_explains_a_removed_verification(tmp_path: Path):
         "--root", str(project), "impact", str(baseline_path),
         "--recompute-with", "current", "--format", "json",
     ]) == 0
+    payload = _json.loads(capsys.readouterr().out)
+    test_case = next(item for item in payload["impacted"] if item["id"] == "IAM-TC-001")
+    assert test_case["origin"] == "IAM-SYS-001"
+    assert test_case["path"] == ["IAM-SYS-001", "IAM-TC-001"]
 
 
 def test_aegis_quality_report_projects_passing_gates():

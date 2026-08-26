@@ -704,15 +704,44 @@ def test_diff_against_an_unchanged_project_is_empty_and_exits_zero(
 def test_diff_validates_against_the_diff_schema(tmp_path: Path, capsys) -> None:
     from jsonschema import Draft202012Validator
 
-    write_valid_project(tmp_path)
+    (tmp_path / ".quarto-needs.toml").write_text(
+        'profile = "strict"\n[gates]\nmin-verification-trace = 100.0\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "needs.qmd").write_text(
+        "::: {.need #REQ-1 type=system-requirement status=approved priority=high}\n"
+        "verified-by: TC-1\n"
+        "\n## Authenticate\nThe service shall authenticate.\n"
+        "\n### Rationale\nProtect data.\n"
+        ":::\n\n"
+        "::: {.need #TC-1 type=test-case status=passed}\n"
+        "\n## Login\nSigns in.\n"
+        ":::\n",
+        encoding="utf-8",
+    )
     cli.main(["--root", str(tmp_path), "baseline", "create"])
     capsys.readouterr()  # flush the create command's text output before the JSON run
+    source = tmp_path / "needs.qmd"
+    moved = tmp_path / "moved.qmd"
+    moved.write_text(
+        source.read_text(encoding="utf-8")
+        .replace("verified-by: TC-1\n", "")
+        .replace("The service shall authenticate.", "The service shall authenticate administrators."),
+        encoding="utf-8",
+    )
+    source.unlink()
     cli.main(["--root", str(tmp_path), "diff", str(tmp_path / "baselines" / "quarto-needs.json"), "--format", "json"])
     payload = json.loads(capsys.readouterr().out)
 
     schema = json.loads((Path(__file__).resolve().parents[1] / "schemas" / "diff-v1.schema.json").read_text(encoding="utf-8"))
     Draft202012Validator.check_schema(schema)
     Draft202012Validator(schema).validate(payload)
+    assert payload["objects"]["modified"]
+    assert payload["objects"]["relocated"]
+    assert payload["relations"]["removed"]
+    assert payload["findings"]["added"]
+    assert payload["metrics"]
+    assert payload["gates"]["regressed"]
 
 
 def test_diff_runs_exactly_one_analysis(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -747,7 +776,7 @@ def test_diff_reports_a_missing_baseline_as_usage_error(tmp_path: Path) -> None:
     assert cli.main(["--root", str(tmp_path), "diff", str(tmp_path / "absent.json")]) == 2
 
 
-def test_diff_recompute_with_current_clears_notices(tmp_path: Path, capsys) -> None:
+def test_diff_recompute_with_current_keeps_suppression_visible(tmp_path: Path, capsys) -> None:
     write_valid_project(tmp_path)
     cli.main(["--root", str(tmp_path), "baseline", "create"])
     capsys.readouterr()  # flush the create command's text output before the JSON run
@@ -763,7 +792,34 @@ def test_diff_recompute_with_current_clears_notices(tmp_path: Path, capsys) -> N
         "--root", str(tmp_path), "diff", str(destination),
         "--recompute-with", "current", "--format", "json",
     ])
-    assert json.loads(capsys.readouterr().out)["notices"] == []
+    recomputed = json.loads(capsys.readouterr().out)
+    assert recomputed["notices"] == ["reference-date-changed"]
+    assert recomputed["suppressed"] == ["findings", "metrics", "gates"]
+    assert recomputed["empty"] is True
+
+
+def test_diff_strict_profile_exits_one_on_a_gate_regression(tmp_path: Path, capsys) -> None:
+    (tmp_path / ".quarto-needs.toml").write_text(
+        'profile = "strict"\n[gates]\nmin-verification-trace = 100.0\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "needs.qmd").write_text(
+        "::: {.need #REQ-1 type=system-requirement status=approved}\n"
+        "verified-by: TC-1\n\n## Requirement\nBody.\n:::\n\n"
+        "::: {.need #TC-1 type=test-case status=passed}\n\n## Test\nPasses.\n:::\n",
+        encoding="utf-8",
+    )
+    cli.main(["--root", str(tmp_path), "baseline", "create"])
+    capsys.readouterr()
+    baseline_path = tmp_path / "baselines" / "quarto-needs.json"
+    source = tmp_path / "needs.qmd"
+    source.write_text(
+        source.read_text(encoding="utf-8").replace("verified-by: TC-1\n", ""),
+        encoding="utf-8",
+    )
+
+    assert cli.main(["--root", str(tmp_path), "diff", str(baseline_path)]) == 1
+    assert "! gate min-verification-trace failed" in capsys.readouterr().out
 
 
 def test_impact_validates_against_the_impact_schema(tmp_path: Path, capsys) -> None:
@@ -872,8 +928,6 @@ def test_export_default_format_is_byte_identical_to_the_v1_projection(tmp_path: 
     assert len(hashlib.sha256(first.read_bytes()).hexdigest()) == 64
 
 
-# TODO(milestone-4a-writers): remove this xfail when Tasks 3-6 land the writers.
-@pytest.mark.xfail(strict=True, reason="csv/sarif/junit writers land in Tasks 3-6")
 def test_export_runs_exactly_one_analysis_per_format(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -906,8 +960,6 @@ def test_export_rejects_baseline_for_non_markdown_formats(tmp_path: Path, capsys
     assert "markdown" in capsys.readouterr().err
 
 
-# TODO(milestone-4a-writers): remove this xfail when Task 6 lands the markdown writer.
-@pytest.mark.xfail(strict=True, reason="markdown writer lands in Task 6")
 def test_export_preserves_artifacts_on_policy_failure(tmp_path: Path) -> None:
     """A failing strict gate still writes the artifact, then exits 1."""
     # An approved requirement with no verification makes the verification gate

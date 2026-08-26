@@ -390,7 +390,9 @@ Before the first internal refactor, tests freeze a representative current Aegis 
 - ReqIF importing, round-trip synchronization, rich XHTML, and `.reqifz` in the initial ReqIF milestone.
 - Client-side mutation of requirements or governance state.
 - Mandatory persistent PR comments or workflows with broad write permissions.
-- Full Sphinx-Needs syntax or feature parity.
+- Full Sphinx-Needs source-syntax emulation. Capability parity and leadership are
+  tracked by the
+  [capability evolution amendment](2026-08-26-quarto-needs-capability-evolution.md).
 
 ## Format references
 

@@ -146,6 +146,19 @@ def test_impact_rejects_a_configuration_mismatch_without_recompute(tmp_path: Pat
     """One relation policy must govern the whole traversal."""
     write(tmp_path)
     before = baseline_of(tmp_path)
+    before = {
+        **before,
+        "relations": [
+            {**item, "impactDirection": "none"}
+            if item["authoredName"] == "verified-by"
+            else item
+            for item in before["relations"]
+        ],
+    }
+    text = (tmp_path / "chain.qmd").read_text(encoding="utf-8")
+    (tmp_path / "chain.qmd").write_text(
+        text.replace("verified-by: TC-1\n", ""), encoding="utf-8"
+    )
     (tmp_path / ".quarto-needs.toml").write_text(
         'profile = "strict"\n[rules.REQ011]\nenabled = true\n', encoding="utf-8"
     )
@@ -154,7 +167,10 @@ def test_impact_rejects_a_configuration_mismatch_without_recompute(tmp_path: Pat
     with pytest.raises(impact.ImpactError):
         impact.analyze(before, snapshot, config)
 
-    assert impact.analyze(before, snapshot, config, recompute=True) is not None
+    report = impact.analyze(before, snapshot, config, recompute=True)
+    test_case = next(item for item in report.impacted if item["id"] == "TC-1")
+    assert test_case["path"] == ["REQ-1", "TC-1"]
+    assert test_case["relations"] == ["verified-by"]
 
 
 def test_impact_rejects_a_reference_date_mismatch_without_recompute(tmp_path: Path) -> None:
@@ -163,12 +179,16 @@ def test_impact_rejects_a_reference_date_mismatch_without_recompute(tmp_path: Pa
     write(tmp_path)
     before = baseline_of(tmp_path)
     before = {**before, "referenceDate": "1999-01-01"}
+    write(tmp_path, body="The service shall authenticate every administrator.")
     snapshot, config = snapshot_of(tmp_path)
 
     with pytest.raises(impact.ImpactError):
         impact.analyze(before, snapshot, config)
 
-    assert impact.analyze(before, snapshot, config, recompute=True) is not None
+    report = impact.analyze(before, snapshot, config, recompute=True)
+    test_case = next(item for item in report.impacted if item["id"] == "TC-1")
+    assert test_case["path"] == ["REQ-1", "TC-1"]
+    assert test_case["change"] == "modified"
 
 
 def test_impact_rejects_a_diagnostic_baseline(tmp_path: Path) -> None:

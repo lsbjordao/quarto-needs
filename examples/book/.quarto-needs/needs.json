@@ -1,0 +1,3903 @@
+{
+  "backlinks": {
+    "IAM-COMP-001": [
+      {
+        "source": "IAM-FUN-001",
+        "type": "implemented-by"
+      },
+      {
+        "source": "IAM-FUN-002",
+        "type": "implemented-by"
+      },
+      {
+        "source": "IAM-FUN-003",
+        "type": "implemented-by"
+      },
+      {
+        "source": "IAM-NFR-001",
+        "type": "implemented-by"
+      },
+      {
+        "source": "IAM-NFR-002",
+        "type": "implemented-by"
+      },
+      {
+        "source": "IAM-SYS-001",
+        "type": "implemented-by"
+      }
+    ],
+    "IAM-COMP-002": [
+      {
+        "source": "IAM-FUN-004",
+        "type": "implemented-by"
+      },
+      {
+        "source": "IAM-FUN-005",
+        "type": "implemented-by"
+      },
+      {
+        "source": "IAM-FUN-006",
+        "type": "implemented-by"
+      },
+      {
+        "source": "IAM-NFR-004",
+        "type": "implemented-by"
+      },
+      {
+        "source": "IAM-SYS-002",
+        "type": "implemented-by"
+      }
+    ],
+    "IAM-COMP-003": [
+      {
+        "source": "IAM-FUN-007",
+        "type": "implemented-by"
+      },
+      {
+        "source": "IAM-FUN-008",
+        "type": "implemented-by"
+      },
+      {
+        "source": "IAM-FUN-009",
+        "type": "implemented-by"
+      },
+      {
+        "source": "IAM-SYS-003",
+        "type": "implemented-by"
+      }
+    ],
+    "IAM-COMP-004": [
+      {
+        "source": "IAM-FUN-010",
+        "type": "implemented-by"
+      },
+      {
+        "source": "IAM-FUN-011",
+        "type": "implemented-by"
+      },
+      {
+        "source": "IAM-NFR-003",
+        "type": "implemented-by"
+      },
+      {
+        "source": "IAM-NFR-005",
+        "type": "implemented-by"
+      },
+      {
+        "source": "IAM-NFR-007",
+        "type": "implemented-by"
+      },
+      {
+        "source": "IAM-SYS-004",
+        "type": "implemented-by"
+      }
+    ],
+    "IAM-COMP-005": [
+      {
+        "source": "IAM-FUN-012",
+        "type": "implemented-by"
+      },
+      {
+        "source": "IAM-NFR-008",
+        "type": "implemented-by"
+      },
+      {
+        "source": "IAM-SYS-005",
+        "type": "implemented-by"
+      }
+    ],
+    "IAM-COMP-006": [
+      {
+        "source": "IAM-NFR-006",
+        "type": "implemented-by"
+      }
+    ],
+    "IAM-EVD-001": [
+      {
+        "source": "IAM-TC-001",
+        "type": "evidenced-by"
+      }
+    ],
+    "IAM-EVD-002": [
+      {
+        "source": "IAM-TC-002",
+        "type": "evidenced-by"
+      }
+    ],
+    "IAM-EVD-003": [
+      {
+        "source": "IAM-TC-003",
+        "type": "evidenced-by"
+      }
+    ],
+    "IAM-EVD-004": [
+      {
+        "source": "IAM-TC-004",
+        "type": "evidenced-by"
+      }
+    ],
+    "IAM-EVD-005": [
+      {
+        "source": "IAM-TC-005",
+        "type": "evidenced-by"
+      }
+    ],
+    "IAM-EVD-006": [
+      {
+        "source": "IAM-TC-006",
+        "type": "evidenced-by"
+      }
+    ],
+    "IAM-EVD-007": [
+      {
+        "source": "IAM-TC-007",
+        "type": "evidenced-by"
+      }
+    ],
+    "IAM-EVD-008": [
+      {
+        "source": "IAM-TC-008",
+        "type": "evidenced-by"
+      }
+    ],
+    "IAM-EVD-009": [
+      {
+        "source": "IAM-TC-009",
+        "type": "evidenced-by"
+      }
+    ],
+    "IAM-EVD-010": [
+      {
+        "source": "IAM-TC-010",
+        "type": "evidenced-by"
+      }
+    ],
+    "IAM-EVD-011": [
+      {
+        "source": "IAM-TC-011",
+        "type": "evidenced-by"
+      }
+    ],
+    "IAM-EVD-012": [
+      {
+        "source": "IAM-TC-012",
+        "type": "evidenced-by"
+      }
+    ],
+    "IAM-EVD-013": [
+      {
+        "source": "IAM-TC-013",
+        "type": "evidenced-by"
+      }
+    ],
+    "IAM-EVD-014": [
+      {
+        "source": "IAM-TC-014",
+        "type": "evidenced-by"
+      }
+    ],
+    "IAM-EVD-015": [
+      {
+        "source": "IAM-TC-015",
+        "type": "evidenced-by"
+      }
+    ],
+    "IAM-EVD-016": [
+      {
+        "source": "IAM-TC-016",
+        "type": "evidenced-by"
+      }
+    ],
+    "IAM-EVD-017": [
+      {
+        "source": "IAM-TC-017",
+        "type": "evidenced-by"
+      }
+    ],
+    "IAM-FUN-001": [],
+    "IAM-FUN-002": [],
+    "IAM-FUN-003": [],
+    "IAM-FUN-004": [],
+    "IAM-FUN-005": [],
+    "IAM-FUN-006": [],
+    "IAM-FUN-007": [],
+    "IAM-FUN-008": [],
+    "IAM-FUN-009": [],
+    "IAM-FUN-010": [],
+    "IAM-FUN-011": [],
+    "IAM-FUN-012": [],
+    "IAM-FUN-013": [],
+    "IAM-FUN-014": [],
+    "IAM-FUN-015": [],
+    "IAM-IF-001": [
+      {
+        "source": "IAM-SYS-006",
+        "type": "implemented-by"
+      }
+    ],
+    "IAM-IF-002": [],
+    "IAM-IF-003": [],
+    "IAM-NFR-001": [],
+    "IAM-NFR-002": [],
+    "IAM-NFR-003": [],
+    "IAM-NFR-004": [],
+    "IAM-NFR-005": [],
+    "IAM-NFR-006": [],
+    "IAM-NFR-007": [],
+    "IAM-NFR-008": [],
+    "IAM-NFR-009": [],
+    "IAM-NFR-010": [],
+    "IAM-RISK-001": [
+      {
+        "source": "IAM-FUN-002",
+        "type": "mitigates"
+      }
+    ],
+    "IAM-RISK-002": [
+      {
+        "source": "IAM-FUN-005",
+        "type": "mitigates"
+      }
+    ],
+    "IAM-RISK-003": [
+      {
+        "source": "IAM-NFR-003",
+        "type": "mitigates"
+      }
+    ],
+    "IAM-RISK-004": [
+      {
+        "source": "IAM-NFR-008",
+        "type": "mitigates"
+      }
+    ],
+    "IAM-STK-001": [
+      {
+        "source": "IAM-NFR-001",
+        "type": "derives-from"
+      },
+      {
+        "source": "IAM-SYS-001",
+        "type": "derives-from"
+      }
+    ],
+    "IAM-STK-002": [
+      {
+        "source": "IAM-NFR-003",
+        "type": "derives-from"
+      },
+      {
+        "source": "IAM-NFR-007",
+        "type": "derives-from"
+      },
+      {
+        "source": "IAM-SYS-002",
+        "type": "derives-from"
+      }
+    ],
+    "IAM-STK-003": [
+      {
+        "source": "IAM-NFR-002",
+        "type": "derives-from"
+      },
+      {
+        "source": "IAM-NFR-008",
+        "type": "derives-from"
+      },
+      {
+        "source": "IAM-NFR-009",
+        "type": "derives-from"
+      },
+      {
+        "source": "IAM-SYS-003",
+        "type": "derives-from"
+      },
+      {
+        "source": "IAM-SYS-005",
+        "type": "derives-from"
+      }
+    ],
+    "IAM-STK-004": [
+      {
+        "source": "IAM-NFR-004",
+        "type": "derives-from"
+      },
+      {
+        "source": "IAM-NFR-006",
+        "type": "derives-from"
+      },
+      {
+        "source": "IAM-NFR-010",
+        "type": "derives-from"
+      },
+      {
+        "source": "IAM-SYS-006",
+        "type": "derives-from"
+      },
+      {
+        "source": "IAM-SYS-008",
+        "type": "derives-from"
+      }
+    ],
+    "IAM-STK-005": [
+      {
+        "source": "IAM-NFR-005",
+        "type": "derives-from"
+      },
+      {
+        "source": "IAM-SYS-004",
+        "type": "derives-from"
+      },
+      {
+        "source": "IAM-SYS-007",
+        "type": "derives-from"
+      }
+    ],
+    "IAM-SYS-001": [
+      {
+        "source": "IAM-FUN-001",
+        "type": "derives-from"
+      },
+      {
+        "source": "IAM-FUN-002",
+        "type": "derives-from"
+      },
+      {
+        "source": "IAM-FUN-003",
+        "type": "derives-from"
+      },
+      {
+        "source": "IAM-FUN-015",
+        "type": "conflicts-with"
+      }
+    ],
+    "IAM-SYS-002": [
+      {
+        "source": "IAM-FUN-004",
+        "type": "derives-from"
+      },
+      {
+        "source": "IAM-FUN-005",
+        "type": "derives-from"
+      },
+      {
+        "source": "IAM-FUN-006",
+        "type": "derives-from"
+      }
+    ],
+    "IAM-SYS-003": [
+      {
+        "source": "IAM-FUN-007",
+        "type": "derives-from"
+      },
+      {
+        "source": "IAM-FUN-008",
+        "type": "derives-from"
+      },
+      {
+        "source": "IAM-FUN-009",
+        "type": "derives-from"
+      }
+    ],
+    "IAM-SYS-004": [
+      {
+        "source": "IAM-FUN-010",
+        "type": "derives-from"
+      },
+      {
+        "source": "IAM-FUN-011",
+        "type": "derives-from"
+      }
+    ],
+    "IAM-SYS-005": [
+      {
+        "source": "IAM-FUN-012",
+        "type": "derives-from"
+      },
+      {
+        "source": "IAM-FUN-013",
+        "type": "derives-from"
+      }
+    ],
+    "IAM-SYS-006": [
+      {
+        "source": "IAM-FUN-014",
+        "type": "derives-from"
+      }
+    ],
+    "IAM-SYS-007": [],
+    "IAM-SYS-008": [],
+    "IAM-TC-001": [
+      {
+        "source": "IAM-FUN-001",
+        "type": "verified-by"
+      },
+      {
+        "source": "IAM-SYS-001",
+        "type": "verified-by"
+      }
+    ],
+    "IAM-TC-002": [
+      {
+        "source": "IAM-FUN-002",
+        "type": "verified-by"
+      }
+    ],
+    "IAM-TC-003": [
+      {
+        "source": "IAM-FUN-003",
+        "type": "verified-by"
+      }
+    ],
+    "IAM-TC-004": [
+      {
+        "source": "IAM-FUN-004",
+        "type": "verified-by"
+      },
+      {
+        "source": "IAM-SYS-002",
+        "type": "verified-by"
+      }
+    ],
+    "IAM-TC-005": [
+      {
+        "source": "IAM-FUN-005",
+        "type": "verified-by"
+      }
+    ],
+    "IAM-TC-006": [
+      {
+        "source": "IAM-FUN-006",
+        "type": "verified-by"
+      },
+      {
+        "source": "IAM-NFR-004",
+        "type": "verified-by"
+      }
+    ],
+    "IAM-TC-007": [
+      {
+        "source": "IAM-FUN-007",
+        "type": "verified-by"
+      },
+      {
+        "source": "IAM-SYS-003",
+        "type": "verified-by"
+      }
+    ],
+    "IAM-TC-008": [
+      {
+        "source": "IAM-FUN-008",
+        "type": "verified-by"
+      }
+    ],
+    "IAM-TC-009": [
+      {
+        "source": "IAM-FUN-009",
+        "type": "verified-by"
+      }
+    ],
+    "IAM-TC-010": [
+      {
+        "source": "IAM-FUN-010",
+        "type": "verified-by"
+      },
+      {
+        "source": "IAM-NFR-005",
+        "type": "verified-by"
+      },
+      {
+        "source": "IAM-SYS-004",
+        "type": "verified-by"
+      }
+    ],
+    "IAM-TC-011": [
+      {
+        "source": "IAM-FUN-011",
+        "type": "verified-by"
+      },
+      {
+        "source": "IAM-NFR-007",
+        "type": "verified-by"
+      }
+    ],
+    "IAM-TC-012": [
+      {
+        "source": "IAM-FUN-012",
+        "type": "verified-by"
+      },
+      {
+        "source": "IAM-NFR-008",
+        "type": "verified-by"
+      },
+      {
+        "source": "IAM-SYS-005",
+        "type": "verified-by"
+      }
+    ],
+    "IAM-TC-013": [
+      {
+        "source": "IAM-NFR-006",
+        "type": "verified-by"
+      }
+    ],
+    "IAM-TC-014": [
+      {
+        "source": "IAM-NFR-002",
+        "type": "verified-by"
+      }
+    ],
+    "IAM-TC-015": [
+      {
+        "source": "IAM-NFR-003",
+        "type": "verified-by"
+      }
+    ],
+    "IAM-TC-016": [
+      {
+        "source": "IAM-NFR-001",
+        "type": "verified-by"
+      }
+    ],
+    "IAM-TC-017": [
+      {
+        "source": "IAM-SYS-006",
+        "type": "verified-by"
+      }
+    ]
+  },
+  "coverage": {
+    "approved": 26,
+    "implementation_coverage": 78.8,
+    "implemented": 26,
+    "requirements": 33,
+    "verification_coverage": 78.8,
+    "verified": 26
+  },
+  "extensions": {
+    "quartoNeeds": {
+      "generator": {
+        "name": "quarto-needs",
+        "version": "0.1.0"
+      },
+      "queries": {
+        "approved-high-unverified": [],
+        "approved-requirements": [
+          "IAM-FUN-001",
+          "IAM-FUN-002",
+          "IAM-FUN-003",
+          "IAM-FUN-004",
+          "IAM-FUN-005",
+          "IAM-FUN-007",
+          "IAM-FUN-008",
+          "IAM-FUN-010",
+          "IAM-FUN-012",
+          "IAM-NFR-001",
+          "IAM-NFR-002",
+          "IAM-NFR-003",
+          "IAM-NFR-005",
+          "IAM-NFR-007",
+          "IAM-SYS-001",
+          "IAM-SYS-002",
+          "IAM-SYS-003",
+          "IAM-SYS-004",
+          "IAM-SYS-005",
+          "IAM-FUN-006",
+          "IAM-FUN-009",
+          "IAM-FUN-011",
+          "IAM-NFR-004",
+          "IAM-NFR-006",
+          "IAM-NFR-008",
+          "IAM-SYS-006"
+        ],
+        "evidence-gaps": []
+      },
+      "relationCatalog": {
+        "conflicts-with": {
+          "directLabel": "Conflicts with",
+          "impactDirection": "both",
+          "inverseLabel": "Conflicts with",
+          "public": true,
+          "semanticFamily": "conflict",
+          "sourceRole": "subject",
+          "targetRole": "subject"
+        },
+        "derives-from": {
+          "directLabel": "Derives from",
+          "impactDirection": "target_to_source",
+          "inverseLabel": "Source for",
+          "public": true,
+          "semanticFamily": "derivation",
+          "sourceRole": "derived",
+          "targetRole": "source"
+        },
+        "evidenced-by": {
+          "directLabel": "Evidenced by",
+          "impactDirection": "source_to_target",
+          "inverseLabel": "Evidences",
+          "public": true,
+          "semanticFamily": "evidence",
+          "sourceRole": "test",
+          "targetRole": "evidence"
+        },
+        "implemented-by": {
+          "directLabel": "Implemented by",
+          "impactDirection": "source_to_target",
+          "inverseLabel": "Implements",
+          "public": true,
+          "semanticFamily": "implementation",
+          "sourceRole": "requirement",
+          "targetRole": "implementation-artifact"
+        },
+        "mitigates": {
+          "directLabel": "Mitigates",
+          "impactDirection": "target_to_source",
+          "inverseLabel": "Mitigated by",
+          "public": true,
+          "semanticFamily": "mitigation",
+          "sourceRole": "mitigation",
+          "targetRole": "risk"
+        },
+        "verified-by": {
+          "directLabel": "Verified by",
+          "impactDirection": "source_to_target",
+          "inverseLabel": "Verifies",
+          "public": true,
+          "semanticFamily": "verification",
+          "sourceRole": "requirement",
+          "targetRole": "test"
+        }
+      },
+      "relationCatalogVersion": "1",
+      "report": {
+        "configurationPresent": true,
+        "findings": {
+          "byCode": {},
+          "counts": {
+            "error": 0,
+            "info": 0,
+            "total": 0,
+            "warning": 0
+          }
+        },
+        "gates": [
+          {
+            "actual": 0,
+            "denominator": null,
+            "name": "max-errors",
+            "passed": true,
+            "scope": "project",
+            "threshold": 0
+          },
+          {
+            "actual": 100.0,
+            "denominator": 26,
+            "name": "min-implementation-trace",
+            "passed": true,
+            "scope": "approved-requirements",
+            "threshold": 100.0
+          },
+          {
+            "actual": 100.0,
+            "denominator": 26,
+            "name": "min-implementation-effective",
+            "passed": true,
+            "scope": "approved-requirements",
+            "threshold": 100.0
+          },
+          {
+            "actual": 100.0,
+            "denominator": 26,
+            "name": "min-verification-trace",
+            "passed": true,
+            "scope": "approved-requirements",
+            "threshold": 100.0
+          },
+          {
+            "actual": 100.0,
+            "denominator": 26,
+            "name": "min-verification-successful",
+            "passed": true,
+            "scope": "approved-requirements",
+            "threshold": 100.0
+          },
+          {
+            "actual": 100.0,
+            "denominator": 26,
+            "name": "min-evidence",
+            "passed": true,
+            "scope": "approved-requirements",
+            "threshold": 100.0
+          },
+          {
+            "actual": 0,
+            "denominator": null,
+            "name": "require-risk-mitigation",
+            "passed": true,
+            "scope": "project",
+            "threshold": 0
+          }
+        ],
+        "generator": {
+          "name": "quarto-needs",
+          "version": "0.1.0"
+        },
+        "profile": "strict",
+        "referenceDate": "2026-08-26",
+        "schemaVersion": "1",
+        "scopes": {
+          "approved-high-unverified": {
+            "breakdowns": {
+              "priority": {},
+              "status": {},
+              "type": {}
+            },
+            "coverage": {
+              "evidence": {
+                "covered": 0,
+                "percent": 100.0,
+                "total": 0
+              },
+              "implementation-effective": {
+                "covered": 0,
+                "percent": 100.0,
+                "total": 0
+              },
+              "implementation-trace": {
+                "covered": 0,
+                "percent": 100.0,
+                "total": 0
+              },
+              "verification-successful": {
+                "covered": 0,
+                "percent": 100.0,
+                "total": 0
+              },
+              "verification-trace": {
+                "covered": 0,
+                "percent": 100.0,
+                "total": 0
+              }
+            },
+            "denominator": 0,
+            "gaps": {
+              "evidence": [],
+              "implementation-effective": [],
+              "verification-successful": []
+            },
+            "name": "approved-high-unverified"
+          },
+          "approved-requirements": {
+            "breakdowns": {
+              "priority": {
+                "high": 19,
+                "medium": 7
+              },
+              "status": {
+                "approved": 26
+              },
+              "type": {
+                "functional-requirement": 12,
+                "non-functional-requirement": 8,
+                "system-requirement": 6
+              }
+            },
+            "coverage": {
+              "evidence": {
+                "covered": 26,
+                "percent": 100.0,
+                "total": 26
+              },
+              "implementation-effective": {
+                "covered": 26,
+                "percent": 100.0,
+                "total": 26
+              },
+              "implementation-trace": {
+                "covered": 26,
+                "percent": 100.0,
+                "total": 26
+              },
+              "verification-successful": {
+                "covered": 26,
+                "percent": 100.0,
+                "total": 26
+              },
+              "verification-trace": {
+                "covered": 26,
+                "percent": 100.0,
+                "total": 26
+              }
+            },
+            "denominator": 26,
+            "gaps": {
+              "evidence": [],
+              "implementation-effective": [],
+              "verification-successful": []
+            },
+            "name": "approved-requirements"
+          },
+          "catalog": {
+            "breakdowns": {
+              "priority": {
+                "high": 19,
+                "low": 3,
+                "medium": 11
+              },
+              "status": {
+                "approved": 26,
+                "disapproved": 1,
+                "draft": 3,
+                "in-review": 3
+              },
+              "type": {
+                "functional-requirement": 15,
+                "non-functional-requirement": 10,
+                "system-requirement": 8
+              }
+            },
+            "coverage": {
+              "evidence": {
+                "covered": 26,
+                "percent": 78.8,
+                "total": 33
+              },
+              "implementation-effective": {
+                "covered": 26,
+                "percent": 78.8,
+                "total": 33
+              },
+              "implementation-trace": {
+                "covered": 26,
+                "percent": 78.8,
+                "total": 33
+              },
+              "verification-successful": {
+                "covered": 26,
+                "percent": 78.8,
+                "total": 33
+              },
+              "verification-trace": {
+                "covered": 26,
+                "percent": 78.8,
+                "total": 33
+              }
+            },
+            "denominator": 33,
+            "gaps": {
+              "evidence": [],
+              "implementation-effective": [
+                "IAM-FUN-013",
+                "IAM-FUN-014",
+                "IAM-FUN-015",
+                "IAM-NFR-009",
+                "IAM-NFR-010",
+                "IAM-SYS-007",
+                "IAM-SYS-008"
+              ],
+              "verification-successful": [
+                "IAM-FUN-013",
+                "IAM-FUN-014",
+                "IAM-FUN-015",
+                "IAM-NFR-009",
+                "IAM-NFR-010",
+                "IAM-SYS-007",
+                "IAM-SYS-008"
+              ]
+            },
+            "name": "catalog"
+          },
+          "evidence-gaps": {
+            "breakdowns": {
+              "priority": {},
+              "status": {},
+              "type": {}
+            },
+            "coverage": {
+              "evidence": {
+                "covered": 0,
+                "percent": 100.0,
+                "total": 0
+              },
+              "implementation-effective": {
+                "covered": 0,
+                "percent": 100.0,
+                "total": 0
+              },
+              "implementation-trace": {
+                "covered": 0,
+                "percent": 100.0,
+                "total": 0
+              },
+              "verification-successful": {
+                "covered": 0,
+                "percent": 100.0,
+                "total": 0
+              },
+              "verification-trace": {
+                "covered": 0,
+                "percent": 100.0,
+                "total": 0
+              }
+            },
+            "denominator": 0,
+            "gaps": {
+              "evidence": [],
+              "implementation-effective": [],
+              "verification-successful": []
+            },
+            "name": "evidence-gaps"
+          }
+        },
+        "summary": {
+          "exitCode": 0,
+          "gateFailures": 0,
+          "structuralErrors": false
+        }
+      }
+    }
+  },
+  "objects": [
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "authentication;security"
+      },
+      "body": "Valida credenciais, MFA e sessões para os canais do Aegis IAM.",
+      "href": "architecture/components.html#IAM-COMP-001",
+      "id": "IAM-COMP-001",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-COMP-001",
+        "file": "architecture/components.qmd",
+        "line": 6
+      },
+      "status": "implemented",
+      "title": "Serviço de autenticação",
+      "type": "component"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "authorization;policy"
+      },
+      "body": "Avalia políticas por atributo e retorna decisões de permitir ou negar.",
+      "href": "architecture/components.html#IAM-COMP-002",
+      "id": "IAM-COMP-002",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-COMP-002",
+        "file": "architecture/components.qmd",
+        "line": 12
+      },
+      "status": "implemented",
+      "title": "Motor de políticas",
+      "type": "component"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "lifecycle;provisioning"
+      },
+      "body": "Consome eventos de pessoas e executa mudanças controladas em contas e grupos.",
+      "href": "architecture/components.html#IAM-COMP-003",
+      "id": "IAM-COMP-003",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-COMP-003",
+        "file": "architecture/components.qmd",
+        "line": 18
+      },
+      "status": "implemented",
+      "title": "Orquestrador de ciclo de vida",
+      "type": "component"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "audit;compliance"
+      },
+      "body": "Armazena eventos com integridade verificável e consulta controlada.",
+      "href": "architecture/components.html#IAM-COMP-004",
+      "id": "IAM-COMP-004",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-COMP-004",
+        "file": "architecture/components.qmd",
+        "line": 24
+      },
+      "status": "implemented",
+      "title": "Cofre de auditoria",
+      "type": "component"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "recovery;security"
+      },
+      "body": "Coordena prova de identidade, aprovação e emissão segura de nova credencial.",
+      "href": "architecture/components.html#IAM-COMP-005",
+      "id": "IAM-COMP-005",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-COMP-005",
+        "file": "architecture/components.qmd",
+        "line": 30
+      },
+      "status": "implemented",
+      "title": "Serviço de recuperação",
+      "type": "component"
+    },
+    {
+      "attributes": {
+        "priority": "medium",
+        "tags": "experience;accessibility"
+      },
+      "body": "Oferece telas acessíveis para login, consentimento e administração de conta.",
+      "href": "architecture/components.html#IAM-COMP-006",
+      "id": "IAM-COMP-006",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-COMP-006",
+        "file": "architecture/components.qmd",
+        "line": 36
+      },
+      "status": "implemented",
+      "title": "Portal de identidade",
+      "type": "component"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "authentication;ci"
+      },
+      "body": "Execução automatizada do cenário de credencial válida no ambiente de integração.",
+      "href": "verification/evidence.html#IAM-EVD-001",
+      "id": "IAM-EVD-001",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-EVD-001",
+        "file": "verification/evidence.qmd",
+        "line": 5
+      },
+      "status": "verified",
+      "title": "Relatório de autenticação 2026-08-25",
+      "type": "evidence"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "mfa;ci"
+      },
+      "body": "Execução automatizada do bloqueio sem segundo fator.",
+      "href": "verification/evidence.html#IAM-EVD-002",
+      "id": "IAM-EVD-002",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-EVD-002",
+        "file": "verification/evidence.qmd",
+        "line": 11
+      },
+      "status": "verified",
+      "title": "Relatório de MFA administrativo",
+      "type": "evidence"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "session;ci"
+      },
+      "body": "Execução automatizada de suspensão e invalidação de tokens.",
+      "href": "verification/evidence.html#IAM-EVD-003",
+      "id": "IAM-EVD-003",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-EVD-003",
+        "file": "verification/evidence.qmd",
+        "line": 17
+      },
+      "status": "verified",
+      "title": "Relatório de revogação de sessão",
+      "type": "evidence"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "authorization;ci"
+      },
+      "body": "Execução automatizada de decisão contextual de acesso.",
+      "href": "verification/evidence.html#IAM-EVD-004",
+      "id": "IAM-EVD-004",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-EVD-004",
+        "file": "verification/evidence.qmd",
+        "line": 23
+      },
+      "status": "verified",
+      "title": "Relatório de política por atributo",
+      "type": "evidence"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "least-privilege;ci"
+      },
+      "body": "Execução automatizada de uma solicitação sem regra permissiva.",
+      "href": "verification/evidence.html#IAM-EVD-005",
+      "id": "IAM-EVD-005",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-EVD-005",
+        "file": "verification/evidence.qmd",
+        "line": 29
+      },
+      "status": "verified",
+      "title": "Relatório de negação padrão",
+      "type": "evidence"
+    },
+    {
+      "attributes": {
+        "priority": "medium",
+        "tags": "performance;load"
+      },
+      "body": "Resultado do teste de carga para o objetivo de resposta de autorização.",
+      "href": "verification/evidence.html#IAM-EVD-006",
+      "id": "IAM-EVD-006",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-EVD-006",
+        "file": "verification/evidence.qmd",
+        "line": 35
+      },
+      "status": "verified",
+      "title": "Relatório de carga da autorização",
+      "type": "evidence"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "lifecycle;ci"
+      },
+      "body": "Execução automatizada que registra a conta criada a partir de um evento válido de RH.",
+      "href": "verification/evidence.html#IAM-EVD-007",
+      "id": "IAM-EVD-007",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-EVD-007",
+        "file": "verification/evidence.qmd",
+        "line": 41
+      },
+      "status": "verified",
+      "title": "Relatório de provisão por admissão",
+      "type": "evidence"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "lifecycle;offboarding"
+      },
+      "body": "Execução automatizada que confirma suspensão da conta e invalidação das sessões.",
+      "href": "verification/evidence.html#IAM-EVD-008",
+      "id": "IAM-EVD-008",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-EVD-008",
+        "file": "verification/evidence.qmd",
+        "line": 47
+      },
+      "status": "verified",
+      "title": "Relatório de suspensão por desligamento",
+      "type": "evidence"
+    },
+    {
+      "attributes": {
+        "priority": "medium",
+        "tags": "lifecycle;review"
+      },
+      "body": "Execução automatizada que comprova a criação de tarefa para o responsável pelo recurso.",
+      "href": "verification/evidence.html#IAM-EVD-009",
+      "id": "IAM-EVD-009",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-EVD-009",
+        "file": "verification/evidence.qmd",
+        "line": 53
+      },
+      "status": "verified",
+      "title": "Relatório de campanha de revisão",
+      "type": "evidence"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "audit;integrity"
+      },
+      "body": "Execução automatizada que valida correlação e integridade de uma decisão registrada.",
+      "href": "verification/evidence.html#IAM-EVD-010",
+      "id": "IAM-EVD-010",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-EVD-010",
+        "file": "verification/evidence.qmd",
+        "line": 59
+      },
+      "status": "verified",
+      "title": "Relatório de evento de autorização",
+      "type": "evidence"
+    },
+    {
+      "attributes": {
+        "priority": "medium",
+        "tags": "audit;retention"
+      },
+      "body": "Resultado de consulta ordenada em eventos preservados no período de retenção configurado.",
+      "href": "verification/evidence.html#IAM-EVD-011",
+      "id": "IAM-EVD-011",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-EVD-011",
+        "file": "verification/evidence.qmd",
+        "line": 65
+      },
+      "status": "verified",
+      "title": "Relatório de consulta e retenção",
+      "type": "evidence"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "recovery;security"
+      },
+      "body": "Execução automatizada que registra a prova adicional de identidade antes da redefinição.",
+      "href": "verification/evidence.html#IAM-EVD-012",
+      "id": "IAM-EVD-012",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-EVD-012",
+        "file": "verification/evidence.qmd",
+        "line": 71
+      },
+      "status": "verified",
+      "title": "Relatório de recuperação reforçada",
+      "type": "evidence"
+    },
+    {
+      "attributes": {
+        "priority": "medium",
+        "tags": "accessibility;portal"
+      },
+      "body": "Resultado de teste automatizado e manual de teclado, foco e nomes acessíveis.",
+      "href": "verification/evidence.html#IAM-EVD-013",
+      "id": "IAM-EVD-013",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-EVD-013",
+        "file": "verification/evidence.qmd",
+        "line": 77
+      },
+      "status": "verified",
+      "title": "Relatório de acessibilidade do portal",
+      "type": "evidence"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "availability;failover"
+      },
+      "body": "Resultado do exercício de failover e monitoramento mensal do serviço de autenticação.",
+      "href": "verification/evidence.html#IAM-EVD-014",
+      "id": "IAM-EVD-014",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-EVD-014",
+        "file": "verification/evidence.qmd",
+        "line": 83
+      },
+      "status": "verified",
+      "title": "Relatório de disponibilidade da autenticação",
+      "type": "evidence"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "privacy;compliance"
+      },
+      "body": "Resultado da inspeção que confirma a ausência de atributos pessoais desnecessários.",
+      "href": "verification/evidence.html#IAM-EVD-015",
+      "id": "IAM-EVD-015",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-EVD-015",
+        "file": "verification/evidence.qmd",
+        "line": 89
+      },
+      "status": "verified",
+      "title": "Relatório de minimização de dados",
+      "type": "evidence"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "security;encryption"
+      },
+      "body": "Resultado da verificação de TLS e criptografia de segredos em armazenamento.",
+      "href": "verification/evidence.html#IAM-EVD-016",
+      "id": "IAM-EVD-016",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-EVD-016",
+        "file": "verification/evidence.qmd",
+        "line": 95
+      },
+      "status": "verified",
+      "title": "Relatório de criptografia de credenciais",
+      "type": "evidence"
+    },
+    {
+      "attributes": {
+        "priority": "medium",
+        "tags": "integration;oidc"
+      },
+      "body": "Resultado da integração de descoberta e troca de token com a aplicação consumidora.",
+      "href": "verification/evidence.html#IAM-EVD-017",
+      "id": "IAM-EVD-017",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-EVD-017",
+        "file": "verification/evidence.qmd",
+        "line": 101
+      },
+      "status": "verified",
+      "title": "Relatório de interoperabilidade OIDC",
+      "type": "evidence"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "authentication;security"
+      },
+      "body": "O serviço deve validar credenciais contra o diretório corporativo antes de criar sessão.\n\n### Rationale\n\nGarante que a sessão represente uma identidade corporativa conhecida.",
+      "href": "requirements/functional.html#IAM-FUN-001",
+      "id": "IAM-FUN-001",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-FUN-001",
+          "target": "IAM-SYS-001",
+          "type": "derives-from"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-FUN-001",
+          "target": "IAM-COMP-001",
+          "type": "implemented-by"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-FUN-001",
+          "target": "IAM-TC-001",
+          "type": "verified-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-FUN-001",
+        "file": "requirements/functional.qmd",
+        "line": 6
+      },
+      "status": "approved",
+      "title": "Validar credenciais corporativas",
+      "type": "functional-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "authentication;mfa;security"
+      },
+      "body": "O serviço deve exigir um segundo fator para papéis privilegiados.\n\n### Rationale\n\nReduz a eficácia de credenciais capturadas por phishing.",
+      "href": "requirements/functional.html#IAM-FUN-002",
+      "id": "IAM-FUN-002",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-FUN-002",
+          "target": "IAM-SYS-001",
+          "type": "derives-from"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-FUN-002",
+          "target": "IAM-COMP-001",
+          "type": "implemented-by"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-FUN-002",
+          "target": "IAM-RISK-001",
+          "type": "mitigates"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-FUN-002",
+          "target": "IAM-TC-002",
+          "type": "verified-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-FUN-002",
+        "file": "requirements/functional.qmd",
+        "line": 16
+      },
+      "status": "approved",
+      "title": "Exigir MFA para acesso privilegiado",
+      "type": "functional-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "authentication;session"
+      },
+      "body": "O serviço deve revogar sessões quando a conta for suspensa ou o risco subir.\n\n### Rationale\n\nLimita a janela de abuso após um evento de risco.",
+      "href": "requirements/functional.html#IAM-FUN-003",
+      "id": "IAM-FUN-003",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-FUN-003",
+          "target": "IAM-SYS-001",
+          "type": "derives-from"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-FUN-003",
+          "target": "IAM-COMP-001",
+          "type": "implemented-by"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-FUN-003",
+          "target": "IAM-TC-003",
+          "type": "verified-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-FUN-003",
+        "file": "requirements/functional.qmd",
+        "line": 26
+      },
+      "status": "approved",
+      "title": "Revogar sessões após mudança de risco",
+      "type": "functional-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "authorization;policy"
+      },
+      "body": "O motor deve avaliar sujeito, recurso, ação e contexto na decisão de acesso.\n\n### Rationale\n\nPermite aplicar políticas consistentes independentemente da aplicação consumidora.",
+      "href": "requirements/functional.html#IAM-FUN-004",
+      "id": "IAM-FUN-004",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-FUN-004",
+          "target": "IAM-SYS-002",
+          "type": "derives-from"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-FUN-004",
+          "target": "IAM-COMP-002",
+          "type": "implemented-by"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-FUN-004",
+          "target": "IAM-TC-004",
+          "type": "verified-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-FUN-004",
+        "file": "requirements/functional.qmd",
+        "line": 36
+      },
+      "status": "approved",
+      "title": "Avaliar políticas por atributo",
+      "type": "functional-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "authorization;least-privilege"
+      },
+      "body": "O motor deve negar solicitações que não correspondam a uma regra permissiva.\n\n### Rationale\n\nEvita escalada de privilégio causada por política ausente ou excessivamente ampla.",
+      "href": "requirements/functional.html#IAM-FUN-005",
+      "id": "IAM-FUN-005",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-FUN-005",
+          "target": "IAM-SYS-002",
+          "type": "derives-from"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-FUN-005",
+          "target": "IAM-COMP-002",
+          "type": "implemented-by"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-FUN-005",
+          "target": "IAM-RISK-002",
+          "type": "mitigates"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-FUN-005",
+          "target": "IAM-TC-005",
+          "type": "verified-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-FUN-005",
+        "file": "requirements/functional.qmd",
+        "line": 46
+      },
+      "status": "approved",
+      "title": "Aplicar menor privilégio por padrão",
+      "type": "functional-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "medium",
+        "tags": "authorization;delegation"
+      },
+      "body": "O sistema deve limitar e registrar delegações de acesso com data de expiração.\n\n### Rationale\n\nMantém delegações excepcionais temporárias e responsabilizáveis.",
+      "href": "requirements/functional.html#IAM-FUN-006",
+      "id": "IAM-FUN-006",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-FUN-006",
+          "target": "IAM-SYS-002",
+          "type": "derives-from"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-FUN-006",
+          "target": "IAM-COMP-002",
+          "type": "implemented-by"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-FUN-006",
+          "target": "IAM-TC-006",
+          "type": "verified-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-FUN-006",
+        "file": "requirements/functional.qmd",
+        "line": 56
+      },
+      "status": "approved",
+      "title": "Registrar delegação temporária",
+      "type": "functional-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "lifecycle;provisioning"
+      },
+      "body": "O orquestrador deve criar conta após receber evento válido de admissão.\n\n### Rationale\n\nReduz trabalho manual e garante que o acesso comece com dados de origem confiável.",
+      "href": "requirements/functional.html#IAM-FUN-007",
+      "id": "IAM-FUN-007",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-FUN-007",
+          "target": "IAM-SYS-003",
+          "type": "derives-from"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-FUN-007",
+          "target": "IAM-COMP-003",
+          "type": "implemented-by"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-FUN-007",
+          "target": "IAM-TC-007",
+          "type": "verified-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-FUN-007",
+        "file": "requirements/functional.qmd",
+        "line": 66
+      },
+      "status": "approved",
+      "title": "Provisionar conta por evento de admissão",
+      "type": "functional-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "lifecycle;offboarding"
+      },
+      "body": "O orquestrador deve suspender a conta e remover sessões após evento de desligamento.\n\n### Rationale\n\nEvita que identidades desligadas mantenham acesso operacional.",
+      "href": "requirements/functional.html#IAM-FUN-008",
+      "id": "IAM-FUN-008",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-FUN-008",
+          "target": "IAM-SYS-003",
+          "type": "derives-from"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-FUN-008",
+          "target": "IAM-COMP-003",
+          "type": "implemented-by"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-FUN-008",
+          "target": "IAM-TC-008",
+          "type": "verified-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-FUN-008",
+        "file": "requirements/functional.qmd",
+        "line": 76
+      },
+      "status": "approved",
+      "title": "Suspender conta no desligamento",
+      "type": "functional-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "medium",
+        "tags": "lifecycle;review"
+      },
+      "body": "O sistema deve abrir campanhas de revisão para responsáveis por recursos.\n\n### Rationale\n\nRevisões periódicas removem privilégios que deixaram de ser necessários.",
+      "href": "requirements/functional.html#IAM-FUN-009",
+      "id": "IAM-FUN-009",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-FUN-009",
+          "target": "IAM-SYS-003",
+          "type": "derives-from"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-FUN-009",
+          "target": "IAM-COMP-003",
+          "type": "implemented-by"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-FUN-009",
+          "target": "IAM-TC-009",
+          "type": "verified-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-FUN-009",
+        "file": "requirements/functional.qmd",
+        "line": 86
+      },
+      "status": "approved",
+      "title": "Solicitar revisão periódica de acesso",
+      "type": "functional-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "audit;security"
+      },
+      "body": "O sistema deve registrar política aplicada, sujeito, recurso, resultado e correlação.\n\n### Rationale\n\nPermite explicar e investigar decisões de autorização.",
+      "href": "requirements/functional.html#IAM-FUN-010",
+      "id": "IAM-FUN-010",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-FUN-010",
+          "target": "IAM-SYS-004",
+          "type": "derives-from"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-FUN-010",
+          "target": "IAM-COMP-004",
+          "type": "implemented-by"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-FUN-010",
+          "target": "IAM-TC-010",
+          "type": "verified-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-FUN-010",
+        "file": "requirements/functional.qmd",
+        "line": 96
+      },
+      "status": "approved",
+      "title": "Registrar decisão de autorização",
+      "type": "functional-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "medium",
+        "tags": "audit;retention"
+      },
+      "body": "Auditores devem consultar eventos de uma conta em ordem temporal e com filtros.\n\n### Rationale\n\nReduz o tempo necessário para investigar uma identidade específica.",
+      "href": "requirements/functional.html#IAM-FUN-011",
+      "id": "IAM-FUN-011",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-FUN-011",
+          "target": "IAM-SYS-004",
+          "type": "derives-from"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-FUN-011",
+          "target": "IAM-COMP-004",
+          "type": "implemented-by"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-FUN-011",
+          "target": "IAM-TC-011",
+          "type": "verified-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-FUN-011",
+        "file": "requirements/functional.qmd",
+        "line": 106
+      },
+      "status": "approved",
+      "title": "Consultar trilha de auditoria por conta",
+      "type": "functional-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "recovery;security"
+      },
+      "body": "O fluxo deve exigir prova de posse e validação adicional para uma conta de alto risco.\n\n### Rationale\n\nEvita que a recuperação de conta seja explorada como tomada de acesso.",
+      "href": "requirements/functional.html#IAM-FUN-012",
+      "id": "IAM-FUN-012",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-FUN-012",
+          "target": "IAM-SYS-005",
+          "type": "derives-from"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-FUN-012",
+          "target": "IAM-COMP-005",
+          "type": "implemented-by"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-FUN-012",
+          "target": "IAM-TC-012",
+          "type": "verified-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-FUN-012",
+        "file": "requirements/functional.qmd",
+        "line": 116
+      },
+      "status": "approved",
+      "title": "Recuperar conta com verificação reforçada",
+      "type": "functional-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "medium",
+        "tags": "recovery;support"
+      },
+      "body": "O produto deve permitir recuperação assistida com aprovação de segundo operador.",
+      "href": "requirements/functional.html#IAM-FUN-013",
+      "id": "IAM-FUN-013",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-FUN-013",
+          "target": "IAM-SYS-005",
+          "type": "derives-from"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-FUN-013",
+        "file": "requirements/functional.qmd",
+        "line": 126
+      },
+      "status": "in-review",
+      "title": "Delegar recuperação ao suporte supervisionado",
+      "type": "functional-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "medium",
+        "tags": "integration;scim"
+      },
+      "body": "O produto poderá sincronizar grupos autorizados a partir de provedor externo.",
+      "href": "requirements/functional.html#IAM-FUN-014",
+      "id": "IAM-FUN-014",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-FUN-014",
+          "target": "IAM-SYS-006",
+          "type": "derives-from"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-FUN-014",
+        "file": "requirements/functional.qmd",
+        "line": 132
+      },
+      "status": "draft",
+      "title": "Provisionar grupos via SCIM",
+      "type": "functional-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "low",
+        "tags": "authentication;password"
+      },
+      "body": "A proposta permitiria uma senha comum para equipes temporárias; foi reprovada por\neliminar responsabilização individual.",
+      "href": "requirements/functional.html#IAM-FUN-015",
+      "id": "IAM-FUN-015",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-FUN-015",
+          "target": "IAM-SYS-001",
+          "type": "conflicts-with"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-FUN-015",
+        "file": "requirements/functional.qmd",
+        "line": 138
+      },
+      "status": "disapproved",
+      "title": "Permitir senha compartilhada por equipe",
+      "type": "functional-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "integration;oidc"
+      },
+      "body": "Interface de federação para emissão de tokens e descoberta de metadados.",
+      "href": "architecture/components.html#IAM-IF-001",
+      "id": "IAM-IF-001",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-IF-001",
+        "file": "architecture/components.qmd",
+        "line": 42
+      },
+      "status": "implemented",
+      "title": "API OpenID Connect",
+      "type": "interface"
+    },
+    {
+      "attributes": {
+        "priority": "medium",
+        "tags": "integration;scim"
+      },
+      "body": "Interface para sincronizar usuários e grupos a partir de sistemas de origem.",
+      "href": "architecture/components.html#IAM-IF-002",
+      "id": "IAM-IF-002",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-IF-002",
+        "file": "architecture/components.qmd",
+        "line": 48
+      },
+      "status": "implemented",
+      "title": "API SCIM de provisão",
+      "type": "interface"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "audit;events"
+      },
+      "body": "Interface de eventos assinados entregue ao cofre e ao monitoramento de segurança.",
+      "href": "architecture/components.html#IAM-IF-003",
+      "id": "IAM-IF-003",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-IF-003",
+        "file": "architecture/components.qmd",
+        "line": 54
+      },
+      "status": "implemented",
+      "title": "Fluxo de eventos de auditoria",
+      "type": "interface"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "security;encryption"
+      },
+      "body": "Credenciais e segredos devem usar criptografia aprovada durante transporte e armazenamento.\n\n### Rationale\n\nProtege segredos contra interceptação e exposição em armazenamento persistente.",
+      "href": "requirements/non-functional.html#IAM-NFR-001",
+      "id": "IAM-NFR-001",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-NFR-001",
+          "target": "IAM-STK-001",
+          "type": "derives-from"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-NFR-001",
+          "target": "IAM-COMP-001",
+          "type": "implemented-by"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-NFR-001",
+          "target": "IAM-TC-016",
+          "type": "verified-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-NFR-001",
+        "file": "requirements/non-functional.qmd",
+        "line": 6
+      },
+      "status": "approved",
+      "title": "Proteger credenciais em trânsito e repouso",
+      "type": "non-functional-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "security;availability"
+      },
+      "body": "O serviço de autenticação deve atingir disponibilidade mensal de 99,95%.\n\n### Rationale\n\nIdentidade indisponível bloqueia o trabalho de todos os sistemas consumidores.",
+      "href": "requirements/non-functional.html#IAM-NFR-002",
+      "id": "IAM-NFR-002",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-NFR-002",
+          "target": "IAM-STK-003",
+          "type": "derives-from"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-NFR-002",
+          "target": "IAM-COMP-001",
+          "type": "implemented-by"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-NFR-002",
+          "target": "IAM-TC-014",
+          "type": "verified-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-NFR-002",
+        "file": "requirements/non-functional.qmd",
+        "line": 16
+      },
+      "status": "approved",
+      "title": "Manter autenticação disponível",
+      "type": "non-functional-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "privacy;compliance"
+      },
+      "body": "Eventos de auditoria devem conter somente dados pessoais necessários à finalidade.\n\n### Rationale\n\nMinimiza o impacto de um acesso indevido ou vazamento do repositório de logs.",
+      "href": "requirements/non-functional.html#IAM-NFR-003",
+      "id": "IAM-NFR-003",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-NFR-003",
+          "target": "IAM-STK-002",
+          "type": "derives-from"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-NFR-003",
+          "target": "IAM-COMP-004",
+          "type": "implemented-by"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-NFR-003",
+          "target": "IAM-RISK-003",
+          "type": "mitigates"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-NFR-003",
+          "target": "IAM-TC-015",
+          "type": "verified-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-NFR-003",
+        "file": "requirements/non-functional.qmd",
+        "line": 26
+      },
+      "status": "approved",
+      "title": "Minimizar dados pessoais em eventos",
+      "type": "non-functional-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "medium",
+        "tags": "performance;authorization"
+      },
+      "body": "O percentil 95 das decisões de autorização deve ser inferior a 200 ms sob carga nominal.\n\n### Rationale\n\nDecisões lentas degradam a experiência e estimulam contornos inseguros.",
+      "href": "requirements/non-functional.html#IAM-NFR-004",
+      "id": "IAM-NFR-004",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-NFR-004",
+          "target": "IAM-STK-004",
+          "type": "derives-from"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-NFR-004",
+          "target": "IAM-COMP-002",
+          "type": "implemented-by"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-NFR-004",
+          "target": "IAM-TC-006",
+          "type": "verified-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-NFR-004",
+        "file": "requirements/non-functional.qmd",
+        "line": 36
+      },
+      "status": "approved",
+      "title": "Responder decisão de acesso em até 200 ms",
+      "type": "non-functional-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "security;logging"
+      },
+      "body": "O armazenamento de auditoria deve detectar alteração ou remoção de eventos.\n\n### Rationale\n\nUma trilha adulterável não sustenta investigação nem comprovação de conformidade.",
+      "href": "requirements/non-functional.html#IAM-NFR-005",
+      "id": "IAM-NFR-005",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-NFR-005",
+          "target": "IAM-STK-005",
+          "type": "derives-from"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-NFR-005",
+          "target": "IAM-COMP-004",
+          "type": "implemented-by"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-NFR-005",
+          "target": "IAM-TC-010",
+          "type": "verified-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-NFR-005",
+        "file": "requirements/non-functional.qmd",
+        "line": 46
+      },
+      "status": "approved",
+      "title": "Preservar integridade de auditoria",
+      "type": "non-functional-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "medium",
+        "tags": "usability;accessibility"
+      },
+      "body": "As telas de autenticação devem atender critérios de acessibilidade de nível AA.\n\n### Rationale\n\nTodos os usuários precisam concluir autenticação sem depender de um único modo de interação.",
+      "href": "requirements/non-functional.html#IAM-NFR-006",
+      "id": "IAM-NFR-006",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-NFR-006",
+          "target": "IAM-STK-004",
+          "type": "derives-from"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-NFR-006",
+          "target": "IAM-COMP-006",
+          "type": "implemented-by"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-NFR-006",
+          "target": "IAM-TC-013",
+          "type": "verified-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-NFR-006",
+        "file": "requirements/non-functional.qmd",
+        "line": 56
+      },
+      "status": "approved",
+      "title": "Oferecer autenticação acessível",
+      "type": "non-functional-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "compliance;retention"
+      },
+      "body": "Evidências de acesso devem permanecer disponíveis durante o prazo de retenção definido.\n\n### Rationale\n\nAtende obrigações de auditoria e permite investigar fatos ocorridos no passado.",
+      "href": "requirements/non-functional.html#IAM-NFR-007",
+      "id": "IAM-NFR-007",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-NFR-007",
+          "target": "IAM-STK-002",
+          "type": "derives-from"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-NFR-007",
+          "target": "IAM-COMP-004",
+          "type": "implemented-by"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-NFR-007",
+          "target": "IAM-TC-011",
+          "type": "verified-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-NFR-007",
+        "file": "requirements/non-functional.qmd",
+        "line": 66
+      },
+      "status": "approved",
+      "title": "Reter evidências pelo prazo regulatório",
+      "type": "non-functional-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "medium",
+        "tags": "resilience;recovery"
+      },
+      "body": "O serviço deve restaurar a recuperação de conta dentro do objetivo de quatro horas.\n\n### Rationale\n\nLimita o período em que usuários legítimos ficam sem um caminho seguro de retorno.",
+      "href": "requirements/non-functional.html#IAM-NFR-008",
+      "id": "IAM-NFR-008",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-NFR-008",
+          "target": "IAM-STK-003",
+          "type": "derives-from"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-NFR-008",
+          "target": "IAM-COMP-005",
+          "type": "implemented-by"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-NFR-008",
+          "target": "IAM-RISK-004",
+          "type": "mitigates"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-NFR-008",
+          "target": "IAM-TC-012",
+          "type": "verified-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-NFR-008",
+        "file": "requirements/non-functional.qmd",
+        "line": 76
+      },
+      "status": "approved",
+      "title": "Restaurar fluxo de recuperação em até quatro horas",
+      "type": "non-functional-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "medium",
+        "tags": "observability;operations"
+      },
+      "body": "O produto deve publicar métricas de latência, erros e bloqueios para operações.",
+      "href": "requirements/non-functional.html#IAM-NFR-009",
+      "id": "IAM-NFR-009",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-NFR-009",
+          "target": "IAM-STK-003",
+          "type": "derives-from"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-NFR-009",
+        "file": "requirements/non-functional.qmd",
+        "line": 86
+      },
+      "status": "in-review",
+      "title": "Expor métricas operacionais de identidade",
+      "type": "non-functional-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "low",
+        "tags": "sustainability;operations"
+      },
+      "body": "O produto poderá medir consumo energético por transação de autenticação.",
+      "href": "requirements/non-functional.html#IAM-NFR-010",
+      "id": "IAM-NFR-010",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-NFR-010",
+          "target": "IAM-STK-004",
+          "type": "derives-from"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-NFR-010",
+        "file": "requirements/non-functional.qmd",
+        "line": 92
+      },
+      "status": "draft",
+      "title": "Medir consumo energético por autenticação",
+      "type": "non-functional-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "security;account-takeover"
+      },
+      "body": "Uma credencial capturada pode permitir acesso indevido sem um segundo fator resistente.",
+      "href": "risks/security.html#IAM-RISK-001",
+      "id": "IAM-RISK-001",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-RISK-001",
+        "file": "risks/security.qmd",
+        "line": 6
+      },
+      "status": "in-review",
+      "title": "Tomada de conta por phishing",
+      "type": "risk"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "security;privilege-escalation"
+      },
+      "body": "Uma política ampla ou ausente pode conceder acesso além da necessidade de trabalho.",
+      "href": "risks/security.html#IAM-RISK-002",
+      "id": "IAM-RISK-002",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-RISK-002",
+        "file": "risks/security.qmd",
+        "line": 12
+      },
+      "status": "approved",
+      "title": "Escalada de privilégio por política permissiva",
+      "type": "risk"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "privacy;audit"
+      },
+      "body": "Eventos excessivamente detalhados podem expor identificadores e atributos pessoais.",
+      "href": "risks/security.html#IAM-RISK-003",
+      "id": "IAM-RISK-003",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-RISK-003",
+        "file": "risks/security.qmd",
+        "line": 18
+      },
+      "status": "approved",
+      "title": "Vazamento de dados pessoais em logs",
+      "type": "risk"
+    },
+    {
+      "attributes": {
+        "priority": "medium",
+        "tags": "availability;recovery"
+      },
+      "body": "Uma falha prolongada pode impedir usuários legítimos de recuperar acesso crítico.",
+      "href": "risks/security.html#IAM-RISK-004",
+      "id": "IAM-RISK-004",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-RISK-004",
+        "file": "risks/security.qmd",
+        "line": 24
+      },
+      "status": "draft",
+      "title": "Indisponibilidade durante recuperação de conta",
+      "type": "risk"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "security;authentication"
+      },
+      "body": "A CISO precisa de autenticação resistente a phishing para contas privilegiadas.",
+      "href": "context/stakeholders.html#IAM-STK-001",
+      "id": "IAM-STK-001",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-STK-001",
+        "file": "context/stakeholders.qmd",
+        "line": 5
+      },
+      "status": "approved",
+      "title": "Diretora de segurança precisa reduzir invasões de conta",
+      "type": "stakeholder-need"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "privacy;compliance"
+      },
+      "body": "O DPO precisa de evidências de consentimento, retenção e acesso mínimo.",
+      "href": "context/stakeholders.html#IAM-STK-002",
+      "id": "IAM-STK-002",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-STK-002",
+        "file": "context/stakeholders.qmd",
+        "line": 11
+      },
+      "status": "approved",
+      "title": "Encarregado de dados precisa controlar exposição de dados pessoais",
+      "type": "stakeholder-need"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "operations;availability"
+      },
+      "body": "A central de suporte precisa restaurar contas sem criar um atalho para fraude.",
+      "href": "context/stakeholders.html#IAM-STK-003",
+      "id": "IAM-STK-003",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-STK-003",
+        "file": "context/stakeholders.qmd",
+        "line": 17
+      },
+      "status": "approved",
+      "title": "Operações precisam recuperar acesso com segurança",
+      "type": "stakeholder-need"
+    },
+    {
+      "attributes": {
+        "priority": "medium",
+        "tags": "developer;integration"
+      },
+      "body": "Times internos precisam de uma interface padronizada para login e autorização.",
+      "href": "context/stakeholders.html#IAM-STK-004",
+      "id": "IAM-STK-004",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-STK-004",
+        "file": "context/stakeholders.qmd",
+        "line": 23
+      },
+      "status": "approved",
+      "title": "Equipes de produto precisam integrar aplicações rapidamente",
+      "type": "stakeholder-need"
+    },
+    {
+      "attributes": {
+        "priority": "medium",
+        "tags": "audit;governance"
+      },
+      "body": "Auditores precisam reconstruir quem autorizou cada privilégio e quando.",
+      "href": "context/stakeholders.html#IAM-STK-005",
+      "id": "IAM-STK-005",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "IAM-STK-005",
+        "file": "context/stakeholders.qmd",
+        "line": 29
+      },
+      "status": "approved",
+      "title": "Auditoria precisa de rastreabilidade de decisões de acesso",
+      "type": "stakeholder-need"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "authentication;security"
+      },
+      "body": "O Aegis IAM deve autenticar a identidade antes de emitir uma sessão utilizável.\n\n### Rationale\n\nEvita que recursos protegidos sejam expostos a solicitantes anônimos.",
+      "href": "requirements/system.html#IAM-SYS-001",
+      "id": "IAM-SYS-001",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-SYS-001",
+          "target": "IAM-STK-001",
+          "type": "derives-from"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-SYS-001",
+          "target": "IAM-COMP-001",
+          "type": "implemented-by"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-SYS-001",
+          "target": "IAM-TC-001",
+          "type": "verified-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-SYS-001",
+        "file": "requirements/system.qmd",
+        "line": 5
+      },
+      "status": "approved",
+      "title": "Autenticar identidades antes de emitir sessão",
+      "type": "system-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "authorization;least-privilege"
+      },
+      "body": "O sistema deve decidir acesso por políticas centralizadas e atributos confiáveis.\n\n### Rationale\n\nCentralizar a decisão reduz divergências entre aplicações consumidoras.",
+      "href": "requirements/system.html#IAM-SYS-002",
+      "id": "IAM-SYS-002",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-SYS-002",
+          "target": "IAM-STK-002",
+          "type": "derives-from"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-SYS-002",
+          "target": "IAM-COMP-002",
+          "type": "implemented-by"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-SYS-002",
+          "target": "IAM-TC-004",
+          "type": "verified-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-SYS-002",
+        "file": "requirements/system.qmd",
+        "line": 15
+      },
+      "status": "approved",
+      "title": "Decidir acesso por política central",
+      "type": "system-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "lifecycle;provisioning"
+      },
+      "body": "O sistema deve provisionar, alterar, suspender e encerrar contas de forma auditável.\n\n### Rationale\n\nContas órfãs e privilégios persistentes são riscos operacionais relevantes.",
+      "href": "requirements/system.html#IAM-SYS-003",
+      "id": "IAM-SYS-003",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-SYS-003",
+          "target": "IAM-STK-003",
+          "type": "derives-from"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-SYS-003",
+          "target": "IAM-COMP-003",
+          "type": "implemented-by"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-SYS-003",
+          "target": "IAM-TC-007",
+          "type": "verified-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-SYS-003",
+        "file": "requirements/system.qmd",
+        "line": 25
+      },
+      "status": "approved",
+      "title": "Gerir o ciclo de vida de contas",
+      "type": "system-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "audit;compliance"
+      },
+      "body": "O sistema deve registrar eventos de autenticação, autorização e administração.\n\n### Rationale\n\nRegistros íntegros sustentam investigação, conformidade e responsabilização.",
+      "href": "requirements/system.html#IAM-SYS-004",
+      "id": "IAM-SYS-004",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-SYS-004",
+          "target": "IAM-STK-005",
+          "type": "derives-from"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-SYS-004",
+          "target": "IAM-COMP-004",
+          "type": "implemented-by"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-SYS-004",
+          "target": "IAM-TC-010",
+          "type": "verified-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-SYS-004",
+        "file": "requirements/system.qmd",
+        "line": 35
+      },
+      "status": "approved",
+      "title": "Registrar eventos de identidade imutáveis",
+      "type": "system-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "recovery;security"
+      },
+      "body": "O sistema deve recuperar acesso somente após validação de identidade proporcional ao risco.\n\n### Rationale\n\nO processo de recuperação não pode se tornar uma via de tomada de conta.",
+      "href": "requirements/system.html#IAM-SYS-005",
+      "id": "IAM-SYS-005",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-SYS-005",
+          "target": "IAM-STK-003",
+          "type": "derives-from"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-SYS-005",
+          "target": "IAM-COMP-005",
+          "type": "implemented-by"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-SYS-005",
+          "target": "IAM-TC-012",
+          "type": "verified-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-SYS-005",
+        "file": "requirements/system.qmd",
+        "line": 45
+      },
+      "status": "approved",
+      "title": "Recuperar acesso com prova de identidade",
+      "type": "system-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "medium",
+        "tags": "integration;standards"
+      },
+      "body": "O sistema deve oferecer protocolos abertos de federação e provisão.\n\n### Rationale\n\nProtocolos padronizados diminuem o custo e o risco das integrações.",
+      "href": "requirements/system.html#IAM-SYS-006",
+      "id": "IAM-SYS-006",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-SYS-006",
+          "target": "IAM-STK-004",
+          "type": "derives-from"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-SYS-006",
+          "target": "IAM-IF-001",
+          "type": "implemented-by"
+        },
+        {
+          "attributes": {},
+          "source": "IAM-SYS-006",
+          "target": "IAM-TC-017",
+          "type": "verified-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-SYS-006",
+        "file": "requirements/system.qmd",
+        "line": 55
+      },
+      "status": "approved",
+      "title": "Expor integração de identidade padronizada",
+      "type": "system-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "medium",
+        "tags": "analytics;governance"
+      },
+      "body": "O sistema deve priorizar para revisão acessos com padrão anômalo.\n\n### Rationale\n\nA análise de anomalias pode antecipar abuso de privilégios.",
+      "href": "requirements/system.html#IAM-SYS-007",
+      "id": "IAM-SYS-007",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-SYS-007",
+          "target": "IAM-STK-005",
+          "type": "derives-from"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-SYS-007",
+        "file": "requirements/system.qmd",
+        "line": 65
+      },
+      "status": "in-review",
+      "title": "Detectar anomalias de privilégio",
+      "type": "system-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "low",
+        "tags": "experience;mobile"
+      },
+      "body": "O sistema poderá oferecer uma credencial móvel para acesso presencial.\n\n### Rationale\n\nA necessidade depende de avaliação conjunta de segurança física e privacidade.",
+      "href": "requirements/system.html#IAM-SYS-008",
+      "id": "IAM-SYS-008",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-SYS-008",
+          "target": "IAM-STK-004",
+          "type": "derives-from"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-SYS-008",
+        "file": "requirements/system.qmd",
+        "line": 75
+      },
+      "status": "draft",
+      "title": "Oferecer credencial móvel corporativa",
+      "type": "system-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "authentication;regression"
+      },
+      "body": "Verifica criação de sessão somente para credencial corporativa válida.",
+      "href": "verification/test-cases.html#IAM-TC-001",
+      "id": "IAM-TC-001",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-TC-001",
+          "target": "IAM-EVD-001",
+          "type": "evidenced-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-TC-001",
+        "file": "verification/test-cases.qmd",
+        "line": 6
+      },
+      "status": "passed",
+      "title": "Autenticação com credencial válida",
+      "type": "test-case"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "mfa;security"
+      },
+      "body": "Verifica bloqueio de papel privilegiado quando o segundo fator não é satisfeito.",
+      "href": "verification/test-cases.html#IAM-TC-002",
+      "id": "IAM-TC-002",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-TC-002",
+          "target": "IAM-EVD-002",
+          "type": "evidenced-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-TC-002",
+        "file": "verification/test-cases.qmd",
+        "line": 12
+      },
+      "status": "passed",
+      "title": "MFA obrigatório para administrador",
+      "type": "test-case"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "session;security"
+      },
+      "body": "Verifica invalidação de tokens após suspensão de conta.",
+      "href": "verification/test-cases.html#IAM-TC-003",
+      "id": "IAM-TC-003",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-TC-003",
+          "target": "IAM-EVD-003",
+          "type": "evidenced-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-TC-003",
+        "file": "verification/test-cases.qmd",
+        "line": 18
+      },
+      "status": "passed",
+      "title": "Revogação de sessão suspensa",
+      "type": "test-case"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "authorization;policy"
+      },
+      "body": "Verifica avaliação de sujeito, recurso, ação e contexto em uma política.",
+      "href": "verification/test-cases.html#IAM-TC-004",
+      "id": "IAM-TC-004",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-TC-004",
+          "target": "IAM-EVD-004",
+          "type": "evidenced-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-TC-004",
+        "file": "verification/test-cases.qmd",
+        "line": 24
+      },
+      "status": "passed",
+      "title": "Decisão por atributo",
+      "type": "test-case"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "authorization;least-privilege"
+      },
+      "body": "Verifica que uma solicitação sem regra permissiva é negada.",
+      "href": "verification/test-cases.html#IAM-TC-005",
+      "id": "IAM-TC-005",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-TC-005",
+          "target": "IAM-EVD-005",
+          "type": "evidenced-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-TC-005",
+        "file": "verification/test-cases.qmd",
+        "line": 30
+      },
+      "status": "passed",
+      "title": "Negação sem regra permissiva",
+      "type": "test-case"
+    },
+    {
+      "attributes": {
+        "priority": "medium",
+        "tags": "integration;performance"
+      },
+      "body": "Verifica a resposta de autorização dentro do objetivo sob carga nominal.",
+      "href": "verification/test-cases.html#IAM-TC-006",
+      "id": "IAM-TC-006",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-TC-006",
+          "target": "IAM-EVD-006",
+          "type": "evidenced-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-TC-006",
+        "file": "verification/test-cases.qmd",
+        "line": 36
+      },
+      "status": "passed",
+      "title": "Latência da decisão de acesso",
+      "type": "test-case"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "lifecycle;provisioning"
+      },
+      "body": "Verifica criação de conta após evento de admissão válido.",
+      "href": "verification/test-cases.html#IAM-TC-007",
+      "id": "IAM-TC-007",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-TC-007",
+          "target": "IAM-EVD-007",
+          "type": "evidenced-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-TC-007",
+        "file": "verification/test-cases.qmd",
+        "line": 42
+      },
+      "status": "passed",
+      "title": "Criação por evento de admissão",
+      "type": "test-case"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "lifecycle;offboarding"
+      },
+      "body": "Verifica suspensão e encerramento de sessão após desligamento.",
+      "href": "verification/test-cases.html#IAM-TC-008",
+      "id": "IAM-TC-008",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-TC-008",
+          "target": "IAM-EVD-008",
+          "type": "evidenced-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-TC-008",
+        "file": "verification/test-cases.qmd",
+        "line": 48
+      },
+      "status": "passed",
+      "title": "Suspensão por desligamento",
+      "type": "test-case"
+    },
+    {
+      "attributes": {
+        "priority": "medium",
+        "tags": "lifecycle;review"
+      },
+      "body": "Verifica abertura de tarefa de revisão para o responsável adequado.",
+      "href": "verification/test-cases.html#IAM-TC-009",
+      "id": "IAM-TC-009",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-TC-009",
+          "target": "IAM-EVD-009",
+          "type": "evidenced-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-TC-009",
+        "file": "verification/test-cases.qmd",
+        "line": 54
+      },
+      "status": "passed",
+      "title": "Campanha de revisão de acesso",
+      "type": "test-case"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "audit;security"
+      },
+      "body": "Verifica correlação e integridade do evento da decisão de acesso.",
+      "href": "verification/test-cases.html#IAM-TC-010",
+      "id": "IAM-TC-010",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-TC-010",
+          "target": "IAM-EVD-010",
+          "type": "evidenced-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-TC-010",
+        "file": "verification/test-cases.qmd",
+        "line": 60
+      },
+      "status": "passed",
+      "title": "Registro de decisão de autorização",
+      "type": "test-case"
+    },
+    {
+      "attributes": {
+        "priority": "medium",
+        "tags": "audit;retention"
+      },
+      "body": "Verifica consulta ordenada e disponibilidade da evidência retida.",
+      "href": "verification/test-cases.html#IAM-TC-011",
+      "id": "IAM-TC-011",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-TC-011",
+          "target": "IAM-EVD-011",
+          "type": "evidenced-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-TC-011",
+        "file": "verification/test-cases.qmd",
+        "line": 66
+      },
+      "status": "passed",
+      "title": "Consulta e retenção de trilha",
+      "type": "test-case"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "recovery;security"
+      },
+      "body": "Verifica prova adicional de identidade antes da redefinição de credencial.",
+      "href": "verification/test-cases.html#IAM-TC-012",
+      "id": "IAM-TC-012",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-TC-012",
+          "target": "IAM-EVD-012",
+          "type": "evidenced-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-TC-012",
+        "file": "verification/test-cases.qmd",
+        "line": 72
+      },
+      "status": "passed",
+      "title": "Recuperação reforçada",
+      "type": "test-case"
+    },
+    {
+      "attributes": {
+        "priority": "medium",
+        "tags": "accessibility;portal"
+      },
+      "body": "Verifica navegação por teclado, foco visível e nomes acessíveis no portal.",
+      "href": "verification/test-cases.html#IAM-TC-013",
+      "id": "IAM-TC-013",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-TC-013",
+          "target": "IAM-EVD-013",
+          "type": "evidenced-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-TC-013",
+        "file": "verification/test-cases.qmd",
+        "line": 78
+      },
+      "status": "passed",
+      "title": "Acessibilidade da autenticação",
+      "type": "test-case"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "availability;resilience"
+      },
+      "body": "Verifica o objetivo mensal em exercício de monitoramento e failover.",
+      "href": "verification/test-cases.html#IAM-TC-014",
+      "id": "IAM-TC-014",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-TC-014",
+          "target": "IAM-EVD-014",
+          "type": "evidenced-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-TC-014",
+        "file": "verification/test-cases.qmd",
+        "line": 84
+      },
+      "status": "passed",
+      "title": "Disponibilidade de autenticação",
+      "type": "test-case"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "privacy;compliance"
+      },
+      "body": "Verifica ausência de atributos pessoais não necessários no evento de auditoria.",
+      "href": "verification/test-cases.html#IAM-TC-015",
+      "id": "IAM-TC-015",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-TC-015",
+          "target": "IAM-EVD-015",
+          "type": "evidenced-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-TC-015",
+        "file": "verification/test-cases.qmd",
+        "line": 90
+      },
+      "status": "passed",
+      "title": "Minimização de evento pessoal",
+      "type": "test-case"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "security;encryption"
+      },
+      "body": "Verifica TLS aprovado em trânsito e criptografia de segredos no armazenamento.",
+      "href": "verification/test-cases.html#IAM-TC-016",
+      "id": "IAM-TC-016",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-TC-016",
+          "target": "IAM-EVD-016",
+          "type": "evidenced-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-TC-016",
+        "file": "verification/test-cases.qmd",
+        "line": 96
+      },
+      "status": "passed",
+      "title": "Criptografia de credenciais e segredos",
+      "type": "test-case"
+    },
+    {
+      "attributes": {
+        "priority": "medium",
+        "tags": "integration;oidc"
+      },
+      "body": "Verifica descoberta, emissão e validação de token OIDC com uma aplicação consumidora.",
+      "href": "verification/test-cases.html#IAM-TC-017",
+      "id": "IAM-TC-017",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "IAM-TC-017",
+          "target": "IAM-EVD-017",
+          "type": "evidenced-by"
+        }
+      ],
+      "source": {
+        "anchor": "IAM-TC-017",
+        "file": "verification/test-cases.qmd",
+        "line": 102
+      },
+      "status": "passed",
+      "title": "Federação OpenID Connect",
+      "type": "test-case"
+    }
+  ],
+  "relations": [
+    {
+      "attributes": {},
+      "source": "IAM-FUN-001",
+      "target": "IAM-SYS-001",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-001",
+      "target": "IAM-COMP-001",
+      "type": "implemented-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-001",
+      "target": "IAM-TC-001",
+      "type": "verified-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-002",
+      "target": "IAM-SYS-001",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-002",
+      "target": "IAM-COMP-001",
+      "type": "implemented-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-002",
+      "target": "IAM-RISK-001",
+      "type": "mitigates"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-002",
+      "target": "IAM-TC-002",
+      "type": "verified-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-003",
+      "target": "IAM-SYS-001",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-003",
+      "target": "IAM-COMP-001",
+      "type": "implemented-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-003",
+      "target": "IAM-TC-003",
+      "type": "verified-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-004",
+      "target": "IAM-SYS-002",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-004",
+      "target": "IAM-COMP-002",
+      "type": "implemented-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-004",
+      "target": "IAM-TC-004",
+      "type": "verified-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-005",
+      "target": "IAM-SYS-002",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-005",
+      "target": "IAM-COMP-002",
+      "type": "implemented-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-005",
+      "target": "IAM-RISK-002",
+      "type": "mitigates"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-005",
+      "target": "IAM-TC-005",
+      "type": "verified-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-006",
+      "target": "IAM-SYS-002",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-006",
+      "target": "IAM-COMP-002",
+      "type": "implemented-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-006",
+      "target": "IAM-TC-006",
+      "type": "verified-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-007",
+      "target": "IAM-SYS-003",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-007",
+      "target": "IAM-COMP-003",
+      "type": "implemented-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-007",
+      "target": "IAM-TC-007",
+      "type": "verified-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-008",
+      "target": "IAM-SYS-003",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-008",
+      "target": "IAM-COMP-003",
+      "type": "implemented-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-008",
+      "target": "IAM-TC-008",
+      "type": "verified-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-009",
+      "target": "IAM-SYS-003",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-009",
+      "target": "IAM-COMP-003",
+      "type": "implemented-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-009",
+      "target": "IAM-TC-009",
+      "type": "verified-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-010",
+      "target": "IAM-SYS-004",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-010",
+      "target": "IAM-COMP-004",
+      "type": "implemented-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-010",
+      "target": "IAM-TC-010",
+      "type": "verified-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-011",
+      "target": "IAM-SYS-004",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-011",
+      "target": "IAM-COMP-004",
+      "type": "implemented-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-011",
+      "target": "IAM-TC-011",
+      "type": "verified-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-012",
+      "target": "IAM-SYS-005",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-012",
+      "target": "IAM-COMP-005",
+      "type": "implemented-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-012",
+      "target": "IAM-TC-012",
+      "type": "verified-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-013",
+      "target": "IAM-SYS-005",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-014",
+      "target": "IAM-SYS-006",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-FUN-015",
+      "target": "IAM-SYS-001",
+      "type": "conflicts-with"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-NFR-001",
+      "target": "IAM-STK-001",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-NFR-001",
+      "target": "IAM-COMP-001",
+      "type": "implemented-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-NFR-001",
+      "target": "IAM-TC-016",
+      "type": "verified-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-NFR-002",
+      "target": "IAM-STK-003",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-NFR-002",
+      "target": "IAM-COMP-001",
+      "type": "implemented-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-NFR-002",
+      "target": "IAM-TC-014",
+      "type": "verified-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-NFR-003",
+      "target": "IAM-STK-002",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-NFR-003",
+      "target": "IAM-COMP-004",
+      "type": "implemented-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-NFR-003",
+      "target": "IAM-RISK-003",
+      "type": "mitigates"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-NFR-003",
+      "target": "IAM-TC-015",
+      "type": "verified-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-NFR-004",
+      "target": "IAM-STK-004",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-NFR-004",
+      "target": "IAM-COMP-002",
+      "type": "implemented-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-NFR-004",
+      "target": "IAM-TC-006",
+      "type": "verified-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-NFR-005",
+      "target": "IAM-STK-005",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-NFR-005",
+      "target": "IAM-COMP-004",
+      "type": "implemented-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-NFR-005",
+      "target": "IAM-TC-010",
+      "type": "verified-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-NFR-006",
+      "target": "IAM-STK-004",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-NFR-006",
+      "target": "IAM-COMP-006",
+      "type": "implemented-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-NFR-006",
+      "target": "IAM-TC-013",
+      "type": "verified-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-NFR-007",
+      "target": "IAM-STK-002",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-NFR-007",
+      "target": "IAM-COMP-004",
+      "type": "implemented-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-NFR-007",
+      "target": "IAM-TC-011",
+      "type": "verified-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-NFR-008",
+      "target": "IAM-STK-003",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-NFR-008",
+      "target": "IAM-COMP-005",
+      "type": "implemented-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-NFR-008",
+      "target": "IAM-RISK-004",
+      "type": "mitigates"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-NFR-008",
+      "target": "IAM-TC-012",
+      "type": "verified-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-NFR-009",
+      "target": "IAM-STK-003",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-NFR-010",
+      "target": "IAM-STK-004",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-SYS-001",
+      "target": "IAM-STK-001",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-SYS-001",
+      "target": "IAM-COMP-001",
+      "type": "implemented-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-SYS-001",
+      "target": "IAM-TC-001",
+      "type": "verified-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-SYS-002",
+      "target": "IAM-STK-002",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-SYS-002",
+      "target": "IAM-COMP-002",
+      "type": "implemented-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-SYS-002",
+      "target": "IAM-TC-004",
+      "type": "verified-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-SYS-003",
+      "target": "IAM-STK-003",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-SYS-003",
+      "target": "IAM-COMP-003",
+      "type": "implemented-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-SYS-003",
+      "target": "IAM-TC-007",
+      "type": "verified-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-SYS-004",
+      "target": "IAM-STK-005",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-SYS-004",
+      "target": "IAM-COMP-004",
+      "type": "implemented-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-SYS-004",
+      "target": "IAM-TC-010",
+      "type": "verified-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-SYS-005",
+      "target": "IAM-STK-003",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-SYS-005",
+      "target": "IAM-COMP-005",
+      "type": "implemented-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-SYS-005",
+      "target": "IAM-TC-012",
+      "type": "verified-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-SYS-006",
+      "target": "IAM-STK-004",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-SYS-006",
+      "target": "IAM-IF-001",
+      "type": "implemented-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-SYS-006",
+      "target": "IAM-TC-017",
+      "type": "verified-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-SYS-007",
+      "target": "IAM-STK-005",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-SYS-008",
+      "target": "IAM-STK-004",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-TC-001",
+      "target": "IAM-EVD-001",
+      "type": "evidenced-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-TC-002",
+      "target": "IAM-EVD-002",
+      "type": "evidenced-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-TC-003",
+      "target": "IAM-EVD-003",
+      "type": "evidenced-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-TC-004",
+      "target": "IAM-EVD-004",
+      "type": "evidenced-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-TC-005",
+      "target": "IAM-EVD-005",
+      "type": "evidenced-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-TC-006",
+      "target": "IAM-EVD-006",
+      "type": "evidenced-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-TC-007",
+      "target": "IAM-EVD-007",
+      "type": "evidenced-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-TC-008",
+      "target": "IAM-EVD-008",
+      "type": "evidenced-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-TC-009",
+      "target": "IAM-EVD-009",
+      "type": "evidenced-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-TC-010",
+      "target": "IAM-EVD-010",
+      "type": "evidenced-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-TC-011",
+      "target": "IAM-EVD-011",
+      "type": "evidenced-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-TC-012",
+      "target": "IAM-EVD-012",
+      "type": "evidenced-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-TC-013",
+      "target": "IAM-EVD-013",
+      "type": "evidenced-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-TC-014",
+      "target": "IAM-EVD-014",
+      "type": "evidenced-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-TC-015",
+      "target": "IAM-EVD-015",
+      "type": "evidenced-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-TC-016",
+      "target": "IAM-EVD-016",
+      "type": "evidenced-by"
+    },
+    {
+      "attributes": {},
+      "source": "IAM-TC-017",
+      "target": "IAM-EVD-017",
+      "type": "evidenced-by"
+    }
+  ],
+  "schemaVersion": "1",
+  "validation": []
+}

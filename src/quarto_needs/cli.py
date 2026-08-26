@@ -16,7 +16,7 @@ from .baseline import DEFAULT_BASELINE_PATH, BaselineError, build_baseline, buil
 from .config import NeedsConfig, load_config
 from .diagnostics import Finding
 from .export import _write_atomic_text, write_build_outputs, write_v1_graph
-from .exporters import csv_export, sarif_export
+from .exporters import csv_export, junit_export, markdown_export, sarif_export
 from .metrics import render_measure
 from .queries import materialize_queries
 from .quality import QualityReport, build_quality_report, profile_exit_code, report_from_snapshot
@@ -393,12 +393,24 @@ def _export(root: Path, args: argparse.Namespace, config: NeedsConfig | None) ->
             file=sys.stderr,
         )
         return 2
+    baseline_payload = None
+    if args.baseline is not None:
+        try:
+            baseline_payload = load_baseline(Path(args.baseline))
+        except BaselineError as error:
+            print(str(error), file=sys.stderr)
+            return 2
     result = analyze_project(root, config=effective)
     # SARIF is findings-driven: it exports even when a structural failure
     # left the snapshot None; json/csv still require the snapshot itself.
     if result.snapshot is None and args.format != "sarif":
         print_findings(result.findings, stream=sys.stderr)
         return 1
+    report = (
+        report_from_snapshot(result.snapshot, effective)
+        if result.snapshot is not None
+        else None
+    )
     output = root / args.output
     try:
         if args.format == "json":
@@ -414,16 +426,20 @@ def _export(root: Path, args: argparse.Namespace, config: NeedsConfig | None) ->
             # Single-file findings export written atomically; a structurally
             # invalid project still produces its artifact, then fails policy.
             sarif_export.write(output, result.findings)
+        elif args.format == "junit":
+            assert report is not None
+            junit_export.write(output, report)
         else:
-            # TODO(milestone-4a-writers): Tasks 5-6 replace this branch with
-            # the junit/markdown writers, each routing its writes through
-            # _write_atomic_text like the branches above.
-            print(
-                f"usage error: --format {args.format} is not implemented yet "
-                "(its writer lands with the milestone-4a exporter tasks)",
-                file=sys.stderr,
+            assert args.format == "markdown" and result.snapshot is not None
+            markdown_export.write(
+                output,
+                result.snapshot,
+                effective,
+                baseline=baseline_payload,
             )
-            return 2
+    except (diff_module.DiffError, impact_module.ImpactError) as error:
+        print(str(error), file=sys.stderr)
+        return 2
     except OSError as error:
         print(f"Could not write {output}: {error}", file=sys.stderr)
         return 3
@@ -432,7 +448,7 @@ def _export(root: Path, args: argparse.Namespace, config: NeedsConfig | None) ->
         print_findings(result.findings, stream=sys.stderr)
         return 1
     # The artifact is on disk before the policy verdict leaves the process.
-    report = report_from_snapshot(result.snapshot, effective)
+    assert report is not None
     return profile_exit_code(effective.profile, False, report.gate_failures())
 
 

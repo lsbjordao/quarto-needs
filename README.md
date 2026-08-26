@@ -377,10 +377,14 @@ report and every date-sensitive finding carries the reference date it used.
 | `default` | 1 | 0 (reported, not enforced) |
 | `strict` | 1 | 1 |
 
-A broken configuration exits 2 from every command.
+Command exit codes are stable across profiles:
 
-- `3`: operational failure — an artifact could not be read or written. The
-  message names the artifact; anything already written is left in place.
+- `0`: the command completed and every enforced policy gate passed;
+- `1`: the project is structurally invalid or an enforced policy gate failed;
+- `2`: invalid usage, configuration, or comparison artifact;
+- `3`: operational failure — an artifact could not be read, written, or
+  serialized. The message names the artifact; anything already written is
+  left in place.
 
 ### Baseline, diff, and impact
 
@@ -461,6 +465,27 @@ quarto-needs impact baselines/quarto-needs.json       # trace what those changes
 `quality` writes its `--output` artifact atomically and keeps it even when a
 gate fails, so CI can publish the report that explains the failure. `--root`
 selects the project directory for every command.
+
+## Export formats
+
+`quarto-needs export --format` provides five deterministic CI and interchange
+projections from a single analysis pass:
+
+| Format | Output |
+|---|---|
+| `json` | Canonical v1 graph document; also the default when `--format` is omitted. |
+| `csv` | A directory containing `objects.csv`, `relations.csv`, and `findings.csv`, with spreadsheet-formula neutralization. |
+| `sarif` | SARIF 2.1.0 findings for GitHub code scanning and compatible consumers. |
+| `junit` | One JUnit test case per evaluated quality gate. |
+| `markdown` | A GitHub step summary with changes, coverage deltas, failed gates, impact paths, and finding counts. |
+
+Markdown accepts `--baseline <path>` to classify changes and calculate impact;
+other formats reject that option as invalid usage. For a fixed project,
+configuration, and `SOURCE_DATE_EPOCH`, repeated exports are byte-identical.
+Artifacts are written before the profile verdict is returned, so a strict gate
+failure exits `1` while preserving the report that explains it. I/O or
+serialization failure exits `3` and names the artifact that could not be
+produced.
 
 ## Current validation rules
 

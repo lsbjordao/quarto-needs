@@ -1,5 +1,10 @@
 # Quarto-Needs Milestone 4A Exporters and CI Implementation Plan
 
+> **Checkpoint (2026-08-26): complete.** CSV, SARIF, JUnit, and Markdown
+> exporters; deterministic CLI integration; strict CI matrix; always-uploaded
+> artifacts; and Aegis acceptance are implemented. The local acceptance run is
+> 235 passed and 29 environment-dependent skips, with no xfails or warnings.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Deliver the CSV, SARIF, JUnit, and Markdown exporters behind `export --format`, close the exit-code-3 gap carried from the Milestone 3 whole-branch review, and split CI into the spec's `core`/`quarto`/`quality` jobs with preserved artifacts and a step summary.

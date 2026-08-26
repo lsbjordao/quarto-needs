@@ -25,6 +25,7 @@ test = [
   "pytest>=8",
   "jsonschema>=4.23",
   "referencing",
+  "PyYAML>=6",
 ]
 
 [tool.setuptools.packages.find]

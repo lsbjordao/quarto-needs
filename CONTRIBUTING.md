@@ -8,7 +8,7 @@ source .venv/bin/activate
 ```
 
 `make setup` creates `.venv` and installs the package together with its
-`test` extra (`pytest`, `jsonschema`). No runtime dependency may be added
+`test` extra (`pytest`, `jsonschema`, `PyYAML`). No runtime dependency may be added
 without a plan that explicitly allocates it.
 
 ## Workflow order
@@ -74,6 +74,13 @@ make sync-example        # synchronize extension assets and rebuild the graph
 make check-example       # validate the regenerated example graph
 make render-example-all  # render the example book to HTML, DOCX, and PDF
 ```
+
+The `quality` CI job generates JSON, CSV, SARIF, JUnit, Markdown, and quality
+report artifacts from the Aegis showcase. Its artifact upload uses
+`if: always()`: a policy failure still leaves the diagnostic outputs available
+for review. Operational failures exit `3` and name the artifact that could not
+be produced. SARIF upload is a separate least-privilege step; workflows must
+never use `pull_request_target` to execute pull-request code.
 
 The example book is governed by `examples/book/.quarto-needs.toml` and runs the
 `strict` profile, so it also has to keep passing its own gates:

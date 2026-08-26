@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 from quarto_needs import fingerprints
 from quarto_needs.config import embedded_defaults
 from quarto_needs.snapshot import LocationRecord, ObjectRecord, RelationRecord
@@ -56,12 +58,32 @@ def test_object_fingerprint_changes_with_every_authored_field() -> None:
         ("status", "draft"),
         ("body", "Different body."),
         ("rationale", "Different rationale."),
-        # Vary priority and tags separately so each computed property is proven
-        # to participate on its own.
         ("attributes", {"priority": "low", "tags": "security"}),
         ("attributes", {"priority": "high", "tags": "authentication"}),
     ):
         assert fingerprints.object_content_fingerprint(make_object(**{field: value})) != original, field
+
+
+def test_object_fingerprint_includes_priority_and_tags_as_named_fields() -> None:
+    """The derived fields participate even when the attributes payload is equal."""
+    record = make_object()
+    common = {
+        "id": record.id,
+        "type": record.type,
+        "title": record.title,
+        "status": record.status,
+        "body": record.body,
+        "rationale": record.rationale,
+        "attributes": record.attributes,
+    }
+    original = SimpleNamespace(**common, priority="high", tags=("security",))
+    changed_priority = SimpleNamespace(**common, priority="low", tags=("security",))
+    changed_tags = SimpleNamespace(**common, priority="high", tags=("authentication",))
+
+    assert fingerprints.object_content_fingerprint(original) != \
+        fingerprints.object_content_fingerprint(changed_priority)
+    assert fingerprints.object_content_fingerprint(original) != \
+        fingerprints.object_content_fingerprint(changed_tags)
 
 
 def test_alias_flip_keeps_the_semantic_fingerprint_and_changes_representation() -> None:
