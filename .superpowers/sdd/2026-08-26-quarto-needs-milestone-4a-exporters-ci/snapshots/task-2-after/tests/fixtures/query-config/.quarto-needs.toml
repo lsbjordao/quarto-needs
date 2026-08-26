@@ -1,0 +1,12 @@
+[queries.deriving-requirements]
+all = [
+  { relation = "derives-from", direction = "out", op = "exists" },
+]
+sort = ["id:asc"]
+
+[queries.approved-high-unverified]
+all = [
+  { field = "status", op = "eq", value = "approved" },
+  { field = "priority", op = "in", values = ["high", "critical"] },
+  { relation = "verified-by", direction = "out", op = "missing" },
+]

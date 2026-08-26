@@ -1,0 +1,8 @@
+::: {.need #Z-TC-001 type=test-case status=passed}
+priority: medium
+tags: verification; unicode
+
+## Verifies autenticação
+
+The test passes for valid credentials.
+:::

@@ -1,0 +1,22 @@
+::: {.need #M-NEED-001 type=stakeholder-need status=approved}
+priority: medium
+tags: identity; access
+
+## Administrators need secure access
+
+Administrative access must be protected.
+:::
+
+::: {.need #A-REQ-001 type=functional-requirement status=approved}
+priority: high
+tags:
+  - authentication
+  - security
+derived-from: M-NEED-001
+verified-by: Z-TC-001
+rationale: Prevent unauthorized administrative access.
+
+## Autenticação forte
+
+The service shall authenticate administrators.
+:::

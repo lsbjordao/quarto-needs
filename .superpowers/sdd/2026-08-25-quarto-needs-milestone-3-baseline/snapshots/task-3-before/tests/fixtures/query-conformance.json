@@ -1,0 +1,56 @@
+[
+  {
+    "name": "approved-requirements",
+    "expected": ["A-REQ-001"]
+  },
+  {
+    "name": "deriving-requirements",
+    "expected": ["A-REQ-001"]
+  },
+  {
+    "name": "high-priority-any-type",
+    "query": {
+      "all": [
+        {"field": "priority", "op": "in", "values": ["high", "critical"]}
+      ]
+    },
+    "expected": ["A-REQ-001"]
+  },
+  {
+    "name": "tagged-security-casefolded",
+    "query": {
+      "all": [
+        {"field": "tags", "op": "contains", "value": "SECURITY"}
+      ]
+    },
+    "expected": ["A-REQ-001"]
+  },
+  {
+    "name": "stakeholder-needs-without-verification",
+    "query": {
+      "all": [
+        {"field": "type", "op": "eq", "value": "stakeholder-need"},
+        {"relation": "verified-by", "direction": "out", "op": "missing"}
+      ]
+    },
+    "expected": ["M-NEED-001"]
+  },
+  {
+    "name": "non-requirements-descending-id",
+    "query": {
+      "not": {"field": "type", "op": "contains", "value": "requirement"},
+      "sort": ["id:desc"]
+    },
+    "expected": ["Z-TC-001", "M-NEED-001"]
+  },
+  {
+    "name": "derivation-either-direction",
+    "query": {
+      "all": [
+        {"relation": "derives-from", "direction": "either", "op": "exists"}
+      ],
+      "sort": ["id:asc"]
+    },
+    "expected": ["A-REQ-001", "M-NEED-001"]
+  }
+]

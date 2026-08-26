@@ -1,0 +1,87 @@
+---
+title: "Views"
+---
+
+## Declared needs
+
+::: {.need #REQ-APPROVED type="functional-requirement" status="approved" priority="high" tags="security;authentication" verified-by="TC-LOGIN"}
+## Authenticate administrators
+
+The service shall authenticate administrators before granting access.
+:::
+
+::: {.need #REQ-DRAFT type="functional-requirement" status="draft" priority="low" tags="authentication"}
+## Recover credentials
+
+The service shall let an administrator recover a lost credential.
+:::
+
+::: {.need #REQ-UNPRIORITIZED type="functional-requirement" status="draft" tags="authentication"}
+## Notify administrators
+
+The service shall notify administrators about credential changes.
+:::
+
+## Approved requirements
+
+{{< need-table id="approved-table" types="functional-requirement" status="approved" columns="id;title;type;status;priority;verified-by" sort="priority;id" caption="Approved application requirements" >}}
+
+{{< need-table id="secondary-table" types="functional-requirement" columns="id;priority" sort="priority;id" caption="All application requirements" >}}
+
+{{< need-table id="approved-table" ids="REQ-APPROVED" columns="id;status" caption="Repeated requested ID" >}}
+
+{{< need-table id="approved-table-search" ids="REQ-DRAFT" columns="id;status" caption="ID colliding with a generated search ID" >}}
+
+## Cross-page reference
+
+{{< need TC-LOGIN title=true >}}
+
+## Inspector
+
+{{< need-inspector REQ-APPROVED >}}
+
+{{< need-inspector UNKNOWN-ID >}}
+
+## Backlinks
+
+{{< need-backlinks TC-LOGIN >}}
+
+{{< need-backlinks REQ-DRAFT >}}
+
+{{< need-backlinks UNKNOWN-NEED >}}
+
+## List
+
+{{< need-list tags="authentication" show="status;priority" >}}
+
+## Count
+
+{{< need-count types="functional-requirement" status="approved" >}}
+
+## Matrix
+
+{{< need-matrix id="verification-matrix" rows="functional-requirement" columns="test-case" relation="verified-by" >}}
+
+{{< need-matrix id="query-matrix" query="traceable-pair" rows="functional-requirement" columns="test-case" relation="verified-by" >}}
+
+## Flow
+
+{{< need-flow root="REQ-APPROVED" depth="2" relations="verified-by" direction="SIDEWAYS" >}}
+
+## Dashboard
+
+{{< need-dashboard >}}
+
+{{< need-dashboard query="authentication-work" >}}
+
+{{< need-dashboard query="nope" >}}
+
+## Named queries
+
+{{< need-count query="approved-requirements" >}}
+
+{{< need-table id="query-table" query="approved-requirements" columns="id;status" caption="Named query table" >}}
+
+{{< need-count id="intersected-count" query="approved-requirements" status="draft" >}}
+
+{{< need-list query="authentication-work" >}}

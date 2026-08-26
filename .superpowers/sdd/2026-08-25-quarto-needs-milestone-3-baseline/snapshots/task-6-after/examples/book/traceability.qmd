@@ -1,0 +1,18 @@
+# Fluxo de rastreabilidade
+
+O artefato canônico é gerado em `.quarto-needs/needs.json` antes da renderização.
+O fluxo abaixo acompanha a necessidade de proteção de conta até testes e
+implementações.
+
+{{< need-flow root="IAM-STK-001" depth="4" relations="derives-from;implemented-by;verified-by;evidenced-by;mitigates" direction="LR" >}}
+
+## Consulta por CLI
+
+```bash
+quarto-needs check
+quarto-needs coverage
+quarto-needs trace IAM-STK-001
+```
+
+As relações são declaradas no objeto de origem: o requisito deriva da necessidade,
+aponta para componente e teste, e o teste aponta para sua evidência.

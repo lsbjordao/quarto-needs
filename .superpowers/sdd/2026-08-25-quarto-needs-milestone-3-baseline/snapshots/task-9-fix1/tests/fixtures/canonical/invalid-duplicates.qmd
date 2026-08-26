@@ -1,0 +1,14 @@
+::: {.need #DUP-1 type=functional-requirement}
+references: UNKNOWN-1
+
+## First duplicate
+
+The first declaration references an unknown object.
+:::
+
+::: {.need #DUP-1 type=functional-requirement}
+
+## Second duplicate
+
+The second declaration repeats the identifier.
+:::

@@ -1,0 +1,12 @@
+# Matriz de verificação
+
+Esta matriz mostra, de forma estática e exportável, a ligação entre requisitos e
+casos de teste. Um marcador ligado representa uma relação `verified-by`.
+
+::: {#verification-matrix}
+{{< need-matrix rows="functional-requirement;non-functional-requirement" columns="test-case" relation="verified-by" >}}
+:::
+
+## Cobertura de linha de base
+
+{{< need-table types="system-requirement;functional-requirement;non-functional-requirement" status="approved" columns="id;title;type;status;priority;implemented-by;verified-by" sort="type;id" caption="Requisitos aprovados e sua cobertura" >}}

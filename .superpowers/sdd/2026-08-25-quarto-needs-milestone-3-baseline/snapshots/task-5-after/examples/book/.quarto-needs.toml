@@ -1,0 +1,133 @@
+# Governance policy for the Aegis IAM showcase.
+# Every rule enabled here is one the published book already satisfies, so the
+# strict profile is a real gate rather than a decorative setting.
+
+profile = "strict"
+
+# --- REQ008: attributes each type must declare ------------------------------
+
+[types.stakeholder-need]
+required-attributes = ["tags"]
+
+[types.system-requirement]
+required-attributes = ["priority", "tags"]
+
+[types.functional-requirement]
+required-attributes = ["priority", "tags"]
+
+[types.non-functional-requirement]
+required-attributes = ["priority", "tags"]
+
+[types.test-case]
+required-attributes = ["tags"]
+
+[types.risk]
+required-attributes = ["priority", "tags"]
+
+[types.component]
+required-attributes = ["tags"]
+
+[types.interface]
+required-attributes = ["tags"]
+
+[types.evidence]
+required-attributes = ["tags"]
+
+# --- REQ009/REQ010: which types may sit at each end of a relation -----------
+
+[relations."derives-from"]
+allowed-source-types = [
+  "system-requirement",
+  "functional-requirement",
+  "non-functional-requirement",
+]
+allowed-target-types = ["stakeholder-need", "system-requirement"]
+
+[relations."verified-by"]
+allowed-source-types = [
+  "system-requirement",
+  "functional-requirement",
+  "non-functional-requirement",
+]
+allowed-target-types = ["test-case"]
+
+[relations."validated-by"]
+allowed-source-types = [
+  "system-requirement",
+  "functional-requirement",
+  "non-functional-requirement",
+]
+allowed-target-types = ["test-case"]
+
+[relations."implemented-by"]
+allowed-source-types = [
+  "system-requirement",
+  "functional-requirement",
+  "non-functional-requirement",
+]
+allowed-target-types = ["component", "interface"]
+
+[relations."evidenced-by"]
+allowed-source-types = ["test-case"]
+allowed-target-types = ["evidence"]
+maximum-per-source = 1
+
+[relations."mitigates"]
+allowed-source-types = [
+  "functional-requirement",
+  "non-functional-requirement",
+]
+allowed-target-types = ["risk"]
+
+# --- Vocabulary the governance rules and metrics reason about ---------------
+
+[governance]
+test-types = ["test-case"]
+risk-types = ["risk"]
+successful-test-statuses = ["passed"]
+ineffective-endpoint-statuses = ["disapproved", "rejected", "deprecated"]
+expiry-attribute = "expires"
+
+# --- Rules that need an explicit opt-in -------------------------------------
+
+[rules.REQ011]
+enabled = true
+
+[rules.REQ012]
+enabled = true
+
+[rules.REQ013]
+enabled = true
+
+[rules.REQ015]
+enabled = true
+
+# --- Named queries materialized into the graph for Quarto -------------------
+
+[queries.approved-high-unverified]
+all = [
+  { field = "type", op = "contains", value = "requirement" },
+  { field = "status", op = "eq", value = "approved" },
+  { field = "priority", op = "in", values = ["high", "critical"] },
+  { relation = "verified-by", direction = "out", op = "missing" },
+]
+sort = ["priority:asc", "id:asc"]
+
+[queries.evidence-gaps]
+all = [
+  { field = "type", op = "eq", value = "test-case" },
+  { relation = "evidenced-by", direction = "out", op = "missing" },
+]
+sort = ["id:asc"]
+
+# --- Gates the published book must keep passing -----------------------------
+
+[gates]
+scope = "approved-requirements"
+max-errors = 0
+min-implementation-trace = 100.0
+min-implementation-effective = 100.0
+min-verification-trace = 100.0
+min-verification-successful = 100.0
+min-evidence = 100.0
+require-risk-mitigation = true

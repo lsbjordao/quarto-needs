@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://quarto-needs.dev/schema/needs-envelope-v1.schema.json",
+  "title": "Quarto-Needs Graph Envelope v1",
+  "type": "object",
+  "required": ["schemaVersion", "objects", "relations", "coverage", "validation", "backlinks"],
+  "properties": {
+    "schemaVersion": {"const": "1"},
+    "relations": {"type": "array", "items": {"$ref": "#/$defs/relation"}},
+    "coverage": {"$ref": "#/$defs/coverage"},
+    "validation": {"type": "array", "items": {"$ref": "#/$defs/finding"}},
+    "backlinks": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {"$ref": "#/$defs/backlink"}
+      }
+    },
+    "extensions": {"type": "object"},
+    "objects": {
+      "type": "array",
+      "items": {
+        "allOf": [
+          {"$ref": "needs.schema.json"},
+          {"required": ["id", "type", "title", "status", "body", "rationale", "attributes", "relations", "source", "href"]}
+        ]
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "relation": {
+      "type": "object",
+      "required": ["type", "source", "target", "attributes"],
+      "properties": {
+        "type": {"type": "string", "minLength": 1},
+        "source": {"type": "string", "minLength": 1},
+        "target": {"type": "string", "minLength": 1},
+        "attributes": {"type": "object"}
+      },
+      "additionalProperties": false
+    },
+    "coverage": {
+      "type": "object",
+      "required": ["requirements", "approved", "implemented", "verified", "implementation_coverage", "verification_coverage"],
+      "properties": {
+        "requirements": {"type": "integer", "minimum": 0},
+        "approved": {"type": "integer", "minimum": 0},
+        "implemented": {"type": "integer", "minimum": 0},
+        "verified": {"type": "integer", "minimum": 0},
+        "implementation_coverage": {"type": "number", "minimum": 0, "maximum": 100},
+        "verification_coverage": {"type": "number", "minimum": 0, "maximum": 100}
+      },
+      "additionalProperties": false
+    },
+    "finding": {
+      "type": "object",
+      "required": ["code", "severity", "message", "object_id"],
+      "properties": {
+        "code": {"type": "string"},
+        "severity": {"enum": ["error", "warning", "info"]},
+        "message": {"type": "string"},
+        "object_id": {"type": ["string", "null"]}
+      },
+      "additionalProperties": true
+    },
+    "backlink": {
+      "type": "object",
+      "required": ["source", "type"],
+      "properties": {
+        "source": {"type": "string"},
+        "type": {"type": "string"}
+      },
+      "additionalProperties": false
+    }
+  }
+}

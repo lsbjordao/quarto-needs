@@ -1,0 +1,4 @@
+# Catálogo migrado
+
+O conteúdo de autenticação foi incorporado ao catálogo completo de requisitos
+funcionais do Aegis IAM. A página é mantida apenas como referência de migração.

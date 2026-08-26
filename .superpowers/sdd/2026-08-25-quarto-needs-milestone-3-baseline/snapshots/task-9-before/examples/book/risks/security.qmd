@@ -1,0 +1,28 @@
+# Riscos e ameaças
+
+Riscos vinculam decisões de engenharia a ameaças concretas e ajudam a priorizar
+a cobertura de verificação.
+
+::: {.need #IAM-RISK-001 type="risk" status="in-review" priority="high" tags="security;account-takeover"}
+## Tomada de conta por phishing
+
+Uma credencial capturada pode permitir acesso indevido sem um segundo fator resistente.
+:::
+
+::: {.need #IAM-RISK-002 type="risk" status="approved" priority="high" tags="security;privilege-escalation"}
+## Escalada de privilégio por política permissiva
+
+Uma política ampla ou ausente pode conceder acesso além da necessidade de trabalho.
+:::
+
+::: {.need #IAM-RISK-003 type="risk" status="approved" priority="high" tags="privacy;audit"}
+## Vazamento de dados pessoais em logs
+
+Eventos excessivamente detalhados podem expor identificadores e atributos pessoais.
+:::
+
+::: {.need #IAM-RISK-004 type="risk" status="draft" priority="medium" tags="availability;recovery"}
+## Indisponibilidade durante recuperação de conta
+
+Uma falha prolongada pode impedir usuários legítimos de recuperar acesso crítico.
+:::

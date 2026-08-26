@@ -1,0 +1,29 @@
+---
+title: "Views"
+---
+
+## Approved requirements
+
+{{< need-table id="approved-table" types="functional-requirement" status="approved" columns="id;title;type;status;priority;verified-by" sort="priority;id" caption="Approved application requirements" >}}
+
+{{< need-table id="secondary-table" types="functional-requirement" columns="id;priority" sort="priority;id" caption="All application requirements" >}}
+
+{{< need-table id="approved-table" ids="REQ-APPROVED" columns="id;status" caption="Repeated requested ID" >}}
+
+{{< need-table id="approved-table-search" ids="REQ-DRAFT" columns="id;status" caption="ID colliding with a generated search ID" >}}
+
+## List
+
+{{< need-list tags="authentication" show="status;priority" >}}
+
+## Count
+
+{{< need-count types="functional-requirement" status="approved" >}}
+
+## Matrix
+
+{{< need-matrix id="verification-matrix" rows="functional-requirement" columns="test-case" relation="verified-by" >}}
+
+## Flow
+
+{{< need-flow root="REQ-APPROVED" depth="2" relations="verified-by" direction="SIDEWAYS" >}}

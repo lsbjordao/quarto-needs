@@ -1,0 +1,32 @@
+project:
+  type: book
+  output-dir: _book
+  pre-render: ../../tools/quarto_needs_pre_render.py
+
+book:
+  title: "Aegis IAM — requisitos rastreáveis"
+  chapters:
+    - index.qmd
+    - context/stakeholders.qmd
+    - part: Requisitos
+      chapters:
+        - requirements/system.qmd
+        - requirements/functional.qmd
+        - requirements/non-functional.qmd
+    - architecture/components.qmd
+    - risks/security.qmd
+    - verification/test-cases.qmd
+    - verification/evidence.qmd
+    - traceability.qmd
+    - matrices.qmd
+    - governance.qmd
+    - diagrams.qmd
+    - shortcodes.qmd
+
+format:
+  html:
+    theme: cosmo
+    mermaid-format: svg
+
+filters:
+  - quarto-needs

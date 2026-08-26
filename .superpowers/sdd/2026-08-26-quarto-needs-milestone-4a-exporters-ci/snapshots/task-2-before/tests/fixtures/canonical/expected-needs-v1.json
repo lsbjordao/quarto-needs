@@ -1,0 +1,145 @@
+{
+  "backlinks": {
+    "A-REQ-001": [],
+    "M-NEED-001": [
+      {
+        "source": "A-REQ-001",
+        "type": "derives-from"
+      }
+    ],
+    "Z-TC-001": [
+      {
+        "source": "A-REQ-001",
+        "type": "verified-by"
+      }
+    ]
+  },
+  "coverage": {
+    "approved": 1,
+    "implementation_coverage": 0.0,
+    "implemented": 0,
+    "requirements": 1,
+    "verification_coverage": 100.0,
+    "verified": 1
+  },
+  "extensions": {
+    "quartoNeeds": {
+      "generator": {
+        "name": "quarto-needs",
+        "version": "0.1.0"
+      },
+      "relationCatalog": {
+        "derives-from": {
+          "directLabel": "Derives from",
+          "impactDirection": "target_to_source",
+          "inverseLabel": "Source for",
+          "public": true,
+          "semanticFamily": "derivation",
+          "sourceRole": "derived",
+          "targetRole": "source"
+        },
+        "verified-by": {
+          "directLabel": "Verified by",
+          "impactDirection": "source_to_target",
+          "inverseLabel": "Verifies",
+          "public": true,
+          "semanticFamily": "verification",
+          "sourceRole": "requirement",
+          "targetRole": "test"
+        }
+      },
+      "relationCatalogVersion": "1"
+    }
+  },
+  "objects": [
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": [
+          "authentication",
+          "security"
+        ]
+      },
+      "body": "The service shall authenticate administrators.",
+      "href": "z-requirements.html#A-REQ-001",
+      "id": "A-REQ-001",
+      "rationale": "Prevent unauthorized administrative access.",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "A-REQ-001",
+          "target": "M-NEED-001",
+          "type": "derives-from"
+        },
+        {
+          "attributes": {},
+          "source": "A-REQ-001",
+          "target": "Z-TC-001",
+          "type": "verified-by"
+        }
+      ],
+      "source": {
+        "anchor": "A-REQ-001",
+        "file": "z-requirements.qmd",
+        "line": 10
+      },
+      "status": "approved",
+      "title": "Autenticação forte",
+      "type": "functional-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "medium",
+        "tags": "identity; access"
+      },
+      "body": "Administrative access must be protected.",
+      "href": "z-requirements.html#M-NEED-001",
+      "id": "M-NEED-001",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "M-NEED-001",
+        "file": "z-requirements.qmd",
+        "line": 1
+      },
+      "status": "approved",
+      "title": "Administrators need secure access",
+      "type": "stakeholder-need"
+    },
+    {
+      "attributes": {
+        "priority": "medium",
+        "tags": "verification; unicode"
+      },
+      "body": "The test passes for valid credentials.",
+      "href": "a-tests.html#Z-TC-001",
+      "id": "Z-TC-001",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "Z-TC-001",
+        "file": "a-tests.qmd",
+        "line": 1
+      },
+      "status": "passed",
+      "title": "Verifies autenticação",
+      "type": "test-case"
+    }
+  ],
+  "relations": [
+    {
+      "attributes": {},
+      "source": "A-REQ-001",
+      "target": "M-NEED-001",
+      "type": "derives-from"
+    },
+    {
+      "attributes": {},
+      "source": "A-REQ-001",
+      "target": "Z-TC-001",
+      "type": "verified-by"
+    }
+  ],
+  "schemaVersion": "1",
+  "validation": []
+}
