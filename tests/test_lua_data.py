@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -103,6 +104,24 @@ end
 '''
 
 
+LUA_VERSION_SKEW_ASSERTIONS = r'''
+local data = dofile(__DATA_PATH__)
+
+function Pandoc(doc)
+  local graph, message = data.load(__SKEWED_GRAPH_PATH__)
+  assert(graph == nil, "a graph from an incompatible engine must not load silently")
+  assert(message ~= nil, "an incompatible engine must produce a message")
+  -- The reader has two independently updated installs; the message is useless
+  -- unless it names both versions so they know which one to move.
+  assert(message:find("9.9.9", 1, true), "the message must name the engine version: " .. message)
+  assert(message:find(__EXTENSION_VERSION__, 1, true), "the message must name the extension version: " .. message)
+
+  local compatible, compatible_error = data.load(__PATCH_SKEW_GRAPH_PATH__)
+  assert(compatible ~= nil, "a patch-level difference must keep working: " .. tostring(compatible_error))
+  return doc
+end
+'''
+
 def run_lua_assertions(tmp_path: Path, assertions: str, substitutions: dict[str, Path]) -> None:
     """Execute Lua assertions through the Quarto-bundled Pandoc interpreter."""
     rendered = assertions.replace("__DATA_PATH__", json.dumps(str(DATA)))
@@ -142,3 +161,43 @@ def test_unreadable_graphs_cache_a_meaningful_error(tmp_path: Path):
 def test_link_target_resolves_by_format_and_source_page(tmp_path: Path):
     """Only HTML gets relative page paths; every other format stays anchor-only."""
     run_lua_assertions(tmp_path, LUA_LINK_ASSERTIONS, {})
+
+
+def write_graph_with_generator_version(path: Path, version: str) -> Path:
+    """Copy the fixture graph, rewriting only the generator version."""
+    payload = json.loads(GRAPH.read_text(encoding="utf-8"))
+    payload["extensions"]["quartoNeeds"]["generator"]["version"] = version
+    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    return path
+
+
+def extension_version() -> str:
+    manifest = (ROOT / "_extensions" / "quarto-needs" / "_extension.yml").read_text(encoding="utf-8")
+    match = re.search(r"^version:\s*(\S+)\s*$", manifest, re.M)
+    assert match
+    return match.group(1)
+
+
+@pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
+def test_incompatible_engine_version_refuses_to_load(tmp_path: Path):
+    """A graph written by an engine the extension cannot read must say so.
+
+    The extension and the engine are separate installs a user updates
+    independently. Rendering a document silently missing every requirement is a
+    worse failure than refusing with a message, because nothing tells the reader
+    the page is wrong.
+    """
+    current = extension_version()
+    major, minor, _ = current.split(".", 2)
+    # Pre-1.0 treats minor as the breaking axis, so a patch bump stays readable.
+    patch_skew = f"{major}.{minor}.999"
+
+    run_lua_assertions(
+        tmp_path,
+        LUA_VERSION_SKEW_ASSERTIONS,
+        {
+            "__SKEWED_GRAPH_PATH__": write_graph_with_generator_version(tmp_path / "skewed.json", "9.9.9"),
+            "__PATCH_SKEW_GRAPH_PATH__": write_graph_with_generator_version(tmp_path / "patch.json", patch_skew),
+            "__EXTENSION_VERSION__": current,
+        },
+    )

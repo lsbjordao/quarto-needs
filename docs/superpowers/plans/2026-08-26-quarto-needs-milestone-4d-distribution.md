@@ -13,6 +13,23 @@
 
 **Design inputs:** `docs/superpowers/specs/2026-08-26-quarto-needs-capability-evolution.md` — the adoption arc and the guardrail that new artifact formats receive golden, malformed, determinism, and migration tests.
 
+## Prerequisite discovered before planning: the repository is private
+
+`quarto add lsbjordao/quarto-needs` fails today with *"Extension not found in
+local or remote sources"*. The cause is not the extension: `_extensions/quarto-needs`
+is present on `origin/main` with a valid manifest, and the extension renders
+correctly when copied in by hand. The GitHub API and the default-branch tarball
+both return **HTTP 404** anonymously — the repository is private, and that is
+what Quarto reports as a missing extension.
+
+Every task below that involves `quarto add` is blocked until the repository is
+public. That is a human decision, not an implementation step: publishing exposes
+the full history, including the `.superpowers/sdd/` execution ledgers and roughly
+51 MB of review snapshots committed before this project had `.gitignore` coverage
+for them. Both are worth reviewing before the repository becomes readable.
+
+Tasks 1, 2, and 3 do not depend on it and can proceed first.
+
 ## Why this milestone exists
 
 The engine is complete enough to be useful and nobody can install it. Every check in this repository installs the package editable from a checkout and renders the in-tree Aegis book, so the distribution itself — packaging metadata, the console script, extension assets that must resolve outside the repository — was never exercised until `tools/check_installed_path.sh` was added. That script proved the path works today. This milestone makes it reachable.

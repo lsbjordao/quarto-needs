@@ -19,6 +19,47 @@ local function text(value)
   return tostring(value)
 end
 
+local function script_dir()
+  local source = debug.getinfo(1, "S").source
+  if source:sub(1, 1) == "@" then source = source:sub(2) end
+  return source:match("(.*/)") or ""
+end
+
+-- The manifest is the single version source; a constant here would be a second
+-- one, and Task 1's packaging test cannot see into Lua to catch the drift.
+local function extension_version()
+  local file = io.open(script_dir() .. "_extension.yml", "r")
+  if not file then return nil end
+  local contents = file:read("*a")
+  file:close()
+  return contents:match("\nversion:%s*(%S+)") or contents:match("^version:%s*(%S+)")
+end
+
+-- Pre-1.0 releases treat the minor component as the breaking axis, which is why
+-- a patch difference stays readable and a minor difference does not.
+local function compatibility_key(version)
+  local major, minor = tostring(version):match("^(%d+)%.(%d+)")
+  if not major then return nil end
+  if major == "0" then return major .. "." .. minor end
+  return major
+end
+
+local function version_mismatch(graph)
+  local ours = extension_version()
+  if not ours then return nil end
+  local extensions = type(graph.extensions) == "table" and graph.extensions or {}
+  local quarto_needs = type(extensions.quartoNeeds) == "table" and extensions.quartoNeeds or {}
+  local generator = type(quarto_needs.generator) == "table" and quarto_needs.generator or {}
+  local theirs = generator.version
+  -- A graph without generator metadata predates this field; accept it rather
+  -- than breaking projects whose engine simply never wrote one.
+  if theirs == nil then return nil end
+  local wanted, found = compatibility_key(ours), compatibility_key(theirs)
+  if not wanted or not found or wanted == found then return nil end
+  return "Quarto Needs extension " .. ours .. " cannot read a graph written by engine "
+    .. tostring(theirs) .. "; install matching versions"
+end
+
 local function relation_key(item)
   return text(item.type) .. "\0" .. text(item.source) .. "\0" .. text(item.target)
 end
@@ -67,6 +108,12 @@ function M.load(path)
     local message = "Quarto Needs graph is invalid: " .. key
     cache.by_path[key] = {error = message}
     return nil, message
+  end
+
+  local mismatch = version_mismatch(graph)
+  if mismatch then
+    cache.by_path[key] = {error = mismatch}
+    return nil, mismatch
   end
 
   entry = build_entry(graph)
