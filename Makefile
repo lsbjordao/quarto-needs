@@ -1,4 +1,4 @@
-.PHONY: setup test scan check coverage example preview-example sync-example check-example render-example render-example-all baseline-example diff-example impact-example
+.PHONY: setup test scan check coverage example preview-example sync-example check-example render-example render-example-all baseline-example diff-example impact-example check-install
 .DEFAULT_GOAL := test
 
 VENV_PYTHON := .venv/bin/python
@@ -49,3 +49,6 @@ diff-example:
 
 impact-example:
 	SOURCE_DATE_EPOCH=$(AEGIS_REFERENCE_EPOCH) PYTHONPATH=src $(VENV_PYTHON) -m quarto_needs.cli --root examples/book impact examples/book/baselines/quarto-needs.json
+
+check-install:
+	./tools/check_installed_path.sh

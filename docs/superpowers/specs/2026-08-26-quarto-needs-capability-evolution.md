@@ -1,7 +1,9 @@
 # Quarto-Needs Capability Evolution Amendment
 
 **Date:** 2026-08-26  
-**Status:** Proposed product direction; implementation remains milestone-gated  
+**Status:** Accepted in part — the decision and the architectural guardrails are
+binding; the milestone sequence is committed only through the adoption arc below.
+Milestones beyond it are candidate directions, re-evaluated once the tool has real users.  
 **Amends:** `2026-08-25-quarto-needs-evolution-design.md`
 
 ## Decision
@@ -79,23 +81,48 @@ semantics are explicit.
 
 ## Product sequence
 
-| Order | Milestone | Outcome |
-|---:|---|---|
-| 1 | 4B — Source adapters | QMD, comment and Python facts enter one provenance-preserving scanner contract |
-| 2 | 5A — Interactive graph | Offline, accessible graph with linked inspector, filters, path explanations and baseline overlays |
-| 3 | 5B — ReqIF export | Standards-valid exchange artifact with semantic conformance fixtures |
-| 4 | 5C — Hardening | Security, accessibility, performance budgets and large-catalog benchmarks |
-| 5 | 6A — Typed model | Type schemas, inheritance, relation cardinality and network constraints |
-| 6 | 6B — Review intelligence | Suspect links, review fingerprints, approvals and optional signed baseline attestations |
-| 7 | 6C — View parity | List/table/matrix/sequence/Gantt/architecture/chart views over the canonical query engine |
-| 8 | 7A — Federation | Locked imports, adapter SDK, service cache, provenance, ReqIF import and OSLC/JSON-LD |
-| 9 | 7B — Developer experience | LSP, navigation, completion and additional scanners after contracts stabilize |
+Quarto-Needs is a community tool with no users yet. That single fact orders this
+roadmap: the question is not "which capabilities match Sphinx-Needs" but "why
+would someone try this, succeed with it, and stay". Capability leadership is a
+consequence of adoption, not a path to it.
 
-Milestone 4B remains first because the graph must show traceability from authored
-requirements into code and tests, not just duplicate existing document links.
-Milestone 5A is the next user-visible product leap and has its own implementation
-plan. Milestones 6 and 7 are intentionally split so mature Sphinx-Needs features
-can be adopted without turning one release into an unreviewable rewrite.
+### Committed: the adoption arc
+
+| Order | Milestone | Why it earns its place |
+|---:|---|---|
+| 1 | 4A — Exporters and CI | In flight. Makes results consumable by tooling people already run. |
+| 2 | **4D — Distribution** | *New.* `quarto add`, a published package, and a quickstart that works in five minutes. Nobody can install this today; every capability below is unreachable until they can. |
+| 3 | 4B — Source adapters | Requirements reaching real code and tests. This is what separates an engineering tool from a document tool, and it is the gap against OpenFastTrace and StrictDoc. |
+| 4 | 5A — Interactive graph | The visible leap. It is what gets shown, shared, and remembered — and it makes the Milestone 3 change intelligence legible instead of theoretical. |
+| 5 | 6C — View parity | Lists, tables, matrices, and charts over the one query engine. The daily-work bar a Sphinx-Needs user measures against. |
+
+Then stop and reassess with real usage. Every choice after this point is better
+informed by one user than by any competitive benchmark.
+
+### Candidate, not committed
+
+6A typed model, 6B review intelligence with signed attestations, 5B ReqIF, 7A
+federation and OSLC, 7B language-server tooling.
+
+These are deliberately deferred rather than dropped. Their common trait is that
+they answer enterprise procurement questions — interchange formats, federation,
+attestation — that no community user has asked yet. Two of them also depend on
+conformance to specifications this project does not control (the OMG ReqIF 1.2
+XSD plus an independent parser accepting the output; OSLC RM 2.1), which is where
+schedules built on optimism usually fail.
+
+5C hardening is not a milestone here. Security, accessibility, and performance
+budgets are release gates that apply continuously — the guardrails below already
+state that keyboard operation and non-JavaScript equivalence are acceptance
+criteria, not later polish.
+
+### What protects the deferred work
+
+Deferring scope risks foreclosing it. The protection is the first guardrail
+below — capability additions extend the canonical object/relation/finding model
+before they add renderer-specific behavior — not a commitment to build
+everything. A sound canonical model keeps 6A and 7A reachable; a long roadmap
+does not.
 
 ## Architectural guardrails
 
