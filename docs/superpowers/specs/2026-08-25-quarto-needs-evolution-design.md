@@ -341,6 +341,15 @@ Milestone 5A acceptance requires equivalence of essential information with JavaS
 
 Every milestone also requires the full existing suite to pass, the Aegis IAM book to render in HTML/DOCX/PDF, generated outputs to remain deterministic, and README/architecture/regeneration instructions to be current.
 
+> **Superseded in part.** The milestone list above records the original
+> five-milestone structure and remains the authority on each milestone's
+> *contracts and acceptance gates*. It is no longer the authority on
+> *sequence or commitment*: `2026-08-26-quarto-needs-capability-evolution.md`
+> replaces it with a committed adoption arc (4A, 4D distribution, 4B, 5A, 6C)
+> and moves 5B and 5C out of committed scope — 5B deferred, 5C dissolved into
+> continuous release gates. Read that amendment before planning any milestone
+> after 4A.
+
 This umbrella specification fixes the shared contracts for all five milestones. Implementation planning is deliberately decomposed: the next plan covers Milestone 1 in detail, and each later milestone or named submilestone receives its own plan after the previous acceptance gate passes. Those plans may refine task order but may not change this approved architecture without a documented design amendment.
 
 ## Aegis IAM showcase expansion

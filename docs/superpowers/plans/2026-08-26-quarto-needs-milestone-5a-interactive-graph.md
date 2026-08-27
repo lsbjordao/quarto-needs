@@ -1,8 +1,19 @@
 # Quarto-Needs Milestone 5A Interactive Graph Implementation Plan
 
 **Date:** 2026-08-26  
-**Status:** Ready after Milestone 4B acceptance  
-**Design inputs:** evolution design and capability evolution amendment
+**Status:** Fourth in the committed adoption arc — ready after 4A, 4D
+distribution, and 4B are accepted. 4B still comes first for the reason the
+amendment gives: the graph must show traceability from authored requirements
+into code and tests, not merely redraw links this project already has.  
+**Design inputs:** evolution design (contracts and acceptance gates) and the
+capability evolution amendment (sequence and commitment). Where they disagree on
+ordering, the amendment governs.
+
+> **Note on hardening.** Earlier drafts assumed a separate Milestone 5C for
+> security, accessibility, and performance. The amendment dissolves it: keyboard
+> operation and an equivalent non-JavaScript representation are acceptance
+> criteria for this milestone, not later polish, and performance budgets apply
+> as continuous release gates.
 
 ## Goal
 
