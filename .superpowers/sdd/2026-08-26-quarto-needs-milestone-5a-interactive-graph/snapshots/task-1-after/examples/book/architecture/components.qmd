@@ -1,0 +1,58 @@
+# Componentes e interfaces
+
+Os componentes abaixo implementam a linha de base aprovada. Interfaces mantêm o
+acoplamento explícito para os times consumidores.
+
+::: {.need #IAM-COMP-001 type="component" status="implemented" priority="high" tags="authentication;security"}
+## Serviço de autenticação
+
+Valida credenciais, MFA e sessões para os canais do Aegis IAM.
+:::
+
+::: {.need #IAM-COMP-002 type="component" status="implemented" priority="high" tags="authorization;policy"}
+## Motor de políticas
+
+Avalia políticas por atributo e retorna decisões de permitir ou negar.
+:::
+
+::: {.need #IAM-COMP-003 type="component" status="implemented" priority="high" tags="lifecycle;provisioning"}
+## Orquestrador de ciclo de vida
+
+Consome eventos de pessoas e executa mudanças controladas em contas e grupos.
+:::
+
+::: {.need #IAM-COMP-004 type="component" status="implemented" priority="high" tags="audit;compliance"}
+## Cofre de auditoria
+
+Armazena eventos com integridade verificável e consulta controlada.
+:::
+
+::: {.need #IAM-COMP-005 type="component" status="implemented" priority="high" tags="recovery;security"}
+## Serviço de recuperação
+
+Coordena prova de identidade, aprovação e emissão segura de nova credencial.
+:::
+
+::: {.need #IAM-COMP-006 type="component" status="implemented" priority="medium" tags="experience;accessibility"}
+## Portal de identidade
+
+Oferece telas acessíveis para login, consentimento e administração de conta.
+:::
+
+::: {.need #IAM-IF-001 type="interface" status="implemented" priority="high" tags="integration;oidc"}
+## API OpenID Connect
+
+Interface de federação para emissão de tokens e descoberta de metadados.
+:::
+
+::: {.need #IAM-IF-002 type="interface" status="implemented" priority="medium" tags="integration;scim"}
+## API SCIM de provisão
+
+Interface para sincronizar usuários e grupos a partir de sistemas de origem.
+:::
+
+::: {.need #IAM-IF-003 type="interface" status="implemented" priority="high" tags="audit;events"}
+## Fluxo de eventos de auditoria
+
+Interface de eventos assinados entregue ao cofre e ao monitoramento de segurança.
+:::
