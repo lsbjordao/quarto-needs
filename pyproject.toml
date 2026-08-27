@@ -27,6 +27,12 @@ test = [
   "referencing",
   "PyYAML>=6",
 ]
+# Release tooling only. Never a runtime dependency, and installed inside CI
+# rather than by contributors.
+release = [
+  "build>=1",
+  "twine>=5",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]

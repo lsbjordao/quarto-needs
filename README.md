@@ -34,6 +34,14 @@ tests/                         Unit tests
 
 ## Quick start
 
+**Using Quarto-Needs?** Start with [the quickstart](docs/quickstart.md): from an
+empty directory to a rendered, traceable requirement, with every command on that
+page executed in order before it shipped.
+
+**Working on Quarto-Needs?** The rest of this section is contributor setup. It
+builds a development environment against this checkout and is not the path a
+user takes.
+
 ### 1. Install the CLI for development
 
 ```bash
