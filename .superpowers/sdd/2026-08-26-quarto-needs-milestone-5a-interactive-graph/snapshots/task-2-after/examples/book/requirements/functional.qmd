@@ -1,0 +1,143 @@
+# Requisitos funcionais
+
+Os requisitos funcionais detalham autenticação, autorização, ciclo de vida,
+auditoria e recuperação.
+
+::: {.need #IAM-FUN-001 type="functional-requirement" status="approved" priority="high" tags="authentication;security" derives-from="IAM-SYS-001" implemented-by="IAM-COMP-001" verified-by="IAM-TC-001"}
+## Validar credenciais corporativas
+
+O serviço deve validar credenciais contra o diretório corporativo antes de criar sessão.
+
+### Rationale
+
+Garante que a sessão represente uma identidade corporativa conhecida.
+:::
+
+::: {.need #IAM-FUN-002 type="functional-requirement" status="approved" priority="high" tags="authentication;mfa;security" derives-from="IAM-SYS-001" implemented-by="IAM-COMP-001" verified-by="IAM-TC-002" mitigates="IAM-RISK-001"}
+## Exigir MFA para acesso privilegiado
+
+O serviço deve exigir um segundo fator para papéis privilegiados.
+
+### Rationale
+
+Reduz a eficácia de credenciais capturadas por phishing.
+:::
+
+::: {.need #IAM-FUN-003 type="functional-requirement" status="approved" priority="high" tags="authentication;session" derives-from="IAM-SYS-001" implemented-by="IAM-COMP-001" verified-by="IAM-TC-003"}
+## Revogar sessões após mudança de risco
+
+O serviço deve revogar sessões quando a conta for suspensa ou o risco subir.
+
+### Rationale
+
+Limita a janela de abuso após um evento de risco.
+:::
+
+::: {.need #IAM-FUN-004 type="functional-requirement" status="approved" priority="high" tags="authorization;policy" derives-from="IAM-SYS-002" implemented-by="IAM-COMP-002" verified-by="IAM-TC-004"}
+## Avaliar políticas por atributo
+
+O motor deve avaliar sujeito, recurso, ação e contexto na decisão de acesso.
+
+### Rationale
+
+Permite aplicar políticas consistentes independentemente da aplicação consumidora.
+:::
+
+::: {.need #IAM-FUN-005 type="functional-requirement" status="approved" priority="high" tags="authorization;least-privilege" derives-from="IAM-SYS-002" implemented-by="IAM-COMP-002" verified-by="IAM-TC-005" mitigates="IAM-RISK-002"}
+## Aplicar menor privilégio por padrão
+
+O motor deve negar solicitações que não correspondam a uma regra permissiva.
+
+### Rationale
+
+Evita escalada de privilégio causada por política ausente ou excessivamente ampla.
+:::
+
+::: {.need #IAM-FUN-006 type="functional-requirement" status="approved" priority="medium" tags="authorization;delegation" derives-from="IAM-SYS-002" implemented-by="IAM-COMP-002" verified-by="IAM-TC-006"}
+## Registrar delegação temporária
+
+O sistema deve limitar e registrar delegações de acesso com data de expiração.
+
+### Rationale
+
+Mantém delegações excepcionais temporárias e responsabilizáveis.
+:::
+
+::: {.need #IAM-FUN-007 type="functional-requirement" status="approved" priority="high" tags="lifecycle;provisioning" derives-from="IAM-SYS-003" implemented-by="IAM-COMP-003" verified-by="IAM-TC-007"}
+## Provisionar conta por evento de admissão
+
+O orquestrador deve criar conta após receber evento válido de admissão.
+
+### Rationale
+
+Reduz trabalho manual e garante que o acesso comece com dados de origem confiável.
+:::
+
+::: {.need #IAM-FUN-008 type="functional-requirement" status="approved" priority="high" tags="lifecycle;offboarding" derives-from="IAM-SYS-003" implemented-by="IAM-COMP-003" verified-by="IAM-TC-008"}
+## Suspender conta no desligamento
+
+O orquestrador deve suspender a conta e remover sessões após evento de desligamento.
+
+### Rationale
+
+Evita que identidades desligadas mantenham acesso operacional.
+:::
+
+::: {.need #IAM-FUN-009 type="functional-requirement" status="approved" priority="medium" tags="lifecycle;review" derives-from="IAM-SYS-003" implemented-by="IAM-COMP-003" verified-by="IAM-TC-009"}
+## Solicitar revisão periódica de acesso
+
+O sistema deve abrir campanhas de revisão para responsáveis por recursos.
+
+### Rationale
+
+Revisões periódicas removem privilégios que deixaram de ser necessários.
+:::
+
+::: {.need #IAM-FUN-010 type="functional-requirement" status="approved" priority="high" tags="audit;security" derives-from="IAM-SYS-004" implemented-by="IAM-COMP-004" verified-by="IAM-TC-010"}
+## Registrar decisão de autorização
+
+O sistema deve registrar política aplicada, sujeito, recurso, resultado e correlação.
+
+### Rationale
+
+Permite explicar e investigar decisões de autorização.
+:::
+
+::: {.need #IAM-FUN-011 type="functional-requirement" status="approved" priority="medium" tags="audit;retention" derives-from="IAM-SYS-004" implemented-by="IAM-COMP-004" verified-by="IAM-TC-011"}
+## Consultar trilha de auditoria por conta
+
+Auditores devem consultar eventos de uma conta em ordem temporal e com filtros.
+
+### Rationale
+
+Reduz o tempo necessário para investigar uma identidade específica.
+:::
+
+::: {.need #IAM-FUN-012 type="functional-requirement" status="approved" priority="high" tags="recovery;security" derives-from="IAM-SYS-005" implemented-by="IAM-COMP-005" verified-by="IAM-TC-012"}
+## Recuperar conta com verificação reforçada
+
+O fluxo deve exigir prova de posse e validação adicional para uma conta de alto risco.
+
+### Rationale
+
+Evita que a recuperação de conta seja explorada como tomada de acesso.
+:::
+
+::: {.need #IAM-FUN-013 type="functional-requirement" status="in-review" priority="medium" tags="recovery;support" derives-from="IAM-SYS-005"}
+## Delegar recuperação ao suporte supervisionado
+
+O produto deve permitir recuperação assistida com aprovação de segundo operador.
+:::
+
+::: {.need #IAM-FUN-014 type="functional-requirement" status="draft" priority="medium" tags="integration;scim" derives-from="IAM-SYS-006"}
+## Provisionar grupos via SCIM
+
+O produto poderá sincronizar grupos autorizados a partir de provedor externo.
+:::
+
+::: {.need #IAM-FUN-015 type="functional-requirement" status="disapproved" priority="low" tags="authentication;password" conflicts-with="IAM-SYS-001"}
+## Permitir senha compartilhada por equipe
+
+A proposta permitiria uma senha comum para equipes temporárias; foi reprovada por
+eliminar responsabilização individual.
+:::

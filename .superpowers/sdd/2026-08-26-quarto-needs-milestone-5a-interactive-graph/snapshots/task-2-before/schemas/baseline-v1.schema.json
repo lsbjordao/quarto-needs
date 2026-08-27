@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://quarto-needs.dev/schema/baseline-v1.schema.json",
+  "title": "Quarto-Needs baseline v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "generator", "relationCatalogVersion", "ruleSetVersion", "referenceDate", "configurationFingerprint", "valid"],
+  "properties": {
+    "schemaVersion": {"const": "1"},
+    "generator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {"name": {"type": "string"}, "version": {"type": "string"}}
+    },
+    "relationCatalogVersion": {"type": "string"},
+    "ruleSetVersion": {"type": "string"},
+    "referenceDate": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+    "configurationFingerprint": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "semanticGraphFingerprint": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "representationFingerprint": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "valid": {"type": "boolean"},
+    "objects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "type", "title", "status", "body", "rationale", "attributes", "location", "contentFingerprint"],
+        "properties": {
+          "id": {"type": "string"},
+          "type": {"type": "string"},
+          "title": {"type": "string"},
+          "status": {"type": "string"},
+          "body": {"type": "string"},
+          "rationale": {"type": "string"},
+          "attributes": {"type": "object"},
+          "location": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "required": ["file", "line"],
+            "properties": {
+              "file": {"type": "string"},
+              "line": {"type": "integer"},
+              "anchor": {"type": ["string", "null"]}
+            }
+          },
+          "contentFingerprint": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    },
+    "relations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source", "authoredName", "target", "semanticFamily", "sourceRole", "targetRole", "impactDirection", "attributes", "authoredFingerprint", "semanticFingerprint"],
+        "properties": {
+          "source": {"type": "string"},
+          "authoredName": {"type": "string"},
+          "target": {"type": "string"},
+          "semanticFamily": {"type": "string"},
+          "sourceRole": {"type": "string"},
+          "targetRole": {"type": "string"},
+          "impactDirection": {"enum": ["source_to_target", "target_to_source", "both", "none"]},
+          "attributes": {"type": "object"},
+          "authoredFingerprint": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "semanticFingerprint": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    },
+    "findings": {"type": "array", "items": {"type": "object"}},
+    "declarations": {"type": "array", "items": {"type": "object"}},
+    "report": {"type": "object"}
+  }
+}

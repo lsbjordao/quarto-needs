@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "quarto-needs"
+version = "0.1.0"
+description = "Requirements-as-code engine and Quarto extension"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "Quarto-Needs contributors"}]
+keywords = ["quarto", "requirements", "requirements-engineering", "docs-as-code", "traceability"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+
+[project.scripts]
+quarto-needs = "quarto_needs.cli:main"
+
+[project.optional-dependencies]
+test = [
+  "pytest>=8",
+  "jsonschema>=4.23",
+  "referencing",
+  "PyYAML>=6",
+]
+# Release tooling only. Never a runtime dependency, and installed inside CI
+# rather than by contributors.
+release = [
+  "build>=1",
+  "twine>=5",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
