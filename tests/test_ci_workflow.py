@@ -28,11 +28,17 @@ def test_artifacts_upload_always_and_sarif_is_least_privilege() -> None:
     assert "if: always()" in text
     assert "pull_request_target" not in text
     quality = parsed()["jobs"]["quality"]
-    assert quality["permissions"] == {"contents": "read", "security-events": "write"}
+    assert quality["permissions"] == {
+        "actions": "read",
+        "contents": "read",
+        "security-events": "write",
+    }
     steps = quality["steps"]
     upload_steps = [step for step in steps if "upload-artifact" in str(step.get("uses", ""))]
     assert upload_steps, "quality must upload artifacts"
-    assert any("github/codeql-action/upload-sarif" in str(step.get("uses", "")) for step in steps)
+    assert any(
+        step.get("uses") == "github/codeql-action/upload-sarif@v4" for step in steps
+    )
 
 
 def test_quality_generates_every_export_format_and_summary() -> None:
