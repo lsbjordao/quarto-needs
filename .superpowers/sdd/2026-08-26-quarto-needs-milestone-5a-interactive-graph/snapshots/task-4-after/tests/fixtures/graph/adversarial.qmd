@@ -1,0 +1,13 @@
+::: {.need #ADV-1 type=functional-requirement status=approved priority=high tags="public-tag" secret-attribute="LEAKCANARYATTR7f3a"}
+rationale: LEAKCANARYRATIONALE4e77 explains why and is equally private.
+
+## Publishable title
+
+LEAKCANARYBODY91cd is body prose and must never reach the browser.
+:::
+
+::: {.need #ADV-2 type=test-case status=passed tags="public-tag" verifies="ADV-1"}
+## Second publishable title
+
+LEAKCANARYBODY2b80 is more private prose.
+:::
