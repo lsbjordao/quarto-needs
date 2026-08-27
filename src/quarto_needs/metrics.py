@@ -10,7 +10,7 @@ from .queries import (
     compile_query,
     evaluate as evaluate_query,
 )
-from .snapshot import AnalysisSnapshot, ObjectRecord
+from .snapshot import AnalysisSnapshot, ObjectRecord, text_key
 
 
 IMPLEMENTATION_FAMILY = "implementation"
@@ -72,10 +72,6 @@ class ReportMetrics:
         return {
             "scopes": {name: self.scopes[name].to_dict() for name in sorted(self.scopes)}
         }
-
-
-def _text_key(value: str) -> tuple[str, str]:
-    return value.casefold(), value
 
 
 def _requirement_ids(snapshot: AnalysisSnapshot) -> set[str]:
@@ -183,13 +179,13 @@ def _compute_scope(
         "implementation-effective": tuple(
             sorted(
                 (item.id for item in records if item.id not in impl_effective),
-                key=_text_key,
+                key=text_key,
             )
         ),
         "verification-successful": tuple(
             sorted(
                 (item.id for item in records if item.id not in ver_successful),
-                key=_text_key,
+                key=text_key,
             )
         ),
         "evidence": tuple(
@@ -199,7 +195,7 @@ def _compute_scope(
                     for item in records
                     if item.id in ver_successful and item.id not in evidence_ok
                 ),
-                key=_text_key,
+                key=text_key,
             )
         ),
     }

@@ -4,16 +4,10 @@ from collections import Counter
 
 from .diagnostics import Finding
 from .model import EngineeringObject, SourceLocation
-from .snapshot import LocationRecord
+from .snapshot import LocationRecord, to_location_record
 
 
 SEVERITY_ORDER = {"error": 0, "warning": 1, "info": 2}
-
-
-def _location_record(source: SourceLocation | None) -> LocationRecord | None:
-    if source is None:
-        return None
-    return LocationRecord(source.file, source.line, source.anchor)
 
 
 def finding_key(item: Finding) -> tuple[object, ...]:
@@ -42,7 +36,7 @@ def validate(objects: list[EngineeringObject], require_rationale_for: set[str] |
                 "error",
                 f"Duplicate ID: {need_id}",
                 need_id,
-                _location_record(source),
+                to_location_record(source),
             ))
 
     for obj in objects:
@@ -52,7 +46,7 @@ def validate(objects: list[EngineeringObject], require_rationale_for: set[str] |
                     "REQ005", "error",
                     f"{obj.id} references unknown object {rel.target} via {rel.type}",
                     obj.id,
-                    _location_record(obj.source),
+                    to_location_record(obj.source),
                 ))
 
     require_rationale_for = require_rationale_for or {"system-requirement", "software-requirement"}

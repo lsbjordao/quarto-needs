@@ -8,8 +8,13 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .diagnostics import Finding
+    from .model import SourceLocation
 
 JsonScalar = str | int | float | bool | None
+
+
+def text_key(value: str) -> tuple[str, str]:
+    return value.casefold(), value
 
 
 def freeze_json(value: object) -> object:
@@ -51,6 +56,12 @@ class LocationRecord:
     file: str
     line: int
     anchor: str | None = None
+
+
+def to_location_record(source: SourceLocation | None) -> LocationRecord | None:
+    if source is None:
+        return None
+    return LocationRecord(source.file, source.line, source.anchor)
 
 
 @dataclass(frozen=True, slots=True)

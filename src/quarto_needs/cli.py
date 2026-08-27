@@ -427,10 +427,14 @@ def _export(root: Path, args: argparse.Namespace, config: NeedsConfig | None) ->
             # invalid project still produces its artifact, then fails policy.
             sarif_export.write(output, result.findings)
         elif args.format == "junit":
-            assert report is not None
+            if report is None:
+                print("JUnit export requires a valid snapshot.", file=sys.stderr)
+                return 1
             junit_export.write(output, report)
         else:
-            assert args.format == "markdown" and result.snapshot is not None
+            if args.format != "markdown" or result.snapshot is None:
+                print("Markdown export requires a valid snapshot.", file=sys.stderr)
+                return 1
             markdown_export.write(
                 output,
                 result.snapshot,

@@ -24,7 +24,9 @@ from .snapshot import (
     ObjectRecord,
     RelationRecord,
     RelationToken,
+    text_key,
     thaw_json,
+    to_location_record,
 )
 from .validation import finding_key, validate
 
@@ -32,10 +34,6 @@ from .validation import finding_key, validate
 STRUCTURAL_ERROR_CODES = frozenset(
     {"QND001", "QND002", "REQ004", "REQ005", "REQ007"}
 )
-
-
-def text_key(value: str) -> tuple[str, str]:
-    return value.casefold(), value
 
 
 def object_key(item: ObjectRecord) -> tuple[object, ...]:
@@ -125,14 +123,8 @@ def legacy_coverage(
     }
 
 
-def _location(source: SourceLocation | None) -> LocationRecord | None:
-    if source is None:
-        return None
-    return LocationRecord(source.file, source.line, source.anchor)
-
-
 def _declaration(item: EngineeringObject) -> ObjectDeclaration:
-    location = _location(item.source)
+    location = to_location_record(item.source)
     return ObjectDeclaration(
         id=item.id,
         type=item.type,

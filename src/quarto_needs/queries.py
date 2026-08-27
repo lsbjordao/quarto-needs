@@ -83,7 +83,7 @@ def _is_scalar(value: object) -> bool:
 
 def _scalar_eq(left: object, right: object) -> bool:
     if isinstance(left, bool) or isinstance(right, bool):
-        return isinstance(left, bool) and isinstance(right, bool) and left is right
+        return isinstance(left, bool) and isinstance(right, bool) and left == right
     if left is None or right is None:
         return left is None and right is None
     if isinstance(left, (int, float)) and isinstance(right, (int, float)):
