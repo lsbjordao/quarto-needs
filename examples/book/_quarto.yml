@@ -5,6 +5,8 @@ project:
 
 book:
   title: "Aegis IAM — traceable requirements"
+  navbar:
+    search: true
   chapters:
     - index.qmd
     - context/stakeholders.qmd
@@ -31,13 +33,15 @@ book:
 format:
   html:
     theme: cosmo
+    css: language-switch.css
     mermaid-format: svg
 
 filters:
   - quarto-needs
 
 babelquarto:
-  languagelinks: sidebar
+  languagelinks: navbar
+  icon: ""
   languagecodes:
     - name: en
       text: "English"
