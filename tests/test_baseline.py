@@ -55,7 +55,7 @@ def test_baseline_carries_both_comparison_axes(tmp_path: Path) -> None:
     assert payload["valid"] is True
     assert len(payload["configurationFingerprint"]) == 64
     assert payload["referenceDate"]
-    assert payload["ruleSetVersion"] == "1"
+    assert payload["ruleSetVersion"] == "2"
 
 
 def test_baseline_stores_authored_content_not_only_fingerprints(tmp_path: Path) -> None:
@@ -73,8 +73,6 @@ def test_baseline_stores_authored_content_not_only_fingerprints(tmp_path: Path) 
 def test_baseline_render_is_byte_stable(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # Pin the reference date so a run crossing local midnight cannot change
-    # referenceDate between the two builds.
     monkeypatch.setenv("SOURCE_DATE_EPOCH", "1735689600")
     write_project(tmp_path)
 
