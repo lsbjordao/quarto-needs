@@ -1,0 +1,105 @@
+# Evidências de verificação
+
+Evidências representam resultados consultáveis de execuções e exercícios técnicos.
+
+::: {.need #EVD-001 type="evidence" status="verified" priority="high" tags="authentication;ci"}
+## Relatório de autenticação 2026-08-25
+
+Execução automatizada do cenário de credencial válida no ambiente de integração.
+:::
+
+::: {.need #EVD-002 type="evidence" status="verified" priority="high" tags="mfa;ci"}
+## Relatório de MFA administrativo
+
+Execução automatizada do bloqueio sem segundo fator.
+:::
+
+::: {.need #EVD-003 type="evidence" status="verified" priority="high" tags="session;ci"}
+## Relatório de revogação de sessão
+
+Execução automatizada de suspensão e invalidação de tokens.
+:::
+
+::: {.need #EVD-004 type="evidence" status="verified" priority="high" tags="authorization;ci"}
+## Relatório de política por atributo
+
+Execução automatizada de decisão contextual de acesso.
+:::
+
+::: {.need #EVD-005 type="evidence" status="verified" priority="high" tags="least-privilege;ci"}
+## Relatório de negação padrão
+
+Execução automatizada de uma solicitação sem regra permissiva.
+:::
+
+::: {.need #EVD-006 type="evidence" status="verified" priority="medium" tags="performance;load"}
+## Relatório de carga da autorização
+
+Resultado do teste de carga para o objetivo de resposta de autorização.
+:::
+
+::: {.need #EVD-007 type="evidence" status="verified" priority="high" tags="lifecycle;ci"}
+## Relatório de provisão por admissão
+
+Execução automatizada que registra a conta criada a partir de um evento válido de RH.
+:::
+
+::: {.need #EVD-008 type="evidence" status="verified" priority="high" tags="lifecycle;offboarding"}
+## Relatório de suspensão por desligamento
+
+Execução automatizada que confirma suspensão da conta e invalidação das sessões.
+:::
+
+::: {.need #EVD-009 type="evidence" status="verified" priority="medium" tags="lifecycle;review"}
+## Relatório de campanha de revisão
+
+Execução automatizada que comprova a criação de tarefa para o responsável pelo recurso.
+:::
+
+::: {.need #EVD-010 type="evidence" status="verified" priority="high" tags="audit;integrity"}
+## Relatório de evento de autorização
+
+Execução automatizada que valida correlação e integridade de uma decisão registrada.
+:::
+
+::: {.need #EVD-011 type="evidence" status="verified" priority="medium" tags="audit;retention"}
+## Relatório de consulta e retenção
+
+Resultado de consulta ordenada em eventos preservados no período de retenção configurado.
+:::
+
+::: {.need #EVD-012 type="evidence" status="verified" priority="high" tags="recovery;security"}
+## Relatório de recuperação reforçada
+
+Execução automatizada que registra a prova adicional de identidade antes da redefinição.
+:::
+
+::: {.need #EVD-013 type="evidence" status="verified" priority="medium" tags="accessibility;portal"}
+## Relatório de acessibilidade do portal
+
+Resultado de teste automatizado e manual de teclado, foco e nomes acessíveis.
+:::
+
+::: {.need #EVD-014 type="evidence" status="verified" priority="high" tags="availability;failover"}
+## Relatório de disponibilidade da autenticação
+
+Resultado do exercício de failover e monitoramento mensal do serviço de autenticação.
+:::
+
+::: {.need #EVD-015 type="evidence" status="verified" priority="high" tags="privacy;compliance"}
+## Relatório de minimização de dados
+
+Resultado da inspeção que confirma a ausência de atributos pessoais desnecessários.
+:::
+
+::: {.need #EVD-016 type="evidence" status="verified" priority="high" tags="security;encryption"}
+## Relatório de criptografia de credenciais
+
+Resultado da verificação de TLS e criptografia de segredos em armazenamento.
+:::
+
+::: {.need #EVD-017 type="evidence" status="verified" priority="medium" tags="integration;oidc"}
+## Relatório de interoperabilidade OIDC
+
+Resultado da integração de descoberta e troca de token com a aplicação consumidora.
+:::

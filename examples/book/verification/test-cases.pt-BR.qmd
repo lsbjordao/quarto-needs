@@ -1,106 +1,106 @@
-# Test cases
+# Casos de teste
 
-Each test case is an explicit target of approved requirements and produces
-traceable evidence.
+Cada caso de teste é um alvo explícito dos requisitos aprovados e produz
+evidências rastreáveis.
 
 ::: {.need #TC-001 type="test-case" status="passed" priority="high" tags="authentication;regression" evidenced-by="EVD-001"}
-## Authentication with a valid credential
+## Autenticação com credencial válida
 
-Verifies session creation only for a valid corporate credential.
+Verifica criação de sessão somente para credencial corporativa válida.
 :::
 
 ::: {.need #TC-002 type="test-case" status="passed" priority="high" tags="mfa;security" evidenced-by="EVD-002"}
-## Mandatory MFA for administrators
+## MFA obrigatório para administrador
 
-Verifies that a privileged role is blocked when the second factor is not satisfied.
+Verifica bloqueio de papel privilegiado quando o segundo fator não é satisfeito.
 :::
 
 ::: {.need #TC-003 type="test-case" status="passed" priority="high" tags="session;security" evidenced-by="EVD-003"}
-## Suspended-session revocation
+## Revogação de sessão suspensa
 
-Verifies token invalidation after account suspension.
+Verifica invalidação de tokens após suspensão de conta.
 :::
 
 ::: {.need #TC-004 type="test-case" status="passed" priority="high" tags="authorization;policy" evidenced-by="EVD-004"}
-## Attribute-based decision
+## Decisão por atributo
 
-Verifies evaluation of subject, resource, action, and context in a policy.
+Verifica avaliação de sujeito, recurso, ação e contexto em uma política.
 :::
 
 ::: {.need #TC-005 type="test-case" status="passed" priority="high" tags="authorization;least-privilege" evidenced-by="EVD-005"}
-## Denial without a permissive rule
+## Negação sem regra permissiva
 
-Verifies that a request without a permissive rule is denied.
+Verifica que uma solicitação sem regra permissiva é negada.
 :::
 
 ::: {.need #TC-006 type="test-case" status="passed" priority="medium" tags="integration;performance" evidenced-by="EVD-006"}
-## Access-decision latency
+## Latência da decisão de acesso
 
-Verifies authorization response within the objective under nominal load.
+Verifica a resposta de autorização dentro do objetivo sob carga nominal.
 :::
 
 ::: {.need #TC-007 type="test-case" status="passed" priority="high" tags="lifecycle;provisioning" evidenced-by="EVD-007"}
-## Creation from an onboarding event
+## Criação por evento de admissão
 
-Verifies account creation after a valid onboarding event.
+Verifica criação de conta após evento de admissão válido.
 :::
 
 ::: {.need #TC-008 type="test-case" status="passed" priority="high" tags="lifecycle;offboarding" evidenced-by="EVD-008"}
-## Suspension on offboarding
+## Suspensão por desligamento
 
-Verifies suspension and session termination after offboarding.
+Verifica suspensão e encerramento de sessão após desligamento.
 :::
 
 ::: {.need #TC-009 type="test-case" status="passed" priority="medium" tags="lifecycle;review" evidenced-by="EVD-009"}
-## Access-review campaign
+## Campanha de revisão de acesso
 
-Verifies creation of a review task for the appropriate resource owner.
+Verifica abertura de tarefa de revisão para o responsável adequado.
 :::
 
 ::: {.need #TC-010 type="test-case" status="passed" priority="high" tags="audit;security" evidenced-by="EVD-010"}
-## Authorization-decision record
+## Registro de decisão de autorização
 
-Verifies correlation and integrity of the access-decision event.
+Verifica correlação e integridade do evento da decisão de acesso.
 :::
 
 ::: {.need #TC-011 type="test-case" status="passed" priority="medium" tags="audit;retention" evidenced-by="EVD-011"}
-## Trail query and retention
+## Consulta e retenção de trilha
 
-Verifies ordered querying and availability of retained evidence.
+Verifica consulta ordenada e disponibilidade da evidência retida.
 :::
 
 ::: {.need #TC-012 type="test-case" status="passed" priority="high" tags="recovery;security" evidenced-by="EVD-012"}
-## Strengthened recovery
+## Recuperação reforçada
 
-Verifies additional identity proof before credential reset.
+Verifica prova adicional de identidade antes da redefinição de credencial.
 :::
 
 ::: {.need #TC-013 type="test-case" status="passed" priority="medium" tags="accessibility;portal" evidenced-by="EVD-013"}
-## Authentication accessibility
+## Acessibilidade da autenticação
 
-Verifies keyboard navigation, visible focus, and accessible names in the portal.
+Verifica navegação por teclado, foco visível e nomes acessíveis no portal.
 :::
 
 ::: {.need #TC-014 type="test-case" status="passed" priority="high" tags="availability;resilience" evidenced-by="EVD-014"}
-## Authentication availability
+## Disponibilidade de autenticação
 
-Verifies the monthly objective in monitoring and failover exercises.
+Verifica o objetivo mensal em exercício de monitoramento e failover.
 :::
 
 ::: {.need #TC-015 type="test-case" status="passed" priority="high" tags="privacy;compliance" evidenced-by="EVD-015"}
-## Personal-event minimization
+## Minimização de evento pessoal
 
-Verifies absence of unnecessary personal attributes in the audit event.
+Verifica ausência de atributos pessoais não necessários no evento de auditoria.
 :::
 
 ::: {.need #TC-016 type="test-case" status="passed" priority="high" tags="security;encryption" evidenced-by="EVD-016"}
-## Credential and secret encryption
+## Criptografia de credenciais e segredos
 
-Verifies approved TLS in transit and secret encryption in storage.
+Verifica TLS aprovado em trânsito e criptografia de segredos no armazenamento.
 :::
 
 ::: {.need #TC-017 type="test-case" status="passed" priority="medium" tags="integration;oidc" evidenced-by="EVD-017"}
-## OpenID Connect federation
+## Federação OpenID Connect
 
-Verifies OIDC discovery, token issuance, and token validation with a consuming application.
+Verifica descoberta, emissão e validação de token OIDC com uma aplicação consumidora.
 :::

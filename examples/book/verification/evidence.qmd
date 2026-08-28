@@ -1,105 +1,105 @@
-# Evidências de verificação
+# Verification evidence
 
-Evidências representam resultados consultáveis de execuções e exercícios técnicos.
+Evidence represents queryable results from executions and technical exercises.
 
 ::: {.need #EVD-001 type="evidence" status="verified" priority="high" tags="authentication;ci"}
-## Relatório de autenticação 2026-08-25
+## Authentication report 2026-08-25
 
-Execução automatizada do cenário de credencial válida no ambiente de integração.
+Automated execution of the valid-credential scenario in the integration environment.
 :::
 
 ::: {.need #EVD-002 type="evidence" status="verified" priority="high" tags="mfa;ci"}
-## Relatório de MFA administrativo
+## Administrative MFA report
 
-Execução automatizada do bloqueio sem segundo fator.
+Automated execution of blocking when the second factor is absent.
 :::
 
 ::: {.need #EVD-003 type="evidence" status="verified" priority="high" tags="session;ci"}
-## Relatório de revogação de sessão
+## Session-revocation report
 
-Execução automatizada de suspensão e invalidação de tokens.
+Automated execution of suspension and token invalidation.
 :::
 
 ::: {.need #EVD-004 type="evidence" status="verified" priority="high" tags="authorization;ci"}
-## Relatório de política por atributo
+## Attribute-policy report
 
-Execução automatizada de decisão contextual de acesso.
+Automated execution of a contextual access decision.
 :::
 
 ::: {.need #EVD-005 type="evidence" status="verified" priority="high" tags="least-privilege;ci"}
-## Relatório de negação padrão
+## Default-denial report
 
-Execução automatizada de uma solicitação sem regra permissiva.
+Automated execution of a request without a permissive rule.
 :::
 
 ::: {.need #EVD-006 type="evidence" status="verified" priority="medium" tags="performance;load"}
-## Relatório de carga da autorização
+## Authorization load report
 
-Resultado do teste de carga para o objetivo de resposta de autorização.
+Load-test result for the authorization response objective.
 :::
 
 ::: {.need #EVD-007 type="evidence" status="verified" priority="high" tags="lifecycle;ci"}
-## Relatório de provisão por admissão
+## Onboarding-provisioning report
 
-Execução automatizada que registra a conta criada a partir de um evento válido de RH.
+Automated execution recording the account created from a valid HR event.
 :::
 
 ::: {.need #EVD-008 type="evidence" status="verified" priority="high" tags="lifecycle;offboarding"}
-## Relatório de suspensão por desligamento
+## Offboarding-suspension report
 
-Execução automatizada que confirma suspensão da conta e invalidação das sessões.
+Automated execution confirming account suspension and session invalidation.
 :::
 
 ::: {.need #EVD-009 type="evidence" status="verified" priority="medium" tags="lifecycle;review"}
-## Relatório de campanha de revisão
+## Review-campaign report
 
-Execução automatizada que comprova a criação de tarefa para o responsável pelo recurso.
+Automated execution proving creation of a task for the resource owner.
 :::
 
 ::: {.need #EVD-010 type="evidence" status="verified" priority="high" tags="audit;integrity"}
-## Relatório de evento de autorização
+## Authorization-event report
 
-Execução automatizada que valida correlação e integridade de uma decisão registrada.
+Automated execution validating correlation and integrity of a recorded decision.
 :::
 
 ::: {.need #EVD-011 type="evidence" status="verified" priority="medium" tags="audit;retention"}
-## Relatório de consulta e retenção
+## Query and retention report
 
-Resultado de consulta ordenada em eventos preservados no período de retenção configurado.
+Result of an ordered query over events preserved for the configured retention period.
 :::
 
 ::: {.need #EVD-012 type="evidence" status="verified" priority="high" tags="recovery;security"}
-## Relatório de recuperação reforçada
+## Strengthened-recovery report
 
-Execução automatizada que registra a prova adicional de identidade antes da redefinição.
+Automated execution recording additional identity proof before reset.
 :::
 
 ::: {.need #EVD-013 type="evidence" status="verified" priority="medium" tags="accessibility;portal"}
-## Relatório de acessibilidade do portal
+## Portal-accessibility report
 
-Resultado de teste automatizado e manual de teclado, foco e nomes acessíveis.
+Automated and manual keyboard, focus, and accessible-name test results.
 :::
 
 ::: {.need #EVD-014 type="evidence" status="verified" priority="high" tags="availability;failover"}
-## Relatório de disponibilidade da autenticação
+## Authentication-availability report
 
-Resultado do exercício de failover e monitoramento mensal do serviço de autenticação.
+Result of the failover exercise and monthly authentication-service monitoring.
 :::
 
 ::: {.need #EVD-015 type="evidence" status="verified" priority="high" tags="privacy;compliance"}
-## Relatório de minimização de dados
+## Data-minimization report
 
-Resultado da inspeção que confirma a ausência de atributos pessoais desnecessários.
+Inspection result confirming the absence of unnecessary personal attributes.
 :::
 
 ::: {.need #EVD-016 type="evidence" status="verified" priority="high" tags="security;encryption"}
-## Relatório de criptografia de credenciais
+## Credential-encryption report
 
-Resultado da verificação de TLS e criptografia de segredos em armazenamento.
+Result of TLS and at-rest secret-encryption verification.
 :::
 
 ::: {.need #EVD-017 type="evidence" status="verified" priority="medium" tags="integration;oidc"}
-## Relatório de interoperabilidade OIDC
+## OIDC interoperability report
 
-Resultado da integração de descoberta e troca de token com a aplicação consumidora.
+Result of discovery and token-exchange integration with the consuming application.
 :::
