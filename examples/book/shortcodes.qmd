@@ -4,8 +4,11 @@ As consultas abaixo usam apenas filtros determinísticos sobre o grafo canônico
 
 ## Referência
 
-O requisito {{< need IAM-SYS-001 title=true >}} deriva da necessidade
-{{< need IAM-STK-001 title=true >}}.
+O requisito {{< need SYS-001 title=true >}} deriva da necessidade
+{{< need STK-001 title=true >}}.
+
+A decisão {{< need ADR-002 title=true >}} endereça requisitos de autorização e
+se aplica ao motor de políticas.
 
 ## Lista filtrada
 
@@ -19,10 +22,14 @@ Requisitos de segurança aprovados: {{< need-count types="functional-requirement
 
 {{< need-table types="functional-requirement;non-functional-requirement" status="approved" priority="high" columns="id;title;status;priority;implemented-by;verified-by" sort="priority;id" caption="Prioridade alta aprovada" >}}
 
+## Decisões aceitas
+
+{{< need-table query="accepted-decisions" columns="id;title;status;addresses;applies-to;confirmed-by" caption="Architecture Decision Records aceitos" >}}
+
 ## Matriz de rastreabilidade
 
 {{< need-matrix rows="functional-requirement" columns="test-case" relation="verified-by" >}}
 
 ## Fluxo de relações
 
-{{< need-flow root="IAM-SYS-001" depth="3" relations="derives-from;implemented-by;verified-by;evidenced-by;mitigates" direction="LR" >}}
+{{< need-flow root="SYS-001" depth="4" relations="derives-from;addresses;applies-to;implemented-by;verified-by;confirmed-by;evidenced-by;mitigates" direction="LR" >}}
