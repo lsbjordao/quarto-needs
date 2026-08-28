@@ -309,10 +309,11 @@ def test_aegis_impact_explains_a_removed_verification(tmp_path: Path, capsys):
 
 def test_aegis_quality_report_projects_passing_gates():
     import json as _json
+    from quarto_needs.cli import build
 
-    graph = _json.loads(
-        (ROOT / "examples/book/.quarto-needs/needs.json").read_text(encoding="utf-8")
-    )
+    root = ROOT / "examples/book"
+    assert build(root, quiet=True) == 0
+    graph = _json.loads((root / ".quarto-needs/needs.json").read_text(encoding="utf-8"))
     report = graph["extensions"]["quartoNeeds"]["report"]
 
     assert report["profile"] == "strict"
