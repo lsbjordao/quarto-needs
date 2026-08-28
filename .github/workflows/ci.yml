@@ -60,6 +60,8 @@ jobs:
         run: make sync-example
       - name: Render HTML, DOCX, and PDF
         run: make render-example-all
+      - name: Render Quarto-Needs manual
+        run: quarto render docs/manual
       - name: Enforce showcase gates
         run: make check-example
 
@@ -80,10 +82,6 @@ jobs:
         uses: quarto-dev/quarto-actions/setup@v2
         with:
           version: "1.10.18"
-      # Every other job installs editable and renders the in-tree book. This one
-      # installs the built package into a clean environment and renders a project
-      # created outside the repository, so a packaging or extension-path
-      # regression fails here instead of failing the first person to install it.
       - name: Verify the installed path
         run: make check-install
 
