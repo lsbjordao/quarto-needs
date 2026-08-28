@@ -1,0 +1,63 @@
+# Governança e qualidade
+
+## Perfis
+
+Quarto-Needs separa achados estruturais de governança semântica. Perfis controlam como falhas de quality gates afetam automação, enquanto erros estruturais permanecem bloqueantes.
+
+```toml
+profile = "strict"
+```
+
+No perfil `strict`, regressões de gate encerram o comando com erro. Isso permite usar o livro publicado como artefato governado por CI, não apenas como documentação informativa.
+
+## Regras
+
+Regras são registradas por código e podem ser habilitadas, desabilitadas quando permitido e ter severidade ajustada.
+
+```toml
+[rules.REQ011]
+enabled = true
+
+[rules.DEC001]
+enabled = true
+severity = "error"
+```
+
+Regras estruturais não podem ser desligadas. Regras de decisão usam o namespace `DECxxx`; políticas de identificação e tipo usam `IDxxx`/`OBJxxx`.
+
+## Relações e cardinalidade
+
+A política pode restringir endpoints e cardinalidade:
+
+```toml
+[relations."addresses"]
+allowed-source-types = ["architecture-decision"]
+allowed-target-types = [
+  "stakeholder-need",
+  "system-requirement",
+  "non-functional-requirement",
+  "risk",
+]
+minimum-per-source = 1
+```
+
+Isso transforma convenções de modelagem em invariantes verificáveis.
+
+## Quality gates
+
+```toml
+[gates]
+scope = "approved-requirements"
+max-errors = 0
+min-implementation-trace = 100.0
+min-verification-trace = 100.0
+min-evidence = 100.0
+```
+
+Gates são apropriados para propriedades mensuráveis do conjunto, enquanto regras descrevem violações localizadas em objetos ou relações.
+
+## Baseline, diff e impacto
+
+Um baseline captura o estado analisado e a fingerprint da configuração. O diff distingue objetos adicionados/removidos, conteúdo modificado, relocação e mudanças de relações. Quando a política muda, resultados derivados incompatíveis são suprimidos explicitamente em vez de produzir comparações enganosas.
+
+A análise de impacto usa a direção semântica declarada no catálogo. Relações ADR participam desse mecanismo exatamente como as relações de implementação, verificação e evidência.
