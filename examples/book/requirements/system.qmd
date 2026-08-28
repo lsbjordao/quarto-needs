@@ -2,7 +2,7 @@
 
 O catálogo de sistema conecta expectativas de negócio à arquitetura do Aegis IAM.
 
-::: {.need #IAM-SYS-001 type="system-requirement" status="approved" priority="high" tags="authentication;security" derives-from="IAM-STK-001" implemented-by="IAM-COMP-001" verified-by="IAM-TC-001"}
+::: {.need #SYS-001 type="system-requirement" status="approved" priority="high" tags="authentication;security" derives-from="STK-001" implemented-by="COMP-001" verified-by="TC-001"}
 ## Autenticar identidades antes de emitir sessão
 
 O Aegis IAM deve autenticar a identidade antes de emitir uma sessão utilizável.
@@ -12,7 +12,7 @@ O Aegis IAM deve autenticar a identidade antes de emitir uma sessão utilizável
 Evita que recursos protegidos sejam expostos a solicitantes anônimos.
 :::
 
-::: {.need #IAM-SYS-002 type="system-requirement" status="approved" priority="high" tags="authorization;least-privilege" derives-from="IAM-STK-002" implemented-by="IAM-COMP-002" verified-by="IAM-TC-004"}
+::: {.need #SYS-002 type="system-requirement" status="approved" priority="high" tags="authorization;least-privilege" derives-from="STK-002" implemented-by="COMP-002" verified-by="TC-004"}
 ## Decidir acesso por política central
 
 O sistema deve decidir acesso por políticas centralizadas e atributos confiáveis.
@@ -22,7 +22,7 @@ O sistema deve decidir acesso por políticas centralizadas e atributos confiáve
 Centralizar a decisão reduz divergências entre aplicações consumidoras.
 :::
 
-::: {.need #IAM-SYS-003 type="system-requirement" status="approved" priority="high" tags="lifecycle;provisioning" derives-from="IAM-STK-003" implemented-by="IAM-COMP-003" verified-by="IAM-TC-007"}
+::: {.need #SYS-003 type="system-requirement" status="approved" priority="high" tags="lifecycle;provisioning" derives-from="STK-003" implemented-by="COMP-003" verified-by="TC-007"}
 ## Gerir o ciclo de vida de contas
 
 O sistema deve provisionar, alterar, suspender e encerrar contas de forma auditável.
@@ -32,7 +32,7 @@ O sistema deve provisionar, alterar, suspender e encerrar contas de forma audit�
 Contas órfãs e privilégios persistentes são riscos operacionais relevantes.
 :::
 
-::: {.need #IAM-SYS-004 type="system-requirement" status="approved" priority="high" tags="audit;compliance" derives-from="IAM-STK-005" implemented-by="IAM-COMP-004" verified-by="IAM-TC-010"}
+::: {.need #SYS-004 type="system-requirement" status="approved" priority="high" tags="audit;compliance" derives-from="STK-005" implemented-by="COMP-004" verified-by="TC-010"}
 ## Registrar eventos de identidade imutáveis
 
 O sistema deve registrar eventos de autenticação, autorização e administração.
@@ -42,7 +42,7 @@ O sistema deve registrar eventos de autenticação, autorização e administraç
 Registros íntegros sustentam investigação, conformidade e responsabilização.
 :::
 
-::: {.need #IAM-SYS-005 type="system-requirement" status="approved" priority="high" tags="recovery;security" derives-from="IAM-STK-003" implemented-by="IAM-COMP-005" verified-by="IAM-TC-012"}
+::: {.need #SYS-005 type="system-requirement" status="approved" priority="high" tags="recovery;security" derives-from="STK-003" implemented-by="COMP-005" verified-by="TC-012"}
 ## Recuperar acesso com prova de identidade
 
 O sistema deve recuperar acesso somente após validação de identidade proporcional ao risco.
@@ -52,7 +52,7 @@ O sistema deve recuperar acesso somente após validação de identidade proporci
 O processo de recuperação não pode se tornar uma via de tomada de conta.
 :::
 
-::: {.need #IAM-SYS-006 type="system-requirement" status="approved" priority="medium" tags="integration;standards" derives-from="IAM-STK-004" implemented-by="IAM-IF-001" verified-by="IAM-TC-017"}
+::: {.need #SYS-006 type="system-requirement" status="approved" priority="medium" tags="integration;standards" derives-from="STK-004" implemented-by="IF-001" verified-by="TC-017"}
 ## Expor integração de identidade padronizada
 
 O sistema deve oferecer protocolos abertos de federação e provisão.
@@ -62,7 +62,7 @@ O sistema deve oferecer protocolos abertos de federação e provisão.
 Protocolos padronizados diminuem o custo e o risco das integrações.
 :::
 
-::: {.need #IAM-SYS-007 type="system-requirement" status="in-review" priority="medium" tags="analytics;governance" derives-from="IAM-STK-005"}
+::: {.need #SYS-007 type="system-requirement" status="in-review" priority="medium" tags="analytics;governance" derives-from="STK-005"}
 ## Detectar anomalias de privilégio
 
 O sistema deve priorizar para revisão acessos com padrão anômalo.
@@ -72,7 +72,7 @@ O sistema deve priorizar para revisão acessos com padrão anômalo.
 A análise de anomalias pode antecipar abuso de privilégios.
 :::
 
-::: {.need #IAM-SYS-008 type="system-requirement" status="draft" priority="low" tags="experience;mobile" derives-from="IAM-STK-004"}
+::: {.need #SYS-008 type="system-requirement" status="draft" priority="low" tags="experience;mobile" derives-from="STK-004"}
 ## Oferecer credencial móvel corporativa
 
 O sistema poderá oferecer uma credencial móvel para acesso presencial.
