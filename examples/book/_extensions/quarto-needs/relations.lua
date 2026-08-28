@@ -1,5 +1,4 @@
 -- Static, catalog-labeled relation sections shared by need cards and shortcodes.
--- Everything renders as Pandoc blocks so HTML, DOCX, and PDF carry the same text.
 local function script_dir()
   local source = debug.getinfo(1, "S").source
   if source:sub(1, 1) == "@" then source = source:sub(2) end
@@ -7,7 +6,6 @@ local function script_dir()
 end
 
 local views = dofile(script_dir() .. "views.lua")
-
 local M = {}
 
 local function text(value)
@@ -24,7 +22,6 @@ local function words(value)
   return inlines
 end
 
--- Python owns relation semantics; Lua only reads the emitted projection.
 local function catalog_entry(graph, relation_type)
   local extensions = type(graph.extensions) == "table" and graph.extensions or {}
   local quarto_needs = type(extensions.quartoNeeds) == "table" and extensions.quartoNeeds or {}
@@ -37,22 +34,20 @@ end
 local DIRECTIONS = {
   outgoing = {
     class = "need-relations",
-    title = "Need relations",
+    title = function() return views.tr("Need relations", "Relações") end,
     endpoint = function(relation) return text(relation.target) end,
     label = function(entry, relation_type)
-      local label = entry and text(entry.directLabel) or ""
-      if label ~= "" then return label end
-      return relation_type
+      local label = entry and text(entry.directLabel) or relation_type
+      return views.relation_label(relation_type, false, label)
     end,
   },
   incoming = {
     class = "need-backlinks",
-    title = "Need backlinks",
+    title = function() return views.tr("Need backlinks", "Referências inversas") end,
     endpoint = function(relation) return text(relation.source) end,
     label = function(entry, relation_type)
-      local label = entry and text(entry.inverseLabel) or ""
-      if label ~= "" then return label end
-      return "Referenced by: " .. relation_type
+      local label = entry and text(entry.inverseLabel) or ("Referenced by: " .. relation_type)
+      return views.relation_label(relation_type, true, label)
     end,
   },
 }
@@ -69,10 +64,7 @@ local function grouped(graph, relations, direction)
   for _, relation in ipairs(relations) do
     local relation_type = text(relation.type)
     local label = spec.label(catalog_entry(graph, relation_type), relation_type)
-    if not groups[label] then
-      groups[label] = {}
-      labels[#labels + 1] = label
-    end
+    if not groups[label] then groups[label] = {}; labels[#labels + 1] = label end
     table.insert(groups[label], spec.endpoint(relation))
   end
   table.sort(labels, before)
@@ -80,7 +72,6 @@ local function grouped(graph, relations, direction)
   return labels, groups
 end
 
--- An absent endpoint is named but never linked, so a broken graph stays visible.
 local function endpoint_inlines(graph, id)
   local object = views.get(graph, id)
   if not object then
@@ -107,31 +98,26 @@ local function direction_div(graph, object_id, relations, direction)
     items[#items + 1] = {words(label), definitions}
   end
   local title = pandoc.Div(
-    {pandoc.Plain({pandoc.Strong(words(spec.title))})},
+    {pandoc.Plain({pandoc.Strong(words(spec.title()))})},
     pandoc.Attr("", {spec.class .. "-title"})
   )
   local list = pandoc.Div({pandoc.DefinitionList(items)}, pandoc.Attr("", {"need-relation-groups"}))
   return pandoc.Div({title, list}, pandoc.Attr("", {spec.class}))
 end
 
--- Only non-empty directions produce a heading, so silent needs stay unchanged.
 function M.render_for_card(graph, object_id)
   local blocks = {}
   local outgoing = views.outgoing(graph, object_id)
-  if #outgoing > 0 then
-    blocks[#blocks + 1] = direction_div(graph, object_id, outgoing, "outgoing")
-  end
+  if #outgoing > 0 then blocks[#blocks + 1] = direction_div(graph, object_id, outgoing, "outgoing") end
   local incoming = views.incoming(graph, object_id)
-  if #incoming > 0 then
-    blocks[#blocks + 1] = direction_div(graph, object_id, incoming, "incoming")
-  end
+  if #incoming > 0 then blocks[#blocks + 1] = direction_div(graph, object_id, incoming, "incoming") end
   return blocks
 end
 
 function M.render_backlinks(graph, object_id)
   local incoming = views.incoming(graph, object_id)
   if #incoming == 0 then
-    return views.empty("No backlinks for " .. object_id .. ".")
+    return views.empty(views.tr("No backlinks for ", "Nenhuma referência inversa para ") .. object_id .. ".")
   end
   return direction_div(graph, object_id, incoming, "incoming")
 end
