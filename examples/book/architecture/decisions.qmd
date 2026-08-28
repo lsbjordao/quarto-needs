@@ -1,6 +1,6 @@
 # Architecture decisions
 
-Architecture decisions are first-class engineering objects. They record **why** a choice was made, which drivers motivated it, where it applies, and how its conformance continues to be confirmed.
+Architecture decisions are first-class engineering objects. They record **why** a choice was made, which drivers motivated it, where it applies, and how its conformance continues to be confirmed. This treatment follows established architecture practice in which decisions, rationale, and consequences are maintained as explicit engineering knowledge [@bass2021software], while the document structure remains compatible with lightweight ADR conventions such as MADR [@madr2025].
 
 The canonical type is `architecture-decision`; `ADR` is only the identification convention. A decision does not implement a requirement: it `addresses` it and `applies-to` architecture elements.
 
