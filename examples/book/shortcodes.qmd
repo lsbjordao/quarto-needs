@@ -1,35 +1,35 @@
-# Galeria de shortcodes
+# Shortcode gallery
 
-As consultas abaixo usam apenas filtros determinísticos sobre o grafo canônico.
+The queries below use only deterministic filters over the canonical graph.
 
-## Referência
+## Reference
 
-O requisito {{< need SYS-001 title=true >}} deriva da necessidade
+Requirement {{< need SYS-001 title=true >}} derives from need
 {{< need STK-001 title=true >}}.
 
-A decisão {{< need ADR-002 title=true >}} endereça requisitos de autorização e
-se aplica ao motor de políticas.
+Decision {{< need ADR-002 title=true >}} addresses authorization requirements and
+applies to the policy engine.
 
-## Lista filtrada
+## Filtered list
 
 {{< need-list tags="authentication" show="status;priority" >}}
 
-## Contagem filtrada
+## Filtered count
 
-Requisitos de segurança aprovados: {{< need-count types="functional-requirement;non-functional-requirement" status="approved" tags="security" >}}.
+Approved security requirements: {{< need-count types="functional-requirement;non-functional-requirement" status="approved" tags="security" >}}.
 
-## Tabela filtrada
+## Filtered table
 
-{{< need-table types="functional-requirement;non-functional-requirement" status="approved" priority="high" columns="id;title;status;priority;implemented-by;verified-by" sort="priority;id" caption="Prioridade alta aprovada" >}}
+{{< need-table types="functional-requirement;non-functional-requirement" status="approved" priority="high" columns="id;title;status;priority;implemented-by;verified-by" sort="priority;id" caption="Approved high priority" >}}
 
-## Decisões aceitas
+## Accepted decisions
 
-{{< need-table query="accepted-decisions" columns="id;title;status;addresses;applies-to;confirmed-by" caption="Architecture Decision Records aceitos" >}}
+{{< need-table query="accepted-decisions" columns="id;title;status;addresses;applies-to;confirmed-by" caption="Accepted Architecture Decision Records" >}}
 
-## Matriz de rastreabilidade
+## Traceability matrix
 
 {{< need-matrix rows="functional-requirement" columns="test-case" relation="verified-by" >}}
 
-## Fluxo de relações
+## Relation flow
 
 {{< need-flow root="SYS-001" depth="4" relations="derives-from;addresses;applies-to;implemented-by;verified-by;confirmed-by;evidenced-by;mitigates" direction="LR" >}}

@@ -1,46 +1,46 @@
-# Diagramas de arquitetura
+# Architecture diagrams
 
-## Contexto do sistema
+## System context
 
 ```{mermaid}
 %%{init: {"htmlLabels": false, "flowchart": {"htmlLabels": false}}}%%
 flowchart LR
-  CISO[Diretora de segurança] --> IAM[Aegis IAM]
-  DPO[Encarregado de dados] --> IAM
-  SUP[Central de suporte] --> IAM
-  APP[Aplicações consumidoras] <-->|OIDC e decisões| IAM
-  IAM --> AUD[Auditoria]
+  CISO[Security director] --> IAM[Aegis IAM]
+  DPO[Data protection officer] --> IAM
+  SUP[Support center] --> IAM
+  APP[Consuming applications] <-->|OIDC and decisions| IAM
+  IAM --> AUD[Audit]
 ```
 
-## Componentes
+## Components
 
 ```{mermaid}
 %%{init: {"htmlLabels": false, "flowchart": {"htmlLabels": false}}}%%
 flowchart TB
-  Portal[COMP-006 Portal] --> Auth[COMP-001 Autenticação]
-  Auth --> Policy[COMP-002 Políticas]
-  Life[COMP-003 Ciclo de vida] --> Auth
-  Auth --> Recovery[COMP-005 Recuperação]
-  Auth --> Audit[COMP-004 Cofre de auditoria]
+  Portal[COMP-006 Portal] --> Auth[COMP-001 Authentication]
+  Auth --> Policy[COMP-002 Policy engine]
+  Life[COMP-003 Lifecycle] --> Auth
+  Auth --> Recovery[COMP-005 Recovery]
+  Auth --> Audit[COMP-004 Audit vault]
   Policy --> Audit
   Auth --> OIDC[IF-001 OIDC]
   Life --> SCIM[IF-002 SCIM]
-  Audit --> Events[IF-003 Eventos]
+  Audit --> Events[IF-003 Events]
 ```
 
-## Sequência de autenticação
+## Authentication sequence
 
 ```{mermaid}
 sequenceDiagram
-  participant U as Usuário
+  participant U as User
   participant P as COMP-006 Portal
-  participant A as COMP-001 Autenticação
-  participant M as Segundo fator
+  participant A as COMP-001 Authentication
+  participant M as Second factor
   participant V as IF-001 OIDC
-  U->>P: Inicia login
-  P->>A: Envia credencial
-  A->>M: Solicita MFA para papel privilegiado
-  M-->>A: Confirma fator
-  A->>V: Emite token OIDC
-  V-->>P: Retorna sessão
+  U->>P: Starts login
+  P->>A: Sends credential
+  A->>M: Requests MFA for privileged role
+  M-->>A: Confirms factor
+  A->>V: Issues OIDC token
+  V-->>P: Returns session
 ```

@@ -1,10 +1,10 @@
-# Fluxo de rastreabilidade
+# Traceability flow
 
-O artefato canônico é gerado em `.quarto-needs/needs.json` antes da renderização. O grafo pode atravessar necessidade, requisito, decisão arquitetural, arquitetura, teste e evidência sem trocar de modelo de dados.
+The canonical artifact is generated at `.quarto-needs/needs.json` before rendering. The graph can traverse needs, requirements, architecture decisions, architecture, tests, and evidence without changing data models.
 
 {{< need-flow root="STK-001" depth="5" relations="derives-from;addresses;applies-to;implemented-by;verified-by;confirmed-by;evidenced-by;mitigates" direction="LR" >}}
 
-## Consulta por CLI
+## CLI query
 
 ```bash
 quarto-needs check
@@ -13,10 +13,10 @@ quarto-needs trace STK-001
 quarto-needs trace ADR-002
 ```
 
-A decisão arquitetural funciona como ponte semântica entre o problema e a solução: `addresses` aponta para o driver, `applies-to` delimita o escopo arquitetural e `confirmed-by` registra como a decisão continua sendo comprovada.
+An architecture decision acts as a semantic bridge between problem and solution: `addresses` points to the driver, `applies-to` bounds architectural scope, and `confirmed-by` records how the decision continues to be demonstrated.
 
-## Gráfico interativo
+## Interactive graph
 
-A projeção abaixo é gerada no `build` e renderizada no navegador com Cytoscape.js (vendored, sem rede). Use a busca para localizar um requisito ou ADR por ID/título e clique em um nó para destacar a vizinhança.
+The projection below is generated during the build and rendered in the browser with vendored Cytoscape.js, without network access. Use search to locate a requirement or ADR by ID/title, then select a node to highlight its neighborhood.
 
 {{< need-graph >}}

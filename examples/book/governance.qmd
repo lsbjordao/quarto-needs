@@ -1,63 +1,63 @@
 ---
-title: "Governança"
+title: "Governance"
 ---
 
-Esta página é gerada a partir de `.quarto-needs.toml`. Nenhum número abaixo é digitado à mão: todos vêm da projeção calculada em Python e apenas desenhada pelo Lua.
+This page is generated from `.quarto-needs.toml`. No number below is typed by hand: every value comes from the projection computed in Python and only rendered by Lua.
 
-## Perfis e códigos de saída
+## Profiles and exit codes
 
-O perfil decide o que uma falha de gate significa para a automação. Falhas estruturais (ID duplicado, alvo de relação inexistente) interrompem qualquer perfil.
+The profile determines what a gate failure means for automation. Structural failures (duplicate ID, missing relation target) stop every profile.
 
-| Perfil | Falha estrutural | Falha de gate semântico |
+| Profile | Structural failure | Semantic gate failure |
 |---|---|---|
-| `advisory` | sai 1 | sai 0 (apenas relata) |
-| `default` | sai 1 | sai 0 (relata no relatório) |
-| `strict` | sai 1 | sai 1 |
+| `advisory` | exits 1 | exits 0 (reports only) |
+| `default` | exits 1 | exits 0 (reported in output) |
+| `strict` | exits 1 | exits 1 |
 
-Uma configuração inválida falha antes de qualquer análise, com saída 2.
+Invalid configuration fails before analysis with exit code 2.
 
 ```bash
 quarto-needs --root examples/book quality --format json
 ```
 
-## Políticas de tipo
+## Type policies
 
-O showcase usa prefixos curtos porque o contexto IAM já é dado pelo próprio livro. A política garante, por exemplo, `SYS-`, `NFR-`, `ADR-`, `COMP-`, `TC-` e `EVD-`, sem repetir `IAM-` em todo identificador.
+The showcase uses short prefixes because IAM context is already established by the book itself. Policy enforces, for example, `SYS-`, `NFR-`, `ADR-`, `COMP-`, `TC-`, and `EVD-` without repeating `IAM-` in every identifier.
 
-Tipos também declaram `role` e `allowed-statuses`. Para `architecture-decision`, o role é `decision` e o lifecycle aceito inclui `proposed`, `accepted`, `rejected`, `deprecated` e `superseded`.
+Types also declare `role` and `allowed-statuses`. For `architecture-decision`, the role is `decision` and the accepted lifecycle includes `proposed`, `accepted`, `rejected`, `deprecated`, and `superseded`.
 
-## Governança de decisões
+## Decision governance
 
-As regras `DEC001`–`DEC005` verificam drivers, escopo, confirmação e lineage das decisões. A consulta abaixo lista as decisões aceitas:
+Rules `DEC001`–`DEC005` check drivers, scope, confirmation, and decision lineage. The query below lists accepted decisions:
 
-{{< need-table query="accepted-decisions" columns="id;title;status;addresses;applies-to;confirmed-by" caption="Decisões arquiteturais aceitas" >}}
+{{< need-table query="accepted-decisions" columns="id;title;status;addresses;applies-to;confirmed-by" caption="Accepted architecture decisions" >}}
 
-## Gates vigentes
+## Active gates
 
-O escopo dos gates percentuais é `approved-requirements`.
+The scope for percentage gates is `approved-requirements`.
 
 - `max-errors = 0`
-- `min-implementation-trace`, `min-implementation-effective`, `min-verification-trace`, `min-verification-successful` e `min-evidence` em `100.0`
+- `min-implementation-trace`, `min-implementation-effective`, `min-verification-trace`, `min-verification-successful`, and `min-evidence` at `100.0`
 - `require-risk-mitigation = true`
 
-## Painel de qualidade
+## Quality dashboard
 
 {{< need-dashboard >}}
 
-## Consultas nomeadas
+## Named queries
 
-Requisitos aprovados de prioridade alta ou crítica ainda sem verificação:
+Approved high- or critical-priority requirements still lacking verification:
 
 {{< need-count query="approved-high-unverified" >}}
 
-{{< need-table query="approved-high-unverified" columns="id;title;status;priority" caption="Aprovados de alta prioridade sem verificação" >}}
+{{< need-table query="approved-high-unverified" columns="id;title;status;priority" caption="Unverified approved high-priority requirements" >}}
 
-Casos de teste sem evidência associada:
+Test cases without associated evidence:
 
-{{< need-table query="evidence-gaps" columns="id;title;status" caption="Casos de teste sem evidência" >}}
+{{< need-table query="evidence-gaps" columns="id;title;status" caption="Test cases without evidence" >}}
 
-## Inspetor
+## Inspector
 
-O inspetor reúne proveniência, atributos, relações e findings associados ao objeto.
+The inspector brings together provenance, attributes, relations, and findings associated with the object.
 
 {{< need-inspector ADR-002 >}}

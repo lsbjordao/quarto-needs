@@ -1,0 +1,46 @@
+# Diagramas de arquitetura
+
+## Contexto do sistema
+
+```{mermaid}
+%%{init: {"htmlLabels": false, "flowchart": {"htmlLabels": false}}}%%
+flowchart LR
+  CISO[Diretora de segurança] --> IAM[Aegis IAM]
+  DPO[Encarregado de dados] --> IAM
+  SUP[Central de suporte] --> IAM
+  APP[Aplicações consumidoras] <-->|OIDC e decisões| IAM
+  IAM --> AUD[Auditoria]
+```
+
+## Componentes
+
+```{mermaid}
+%%{init: {"htmlLabels": false, "flowchart": {"htmlLabels": false}}}%%
+flowchart TB
+  Portal[COMP-006 Portal] --> Auth[COMP-001 Autenticação]
+  Auth --> Policy[COMP-002 Políticas]
+  Life[COMP-003 Ciclo de vida] --> Auth
+  Auth --> Recovery[COMP-005 Recuperação]
+  Auth --> Audit[COMP-004 Cofre de auditoria]
+  Policy --> Audit
+  Auth --> OIDC[IF-001 OIDC]
+  Life --> SCIM[IF-002 SCIM]
+  Audit --> Events[IF-003 Eventos]
+```
+
+## Sequência de autenticação
+
+```{mermaid}
+sequenceDiagram
+  participant U as Usuário
+  participant P as COMP-006 Portal
+  participant A as COMP-001 Autenticação
+  participant M as Segundo fator
+  participant V as IF-001 OIDC
+  U->>P: Inicia login
+  P->>A: Envia credencial
+  A->>M: Solicita MFA para papel privilegiado
+  M-->>A: Confirma fator
+  A->>V: Emite token OIDC
+  V-->>P: Retorna sessão
+```
