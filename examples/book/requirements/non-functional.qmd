@@ -3,7 +3,7 @@
 Segurança, privacidade, disponibilidade e experiência são critérios verificáveis
 da plataforma, não promessas genéricas.
 
-::: {.need #IAM-NFR-001 type="non-functional-requirement" status="approved" priority="high" tags="security;encryption" derives-from="IAM-STK-001" implemented-by="IAM-COMP-001" verified-by="IAM-TC-016"}
+::: {.need #NFR-001 type="non-functional-requirement" status="approved" priority="high" tags="security;encryption" derives-from="STK-001" implemented-by="COMP-001" verified-by="TC-016"}
 ## Proteger credenciais em trânsito e repouso
 
 Credenciais e segredos devem usar criptografia aprovada durante transporte e armazenamento.
@@ -13,7 +13,7 @@ Credenciais e segredos devem usar criptografia aprovada durante transporte e arm
 Protege segredos contra interceptação e exposição em armazenamento persistente.
 :::
 
-::: {.need #IAM-NFR-002 type="non-functional-requirement" status="approved" priority="high" tags="security;availability" derives-from="IAM-STK-003" implemented-by="IAM-COMP-001" verified-by="IAM-TC-014"}
+::: {.need #NFR-002 type="non-functional-requirement" status="approved" priority="high" tags="security;availability" derives-from="STK-003" implemented-by="COMP-001" verified-by="TC-014"}
 ## Manter autenticação disponível
 
 O serviço de autenticação deve atingir disponibilidade mensal de 99,95%.
@@ -23,7 +23,7 @@ O serviço de autenticação deve atingir disponibilidade mensal de 99,95%.
 Identidade indisponível bloqueia o trabalho de todos os sistemas consumidores.
 :::
 
-::: {.need #IAM-NFR-003 type="non-functional-requirement" status="approved" priority="high" tags="privacy;compliance" derives-from="IAM-STK-002" implemented-by="IAM-COMP-004" verified-by="IAM-TC-015" mitigates="IAM-RISK-003"}
+::: {.need #NFR-003 type="non-functional-requirement" status="approved" priority="high" tags="privacy;compliance" derives-from="STK-002" implemented-by="COMP-004" verified-by="TC-015" mitigates="RISK-003"}
 ## Minimizar dados pessoais em eventos
 
 Eventos de auditoria devem conter somente dados pessoais necessários à finalidade.
@@ -33,7 +33,7 @@ Eventos de auditoria devem conter somente dados pessoais necessários à finalid
 Minimiza o impacto de um acesso indevido ou vazamento do repositório de logs.
 :::
 
-::: {.need #IAM-NFR-004 type="non-functional-requirement" status="approved" priority="medium" tags="performance;authorization" derives-from="IAM-STK-004" implemented-by="IAM-COMP-002" verified-by="IAM-TC-006"}
+::: {.need #NFR-004 type="non-functional-requirement" status="approved" priority="medium" tags="performance;authorization" derives-from="STK-004" implemented-by="COMP-002" verified-by="TC-006"}
 ## Responder decisão de acesso em até 200 ms
 
 O percentil 95 das decisões de autorização deve ser inferior a 200 ms sob carga nominal.
@@ -43,7 +43,7 @@ O percentil 95 das decisões de autorização deve ser inferior a 200 ms sob car
 Decisões lentas degradam a experiência e estimulam contornos inseguros.
 :::
 
-::: {.need #IAM-NFR-005 type="non-functional-requirement" status="approved" priority="high" tags="security;logging" derives-from="IAM-STK-005" implemented-by="IAM-COMP-004" verified-by="IAM-TC-010"}
+::: {.need #NFR-005 type="non-functional-requirement" status="approved" priority="high" tags="security;logging" derives-from="STK-005" implemented-by="COMP-004" verified-by="TC-010"}
 ## Preservar integridade de auditoria
 
 O armazenamento de auditoria deve detectar alteração ou remoção de eventos.
@@ -53,7 +53,7 @@ O armazenamento de auditoria deve detectar alteração ou remoção de eventos.
 Uma trilha adulterável não sustenta investigação nem comprovação de conformidade.
 :::
 
-::: {.need #IAM-NFR-006 type="non-functional-requirement" status="approved" priority="medium" tags="usability;accessibility" derives-from="IAM-STK-004" implemented-by="IAM-COMP-006" verified-by="IAM-TC-013"}
+::: {.need #NFR-006 type="non-functional-requirement" status="approved" priority="medium" tags="usability;accessibility" derives-from="STK-004" implemented-by="COMP-006" verified-by="TC-013"}
 ## Oferecer autenticação acessível
 
 As telas de autenticação devem atender critérios de acessibilidade de nível AA.
@@ -63,7 +63,7 @@ As telas de autenticação devem atender critérios de acessibilidade de nível 
 Todos os usuários precisam concluir autenticação sem depender de um único modo de interação.
 :::
 
-::: {.need #IAM-NFR-007 type="non-functional-requirement" status="approved" priority="high" tags="compliance;retention" derives-from="IAM-STK-002" implemented-by="IAM-COMP-004" verified-by="IAM-TC-011"}
+::: {.need #NFR-007 type="non-functional-requirement" status="approved" priority="high" tags="compliance;retention" derives-from="STK-002" implemented-by="COMP-004" verified-by="TC-011"}
 ## Reter evidências pelo prazo regulatório
 
 Evidências de acesso devem permanecer disponíveis durante o prazo de retenção definido.
@@ -73,7 +73,7 @@ Evidências de acesso devem permanecer disponíveis durante o prazo de retençã
 Atende obrigações de auditoria e permite investigar fatos ocorridos no passado.
 :::
 
-::: {.need #IAM-NFR-008 type="non-functional-requirement" status="approved" priority="medium" tags="resilience;recovery" derives-from="IAM-STK-003" implemented-by="IAM-COMP-005" verified-by="IAM-TC-012" mitigates="IAM-RISK-004"}
+::: {.need #NFR-008 type="non-functional-requirement" status="approved" priority="medium" tags="resilience;recovery" derives-from="STK-003" implemented-by="COMP-005" verified-by="TC-012" mitigates="RISK-004"}
 ## Restaurar fluxo de recuperação em até quatro horas
 
 O serviço deve restaurar a recuperação de conta dentro do objetivo de quatro horas.
@@ -83,13 +83,13 @@ O serviço deve restaurar a recuperação de conta dentro do objetivo de quatro 
 Limita o período em que usuários legítimos ficam sem um caminho seguro de retorno.
 :::
 
-::: {.need #IAM-NFR-009 type="non-functional-requirement" status="in-review" priority="medium" tags="observability;operations" derives-from="IAM-STK-003"}
+::: {.need #NFR-009 type="non-functional-requirement" status="in-review" priority="medium" tags="observability;operations" derives-from="STK-003"}
 ## Expor métricas operacionais de identidade
 
 O produto deve publicar métricas de latência, erros e bloqueios para operações.
 :::
 
-::: {.need #IAM-NFR-010 type="non-functional-requirement" status="draft" priority="low" tags="sustainability;operations" derives-from="IAM-STK-004"}
+::: {.need #NFR-010 type="non-functional-requirement" status="draft" priority="low" tags="sustainability;operations" derives-from="STK-004"}
 ## Medir consumo energético por autenticação
 
 O produto poderá medir consumo energético por transação de autenticação.
