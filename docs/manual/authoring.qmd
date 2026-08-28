@@ -1,0 +1,56 @@
+# Autoria em Quarto
+
+## Blocos `.need`
+
+A superfície de autoria permanece simples: objetos são declarados em blocos Div do Pandoc com a classe `.need`.
+
+```markdown
+::: {.need #NFR-001 type="non-functional-requirement" status="approved" priority="high" tags="performance"}
+verified-by: TC-006
+implemented-by: COMP-002
+
+## Responder autorização dentro do objetivo de latência
+
+A decisão de autorização deve permanecer dentro do SLO definido sob carga nominal.
+
+### Rationale
+
+A centralização da política só é aceitável se não degradar materialmente a experiência.
+:::
+```
+
+Metadados computáveis ficam no preâmbulo do bloco; explicações humanas permanecem em Markdown. Essa distinção evita transformar documentação em um formulário excessivamente estruturado.
+
+## Referências e visualizações
+
+O livro pode projetar o grafo com shortcodes como:
+
+```markdown
+{{< need NFR-001 title=true >}}
+{{< need-table types="architecture-decision" columns="id;title;status" >}}
+{{< need-flow root="NFR-001" depth="4" direction="LR" >}}
+{{< need-inspector ADR-002 >}}
+```
+
+As visualizações são leituras do artefato canônico; não reimplementam as regras de semântica no renderer.
+
+## Configuração de prefixos
+
+Prefixos são declarados por tipo:
+
+```toml
+[types.system-requirement]
+id-prefix = "SYS-"
+
+[types.architecture-decision]
+id-prefix = "ADR-"
+```
+
+Quando configurado, um ID incompatível gera `ID001`. Para um projeto que precise de namespace composto:
+
+```toml
+[types.architecture-decision]
+id-prefix = "PAY-ADR-"
+```
+
+Quando o contexto do projeto já delimita o domínio, use prefixos menores. O objetivo é identidade legível, não repetição ritual de namespace.
