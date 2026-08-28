@@ -17,15 +17,15 @@ flowchart LR
 ```{mermaid}
 %%{init: {"htmlLabels": false, "flowchart": {"htmlLabels": false}}}%%
 flowchart TB
-  Portal[IAM-COMP-006 Portal] --> Auth[IAM-COMP-001 Autenticação]
-  Auth --> Policy[IAM-COMP-002 Políticas]
-  Life[IAM-COMP-003 Ciclo de vida] --> Auth
-  Auth --> Recovery[IAM-COMP-005 Recuperação]
-  Auth --> Audit[IAM-COMP-004 Cofre de auditoria]
+  Portal[COMP-006 Portal] --> Auth[COMP-001 Autenticação]
+  Auth --> Policy[COMP-002 Políticas]
+  Life[COMP-003 Ciclo de vida] --> Auth
+  Auth --> Recovery[COMP-005 Recuperação]
+  Auth --> Audit[COMP-004 Cofre de auditoria]
   Policy --> Audit
-  Auth --> OIDC[IAM-IF-001 OIDC]
-  Life --> SCIM[IAM-IF-002 SCIM]
-  Audit --> Events[IAM-IF-003 Eventos]
+  Auth --> OIDC[IF-001 OIDC]
+  Life --> SCIM[IF-002 SCIM]
+  Audit --> Events[IF-003 Eventos]
 ```
 
 ## Sequência de autenticação
@@ -33,10 +33,10 @@ flowchart TB
 ```{mermaid}
 sequenceDiagram
   participant U as Usuário
-  participant P as IAM-COMP-006 Portal
-  participant A as IAM-COMP-001 Autenticação
+  participant P as COMP-006 Portal
+  participant A as COMP-001 Autenticação
   participant M as Segundo fator
-  participant V as IAM-IF-001 OIDC
+  participant V as IF-001 OIDC
   U->>P: Inicia login
   P->>A: Envia credencial
   A->>M: Solicita MFA para papel privilegiado
