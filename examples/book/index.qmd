@@ -1,21 +1,23 @@
 # Aegis IAM
 
 O Aegis IAM é a plataforma corporativa de identidade e acesso para colaboradores,
-clientes, aplicações e auditores. Este livro demonstra requisitos como código: o
-grafo canônico preserva necessidade, requisito, implementação, teste e evidência
-em uma mesma cadeia verificável.
+clientes, aplicações e auditores. Este livro demonstra engenharia como código: o
+grafo canônico preserva necessidade, requisito, decisão arquitetural, arquitetura,
+implementação, teste e evidência em uma mesma cadeia verificável.
 
 ## Painel de engenharia
 
 - Necessidades de stakeholders: {{< need-count types="stakeholder-need" >}}
 - Requisitos de sistema aprovados: {{< need-count types="system-requirement" status="approved" >}}
 - Requisitos funcionais aprovados: {{< need-count types="functional-requirement" status="approved" >}}
+- Decisões arquiteturais aceitas: {{< need-count types="architecture-decision" status="accepted" >}}
 - Casos de teste: {{< need-count types="test-case" >}}
 
 ## Prioridades de segurança aprovadas
 
 {{< need-table types="functional-requirement;non-functional-requirement" status="approved" priority="high;critical" tags="security" columns="id;title;type;status;priority;verified-by" sort="priority;id" caption="Requisitos aprovados de segurança" >}}
 
-O fluxo parte de {{< need IAM-STK-001 title=true >}} e culmina em evidência de
-verificação. O catálogo inclui itens em rascunho, em revisão e reprovados para
-demonstrar os estados de decisão sem misturá-los à linha de base aprovada.
+O fluxo parte de {{< need STK-001 title=true >}}, passa por requisitos e decisões
+arquiteturais e culmina em implementação, teste e evidência. O catálogo inclui
+itens em rascunho, revisão, rejeitados e superseded para demonstrar lifecycle sem
+misturá-los à linha de base vigente.
