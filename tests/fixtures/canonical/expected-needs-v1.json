@@ -48,7 +48,7 @@
           "targetRole": "test"
         }
       },
-      "relationCatalogVersion": "1"
+      "relationCatalogVersion": "2"
     }
   },
   "objects": [
