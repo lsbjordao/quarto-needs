@@ -1,6 +1,8 @@
 #quarto-needs-language-switch {
   display: inline-flex;
   align-items: center;
+  flex: 0 0 auto;
+  order: 9999;
   margin-inline-start: .35rem;
 }
 
