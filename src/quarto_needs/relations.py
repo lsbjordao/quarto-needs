@@ -52,7 +52,7 @@ class RelationCatalog:
 
 
 DEFAULT_RELATION_CATALOG = RelationCatalog.create(
-    "1",
+    "2",
     (
         RelationKind("derives-from", "derives-from", "derives-from", "derivation", "Derives from", "Source for", "derived", "source", "target_to_source"),
         RelationKind("derived-from", "derives-from", "derives-from", "derivation", "Derives from", "Source for", "derived", "source", "target_to_source"),
@@ -71,5 +71,16 @@ DEFAULT_RELATION_CATALOG = RelationCatalog.create(
         RelationKind("evidences", "evidences", "evidences", "evidence", "Evidences", "Evidenced by", "evidence", "test", "target_to_source"),
         RelationKind("evidenced-by", "evidenced-by", "evidenced-by", "evidence", "Evidenced by", "Evidences", "test", "evidence", "source_to_target"),
         RelationKind("references", "references", "references", "reference", "References", "Referenced by", "source", "target", "none"),
+        # Architecture decision management. Decisions are first-class graph nodes;
+        # these relations connect rationale to requirements, architectural scope,
+        # decision lineage, and confirmation without treating an ADR as an
+        # implementation artifact.
+        RelationKind("addresses", "addresses", "addresses", "decision-addressing", "Addresses", "Addressed by", "decision", "driver", "target_to_source"),
+        RelationKind("addressed-by", "addressed-by", "addressed-by", "decision-addressing", "Addressed by", "Addresses", "driver", "decision", "source_to_target"),
+        RelationKind("applies-to", "applies-to", "applies-to", "decision-scope", "Applies to", "Decision applies to", "decision", "architecture-element", "source_to_target"),
+        RelationKind("supersedes", "supersedes", "supersedes", "decision-lineage", "Supersedes", "Superseded by", "successor", "predecessor", "target_to_source"),
+        RelationKind("superseded-by", "superseded-by", "superseded-by", "decision-lineage", "Superseded by", "Supersedes", "predecessor", "successor", "source_to_target"),
+        RelationKind("confirmed-by", "confirmed-by", "confirmed-by", "decision-confirmation", "Confirmed by", "Confirms", "decision", "confirmation", "both"),
+        RelationKind("confirms", "confirms", "confirms", "decision-confirmation", "Confirms", "Confirmed by", "confirmation", "decision", "both"),
     ),
 )
