@@ -3,7 +3,9 @@
 Aegis IAM is the corporate identity and access platform for employees, customers,
 applications, and auditors. This book demonstrates engineering as code: the
 canonical graph preserves needs, requirements, architecture decisions,
-architecture, implementation, tests, and evidence in one verifiable chain.
+architecture, implementation, tests, and evidence in one verifiable chain. The
+showcase is published as a Quarto Book [@quarto2026], so requirements engineering
+artifacts and conventional scholarly citations coexist in the same source tree.
 
 ## Engineering dashboard
 
