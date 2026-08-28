@@ -35,8 +35,6 @@ SPARSE = (
     "::: {.need #TC-1 type=test-case status=passed}\n\n## Login\nSigns in.\n:::\n"
 )
 
-# HUB verifies three test cases; TC-1 references DOC-1. Depth 1 reaches the
-# tests, depth 2 reaches the document — the dense/high-fanout shape.
 FANOUT = (
     "::: {.need #HUB type=functional-requirement status=approved priority=high tags=\"hub\"}\n"
     "verifies:\n"
@@ -70,9 +68,6 @@ DISCONNECTED = (
 )
 
 
-# --- configuration -----------------------------------------------------------
-
-
 def test_graph_defaults_apply_without_a_section(tmp_path: Path) -> None:
     write_project(tmp_path, SPARSE)
     assert load_config(tmp_path).graph == GraphSettings()
@@ -95,7 +90,6 @@ def test_graph_section_parses_every_key(tmp_path: Path) -> None:
     assert graph.mode == "impact"
     assert graph.layout == "radial"
     assert graph.seed == 9
-    # Both spellings resolve to their v1 names, deduplicated and sorted.
     assert graph.relations == ("verified-by", "verifies")
 
 
@@ -127,11 +121,6 @@ def test_graph_rejects_invalid_values(tmp_path: Path, config: str) -> None:
 
 
 def test_graph_settings_do_not_change_the_configuration_fingerprint(tmp_path: Path) -> None:
-    """Graph limits are presentation policy, not graph semantics.
-
-    If they entered the canonical document, tightening a limit would make
-    `diff` suppress derived deltas as a "configuration change".
-    """
     write_project(tmp_path, SPARSE)
     plain = load_config(tmp_path).canonical_document()
     write_project(tmp_path, SPARSE, config="[graph]\nmax-nodes = 5\n")
@@ -139,9 +128,6 @@ def test_graph_settings_do_not_change_the_configuration_fingerprint(tmp_path: Pa
 
     assert "graph" not in limited
     assert plain == limited
-
-
-# --- named-query seed evaluation ---------------------------------------------
 
 
 def test_query_ids_evaluates_a_named_query(tmp_path: Path) -> None:
@@ -167,9 +153,6 @@ def test_query_ids_rejects_an_unknown_name(tmp_path: Path) -> None:
         query_ids(load_config(tmp_path), snapshot_of(tmp_path), "no-such-query")
 
 
-# --- bounded selection -------------------------------------------------------
-
-
 def test_sparse_selection_reaches_one_hop_neighbors(tmp_path: Path) -> None:
     write_project(tmp_path, SPARSE)
     selection = graph_projection.select_graph(
@@ -192,15 +175,12 @@ def test_depth_bounds_the_expansion(tmp_path: Path) -> None:
 
 
 def test_relation_allowlist_bounds_expansion_and_edges(tmp_path: Path) -> None:
-    """Expansion follows only allowlisted relations, in either direction."""
     write_project(tmp_path, FANOUT)
     selection = graph_projection.select_graph(
         snapshot_of(tmp_path), seeds=("HUB",), relations=("references",), depth=2
     )
-    # `verifies` edges are filtered out, so nothing beyond HUB is reachable.
     assert selection.node_ids == ("HUB",)
     assert selection.edges == ()
-    # And from the far end: references reaches TC-1 but not through verifies.
     from_doc = graph_projection.select_graph(
         snapshot_of(tmp_path), seeds=("DOC-1",), relations=("references",), depth=2
     )
@@ -253,7 +233,7 @@ def test_seed_order_directs_the_selection_but_not_its_content(tmp_path: Path) ->
     forward = graph_projection.select_graph(snapshot, seeds=("REQ-1", "REQ-2"))
     reverse = graph_projection.select_graph(snapshot, seeds=("REQ-2", "REQ-1"))
 
-    assert forward.node_ids != reverse.node_ids  # seeds come first, in order
+    assert forward.node_ids != reverse.node_ids
     assert set(forward.node_ids) == set(reverse.node_ids)
     assert forward.edges == reverse.edges
 
@@ -264,9 +244,6 @@ def test_missing_seed_ids_are_ignored(tmp_path: Path) -> None:
         snapshot_of(tmp_path), seeds=("REQ-1", "GHOST"), depth=1
     )
     assert selection.node_ids == ("REQ-1", "TC-1")
-
-
-# --- limits ------------------------------------------------------------------
 
 
 def test_node_limit_exceeded_raises_a_structured_diagnostic(tmp_path: Path) -> None:
@@ -282,7 +259,6 @@ def test_node_limit_exceeded_raises_a_structured_diagnostic(tmp_path: Path) -> N
     assert error.actual["nodes"] == 5
     assert error.limits == {"nodes": 3, "edges": 300}
     assert error.suggested_facets
-    # The message names actual counts and configured limits, never truncates.
     assert "5" in str(error) and "3" in str(error)
 
 
@@ -323,16 +299,17 @@ def test_suggested_facets_name_real_values_with_counts(tmp_path: Path) -> None:
     assert as_dict[("status", "passed")] == 3
     assert as_dict[("priority", "high")] == 1
     assert as_dict[("tags", "hub")] == 2
-    # Deterministic: count descending, then value, fields in a fixed order.
     fields = [field for field, _, _ in facets]
     assert fields == sorted(fields, key=["type", "status", "priority", "tags"].index)
 
 
-# --- projection consumption --------------------------------------------------
-
-
 def test_default_allowlist_is_the_catalogs_public_relations() -> None:
     assert graph_projection.PUBLIC_RELATIONS == (
+        "addressed-by",
+        "addresses",
+        "applies-to",
+        "confirmed-by",
+        "confirms",
         "conflicts-with",
         "constrains",
         "decomposes",
@@ -346,6 +323,8 @@ def test_default_allowlist_is_the_catalogs_public_relations() -> None:
         "mitigates",
         "references",
         "refines",
+        "superseded-by",
+        "supersedes",
         "validated-by",
         "verified-by",
         "verifies",
@@ -366,7 +345,6 @@ def test_build_projection_consumes_a_selection_and_its_allowlist(tmp_path: Path)
     payload = json.loads(graph_projection.render_projection(projection))
 
     assert {node["id"] for node in payload["nodes"]} == set(selection.node_ids)
-    # Only `verifies` edges are published; the references edge is withheld.
     assert {edge["relation"] for edge in payload["edges"]} == {"verifies"}
     assert len(payload["edges"]) == 3
 
