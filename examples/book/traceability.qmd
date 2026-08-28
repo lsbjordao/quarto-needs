@@ -1,26 +1,22 @@
 # Fluxo de rastreabilidade
 
-O artefato canônico é gerado em `.quarto-needs/needs.json` antes da renderização.
-O fluxo abaixo acompanha a necessidade de proteção de conta até testes e
-implementações.
+O artefato canônico é gerado em `.quarto-needs/needs.json` antes da renderização. O grafo pode atravessar necessidade, requisito, decisão arquitetural, arquitetura, teste e evidência sem trocar de modelo de dados.
 
-{{< need-flow root="IAM-STK-001" depth="4" relations="derives-from;implemented-by;verified-by;evidenced-by;mitigates" direction="LR" >}}
+{{< need-flow root="STK-001" depth="5" relations="derives-from;addresses;applies-to;implemented-by;verified-by;confirmed-by;evidenced-by;mitigates" direction="LR" >}}
 
 ## Consulta por CLI
 
 ```bash
 quarto-needs check
 quarto-needs coverage
-quarto-needs trace IAM-STK-001
+quarto-needs trace STK-001
+quarto-needs trace ADR-002
 ```
 
-As relações são declaradas no objeto de origem: o requisito deriva da necessidade,
-aponta para componente e teste, e o teste aponta para sua evidência.
+A decisão arquitetural funciona como ponte semântica entre o problema e a solução: `addresses` aponta para o driver, `applies-to` delimita o escopo arquitetural e `confirmed-by` registra como a decisão continua sendo comprovada.
 
 ## Gráfico interativo
 
-A projeção abaixo é gerada no `build` (`.quarto-needs/graphs/need-graph-1.json`)
-e renderizada no navegador com Cytoscape.js (vendored, sem rede). Use a busca para
-localizar um requisito por id ou título, e clique em um nó para destacar a vizinhança.
+A projeção abaixo é gerada no `build` e renderizada no navegador com Cytoscape.js (vendored, sem rede). Use a busca para localizar um requisito ou ADR por ID/título e clique em um nó para destacar a vizinhança.
 
 {{< need-graph >}}
