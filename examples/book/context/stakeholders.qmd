@@ -2,31 +2,31 @@
 
 As necessidades são a origem de cada decisão de engenharia do Aegis IAM.
 
-::: {.need #IAM-STK-001 type="stakeholder-need" status="approved" priority="high" tags="security;authentication"}
+::: {.need #STK-001 type="stakeholder-need" status="approved" priority="high" tags="security;authentication"}
 ## Diretora de segurança precisa reduzir invasões de conta
 
 A CISO precisa de autenticação resistente a phishing para contas privilegiadas.
 :::
 
-::: {.need #IAM-STK-002 type="stakeholder-need" status="approved" priority="high" tags="privacy;compliance"}
+::: {.need #STK-002 type="stakeholder-need" status="approved" priority="high" tags="privacy;compliance"}
 ## Encarregado de dados precisa controlar exposição de dados pessoais
 
 O DPO precisa de evidências de consentimento, retenção e acesso mínimo.
 :::
 
-::: {.need #IAM-STK-003 type="stakeholder-need" status="approved" priority="high" tags="operations;availability"}
+::: {.need #STK-003 type="stakeholder-need" status="approved" priority="high" tags="operations;availability"}
 ## Operações precisam recuperar acesso com segurança
 
 A central de suporte precisa restaurar contas sem criar um atalho para fraude.
 :::
 
-::: {.need #IAM-STK-004 type="stakeholder-need" status="approved" priority="medium" tags="developer;integration"}
+::: {.need #STK-004 type="stakeholder-need" status="approved" priority="medium" tags="developer;integration"}
 ## Equipes de produto precisam integrar aplicações rapidamente
 
 Times internos precisam de uma interface padronizada para login e autorização.
 :::
 
-::: {.need #IAM-STK-005 type="stakeholder-need" status="approved" priority="medium" tags="audit;governance"}
+::: {.need #STK-005 type="stakeholder-need" status="approved" priority="medium" tags="audit;governance"}
 ## Auditoria precisa de rastreabilidade de decisões de acesso
 
 Auditores precisam reconstruir quem autorizou cada privilégio e quando.
