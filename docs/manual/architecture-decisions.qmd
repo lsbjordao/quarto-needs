@@ -59,6 +59,18 @@ tags: audit;privacy
 
 Fields used by queries and rules stay structured. Context, alternatives, outcome, and consequences remain in Markdown. The narrative structure is compatible with ADR practices such as MADR without coupling the core to a single textual presentation.
 
+## Selecting and filtering ADRs
+
+Architecture decisions can be rendered as a focused catalog with `adr-table`, or counted with `adr-count`. Filters can be combined by lifecycle status, tags, decision makers, and ISO date ranges; `date-sort` controls chronological ordering.
+
+```markdown
+{{< adr-table status="accepted" tags="security;audit" date-from="2026-01-01" date-sort="desc" >}}
+
+Accepted decisions: {{< adr-count status="accepted" >}}
+```
+
+Supported selectors are `status`, `tags`, `decision-makers`, `date-from`, `date-to`, and `query`. The default columns are `id`, `title`, `status`, `date`, `decision-makers`, and `tags`.
+
 ## Lifecycle
 
 The recommended lifecycle is:
