@@ -1,8 +1,8 @@
-# Practical reference
+# Referência prática
 
-## Common types
+## Tipos comuns
 
-| Type | Suggested role | Common prefix |
+| Tipo | Papel sugerido | Prefixo comum |
 |---|---|---|
 | `stakeholder-need` | `need` | `STK-` |
 | `system-requirement` | `requirement` | `SYS-` |
@@ -15,9 +15,9 @@
 | `test-case` | `verification` | `TC-` |
 | `evidence` | `evidence` | `EVD-` |
 
-These prefixes are conventions, not reserved names. Configure them to fit the project domain.
+Esses prefixos são convenções, não nomes reservados. Configure-os conforme o domínio do projeto.
 
-## Main relations
+## Relações principais
 
 ### Requirements
 
@@ -28,7 +28,7 @@ These prefixes are conventions, not reserved names. Configure them to fit the pr
 - `depends-on`
 - `conflicts-with`
 
-### Implementation and verification
+### Implementação e verificação
 
 - `implemented-by` / `implements`
 - `verified-by` / `verifies`
@@ -43,7 +43,7 @@ These prefixes are conventions, not reserved names. Configure them to fit the pr
 - `confirmed-by` / `confirms`
 - `supersedes` / `superseded-by`
 
-## Traceability patterns
+## Padrões de rastreabilidade
 
 ### Requirement to evidence
 
@@ -65,10 +65,10 @@ Requirement ← addresses ← ADR → applies-to → Component
 ADR-002 ──supersedes──► ADR-001
 ```
 
-## Accepted ADR checklist
+## Checklist para ADR aceita
 
-At minimum, an `accepted` decision should have stable identity, date, decision makers, a traceable driver, architectural scope, and planned or executable confirmation. Context, drivers, considered options, outcome, consequences, and confirmation should remain readable in the Markdown body.
+Uma decisão `accepted` deve, no mínimo, ter identidade estável, data, decisores, um driver rastreável, escopo arquitetural e confirmação planejada ou executável. Contexto, drivers, opções consideradas, resultado, consequências e confirmação devem estar legíveis no corpo Markdown.
 
-## Design principle
+## Princípio de desenho
 
-Use structure only where machines need to query, validate, measure, or traverse. Preserve narrative in Markdown where humans need to explain context and rationale. This balance lets Quarto-Needs remain high-quality documentation without losing formal governance.
+Use estrutura somente onde a máquina precisa consultar, validar, medir ou atravessar. Preserve narrativa em Markdown onde humanos precisam explicar contexto e racional. Esse equilíbrio é o que permite ao Quarto-Needs continuar sendo documentação de alta qualidade sem perder governança formal.

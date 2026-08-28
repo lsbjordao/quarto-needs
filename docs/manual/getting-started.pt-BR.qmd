@@ -1,0 +1,68 @@
+# Primeiros passos
+
+## Estrutura mínima
+
+Um projeto Quarto-Needs é um projeto Quarto com a extensão instalada e uma política opcional em `.quarto-needs.toml`.
+
+```text
+my-project/
+├── _quarto.yml
+├── .quarto-needs.toml
+├── index.qmd
+├── requirements.qmd
+└── architecture.qmd
+```
+
+No `_quarto.yml`, registre o filtro:
+
+```yaml
+filters:
+  - quarto-needs
+```
+
+## Primeiro objeto
+
+```markdown
+::: {.need #REQ-001 type="system-requirement" status="approved" priority="high" tags="security"}
+## Autenticar antes de emitir sessão
+
+O sistema deve autenticar a identidade antes de emitir uma sessão.
+
+### Rationale
+
+Evita a criação de sessões para solicitantes não autenticados.
+:::
+```
+
+Cada bloco declara um objeto com ID, tipo, status, atributos, corpo e relações. O parser transforma essas declarações em um snapshot canônico antes da renderização.
+
+## Relações
+
+```markdown
+::: {.need #REQ-002 type="functional-requirement" status="approved"}
+derives-from: REQ-001
+implemented-by: COMP-001
+verified-by: TC-001
+
+## Exigir segundo fator
+...
+:::
+```
+
+As relações são tipadas. O catálogo determina família semântica, rótulos direto/inverso, papéis de origem/destino e direção de propagação de impacto.
+
+## Comandos fundamentais
+
+```bash
+quarto-needs scan
+quarto-needs check
+quarto-needs coverage
+quarto-needs trace REQ-001
+quarto-needs quality
+```
+
+`scan` materializa as declarações, `check` aplica validação e regras, `coverage` resume rastreabilidade, `trace` percorre o grafo e `quality` avalia métricas e gates configurados.
+
+## Manual multilíngue
+
+Este manual usa `babelquarto`: os arquivos sem sufixo são a fonte canônica em inglês e `*.pt-BR.qmd` contém a tradução brasileira. IDs, palavras-chave de relações e exemplos estruturados permanecem invariantes entre idiomas.

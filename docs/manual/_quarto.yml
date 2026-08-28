@@ -23,3 +23,17 @@ format:
 
 execute:
   freeze: auto
+
+babelquarto:
+  languagelinks: sidebar
+  languagecodes:
+    - name: en
+      text: "English"
+    - name: pt-BR
+      text: "Português (Brasil)"
+  mainlanguage: en
+  languages: [pt-BR]
+
+title-pt-BR: "Quarto-Needs — Manual"
+description-pt-BR: "Requisitos, decisões e rastreabilidade de engenharia como código"
+lang: en

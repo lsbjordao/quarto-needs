@@ -1,18 +1,18 @@
-# Modelo de engenharia
+# Engineering model
 
-## Objetos, relações e grafo
+## Objects, relations, and graph
 
-O modelo canônico é deliberadamente genérico. Todo item rastreável é um objeto de engenharia; relações são arestas tipadas; o conjunto forma um property graph independente do renderer.
+The canonical model is deliberately generic. Every traceable item is an engineering object; relations are typed edges; together they form a property graph independent of the renderer.
 
 ```text
 QMD → DeclarationBatch → AnalysisSnapshot → exports / Quarto views
 ```
 
-Essa separação é importante: Python é dono da semântica e Lua lê apenas projeções já resolvidas. Assim, HTML, PDF, DOCX, CLI e exportadores partem do mesmo estado analisado.
+This separation matters: Python owns semantics and Lua reads only already-resolved projections. HTML, PDF, DOCX, the CLI, and exporters therefore start from the same analyzed state.
 
-## Tipos como política
+## Types as policy
 
-Tipos podem declarar atributos obrigatórios, papel semântico, estados permitidos e prefixo de ID.
+Types can declare required attributes, a semantic role, allowed states, and an ID prefix.
 
 ```toml
 [types.non-functional-requirement]
@@ -28,13 +28,13 @@ allowed-statuses = ["proposed", "accepted", "rejected", "deprecated", "supersede
 required-attributes = ["date", "decision-makers", "tags"]
 ```
 
-`id-prefix` é uma política opcional. Não existe obrigação de repetir o domínio no identificador. Em um livro inteiramente dedicado a IAM, `ADR-001` costuma carregar mais sinal que `IAM-ADR-001`. Em um monorepo multi-domínio, `IAM-ADR-001` pode ser desejável; basta configurar esse prefixo.
+`id-prefix` is optional policy. There is no obligation to repeat the domain in every identifier. In a book entirely dedicated to IAM, `ADR-001` usually carries more signal than `IAM-ADR-001`. In a multi-domain monorepo, `IAM-ADR-001` may be useful; simply configure that prefix.
 
-## Papéis semânticos
+## Semantic roles
 
-Papéis evitam inferir significado por convenções frágeis de nomes. Exemplos:
+Roles avoid inferring meaning from fragile naming conventions. Examples:
 
-| Tipo | Papel |
+| Type | Role |
 |---|---|
 | `functional-requirement` | `requirement` |
 | `architecture-decision` | `decision` |
@@ -43,8 +43,8 @@ Papéis evitam inferir significado por convenções frágeis de nomes. Exemplos:
 | `evidence` | `evidence` |
 | `risk` | `risk` |
 
-O nome do tipo continua sendo parte do domínio do projeto; o papel fornece uma camada semântica mais estável para regras e integrações.
+The type name remains part of the project domain; the role provides a more stable semantic layer for rules and integrations.
 
-## Baselines e identidade
+## Baselines and identity
 
-IDs são identidade, não títulos. Mover um objeto de arquivo não muda sua identidade; mudar o ID é uma remoção mais uma adição. Baselines armazenam fingerprints de conteúdo, relações e configuração, permitindo distinguir alteração de conteúdo, relocação e mudança semântica de relação.
+IDs are identity, not titles. Moving an object between files does not change its identity; changing the ID is a removal plus an addition. Baselines store fingerprints of content, relations, and configuration, allowing the engine to distinguish content changes, relocation, and semantic relation changes.

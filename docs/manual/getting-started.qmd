@@ -1,8 +1,8 @@
-# Primeiros passos
+# Getting started
 
-## Estrutura mínima
+## Minimal structure
 
-Um projeto Quarto-Needs é um projeto Quarto com a extensão instalada e uma política opcional em `.quarto-needs.toml`.
+A Quarto-Needs project is a Quarto project with the extension installed and an optional policy in `.quarto-needs.toml`.
 
 ```text
 my-project/
@@ -13,30 +13,30 @@ my-project/
 └── architecture.qmd
 ```
 
-No `_quarto.yml`, registre o filtro:
+Register the filter in `_quarto.yml`:
 
 ```yaml
 filters:
   - quarto-needs
 ```
 
-## Primeiro objeto
+## First object
 
 ```markdown
 ::: {.need #REQ-001 type="system-requirement" status="approved" priority="high" tags="security"}
-## Autenticar antes de emitir sessão
+## Authenticate before issuing a session
 
-O sistema deve autenticar a identidade antes de emitir uma sessão.
+The system shall authenticate the identity before issuing a session.
 
 ### Rationale
 
-Evita a criação de sessões para solicitantes não autenticados.
+Prevents sessions from being created for unauthenticated requesters.
 :::
 ```
 
-Cada bloco declara um objeto com ID, tipo, status, atributos, corpo e relações. O parser transforma essas declarações em um snapshot canônico antes da renderização.
+Each block declares an object with an ID, type, status, attributes, body, and relations. The parser turns those declarations into a canonical snapshot before rendering.
 
-## Relações
+## Relations
 
 ```markdown
 ::: {.need #REQ-002 type="functional-requirement" status="approved"}
@@ -44,14 +44,14 @@ derives-from: REQ-001
 implemented-by: COMP-001
 verified-by: TC-001
 
-## Exigir segundo fator
+## Require a second factor
 ...
 :::
 ```
 
-As relações são tipadas. O catálogo determina família semântica, rótulos direto/inverso, papéis de origem/destino e direção de propagação de impacto.
+Relations are typed. The catalog defines semantic family, direct/inverse labels, source/target roles, and impact-propagation direction.
 
-## Comandos fundamentais
+## Core commands
 
 ```bash
 quarto-needs scan
@@ -61,4 +61,8 @@ quarto-needs trace REQ-001
 quarto-needs quality
 ```
 
-`scan` materializa as declarações, `check` aplica validação e regras, `coverage` resume rastreabilidade, `trace` percorre o grafo e `quality` avalia métricas e gates configurados.
+`scan` materializes declarations, `check` applies validation and rules, `coverage` summarizes traceability, `trace` traverses the graph, and `quality` evaluates configured metrics and gates.
+
+## Multilingual manual
+
+This manual uses `babelquarto`: unsuffixed files are the canonical English source and `*.pt-BR.qmd` contains the Brazilian Portuguese translation. IDs, relation keywords, and structured examples remain invariant across languages.

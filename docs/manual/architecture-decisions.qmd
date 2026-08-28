@@ -1,30 +1,30 @@
 # Architecture Decision Management
 
-## ADR como objeto de engenharia
+## ADR as an engineering object
 
-No Quarto-Needs, um ADR não é um arquivo solto mantido ao lado dos requisitos. O objeto canônico é `architecture-decision`, com lifecycle, atributos, relações e validação no mesmo grafo usado pelo restante da engenharia.
+In Quarto-Needs, an ADR is not a loose file maintained beside requirements. The canonical object is `architecture-decision`, with lifecycle, attributes, relations, and validation in the same graph used by the rest of engineering.
 
-Isso preserva uma distinção importante:
+This preserves an important distinction:
 
-- requisito expressa uma necessidade ou obrigação sobre o sistema;
-- decisão arquitetural registra uma escolha tomada em resposta a drivers;
-- componente/interface materializa a arquitetura;
-- teste/evidência confirma comportamento ou conformidade.
+- a requirement expresses a need or obligation on the system;
+- an architecture decision records a choice made in response to drivers;
+- a component/interface materializes the architecture;
+- a test/evidence confirms behavior or conformance.
 
-Portanto, uma decisão **não satisfaz** nem **implementa** diretamente um requisito. Ela o `addresses`.
+Therefore, a decision does **not directly satisfy** or **implement** a requirement. It `addresses` it.
 
-## Relações de decisão
+## Decision relations
 
-| Relação | Sentido recomendado | Significado |
+| Relation | Recommended direction | Meaning |
 |---|---|---|
-| `addresses` | ADR → driver | requisito, necessidade ou risco que motivou a decisão |
-| `applies-to` | ADR → elemento arquitetural | componentes/interfaces afetados pela decisão |
-| `confirmed-by` | ADR → confirmação | teste ou evidência que confirma a decisão |
-| `supersedes` | ADR nova → ADR anterior | lineage de substituição |
+| `addresses` | ADR → driver | requirement, need, or risk that motivated the decision |
+| `applies-to` | ADR → architecture element | components/interfaces affected by the decision |
+| `confirmed-by` | ADR → confirmation | test or evidence that confirms the decision |
+| `supersedes` | new ADR → previous ADR | replacement lineage |
 
-As formas inversas `addressed-by`, `confirms` e `superseded-by` pertencem às mesmas famílias semânticas.
+The inverse forms `addressed-by`, `confirms`, and `superseded-by` belong to the same semantic families.
 
-## Exemplo completo
+## Complete example
 
 ```markdown
 ::: {.need #ADR-007 type="architecture-decision" status="accepted"}
@@ -35,7 +35,7 @@ applies-to: COMP-004;IF-003
 confirmed-by: TC-010;TC-015
 tags: audit;privacy
 
-## Separar a trilha de auditoria do processamento transacional
+## Separate the audit trail from transactional processing
 
 ### Context and Problem Statement
 ...
@@ -57,11 +57,11 @@ tags: audit;privacy
 :::
 ```
 
-Campos usados por consultas e regras ficam estruturados. Contexto, alternativas, resultado e consequências permanecem em Markdown. A estrutura narrativa é compatível com práticas de ADR como MADR sem acoplar o núcleo a uma única apresentação textual.
+Fields used by queries and rules stay structured. Context, alternatives, outcome, and consequences remain in Markdown. The narrative structure is compatible with ADR practices such as MADR without coupling the core to a single textual presentation.
 
 ## Lifecycle
 
-O lifecycle recomendado é:
+The recommended lifecycle is:
 
 ```text
 proposed ──► accepted ──► deprecated
@@ -69,25 +69,25 @@ proposed ──► accepted ──► deprecated
     └──► rejected└──► superseded
 ```
 
-Uma decisão `superseded` deve manter lineage explícito. A substituta aponta para a anterior com `supersedes`, permitindo reconstruir a história sem editar retroativamente decisões antigas.
+A `superseded` decision must retain explicit lineage. The replacement points to the previous decision with `supersedes`, allowing history to be reconstructed without retroactively editing old decisions.
 
-## Regras DEC
+## DEC rules
 
-A implementação inicial inclui:
+The initial implementation includes:
 
-| Código | Verificação |
+| Code | Check |
 |---|---|
-| `DEC001` | decisão aceita deve ter pelo menos um driver (`addresses`) |
-| `DEC002` | decisão aceita deve declarar escopo arquitetural (`applies-to`) |
-| `DEC003` | decisão aceita deve possuir metadados essenciais de decisão |
-| `DEC004` | decisão marcada `superseded` precisa de lineage consistente |
-| `DEC005` | uma relação de supersessão deve envolver estados coerentes |
+| `DEC001` | an accepted decision must have at least one driver (`addresses`) |
+| `DEC002` | an accepted decision must declare architectural scope (`applies-to`) |
+| `DEC003` | an accepted decision must declare confirmation (`confirmed-by`) |
+| `DEC004` | a decision marked `superseded` needs consistent lineage |
+| `DEC005` | the decision-supersession graph must be acyclic |
 
-As regras são configuráveis pelo mesmo mecanismo usado pelas regras `REQxxx`.
+Required metadata such as date and decision makers remains covered by `required-attributes` policy. The rules are configurable through the same mechanism used by `REQxxx` rules.
 
-## Impacto
+## Impact
 
-A direção de impacto fica declarada no catálogo de relações. Assim, uma alteração em um requisito pode propagar para a decisão que o endereça; a decisão pode propagar para elementos arquiteturais e confirmações.
+Impact direction is declared in the relation catalog. A change to a requirement can therefore propagate to the decision that addresses it; the decision can propagate to architecture elements and confirmations.
 
 ```text
 NFR-014 changed
@@ -97,4 +97,4 @@ ADR-007
    └──► TC-010 ──► EVD-010
 ```
 
-Esse encadeamento é o principal ganho de integrar Requirements Engineering e Architecture Decision Management: o racional deixa de ser texto isolado e passa a participar da análise de mudança.
+This chain is the main benefit of integrating Requirements Engineering and Architecture Decision Management: rationale stops being isolated prose and becomes part of change analysis.

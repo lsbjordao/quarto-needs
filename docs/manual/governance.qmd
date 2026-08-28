@@ -1,18 +1,18 @@
-# Governança e qualidade
+# Governance and quality
 
-## Perfis
+## Profiles
 
-Quarto-Needs separa achados estruturais de governança semântica. Perfis controlam como falhas de quality gates afetam automação, enquanto erros estruturais permanecem bloqueantes.
+Quarto-Needs separates structural findings from semantic governance. Profiles control how quality-gate failures affect automation, while structural errors remain blocking.
 
 ```toml
 profile = "strict"
 ```
 
-No perfil `strict`, regressões de gate encerram o comando com erro. Isso permite usar o livro publicado como artefato governado por CI, não apenas como documentação informativa.
+Under the `strict` profile, gate regressions terminate the command with an error. This allows the published book to be used as a CI-governed artifact, not merely informational documentation.
 
-## Regras
+## Rules
 
-Regras são registradas por código e podem ser habilitadas, desabilitadas quando permitido e ter severidade ajustada.
+Rules are registered by code and can be enabled, disabled when allowed, and assigned a severity.
 
 ```toml
 [rules.REQ011]
@@ -23,11 +23,11 @@ enabled = true
 severity = "error"
 ```
 
-Regras estruturais não podem ser desligadas. Regras de decisão usam o namespace `DECxxx`; políticas de identificação e tipo usam `IDxxx`/`OBJxxx`.
+Structural rules cannot be disabled. Decision rules use the `DECxxx` namespace; identification and type policies use `IDxxx`/`OBJxxx`.
 
-## Relações e cardinalidade
+## Relations and cardinality
 
-A política pode restringir endpoints e cardinalidade:
+Policy can restrict endpoints and cardinality:
 
 ```toml
 [relations."addresses"]
@@ -41,7 +41,7 @@ allowed-target-types = [
 minimum-per-source = 1
 ```
 
-Isso transforma convenções de modelagem em invariantes verificáveis.
+This turns modeling conventions into verifiable invariants.
 
 ## Quality gates
 
@@ -54,10 +54,10 @@ min-verification-trace = 100.0
 min-evidence = 100.0
 ```
 
-Gates são apropriados para propriedades mensuráveis do conjunto, enquanto regras descrevem violações localizadas em objetos ou relações.
+Gates are appropriate for measurable properties of a set, while rules describe localized violations on objects or relations.
 
-## Baseline, diff e impacto
+## Baseline, diff, and impact
 
-Um baseline captura o estado analisado e a fingerprint da configuração. O diff distingue objetos adicionados/removidos, conteúdo modificado, relocação e mudanças de relações. Quando a política muda, resultados derivados incompatíveis são suprimidos explicitamente em vez de produzir comparações enganosas.
+A baseline captures the analyzed state and configuration fingerprint. Diff distinguishes added/removed objects, modified content, relocation, and relation changes. When policy changes, incompatible derived results are explicitly suppressed instead of producing misleading comparisons.
 
-A análise de impacto usa a direção semântica declarada no catálogo. Relações ADR participam desse mecanismo exatamente como as relações de implementação, verificação e evidência.
+Impact analysis uses semantic direction declared in the catalog. ADR relations participate in this mechanism exactly like implementation, verification, and evidence relations.

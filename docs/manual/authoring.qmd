@@ -1,29 +1,29 @@
-# Autoria em Quarto
+# Authoring in Quarto
 
-## Blocos `.need`
+## `.need` blocks
 
-A superfície de autoria permanece simples: objetos são declarados em blocos Div do Pandoc com a classe `.need`.
+The authoring surface remains simple: objects are declared as Pandoc Div blocks with the `.need` class.
 
 ```markdown
 ::: {.need #NFR-001 type="non-functional-requirement" status="approved" priority="high" tags="performance"}
 verified-by: TC-006
 implemented-by: COMP-002
 
-## Responder autorização dentro do objetivo de latência
+## Respond to authorization within the latency objective
 
-A decisão de autorização deve permanecer dentro do SLO definido sob carga nominal.
+The authorization decision shall remain within the defined SLO under nominal load.
 
 ### Rationale
 
-A centralização da política só é aceitável se não degradar materialmente a experiência.
+Centralized policy is acceptable only if it does not materially degrade the experience.
 :::
 ```
 
-Metadados computáveis ficam no preâmbulo do bloco; explicações humanas permanecem em Markdown. Essa distinção evita transformar documentação em um formulário excessivamente estruturado.
+Machine-queryable metadata stays in the block preamble; human explanations remain in Markdown. This distinction prevents documentation from becoming an excessively structured form.
 
-## Referências e visualizações
+## References and views
 
-O livro pode projetar o grafo com shortcodes como:
+The book can project the graph with shortcodes such as:
 
 ```markdown
 {{< need NFR-001 title=true >}}
@@ -32,11 +32,11 @@ O livro pode projetar o grafo com shortcodes como:
 {{< need-inspector ADR-002 >}}
 ```
 
-As visualizações são leituras do artefato canônico; não reimplementam as regras de semântica no renderer.
+Views read the canonical artifact; they do not reimplement semantic rules in the renderer.
 
-## Configuração de prefixos
+## Prefix configuration
 
-Prefixos são declarados por tipo:
+Prefixes are declared per type:
 
 ```toml
 [types.system-requirement]
@@ -46,11 +46,11 @@ id-prefix = "SYS-"
 id-prefix = "ADR-"
 ```
 
-Quando configurado, um ID incompatível gera `ID001`. Para um projeto que precise de namespace composto:
+When configured, an incompatible ID produces `ID001`. For a project that needs a compound namespace:
 
 ```toml
 [types.architecture-decision]
 id-prefix = "PAY-ADR-"
 ```
 
-Quando o contexto do projeto já delimita o domínio, use prefixos menores. O objetivo é identidade legível, não repetição ritual de namespace.
+When the project context already defines the domain, use shorter prefixes. The goal is readable identity, not ritual namespace repetition.

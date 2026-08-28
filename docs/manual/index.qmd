@@ -1,22 +1,22 @@
 # Quarto-Needs
 
-Quarto-Needs transforma projetos Quarto em uma plataforma de engenharia rastreável baseada em texto, Git e documentação executável. O núcleo trata requisitos, decisões arquiteturais, componentes, interfaces, riscos, testes e evidências como objetos de engenharia ligados por relações tipadas.
+Quarto-Needs turns Quarto projects into a traceable engineering platform based on text, Git, and executable documentation. The core treats requirements, architecture decisions, components, interfaces, risks, tests, and evidence as engineering objects connected by typed relations.
 
-A ideia central é simples: a documentação não é uma cópia do modelo de engenharia. **Ela é uma projeção navegável do modelo canônico.** A semântica vive no núcleo Python; Quarto e Lua cuidam da autoria e da apresentação.
+The central idea is simple: documentation is not a copy of the engineering model. **It is a navigable projection of the canonical model.** Semantics live in the Python core; Quarto and Lua handle authoring and presentation.
 
-## O que o Quarto-Needs oferece
+## What Quarto-Needs provides
 
-- Requirements as Code em arquivos `.qmd` versionados;
-- IDs estáveis e tipos configuráveis;
-- relações semânticas e grafo de rastreabilidade;
-- validação estrutural e regras de governança;
-- quality gates e métricas de cobertura;
-- baseline, diff semântico e análise de impacto;
-- tabelas, matrizes, fluxos, dashboards e grafos no Quarto;
-- Architecture Decision Management integrado ao mesmo grafo;
-- exportações para automação e integração externa.
+- Requirements as Code in version-controlled `.qmd` files;
+- stable IDs and configurable types;
+- semantic relations and a traceability graph;
+- structural validation and governance rules;
+- quality gates and coverage metrics;
+- baselines, semantic diff, and impact analysis;
+- tables, matrices, flows, dashboards, and graphs in Quarto;
+- Architecture Decision Management integrated into the same graph;
+- exports for automation and external integrations.
 
-## Modelo mental
+## Mental model
 
 ```text
 Stakeholder Need
@@ -30,8 +30,8 @@ Stakeholder Need
 Implementation ─────► Test ─────► Evidence
 ```
 
-ADR não é um documento paralelo ao processo de requisitos. No Quarto-Needs, uma decisão arquitetural é um objeto de engenharia de primeira classe que conecta **drivers** a **escopo arquitetural** e **confirmação**.
+An ADR is not a document maintained in parallel with the requirements process. In Quarto-Needs, an architecture decision is a first-class engineering object that connects **drivers** to **architectural scope** and **confirmation**.
 
-## Convenções do manual
+## Manual conventions
 
-Os exemplos usam IDs curtos (`REQ-001`, `ADR-001`, `TC-001`). Prefixos são configuráveis por tipo e podem incluir namespaces de domínio quando isso for necessário. O exemplo Aegis, por exemplo, não repete `IAM-` porque o próprio projeto já define esse contexto.
+Examples use short IDs (`REQ-001`, `ADR-001`, `TC-001`). Prefixes are configurable per type and may include domain namespaces when needed. The Aegis example, for instance, does not repeat `IAM-` because the project itself already establishes that context.

@@ -1,0 +1,37 @@
+# Quarto-Needs
+
+Quarto-Needs transforma projetos Quarto em uma plataforma de engenharia rastreável baseada em texto, Git e documentação executável. O núcleo trata requisitos, decisões arquiteturais, componentes, interfaces, riscos, testes e evidências como objetos de engenharia ligados por relações tipadas.
+
+A ideia central é simples: a documentação não é uma cópia do modelo de engenharia. **Ela é uma projeção navegável do modelo canônico.** A semântica vive no núcleo Python; Quarto e Lua cuidam da autoria e da apresentação.
+
+## O que o Quarto-Needs oferece
+
+- Requirements as Code em arquivos `.qmd` versionados;
+- IDs estáveis e tipos configuráveis;
+- relações semânticas e grafo de rastreabilidade;
+- validação estrutural e regras de governança;
+- quality gates e métricas de cobertura;
+- baseline, diff semântico e análise de impacto;
+- tabelas, matrizes, fluxos, dashboards e grafos no Quarto;
+- Architecture Decision Management integrado ao mesmo grafo;
+- exportações para automação e integração externa.
+
+## Modelo mental
+
+```text
+Stakeholder Need
+      │
+      ▼
+ Requirement ───────► Architecture Decision
+      │                    │
+      │                    ├──► Component / Interface
+      │                    └──► Confirmation
+      ▼
+Implementation ─────► Test ─────► Evidence
+```
+
+ADR não é um documento paralelo ao processo de requisitos. No Quarto-Needs, uma decisão arquitetural é um objeto de engenharia de primeira classe que conecta **drivers** a **escopo arquitetural** e **confirmação**.
+
+## Convenções do manual
+
+Os exemplos usam IDs curtos (`REQ-001`, `ADR-001`, `TC-001`). Prefixos são configuráveis por tipo e podem incluir namespaces de domínio quando isso for necessário. O exemplo Aegis, por exemplo, não repete `IAM-` porque o próprio projeto já define esse contexto.
