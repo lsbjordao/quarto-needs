@@ -7,3 +7,4 @@ contributes:
     - needs.lua
   shortcodes:
     - shortcodes.lua
+    - adr-shortcodes.lua
