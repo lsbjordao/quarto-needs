@@ -25,10 +25,10 @@ check:
 coverage:
 	PYTHONPATH=src $(VENV_PYTHON) -m quarto_needs.cli coverage
 
-example:
-	quarto preview examples/book
+example: render-example
 
-preview-example: example
+preview-example: render-example
+	cd examples/book/_book && python3 -m http.server 8000
 
 sync-example:
 	cd examples/book && ../../$(VENV_PYTHON) ../../tools/quarto_needs_pre_render.py
