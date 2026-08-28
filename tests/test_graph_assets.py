@@ -79,7 +79,8 @@ def test_graph_lua_registers_the_shortcode() -> None:
     shortcodes = (ROOT / "_extensions" / "quarto-needs" / "shortcodes.lua").read_text(
         encoding="utf-8"
     )
-    assert '["need-graph"] = graph.render_shortcode' in shortcodes
+    compact = "".join(shortcodes.split())
+    assert '["need-graph"]=graph.render_shortcode' in compact
 
 
 def test_graph_lua_reads_and_applies_a_filter_argument() -> None:
