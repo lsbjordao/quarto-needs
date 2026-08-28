@@ -1,0 +1,74 @@
+# Referência prática
+
+## Tipos comuns
+
+| Tipo | Papel sugerido | Prefixo comum |
+|---|---|---|
+| `stakeholder-need` | `need` | `STK-` |
+| `system-requirement` | `requirement` | `SYS-` |
+| `functional-requirement` | `requirement` | `FUN-` |
+| `non-functional-requirement` | `requirement` | `NFR-` |
+| `architecture-decision` | `decision` | `ADR-` |
+| `component` | `architecture-element` | `COMP-` |
+| `interface` | `architecture-element` | `IF-` |
+| `risk` | `risk` | `RISK-` |
+| `test-case` | `verification` | `TC-` |
+| `evidence` | `evidence` | `EVD-` |
+
+Esses prefixos são convenções, não nomes reservados. Configure-os conforme o domínio do projeto.
+
+## Relações principais
+
+### Requirements
+
+- `derives-from`
+- `refines`
+- `decomposes`
+- `constrains`
+- `depends-on`
+- `conflicts-with`
+
+### Implementação e verificação
+
+- `implemented-by` / `implements`
+- `verified-by` / `verifies`
+- `validated-by`
+- `evidenced-by` / `evidences`
+- `mitigates`
+
+### Architecture decisions
+
+- `addresses` / `addressed-by`
+- `applies-to`
+- `confirmed-by` / `confirms`
+- `supersedes` / `superseded-by`
+
+## Padrões de rastreabilidade
+
+### Requirement to evidence
+
+```text
+REQ → implemented-by → Component
+REQ → verified-by → Test → evidenced-by → Evidence
+```
+
+### Requirement through decision
+
+```text
+Requirement ← addresses ← ADR → applies-to → Component
+                         └→ confirmed-by → Test
+```
+
+### Decision lineage
+
+```text
+ADR-002 ──supersedes──► ADR-001
+```
+
+## Checklist para ADR aceita
+
+Uma decisão `accepted` deve, no mínimo, ter identidade estável, data, decisores, um driver rastreável, escopo arquitetural e confirmação planejada ou executável. Contexto, drivers, opções consideradas, resultado, consequências e confirmação devem estar legíveis no corpo Markdown.
+
+## Princípio de desenho
+
+Use estrutura somente onde a máquina precisa consultar, validar, medir ou atravessar. Preserve narrativa em Markdown onde humanos precisam explicar contexto e racional. Esse equilíbrio é o que permite ao Quarto-Needs continuar sendo documentação de alta qualidade sem perder governança formal.
