@@ -11,6 +11,7 @@
 .need-card.need-type-non-functional-requirement { border-left-color: #7c3aed; }
 .need-card.need-type-test-case { border-left-color: #0f766e; }
 .need-card.need-type-risk, .need-card.need-type-threat { border-left-color: #b91c1c; }
+.need-card.need-type-architecture-decision { border-left-color: #0f766e; }
 .need-card .need-header { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
 .need-id { font-family: var(--bs-font-monospace, monospace); }
 .need-header {
@@ -43,13 +44,14 @@
   font-weight: 600;
   border: 1px solid currentColor;
 }
-.need-status-approved, .need-status-passed { color: #166534; background: #dcfce7; border-color: #86efac; }
+.need-status-approved, .need-status-passed, .need-status-accepted { color: #166534; background: #dcfce7; border-color: #86efac; }
+.need-status-proposed { color: #1e40af; background: #dbeafe; border-color: #93c5fd; }
 .need-status-disapproved, .need-status-rejected, .need-status-failed { color: #991b1b; background: #fee2e2; border-color: #fca5a5; }
 .need-status-in-review { color: #92400e; background: #fef3c7; border-color: #fcd34d; }
 .need-status-draft { color: #374151; background: #f3f4f6; border-color: #d1d5db; }
 .need-status-implemented { color: #1d4ed8; background: #dbeafe; border-color: #93c5fd; }
 .need-status-verified { color: #115e59; background: #ccfbf1; border-color: #5eead4; }
-.need-status-deprecated { color: #374151; background: #d1d5db; border-color: #9ca3af; }
+.need-status-deprecated, .need-status-superseded { color: #374151; background: #d1d5db; border-color: #9ca3af; }
 .need-priority-critical { color: #7f1d1d; background: #fecaca; border-color: #f87171; }
 .need-priority-high { color: #9a3412; background: #ffedd5; border-color: #fdba74; }
 .need-priority-medium { color: #1e40af; background: #dbeafe; border-color: #93c5fd; }
@@ -63,6 +65,8 @@
 .need-badge.need-type-risk, .need-badge.need-type-threat { color: #b91c1c; background: #fee2e2; border-color: #fca5a5; }
 .need-badge.need-type-component { color: #b45309; background: #fef3c7; border-color: #fcd34d; }
 .need-badge.need-type-interface { color: #c2410c; background: #ffedd5; border-color: #fdba74; }
+.need-badge.need-type-architecture-decision { color: #0f5f5b; background: #e6fffb; border-color: #81e6d9; }
+.need-badge.need-date { color: #475569; background: #f8fafc; border-color: #cbd5e1; font-variant-numeric: tabular-nums; }
 .need-table-container { margin: 1rem 0; }
 .need-table-search { margin: 0 0 .5rem; max-width: 22rem; }
 .need-table th button { color: inherit; font: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
