@@ -5,6 +5,8 @@ project:
 book:
   title: "Quarto-Needs — Manual"
   subtitle: "Requirements, decisions and engineering traceability as code"
+  navbar:
+    search: true
   chapters:
     - index.qmd
     - getting-started.qmd
@@ -17,6 +19,7 @@ book:
 format:
   html:
     theme: cosmo
+    css: language-switch.css
     toc: true
     code-copy: true
     code-overflow: wrap
@@ -25,7 +28,8 @@ execute:
   freeze: auto
 
 babelquarto:
-  languagelinks: sidebar
+  languagelinks: navbar
+  icon: ""
   languagecodes:
     - name: en
       text: "English"
