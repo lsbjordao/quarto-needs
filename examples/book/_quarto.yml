@@ -34,6 +34,7 @@ format:
   html:
     theme: cosmo
     css: language-switch.css
+    include-after-body: language-switch.html
     mermaid-format: svg
 
 filters:
