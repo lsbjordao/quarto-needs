@@ -89,6 +89,39 @@ def test_project_declarations_sort_paths_and_keep_authored_relation(
     assert relation.location.file == "z.qmd"
 
 
+def test_project_discovery_ignores_localized_sibling(tmp_path: Path) -> None:
+    write_need(tmp_path / "requirements.qmd", "REQ-1", None, None)
+    write_need(tmp_path / "requirements.pt-BR.qmd", "REQ-1", None, None)
+
+    batch = parse_project_declarations(tmp_path)
+
+    assert [item.id for item in batch.declarations] == ["REQ-1"]
+    assert batch.declarations[0].location is not None
+    assert batch.declarations[0].location.file == "requirements.qmd"
+
+
+def test_locale_looking_file_without_canonical_sibling_is_discovered(
+    tmp_path: Path,
+) -> None:
+    write_need(tmp_path / "standalone.pt-BR.qmd", "REQ-PT", None, None)
+
+    batch = parse_project_declarations(tmp_path)
+
+    assert [item.id for item in batch.declarations] == ["REQ-PT"]
+
+
+def test_localized_file_can_be_parsed_explicitly(tmp_path: Path) -> None:
+    write_need(tmp_path / "requirements.qmd", "REQ-EN", None, None)
+    localized = tmp_path / "requirements.pt-BR.qmd"
+    write_need(localized, "REQ-PT", None, None)
+
+    batch = parse_project_declarations(tmp_path, files=[localized])
+
+    assert [item.id for item in batch.declarations] == ["REQ-PT"]
+    assert batch.declarations[0].location is not None
+    assert batch.declarations[0].location.file == "requirements.pt-BR.qmd"
+
+
 def test_unclosed_need_block_is_a_located_structural_finding(tmp_path: Path) -> None:
     source = tmp_path / "broken.qmd"
     source.write_text("::: {.need #REQ-BROKEN}\n## Broken\n", encoding="utf-8")
