@@ -1,7 +1,7 @@
 project:
   type: book
   output-dir: _book
-  pre-render: ../../tools/quarto_needs_pre_render.py
+  pre-render: python3 _pre_render.py
 
 book:
   title: "Aegis IAM — traceable requirements"
