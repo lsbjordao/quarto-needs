@@ -69,6 +69,26 @@ Text.
     ]
 
 
+def test_scalar_relation_targets_split_on_semicolons_and_commas(tmp_path: Path) -> None:
+    qmd = tmp_path / "decision.qmd"
+    qmd.write_text(
+        '''::: {.need #ADR-1 type="architecture-decision" addresses="REQ-1; REQ-2,REQ-3"}
+## Decision
+Text.
+:::
+''',
+        encoding="utf-8",
+    )
+
+    relations = parse_qmd(qmd, tmp_path)[0].relations
+
+    assert [(relation.type, relation.target) for relation in relations] == [
+        ("addresses", "REQ-1"),
+        ("addresses", "REQ-2"),
+        ("addresses", "REQ-3"),
+    ]
+
+
 def test_project_declarations_sort_paths_and_keep_authored_relation(
     tmp_path: Path,
 ) -> None:
