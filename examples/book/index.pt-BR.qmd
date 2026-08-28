@@ -3,7 +3,9 @@
 O Aegis IAM é a plataforma corporativa de identidade e acesso para colaboradores,
 clientes, aplicações e auditores. Este livro demonstra engenharia como código: o
 grafo canônico preserva necessidade, requisito, decisão arquitetural, arquitetura,
-implementação, teste e evidência em uma mesma cadeia verificável.
+implementação, teste e evidência em uma mesma cadeia verificável. O showcase é
+publicado como um Quarto Book [@quarto2026], permitindo que artefatos de engenharia
+de requisitos e citações acadêmicas convencionais coexistam na mesma árvore de fontes.
 
 ## Painel de engenharia
 
