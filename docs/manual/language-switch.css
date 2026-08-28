@@ -23,12 +23,8 @@
   line-height: 1;
 }
 
-html[lang^="en"] #languages-button.babelquarto-languages-button::after {
-  content: "EN";
-}
-
-html[lang^="pt"] #languages-button.babelquarto-languages-button::after {
-  content: "PT-BR";
+#languages-button .quarto-needs-current-language {
+  display: inline;
 }
 
 #languages-button.babelquarto-languages-button:hover,
@@ -38,8 +34,7 @@ html[lang^="pt"] #languages-button.babelquarto-languages-button::after {
   box-shadow: 0 2px 6px rgba(0, 0, 0, .08);
 }
 
-#languages-button .bi,
-#languages-button > span:not(.dropdown-toggle) {
+#languages-button .bi {
   display: none;
 }
 
