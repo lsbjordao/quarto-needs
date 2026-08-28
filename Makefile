@@ -1,4 +1,4 @@
-.PHONY: setup test scan check coverage example preview-example sync-example check-example render-example render-example-all baseline-example diff-example impact-example check-install
+.PHONY: setup setup-babelquarto test scan check coverage example preview-example sync-example check-example render-example render-example-all render-example-multilingual render-manual-multilingual baseline-example diff-example impact-example check-install
 .DEFAULT_GOAL := test
 
 VENV_PYTHON := .venv/bin/python
@@ -9,6 +9,9 @@ AEGIS_REFERENCE_EPOCH = $(shell $(VENV_PYTHON) -c 'import json; from datetime im
 
 setup: .venv/bin/python
 	$(VENV_PYTHON) -m pip install -e ".[test]"
+
+setup-babelquarto:
+	Rscript -e 'install.packages("babelquarto", repos=c("https://ropensci.r-universe.dev", "https://cloud.r-project.org"))'
 
 test:
 	$(VENV_PYTHON) -m pytest -q
@@ -34,10 +37,16 @@ check-example:
 	PYTHONPATH=src $(VENV_PYTHON) -m quarto_needs.cli --root examples/book check
 
 render-example:
-	quarto render examples/book
+	Rscript tools/render_multilingual.R examples/book
+
+render-example-multilingual:
+	Rscript tools/render_multilingual.R examples/book
+
+render-manual-multilingual:
+	Rscript tools/render_multilingual.R docs/manual
 
 render-example-all:
-	quarto render examples/book --to html
+	Rscript tools/render_multilingual.R examples/book
 	quarto render examples/book --to docx
 	quarto render examples/book --to pdf
 

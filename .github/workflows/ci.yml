@@ -36,7 +36,7 @@ jobs:
         run: quarto-needs --root examples/book check
 
   quarto:
-    name: Quarto render smoke
+    name: Quarto multilingual render smoke
     needs: core
     runs-on: ubuntu-latest
     permissions:
@@ -51,6 +51,10 @@ jobs:
           cache: pip
       - name: Install project and test dependencies
         run: make setup
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+      - name: Install babelquarto
+        run: make setup-babelquarto
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
         with:
@@ -58,10 +62,10 @@ jobs:
           tinytex: true
       - name: Synchronize extension and graph
         run: make sync-example
-      - name: Render HTML, DOCX, and PDF
+      - name: Render multilingual Aegis HTML plus canonical DOCX and PDF
         run: make render-example-all
-      - name: Render Quarto-Needs manual
-        run: quarto render docs/manual
+      - name: Render multilingual Quarto-Needs manual
+        run: make render-manual-multilingual
       - name: Enforce showcase gates
         run: make check-example
 
