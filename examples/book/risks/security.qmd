@@ -1,28 +1,28 @@
-# Riscos e ameaças
+# Risks and threats
 
-Riscos vinculam decisões de engenharia a ameaças concretas e ajudam a priorizar
-a cobertura de verificação.
+Risks connect engineering decisions to concrete threats and help prioritize
+verification coverage.
 
 ::: {.need #RISK-001 type="risk" status="in-review" priority="high" tags="security;account-takeover"}
-## Tomada de conta por phishing
+## Account takeover through phishing
 
-Uma credencial capturada pode permitir acesso indevido sem um segundo fator resistente.
+A captured credential may enable improper access without a resistant second factor.
 :::
 
 ::: {.need #RISK-002 type="risk" status="approved" priority="high" tags="security;privilege-escalation"}
-## Escalada de privilégio por política permissiva
+## Privilege escalation through permissive policy
 
-Uma política ampla ou ausente pode conceder acesso além da necessidade de trabalho.
+A broad or missing policy may grant access beyond the work need.
 :::
 
 ::: {.need #RISK-003 type="risk" status="approved" priority="high" tags="privacy;audit"}
-## Vazamento de dados pessoais em logs
+## Personal-data leakage in logs
 
-Eventos excessivamente detalhados podem expor identificadores e atributos pessoais.
+Excessively detailed events may expose personal identifiers and attributes.
 :::
 
 ::: {.need #RISK-004 type="risk" status="draft" priority="medium" tags="availability;recovery"}
-## Indisponibilidade durante recuperação de conta
+## Unavailability during account recovery
 
-Uma falha prolongada pode impedir usuários legítimos de recuperar acesso crítico.
+A prolonged failure may prevent legitimate users from recovering critical access.
 :::

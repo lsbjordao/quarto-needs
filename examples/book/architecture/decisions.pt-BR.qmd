@@ -1,0 +1,108 @@
+# Decisões arquiteturais
+
+As decisões arquiteturais são objetos de engenharia de primeira classe. Elas registram **por que** uma escolha foi tomada, quais drivers a motivaram, onde ela se aplica e como sua conformidade continua sendo confirmada.
+
+O tipo canônico é `architecture-decision`; `ADR` é apenas a convenção de identificação. Uma decisão não implementa um requisito: ela o `addresses` e se `applies-to` a elementos da arquitetura.
+
+::: {.need #ADR-001 type="architecture-decision" status="accepted" date="2026-08-28" decision-makers="Architecture Team" tags="integration;standards" addresses="SYS-006" applies-to="IF-001;IF-002" confirmed-by="TC-017"}
+## Adotar protocolos abertos para federação e provisionamento
+
+### Context and Problem Statement
+
+As aplicações consumidoras precisam integrar autenticação e provisionamento sem depender de APIs proprietárias.
+
+### Decision Drivers
+
+- interoperabilidade entre aplicações;
+- redução de acoplamento;
+- suporte por bibliotecas maduras;
+- facilidade de auditoria e substituição de fornecedores.
+
+### Considered Options
+
+- APIs proprietárias;
+- integração direta com banco de identidade;
+- OpenID Connect para federação e SCIM para provisionamento.
+
+### Decision Outcome
+
+Adotar OpenID Connect para federação e SCIM para provisionamento.
+
+### Consequences
+
+A arquitetura passa a depender de contratos públicos e versionados de protocolo, mas reduz o acoplamento entre o IAM e as aplicações consumidoras.
+
+### Confirmation
+
+A interoperabilidade OIDC é confirmada por `TC-017`; contratos de interface são mantidos em `IF-001` e `IF-002`.
+:::
+
+::: {.need #ADR-002 type="architecture-decision" status="accepted" date="2026-08-28" decision-makers="Architecture Team;Security Team" tags="authorization;security" addresses="SYS-002;FUN-004;FUN-005;NFR-004" applies-to="COMP-002" confirmed-by="TC-004;TC-005;TC-006"}
+## Centralizar autorização em um motor de políticas
+
+### Context and Problem Statement
+
+Políticas implementadas separadamente por cada aplicação geram divergências, dificultam auditoria e ampliam o risco de privilégio excessivo.
+
+### Decision Drivers
+
+- consistência das decisões de acesso;
+- menor privilégio por padrão;
+- explicabilidade;
+- desempenho verificável.
+
+### Considered Options
+
+- autorização embutida em cada aplicação;
+- regras distribuídas em bibliotecas compartilhadas;
+- motor central de políticas com avaliação por atributos.
+
+### Decision Outcome
+
+Centralizar a decisão de autorização em `COMP-002`, mantendo os atributos e políticas como entradas explícitas.
+
+### Consequences
+
+O motor torna-se componente crítico e exige metas de disponibilidade e desempenho, mas concentra governança e reduz divergências semânticas.
+
+### Confirmation
+
+`TC-004`, `TC-005` e `TC-006` confirmam, respectivamente, avaliação contextual, negação por padrão e desempenho.
+:::
+
+::: {.need #ADR-003 type="architecture-decision" status="accepted" date="2026-08-28" decision-makers="Architecture Team;Compliance Team" tags="audit;integrity;privacy" addresses="SYS-004;NFR-003;NFR-005;NFR-007" applies-to="COMP-004;IF-003" confirmed-by="TC-010;TC-011;TC-015"}
+## Separar a trilha de auditoria do processamento transacional
+
+### Context and Problem Statement
+
+Eventos de identidade precisam permanecer íntegros, consultáveis e minimizados mesmo quando os serviços transacionais evoluem ou falham.
+
+### Decision Drivers
+
+- integridade da auditoria;
+- retenção regulatória;
+- minimização de dados pessoais;
+- investigação independente do estado operacional dos serviços.
+
+### Considered Options
+
+- logs locais por aplicação;
+- armazenamento conjunto com dados transacionais;
+- fluxo dedicado de eventos para um cofre de auditoria.
+
+### Decision Outcome
+
+Publicar eventos por `IF-003` e armazená-los em `COMP-004`, com integridade verificável e política de minimização.
+
+### Consequences
+
+A solução acrescenta um fluxo de eventos e um componente persistente especializado, em troca de maior independência para auditoria e conformidade.
+
+### Confirmation
+
+`TC-010`, `TC-011` e `TC-015` verificam integridade, retenção e minimização.
+:::
+
+## Lifecycle e lineage
+
+O lifecycle recomendado para `architecture-decision` é `proposed → accepted`, com saídas para `rejected`, `deprecated` ou `superseded`. Uma decisão `superseded` deve manter lineage explícito com a substituta por `supersedes`/`superseded-by`.

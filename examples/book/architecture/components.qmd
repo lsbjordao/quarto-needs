@@ -1,58 +1,58 @@
-# Componentes e interfaces
+# Components and interfaces
 
-Os componentes abaixo implementam a linha de base aprovada. Interfaces mantêm o
-acoplamento explícito para os times consumidores.
+The components below implement the approved baseline. Interfaces keep coupling
+explicit for consuming teams.
 
 ::: {.need #COMP-001 type="component" status="implemented" priority="high" tags="authentication;security"}
-## Serviço de autenticação
+## Authentication service
 
-Valida credenciais, MFA e sessões para os canais do Aegis IAM.
+Validates credentials, MFA, and sessions for Aegis IAM channels.
 :::
 
 ::: {.need #COMP-002 type="component" status="implemented" priority="high" tags="authorization;policy"}
-## Motor de políticas
+## Policy engine
 
-Avalia políticas por atributo e retorna decisões de permitir ou negar.
+Evaluates attribute-based policies and returns allow or deny decisions.
 :::
 
 ::: {.need #COMP-003 type="component" status="implemented" priority="high" tags="lifecycle;provisioning"}
-## Orquestrador de ciclo de vida
+## Lifecycle orchestrator
 
-Consome eventos de pessoas e executa mudanças controladas em contas e grupos.
+Consumes people events and performs controlled changes to accounts and groups.
 :::
 
 ::: {.need #COMP-004 type="component" status="implemented" priority="high" tags="audit;compliance"}
-## Cofre de auditoria
+## Audit vault
 
-Armazena eventos com integridade verificável e consulta controlada.
+Stores events with verifiable integrity and controlled query access.
 :::
 
 ::: {.need #COMP-005 type="component" status="implemented" priority="high" tags="recovery;security"}
-## Serviço de recuperação
+## Recovery service
 
-Coordena prova de identidade, aprovação e emissão segura de nova credencial.
+Coordinates identity proofing, approval, and secure issuance of new credentials.
 :::
 
 ::: {.need #COMP-006 type="component" status="implemented" priority="medium" tags="experience;accessibility"}
-## Portal de identidade
+## Identity portal
 
-Oferece telas acessíveis para login, consentimento e administração de conta.
+Provides accessible screens for login, consent, and account administration.
 :::
 
 ::: {.need #IF-001 type="interface" status="implemented" priority="high" tags="integration;oidc"}
-## API OpenID Connect
+## OpenID Connect API
 
-Interface de federação para emissão de tokens e descoberta de metadados.
+Federation interface for token issuance and metadata discovery.
 :::
 
 ::: {.need #IF-002 type="interface" status="implemented" priority="medium" tags="integration;scim"}
-## API SCIM de provisão
+## SCIM provisioning API
 
-Interface para sincronizar usuários e grupos a partir de sistemas de origem.
+Interface for synchronizing users and groups from source systems.
 :::
 
 ::: {.need #IF-003 type="interface" status="implemented" priority="high" tags="audit;events"}
-## Fluxo de eventos de auditoria
+## Audit event stream
 
-Interface de eventos assinados entregue ao cofre e ao monitoramento de segurança.
+Signed-event interface delivered to the audit vault and security monitoring.
 :::
