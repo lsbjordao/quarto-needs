@@ -4,8 +4,6 @@
   const isPt = locale.toLowerCase().startsWith("pt");
 
   const asDir = (url) => new URL("./", url);
-  const stripLocalizedSuffix = (name) => name.replace(/\.pt-BR\.html$/i, ".html");
-  const addLocalizedSuffix = (name) => name.replace(/\.html$/i, ".pt-BR.html");
 
   const relativeHref = (from, to) => {
     const fromParts = asDir(from).pathname.split("/").filter(Boolean);
@@ -20,7 +18,7 @@
   const homeLink = document.querySelector(
     ".sidebar-title a, a.sidebar-title, .navbar-brand, .quarto-secondary-nav a[href]"
   );
-  const fallbackHome = isPt ? "index.pt-BR.html" : "index.html";
+  const fallbackHome = "index.html";
   const localizedHome = new URL(homeLink?.getAttribute("href") || fallbackHome, window.location.href);
 
   let bookRoot;
@@ -36,7 +34,7 @@
     const marker = "/pt-BR/";
     const index = current.pathname.toLowerCase().indexOf(marker.toLowerCase());
     logicalPath = index >= 0 ? current.pathname.slice(index + marker.length) : current.pathname.split("/").pop();
-    logicalPath = stripLocalizedSuffix(logicalPath || "index.pt-BR.html");
+    logicalPath = logicalPath || "index.html";
   } else {
     const rootPath = bookRoot.pathname.endsWith("/") ? bookRoot.pathname : `${bookRoot.pathname}/`;
     logicalPath = current.pathname.startsWith(rootPath)
@@ -47,7 +45,7 @@
 
   const target = isPt
     ? new URL(logicalPath, bookRoot)
-    : new URL(`pt-BR/${addLocalizedSuffix(logicalPath)}`, bookRoot);
+    : new URL(`pt-BR/${logicalPath}`, bookRoot);
   target.search = current.search;
   target.hash = current.hash;
 
