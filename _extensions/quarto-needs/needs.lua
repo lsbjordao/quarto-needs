@@ -23,6 +23,17 @@ function Div(el)
   local status = value(el, "status", "draft")
   local priority = value(el, "priority", "")
 
+  -- Load the semantic object before building the header. Most card fields are
+  -- authored as fenced-div attributes, but structured metadata may also come
+  -- from the parser preamble. Using the graph as a fallback keeps the rendered
+  -- header aligned with the canonical engineering object.
+  local graph, message = views.load()
+  local graph_object = graph and views.get(graph, id) or nil
+  local date = value(el, "date", "")
+  if date == "" and graph_object and type(graph_object.attributes) == "table" then
+    date = pandoc.utils.stringify(graph_object.attributes.date or "")
+  end
+
   local heading_index = nil
   local heading_level = 3
   local heading_content = {pandoc.Str(id)}
@@ -50,6 +61,7 @@ function Div(el)
   append_badge("type", need_type)
   append_badge("status", status)
   append_badge("priority", priority)
+  if need_type == "architecture-decision" then append_badge("date", date) end
   local badges = pandoc.Div({pandoc.Plain(badge_inlines)}, pandoc.Attr("", {"need-header-badges"}))
   local header = pandoc.Div({
     pandoc.Header(heading_level, title_inlines, pandoc.Attr("", {"need-heading"})),
@@ -67,7 +79,6 @@ function Div(el)
       table.insert(body, block)
     end
   end
-  local graph, message = views.load()
   if graph then
     for _, block in ipairs(relations.render_for_card(graph, id)) do
       table.insert(body, block)
