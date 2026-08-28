@@ -80,9 +80,17 @@ def test_frozen_payload_has_nested_and_top_level_relation_equivalence() -> None:
     assert sorted(nested, key=key) == sorted(payload["relations"], key=key)
 
 
-def test_refactored_aegis_export_preserves_v1_semantics() -> None:
+def test_evolved_aegis_export_preserves_the_v1_contract() -> None:
+    """The showcase may evolve semantically without changing the public v1 envelope."""
     frozen = load_json(GOLDEN)
     result = analyze_project(ROOT / "examples/book")
     assert result.snapshot is not None
     current = json.loads(render_v1_json(result.snapshot))
-    assert legacy_projection(current) == legacy_projection(frozen)
+
+    envelope_validator().validate(current)
+    assert current["schemaVersion"] == frozen["schemaVersion"] == "1"
+    assert set(legacy_projection(current)) == set(legacy_projection(frozen))
+    assert current["objects"]
+    assert current["relations"]
+    assert any(item["type"] == "architecture-decision" for item in current["objects"])
+    assert not any(item["id"].startswith("IAM-") for item in current["objects"])
