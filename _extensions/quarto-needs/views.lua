@@ -8,10 +8,17 @@ local function script_dir()
 end
 
 local data = dofile(script_dir() .. "data.lua")
+local i18n = dofile(script_dir() .. "i18n.lua")
 
 local function text(value)
   if value == nil then return "" end
   return pandoc.utils.stringify(value)
+end
+
+function M.language() return i18n.language() end
+function M.tr(en, pt) return i18n.t(en, pt) end
+function M.relation_label(relation_type, inverse, fallback)
+  return i18n.relation_label(relation_type, inverse, fallback)
 end
 
 function M.slug(value)
@@ -52,9 +59,49 @@ local function project_dir()
   return input and input:match("(.*/)") or "."
 end
 
+local localized_cache = {}
+local function localized_titles()
+  local locale = M.language()
+  if locale == "en" then return {} end
+  if localized_cache[locale] ~= nil then return localized_cache[locale] end
+  local path = project_dir() .. "/.quarto-needs/i18n/" .. locale .. ".json"
+  local file = io.open(path, "rb")
+  if not file then localized_cache[locale] = {}; return localized_cache[locale] end
+  local contents = file:read("*a")
+  file:close()
+  local ok, decoded = pcall(pandoc.json.decode, contents)
+  local titles = ok and type(decoded) == "table" and decoded.titles or nil
+  localized_cache[locale] = type(titles) == "table" and titles or {}
+  return localized_cache[locale]
+end
+
+function M.localized_title(id, fallback)
+  local title = localized_titles()[text(id)]
+  if title == nil or text(title) == "" then return text(fallback) end
+  return text(title)
+end
+
+function M.localize_graph(graph)
+  if M.language() == "en" or type(graph) ~= "table" then return graph end
+  for _, object in ipairs(graph.objects or {}) do
+    object.title = M.localized_title(object.id, object.title)
+  end
+  return graph
+end
+
+function M.localize_projection(projection)
+  if M.language() == "en" or type(projection) ~= "table" then return projection end
+  for _, node in ipairs(projection.nodes or {}) do
+    node.title = M.localized_title(node.id, node.title)
+  end
+  return projection
+end
+
 -- `path` is an explicit override used by tests; production callers pass nothing.
 function M.load(path)
-  return data.load(path or (project_dir() .. "/.quarto-needs/needs.json"))
+  local graph, message = data.load(path or (project_dir() .. "/.quarto-needs/needs.json"))
+  if graph then M.localize_graph(graph) end
+  return graph, message
 end
 
 function M.get(graph, id)
@@ -82,11 +129,7 @@ local function detect_format()
   return writer
 end
 
--- Express the page being rendered relative to the project root so cross-page
--- links stay portable; an unresolvable absolute path falls back to the root.
 local function current_input()
-  -- Quarto hands Pandoc a temporary intermediate file, so `quarto.doc.input_file`
-  -- is the only reliable pointer back to the authored page.
   local input
   local ok, declared = pcall(function() return quarto.doc.input_file end)
   if ok and type(declared) == "string" and declared ~= "" then
@@ -96,8 +139,8 @@ local function current_input()
   end
   if type(input) ~= "string" or input == "" then return "" end
   local normalized = pandoc.path.normalize(input)
-  local ok, directory = pcall(function() return quarto.project.directory end)
-  if ok and type(directory) == "string" and directory ~= "" then
+  local ok_root, directory = pcall(function() return quarto.project.directory end)
+  if ok_root and type(directory) == "string" and directory ~= "" then
     local root = pandoc.path.normalize(directory)
     if root:sub(-1) ~= "/" then root = root .. "/" end
     if normalized:sub(1, #root) == root then normalized = normalized:sub(#root + 1) end
@@ -108,8 +151,8 @@ end
 
 local function option_values(kwargs, ...)
   local values = {}
-  for i = 1, select("#", ...) do
-    local key = select(i, ...)
+  for n = 1, select("#", ...) do
+    local key = select(n, ...)
     local raw = M.kwarg(kwargs, key)
     for value in raw:gmatch("[^,;]+") do
       value = value:match("^%s*(.-)%s*$")
@@ -157,8 +200,6 @@ function M.filter(objects, kwargs)
   return result
 end
 
--- Materialized named queries live under extensions.quartoNeeds.queries;
--- Lua only reads the ID sets Python precomputed.
 function M.named_query_ids(graph, name)
   local extensions = type(graph.extensions) == "table" and graph.extensions or {}
   local quarto_needs = type(extensions.quartoNeeds) == "table" and extensions.quartoNeeds or {}
@@ -171,16 +212,12 @@ function M.named_query_ids(graph, name)
   return wanted
 end
 
--- Resolve query= first (unknown names are loud warnings, never empty success),
--- then intersect the exact legacy filters on top of the materialized set.
 function M.select(graph, objects, kwargs)
   local query_name = M.kwarg(kwargs, "query")
   local pool = objects
   if query_name ~= "" then
     local wanted = M.named_query_ids(graph, query_name)
-    if wanted == nil then
-      return {}, "Unknown query: " .. query_name
-    end
+    if wanted == nil then return {}, "Unknown query: " .. query_name end
     pool = {}
     for _, object in ipairs(objects or {}) do
       if wanted[text(object.id)] then pool[#pool + 1] = object end
@@ -214,7 +251,6 @@ end
 
 local generated_ids = {}
 local reserved_view_ids = {}
-
 local function safe_view_id(value, fallback)
   local normalized = M.slug(value)
   if normalized == "" then normalized = M.slug(fallback) end
@@ -222,8 +258,6 @@ local function safe_view_id(value, fallback)
   return normalized
 end
 
--- Reserve a safe HTML identifier. Pass a requested ID for explicit views;
--- omit it to allocate the next ID for the prefix.
 function M.reserve_view_id(prefix, requested)
   local safe_prefix = safe_view_id(prefix, "need-view")
   local base
@@ -233,7 +267,6 @@ function M.reserve_view_id(prefix, requested)
   else
     base = safe_view_id(requested, safe_prefix)
   end
-
   local candidate = base
   local suffix = 2
   while reserved_view_ids[candidate] do
@@ -244,9 +277,7 @@ function M.reserve_view_id(prefix, requested)
   return candidate
 end
 
-function M.next_id(prefix)
-  return M.reserve_view_id(prefix)
-end
+function M.next_id(prefix) return M.reserve_view_id(prefix) end
 
 function M.badge(kind, value)
   local raw = text(value)
@@ -296,9 +327,7 @@ function M.table(caption, headers, rows, attr)
 end
 
 function M.node_id(id)
-  return "need_" .. text(id):gsub(".", function(char)
-    return string.format("%02X", string.byte(char))
-  end)
+  return "need_" .. text(id):gsub(".", function(char) return string.format("%02X", string.byte(char)) end)
 end
 
 function M.escape_mermaid(value)
