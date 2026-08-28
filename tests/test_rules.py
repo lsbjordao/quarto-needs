@@ -51,12 +51,15 @@ def test_fingerprint_is_stable_across_severity_changes() -> None:
 
 def test_registry_covers_legacy_and_governance_codes() -> None:
     assert tuple(sorted(RULES)) == (
+        "DEC001", "DEC002", "DEC003", "DEC004", "DEC005",
+        "ID001", "OBJ001",
         "REQ002", "REQ004", "REQ005", "REQ006",
         "REQ008", "REQ009", "REQ010", "REQ011",
         "REQ012", "REQ013", "REQ014", "REQ015",
     )
     assert RULES["REQ004"].structural
     assert RULES["REQ005"].structural
+    assert RULES["DEC005"].supported_severities == ("error",)
 
 
 # --- individual governance rules ---------------------------------------------
@@ -170,7 +173,7 @@ def test_orphaned_object_rule(tmp_path: Path) -> None:
 
 
 def test_expired_evidence_rule(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("SOURCE_DATE_EPOCH", "1735689600")  # 2025-01-01 UTC
+    monkeypatch.setenv("SOURCE_DATE_EPOCH", "1735689600")
     config = make_config(tmp_path, "[rules.REQ015]\nenabled = true\n")
     snapshot = snapshot_with(
         obj("TC", type="test-case", status="passed", relations=[
