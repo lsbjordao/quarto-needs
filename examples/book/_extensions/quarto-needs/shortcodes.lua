@@ -9,6 +9,7 @@ local flow = dofile(script_dir() .. "flow.lua")
 local relations = dofile(script_dir() .. "relations.lua")
 local inspector = dofile(script_dir() .. "inspector.lua")
 local dashboard = dofile(script_dir() .. "dashboard.lua")
+local graph = dofile(script_dir() .. "graph.lua")
 
 local function graph_or_warning()
   views.ensure_assets()
@@ -230,7 +231,7 @@ local function render_need_flow(args, kwargs)
     "",
     pandoc.Attr("", {"need-flow"}, {role = "img"})
   )
-  table.insert(blocks, pandoc.Para({image}))
+  table.insert(blocks, pandoc.Div({pandoc.Para({image})}, pandoc.Attr("", {"need-flow-scroll"})))
   return pandoc.Div(blocks)
 end
 
@@ -278,4 +279,5 @@ return {
   ["need-inspector"] = render_need_inspector,
   ["need-flow"] = render_need_flow,
   ["need-dashboard"] = render_need_dashboard,
+  ["need-graph"] = graph.render_shortcode,
 }

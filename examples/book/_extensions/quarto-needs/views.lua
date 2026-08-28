@@ -24,9 +24,9 @@ function M.ensure_assets()
   rawset(_G, ASSETS_FLAG, true)
   quarto.doc.add_html_dependency({
     name = "quarto-needs",
-    version = "0.1.0",
-    stylesheets = {"needs.css"},
-    scripts = {"needs.js"},
+    version = "0.1.2",
+    stylesheets = {"needs.css", "graph.css"},
+    scripts = {"needs.js", "vendor/cytoscape/cytoscape.min.js", "graph.js"},
   })
 end
 

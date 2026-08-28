@@ -1,0 +1,153 @@
+"""Write public graph projections as files the Lua filter can embed.
+
+At build/scan time the CLI computes one projection per configured graph view and
+writes it as versioned JSON under `.quarto-needs/graphs/`. The Lua filter in the
+extension reads that file for the requested `need-graph` view, renders the static
+figure, accessible edge table, and summary from the *same* projection, and embeds
+the projection JSON in the progressive container for the interactive client. The
+static and interactive views therefore cannot disagree.
+"""
+from __future__ import annotations
+
+import os
+import tempfile
+from pathlib import Path
+
+from .baseline import BaselineError, load_baseline
+from .config import NeedsConfig
+from .graph_projection import (
+    GraphProjection,
+    build_projection as build_catalog,
+    build_diff_overlay,
+    build_impact_overlay,
+    render_projection,
+    select_graph,
+)
+from .queries import DEFAULT_QUERY_NAME, query_ids
+from .snapshot import AnalysisSnapshot
+
+DEFAULT_VIEW_ID = "need-graph-1"
+
+DEFAULT_BASELINE_PATH = Path(".quarto-needs/baseline.json")
+
+
+def _atomic_text(path: Path, contents: str) -> None:
+    parent = path.parent
+    parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{path.name}.", suffix=".tmp", dir=parent
+    )
+    temporary = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as stream:
+            stream.write(contents)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
+    except BaseException:
+        temporary.unlink(missing_ok=True)
+        raise
+
+
+def _limits(config: NeedsConfig) -> dict[str, int]:
+    return {"nodes": config.graph.max_nodes, "edges": config.graph.max_edges}
+
+
+def _selection(snapshot: AnalysisSnapshot, config: NeedsConfig):
+    seeds = query_ids(config, snapshot, DEFAULT_QUERY_NAME)
+    return select_graph(
+        snapshot,
+        seeds=seeds,
+        relations=config.graph.relations,
+        depth=config.graph.depth,
+        limits=_limits(config),
+    )
+
+
+def build_default_projection(
+    snapshot: AnalysisSnapshot,
+    config: NeedsConfig,
+    *,
+    mode: str | None = None,
+    baseline_path: Path | None = None,
+) -> GraphProjection:
+    """The projection for a bare `{{< need-graph >}}` invocation.
+
+    Seeds come from the default approved-requirements query; depth, relation
+    allowlist, limits, layout, and seed come from the `[graph]` configuration
+    block. The mode is honored verbatim (catalog by default); diff and impact
+    modes additionally read the supplied baseline.
+    """
+    effective_mode = mode or config.graph.mode
+    selection = _selection(snapshot, config)
+
+    if effective_mode in ("diff", "impact"):
+        candidate = baseline_path or DEFAULT_BASELINE_PATH
+        try:
+            baseline_payload = load_baseline(candidate)
+        except BaselineError:
+            if effective_mode == "diff":
+                from .graph_projection import build_projection as _c
+
+                return _c(
+                    snapshot,
+                    node_ids=selection.node_ids,
+                    view_id=DEFAULT_VIEW_ID,
+                    mode="catalog",
+                    limits=_limits(config),
+                    relations=config.graph.relations,
+                    layout=config.graph.layout,
+                    seed=config.graph.seed,
+                )
+            baseline_payload = None
+        if baseline_payload is not None and effective_mode == "diff":
+            return build_diff_overlay(
+                baseline_payload,
+                snapshot,
+                config,
+                node_ids=selection.node_ids,
+                view_id=DEFAULT_VIEW_ID,
+                recompute=True,
+                relations=config.graph.relations,
+                limits=_limits(config),
+                layout=config.graph.layout,
+                seed=config.graph.seed,
+            )
+        if baseline_payload is not None and effective_mode == "impact":
+            return build_impact_overlay(
+                baseline_payload,
+                snapshot,
+                config,
+                node_ids=selection.node_ids,
+                view_id=DEFAULT_VIEW_ID,
+                recompute=True,
+                relations=config.graph.relations,
+                limits=_limits(config),
+                layout=config.graph.layout,
+                seed=config.graph.seed,
+            )
+
+    return build_catalog(
+        snapshot,
+        node_ids=selection.node_ids,
+        view_id=DEFAULT_VIEW_ID,
+        mode="catalog",
+        limits=_limits(config),
+        relations=config.graph.relations,
+        layout=config.graph.layout,
+        seed=config.graph.seed,
+    )
+
+
+def write_default_projection(
+    root: Path,
+    snapshot: AnalysisSnapshot,
+    config: NeedsConfig,
+) -> Path:
+    """Write the default graph projection and return the written path."""
+    projection = build_default_projection(
+        snapshot, config, baseline_path=root / DEFAULT_BASELINE_PATH
+    )
+    target = root / ".quarto-needs" / "graphs" / f"{DEFAULT_VIEW_ID}.json"
+    _atomic_text(target, render_projection(projection))
+    return target

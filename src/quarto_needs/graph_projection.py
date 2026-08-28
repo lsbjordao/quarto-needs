@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from pathlib import Path as _Path
 from typing import Iterable, Mapping
 
 from . import diff as diff_module
@@ -139,12 +140,20 @@ class GraphProjection:
 
 
 def _public_href(record: ObjectRecord) -> str:
-    """Anchor-only by default.
+    """Site-relative href to the need's defining page, falling back to an anchor.
 
-    A resolved cross-page href is safe to publish, but it is built by the Lua
-    link resolver at render time, where the output format and current page are
-    known. Emitting a filesystem-derived path here would leak project layout.
+    Built only from public source metadata (source ``file`` + ``anchor``), never
+    from an absolute filesystem path, so it is safe to publish and keeps the
+    interactive tooltip's "Open need" link working. Matches the href emitted for
+    objects in the exported needs index (``export._object_v1``). When a record
+    has no location we fall back to an anchor-only target on the current page.
     """
+    import pathlib
+
+    if record.locations:
+        source = record.locations[0]
+        stem = _Path(source.file).with_suffix("").as_posix()
+        return f"{stem}.html#{source.anchor or record.id}"
     return "#" + record.id
 
 

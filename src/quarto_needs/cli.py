@@ -95,6 +95,9 @@ def build(root: Path, quiet: bool = False) -> int:
             result.snapshot,
             extra_extensions=extra_extensions,
         )
+        from .graph_output import write_default_projection
+
+        write_default_projection(root, result.snapshot, config)
     except OSError as error:
         # Reading the project or writing either artifact failed; both are
         # operational, not validation, failures.
