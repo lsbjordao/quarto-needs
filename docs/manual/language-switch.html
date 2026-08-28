@@ -61,7 +61,7 @@
 
   const wrapper = document.createElement("div");
   wrapper.id = "quarto-needs-language-switch";
-  wrapper.className = "nav-item dropdown quarto-needs-language-switch";
+  wrapper.className = "dropdown quarto-needs-language-switch";
   wrapper.innerHTML = `
     <a id="languages-button"
        class="nav-link dropdown-toggle"
@@ -94,19 +94,29 @@
   wrapper.style.setProperty("--qn-language-hover", pageHover);
 
   const place = () => {
-    const search = document.getElementById("quarto-search");
-    if (search && search.parentElement) {
-      search.parentElement.insertBefore(wrapper, search.nextSibling);
+    const secondarySearch = document.querySelector(
+      "#quarto-header .quarto-secondary-nav .quarto-search-button"
+    );
+    if (secondarySearch && secondarySearch.parentElement) {
+      const host = secondarySearch.parentElement;
+      if (wrapper.parentElement !== host || secondarySearch.nextElementSibling !== wrapper) {
+        host.insertBefore(wrapper, secondarySearch.nextSibling);
+      }
       return true;
     }
-    const tools = document.querySelector(".quarto-navbar-tools");
+
+    const primarySearch = document.querySelector("#quarto-header .navbar #quarto-search");
+    if (primarySearch && primarySearch.parentElement) {
+      const host = primarySearch.parentElement;
+      if (wrapper.parentElement !== host || primarySearch.nextElementSibling !== wrapper) {
+        host.insertBefore(wrapper, primarySearch.nextSibling);
+      }
+      return true;
+    }
+
+    const tools = document.querySelector("#quarto-header .quarto-navbar-tools");
     if (tools) {
       tools.appendChild(wrapper);
-      return true;
-    }
-    const navbar = document.querySelector(".navbar .container-fluid, .navbar .container, .navbar");
-    if (navbar) {
-      navbar.appendChild(wrapper);
       return true;
     }
     return false;
@@ -116,5 +126,6 @@
   requestAnimationFrame(place);
   setTimeout(place, 100);
   setTimeout(place, 500);
+  setTimeout(place, 1200);
 })();
 </script>
