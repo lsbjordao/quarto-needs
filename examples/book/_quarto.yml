@@ -29,6 +29,9 @@ book:
     - governance.qmd
     - diagrams.qmd
     - shortcodes.qmd
+    - references.qmd
+
+bibliography: references.bib
 
 format:
   html:
