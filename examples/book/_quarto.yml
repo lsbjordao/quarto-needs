@@ -13,7 +13,10 @@ book:
         - requirements/system.qmd
         - requirements/functional.qmd
         - requirements/non-functional.qmd
-    - architecture/components.qmd
+    - part: Arquitetura
+      chapters:
+        - architecture/decisions.qmd
+        - architecture/components.qmd
     - risks/security.qmd
     - verification/test-cases.qmd
     - verification/evidence.qmd
