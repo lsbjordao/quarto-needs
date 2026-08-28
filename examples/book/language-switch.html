@@ -14,8 +14,7 @@
     while (common < fromParts.length && common < toParts.length && fromParts[common] === toParts[common]) common += 1;
     const up = Array(fromParts.length - common).fill("..");
     const down = toParts.slice(common);
-    const path = [...up, ...down].join("/") || "./";
-    return `${path}${to.search}${to.hash}`;
+    return `${[...up, ...down].join("/") || "./"}${to.search}${to.hash}`;
   };
 
   const homeLink = document.querySelector(
@@ -55,40 +54,71 @@
   const targetLabel = isPt ? "English" : "Português (Brasil)";
   const currentLabel = isPt ? "PT-BR" : "EN";
 
-  let button = document.getElementById("languages-button");
-  let menu = button && document.querySelector('.dropdown-menu[aria-labelledby="languages-button"]');
+  // Remove BabelQuarto's presentation widget. Translation generation remains
+  // BabelQuarto's responsibility; this replacement only controls presentation.
+  document.querySelectorAll("#languages-links-parent, .babelquarto-languages-button").forEach((node) => {
+    const wrapper = node.closest("#languages-links-parent, .nav-item.dropdown, .dropdown") || node;
+    if (!wrapper.classList.contains("quarto-needs-language-switch")) wrapper.remove();
+  });
 
-  if (!button) {
-    const navbar = document.querySelector(".navbar-nav, .navbar .container-fluid, .navbar .container");
-    if (!navbar) return;
-    const wrapper = document.createElement("div");
-    wrapper.className = "nav-item dropdown quarto-needs-language-switch";
-    wrapper.innerHTML = `
-      <a id="languages-button" class="nav-link dropdown-toggle babelquarto-languages-button"
-         href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Language">
-        <span class="quarto-needs-current-language">${currentLabel}</span>
-      </a>
-      <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languages-button"></ul>`;
-    navbar.appendChild(wrapper);
-    button = wrapper.querySelector("#languages-button");
-    menu = wrapper.querySelector(".dropdown-menu");
-  }
+  const wrapper = document.createElement("div");
+  wrapper.id = "quarto-needs-language-switch";
+  wrapper.className = "nav-item dropdown quarto-needs-language-switch";
+  wrapper.innerHTML = `
+    <a id="languages-button"
+       class="nav-link dropdown-toggle"
+       href="#"
+       role="button"
+       data-bs-toggle="dropdown"
+       aria-expanded="false"
+       aria-label="${isPt ? "Idioma" : "Language"}">
+      <span class="quarto-needs-language-globe" aria-hidden="true">🌐</span>
+      <span class="quarto-needs-current-language">${currentLabel}</span>
+    </a>
+    <ul id="languages-links"
+        class="dropdown-menu dropdown-menu-end"
+        aria-labelledby="languages-button">
+      <li><a class="dropdown-item" href="${relativeHref(current, target)}">${targetLabel}</a></li>
+    </ul>`;
 
-  if (!menu) return;
-  button.setAttribute("aria-label", isPt ? "Idioma" : "Language");
-  button.querySelectorAll(".quarto-needs-current-language").forEach((node) => node.remove());
-  const label = document.createElement("span");
-  label.className = "quarto-needs-current-language";
-  label.textContent = currentLabel;
-  button.prepend(label);
+  // Capture the page palette before inserting the selector into a navbar that
+  // may have its own Bootstrap data-bs-theme="dark" color context.
+  const page = getComputedStyle(document.body);
+  const root = getComputedStyle(document.documentElement);
+  const transparent = new Set(["transparent", "rgba(0, 0, 0, 0)"]);
+  let pageBg = page.backgroundColor;
+  if (!pageBg || transparent.has(pageBg)) pageBg = root.getPropertyValue("--bs-body-bg").trim() || "#fff";
+  const pageFg = page.color || root.getPropertyValue("--bs-body-color").trim() || "#212529";
+  const pageBorder = root.getPropertyValue("--bs-border-color").trim() || "#dee2e6";
+  const pageHover = root.getPropertyValue("--bs-tertiary-bg").trim() || "#f8f9fa";
 
-  menu.innerHTML = "";
-  const item = document.createElement("li");
-  const link = document.createElement("a");
-  link.className = "dropdown-item";
-  link.href = relativeHref(current, target);
-  link.textContent = targetLabel;
-  item.appendChild(link);
-  menu.appendChild(item);
+  wrapper.style.setProperty("--qn-language-bg", pageBg);
+  wrapper.style.setProperty("--qn-language-fg", pageFg);
+  wrapper.style.setProperty("--qn-language-border", pageBorder);
+  wrapper.style.setProperty("--qn-language-hover", pageHover);
+
+  const place = () => {
+    const search = document.getElementById("quarto-search");
+    if (search && search.parentElement) {
+      search.parentElement.insertBefore(wrapper, search.nextSibling);
+      return true;
+    }
+    const tools = document.querySelector(".quarto-navbar-tools");
+    if (tools) {
+      tools.appendChild(wrapper);
+      return true;
+    }
+    const navbar = document.querySelector(".navbar .container-fluid, .navbar .container, .navbar");
+    if (navbar) {
+      navbar.appendChild(wrapper);
+      return true;
+    }
+    return false;
+  };
+
+  place();
+  requestAnimationFrame(place);
+  setTimeout(place, 100);
+  setTimeout(place, 500);
 })();
 </script>
