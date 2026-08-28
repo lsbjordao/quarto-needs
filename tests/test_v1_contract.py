@@ -19,6 +19,12 @@ def load_json(path: Path) -> dict[str, object]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def current_payload() -> dict[str, object]:
+    result = analyze_project(ROOT / "examples/book")
+    assert result.snapshot is not None
+    return json.loads(render_v1_json(result.snapshot))
+
+
 def legacy_projection(payload: dict[str, object]) -> dict[str, object]:
     projected = {key: value for key, value in payload.items() if key != "extensions"}
     projected["objects"] = sorted(projected["objects"], key=lambda item: (item["id"].casefold(), item["id"]))
@@ -67,8 +73,8 @@ def test_frozen_aegis_payload_validates_against_v1_envelope() -> None:
 
 
 def test_regenerated_aegis_graph_validates_against_v1_envelope() -> None:
-    """The checked-in regenerated artifact stays schema-valid, extensions included."""
-    payload = load_json(ROOT / "examples/book/.quarto-needs/needs.json")
+    """The current graph stays schema-valid, extensions included."""
+    payload = current_payload()
     envelope_validator().validate(payload)
     assert "relationCatalog" in payload["extensions"]["quartoNeeds"]
 
@@ -83,9 +89,7 @@ def test_frozen_payload_has_nested_and_top_level_relation_equivalence() -> None:
 def test_evolved_aegis_export_preserves_the_v1_contract() -> None:
     """The showcase may evolve semantically without changing the public v1 envelope."""
     frozen = load_json(GOLDEN)
-    result = analyze_project(ROOT / "examples/book")
-    assert result.snapshot is not None
-    current = json.loads(render_v1_json(result.snapshot))
+    current = current_payload()
 
     envelope_validator().validate(current)
     assert current["schemaVersion"] == frozen["schemaVersion"] == "1"
