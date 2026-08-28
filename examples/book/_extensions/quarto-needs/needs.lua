@@ -22,6 +22,7 @@ function Div(el)
   local need_type = value(el, "type", "need")
   local status = value(el, "status", "draft")
   local priority = value(el, "priority", "")
+  local date = value(el, "date", "")
 
   local heading_index = nil
   local heading_level = 3
@@ -50,6 +51,7 @@ function Div(el)
   append_badge("type", need_type)
   append_badge("status", status)
   append_badge("priority", priority)
+  if need_type == "architecture-decision" then append_badge("date", date) end
   local badges = pandoc.Div({pandoc.Plain(badge_inlines)}, pandoc.Attr("", {"need-header-badges"}))
   local header = pandoc.Div({
     pandoc.Header(heading_level, title_inlines, pandoc.Attr("", {"need-heading"})),
