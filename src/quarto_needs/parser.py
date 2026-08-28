@@ -22,6 +22,9 @@ ATTR_RE = re.compile(r'([A-Za-z0-9_-]+)=(?:"([^"]*)"|\'([^\']*)\'|([^\s]+))')
 HEADING_RE = re.compile(r'^##+\s+(?P<title>.+?)\s*$')
 META_RE = re.compile(r'^(?P<key>[A-Za-z0-9_-]+):\s*(?P<value>.*)$')
 LIST_RE = re.compile(r'^\s*-\s+(?P<value>.+?)\s*$')
+LOCALIZED_QMD_RE = re.compile(
+    r'^(?P<stem>.+)\.(?P<locale>[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*)\.qmd$'
+)
 
 RELATION_KEYS = set(DEFAULT_RELATION_CATALOG.names)
 
@@ -193,6 +196,21 @@ def _resolved_project_path(root: Path, path: Path) -> Path:
     return (root / path).resolve()
 
 
+def _is_localized_qmd(path: Path) -> bool:
+    """Return whether *path* is a BabelQuarto-style localized sibling.
+
+    A locale-looking suffix alone is not enough: ``foo.pt-BR.qmd`` is treated as
+    a translation only when the canonical ``foo.qmd`` exists beside it. This
+    keeps automatic project discovery language-neutral without preventing an
+    explicitly supplied localized file from being parsed on its own.
+    """
+    match = LOCALIZED_QMD_RE.match(path.name)
+    if match is None:
+        return False
+    canonical = path.with_name(f"{match.group('stem')}.qmd")
+    return canonical.is_file()
+
+
 def parse_project_declarations(
     root: Path,
     files: Iterable[Path] | None = None,
@@ -206,6 +224,7 @@ def parse_project_declarations(
                 part.startswith(".") or part.startswith("_")
                 for part in path.relative_to(resolved_root).parts[:-1]
             )
+            and not _is_localized_qmd(path)
         )
     paths = [_resolved_project_path(resolved_root, Path(path)) for path in files]
     paths.sort(
