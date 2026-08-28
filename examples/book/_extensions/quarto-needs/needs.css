@@ -67,9 +67,27 @@
 .need-badge.need-type-interface { color: #c2410c; background: #ffedd5; border-color: #fdba74; }
 .need-badge.need-type-architecture-decision { color: #0f5f5b; background: #e6fffb; border-color: #81e6d9; }
 .need-badge.need-date { color: #475569; background: #f8fafc; border-color: #cbd5e1; font-variant-numeric: tabular-nums; }
-.need-table-container { margin: 1rem 0; }
+.need-table-container {
+  margin: 1rem 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
 .need-table-search { margin: 0 0 .5rem; max-width: 22rem; }
 .need-table th button { color: inherit; font: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+.need-table td a,
+.need-table td .need-badge,
+.need-table th .need-badge {
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+.need-table td a {
+  display: inline-block;
+}
+.need-table td {
+  overflow-wrap: break-word;
+}
 .need-matrix {
   width: max-content;
   min-width: 100%;
