@@ -1,6 +1,6 @@
 # Decisões arquiteturais
 
-As decisões arquiteturais são objetos de engenharia de primeira classe. Elas registram **por que** uma escolha foi tomada, quais drivers a motivaram, onde ela se aplica e como sua conformidade continua sendo confirmada.
+As decisões arquiteturais são objetos de engenharia de primeira classe. Elas registram **por que** uma escolha foi tomada, quais drivers a motivaram, onde ela se aplica e como sua conformidade continua sendo confirmada. Esse tratamento segue a prática consolidada de arquitetura em que decisões, racional e consequências são mantidos como conhecimento explícito de engenharia [@bass2021software], enquanto a estrutura documental permanece compatível com convenções leves de ADR como MADR [@madr2025].
 
 O tipo canônico é `architecture-decision`; `ADR` é apenas a convenção de identificação. Uma decisão não implementa um requisito: ela o `addresses` e se `applies-to` a elementos da arquitetura.
 
