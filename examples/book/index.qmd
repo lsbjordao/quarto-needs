@@ -1,23 +1,23 @@
 # Aegis IAM
 
-O Aegis IAM é a plataforma corporativa de identidade e acesso para colaboradores,
-clientes, aplicações e auditores. Este livro demonstra engenharia como código: o
-grafo canônico preserva necessidade, requisito, decisão arquitetural, arquitetura,
-implementação, teste e evidência em uma mesma cadeia verificável.
+Aegis IAM is the corporate identity and access platform for employees, customers,
+applications, and auditors. This book demonstrates engineering as code: the
+canonical graph preserves needs, requirements, architecture decisions,
+architecture, implementation, tests, and evidence in one verifiable chain.
 
-## Painel de engenharia
+## Engineering dashboard
 
-- Necessidades de stakeholders: {{< need-count types="stakeholder-need" >}}
-- Requisitos de sistema aprovados: {{< need-count types="system-requirement" status="approved" >}}
-- Requisitos funcionais aprovados: {{< need-count types="functional-requirement" status="approved" >}}
-- Decisões arquiteturais aceitas: {{< need-count types="architecture-decision" status="accepted" >}}
-- Casos de teste: {{< need-count types="test-case" >}}
+- Stakeholder needs: {{< need-count types="stakeholder-need" >}}
+- Approved system requirements: {{< need-count types="system-requirement" status="approved" >}}
+- Approved functional requirements: {{< need-count types="functional-requirement" status="approved" >}}
+- Accepted architecture decisions: {{< need-count types="architecture-decision" status="accepted" >}}
+- Test cases: {{< need-count types="test-case" >}}
 
-## Prioridades de segurança aprovadas
+## Approved security priorities
 
-{{< need-table types="functional-requirement;non-functional-requirement" status="approved" priority="high;critical" tags="security" columns="id;title;type;status;priority;verified-by" sort="priority;id" caption="Requisitos aprovados de segurança" >}}
+{{< need-table types="functional-requirement;non-functional-requirement" status="approved" priority="high;critical" tags="security" columns="id;title;type;status;priority;verified-by" sort="priority;id" caption="Approved security requirements" >}}
 
-O fluxo parte de {{< need STK-001 title=true >}}, passa por requisitos e decisões
-arquiteturais e culmina em implementação, teste e evidência. O catálogo inclui
-itens em rascunho, revisão, rejeitados e superseded para demonstrar lifecycle sem
-misturá-los à linha de base vigente.
+The flow starts at {{< need STK-001 title=true >}}, passes through requirements and
+architecture decisions, and culminates in implementation, tests, and evidence.
+The catalog includes draft, in-review, rejected, and superseded items to demonstrate
+the lifecycle without mixing them into the current baseline.

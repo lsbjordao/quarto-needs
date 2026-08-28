@@ -1,83 +1,83 @@
-# Requisitos de sistema
+# System requirements
 
-O catálogo de sistema conecta expectativas de negócio à arquitetura do Aegis IAM.
+The system catalog connects business expectations to the Aegis IAM architecture.
 
 ::: {.need #SYS-001 type="system-requirement" status="approved" priority="high" tags="authentication;security" derives-from="STK-001" implemented-by="COMP-001" verified-by="TC-001"}
-## Autenticar identidades antes de emitir sessão
+## Authenticate identities before issuing a session
 
-O Aegis IAM deve autenticar a identidade antes de emitir uma sessão utilizável.
+Aegis IAM shall authenticate the identity before issuing a usable session.
 
 ### Rationale
 
-Evita que recursos protegidos sejam expostos a solicitantes anônimos.
+Prevents protected resources from being exposed to anonymous requesters.
 :::
 
 ::: {.need #SYS-002 type="system-requirement" status="approved" priority="high" tags="authorization;least-privilege" derives-from="STK-002" implemented-by="COMP-002" verified-by="TC-004"}
-## Decidir acesso por política central
+## Decide access through central policy
 
-O sistema deve decidir acesso por políticas centralizadas e atributos confiáveis.
+The system shall decide access through centralized policies and trusted attributes.
 
 ### Rationale
 
-Centralizar a decisão reduz divergências entre aplicações consumidoras.
+Centralizing the decision reduces divergence among consuming applications.
 :::
 
 ::: {.need #SYS-003 type="system-requirement" status="approved" priority="high" tags="lifecycle;provisioning" derives-from="STK-003" implemented-by="COMP-003" verified-by="TC-007"}
-## Gerir o ciclo de vida de contas
+## Manage the account lifecycle
 
-O sistema deve provisionar, alterar, suspender e encerrar contas de forma auditável.
+The system shall provision, modify, suspend, and terminate accounts in an auditable manner.
 
 ### Rationale
 
-Contas órfãs e privilégios persistentes são riscos operacionais relevantes.
+Orphan accounts and persistent privileges are significant operational risks.
 :::
 
 ::: {.need #SYS-004 type="system-requirement" status="approved" priority="high" tags="audit;compliance" derives-from="STK-005" implemented-by="COMP-004" verified-by="TC-010"}
-## Registrar eventos de identidade imutáveis
+## Record immutable identity events
 
-O sistema deve registrar eventos de autenticação, autorização e administração.
+The system shall record authentication, authorization, and administration events.
 
 ### Rationale
 
-Registros íntegros sustentam investigação, conformidade e responsabilização.
+Integrity-preserving records support investigation, compliance, and accountability.
 :::
 
 ::: {.need #SYS-005 type="system-requirement" status="approved" priority="high" tags="recovery;security" derives-from="STK-003" implemented-by="COMP-005" verified-by="TC-012"}
-## Recuperar acesso com prova de identidade
+## Recover access with identity proofing
 
-O sistema deve recuperar acesso somente após validação de identidade proporcional ao risco.
+The system shall recover access only after identity validation proportional to risk.
 
 ### Rationale
 
-O processo de recuperação não pode se tornar uma via de tomada de conta.
+The recovery process must not become an account-takeover path.
 :::
 
 ::: {.need #SYS-006 type="system-requirement" status="approved" priority="medium" tags="integration;standards" derives-from="STK-004" implemented-by="IF-001" verified-by="TC-017"}
-## Expor integração de identidade padronizada
+## Expose standardized identity integration
 
-O sistema deve oferecer protocolos abertos de federação e provisão.
+The system shall provide open federation and provisioning protocols.
 
 ### Rationale
 
-Protocolos padronizados diminuem o custo e o risco das integrações.
+Standardized protocols reduce integration cost and risk.
 :::
 
 ::: {.need #SYS-007 type="system-requirement" status="in-review" priority="medium" tags="analytics;governance" derives-from="STK-005"}
-## Detectar anomalias de privilégio
+## Detect privilege anomalies
 
-O sistema deve priorizar para revisão acessos com padrão anômalo.
+The system shall prioritize anomalous access patterns for review.
 
 ### Rationale
 
-A análise de anomalias pode antecipar abuso de privilégios.
+Anomaly analysis may surface privilege abuse earlier.
 :::
 
 ::: {.need #SYS-008 type="system-requirement" status="draft" priority="low" tags="experience;mobile" derives-from="STK-004"}
-## Oferecer credencial móvel corporativa
+## Offer a corporate mobile credential
 
-O sistema poderá oferecer uma credencial móvel para acesso presencial.
+The system may provide a mobile credential for physical access.
 
 ### Rationale
 
-A necessidade depende de avaliação conjunta de segurança física e privacidade.
+The need depends on a joint physical-security and privacy assessment.
 :::

@@ -1,143 +1,143 @@
-# Functional requirements
+# Requisitos funcionais
 
-Functional requirements detail authentication, authorization, lifecycle,
-audit, and recovery behavior.
+Os requisitos funcionais detalham autenticação, autorização, ciclo de vida,
+auditoria e recuperação.
 
 ::: {.need #FUN-001 type="functional-requirement" status="approved" priority="high" tags="authentication;security" derives-from="SYS-001" implemented-by="COMP-001" verified-by="TC-001"}
-## Validate corporate credentials
+## Validar credenciais corporativas
 
-The service shall validate credentials against the corporate directory before creating a session.
+O serviço deve validar credenciais contra o diretório corporativo antes de criar sessão.
 
 ### Rationale
 
-Ensures the session represents a known corporate identity.
+Garante que a sessão represente uma identidade corporativa conhecida.
 :::
 
 ::: {.need #FUN-002 type="functional-requirement" status="approved" priority="high" tags="authentication;mfa;security" derives-from="SYS-001" implemented-by="COMP-001" verified-by="TC-002" mitigates="RISK-001"}
-## Require MFA for privileged access
+## Exigir MFA para acesso privilegiado
 
-The service shall require a second factor for privileged roles.
+O serviço deve exigir um segundo fator para papéis privilegiados.
 
 ### Rationale
 
-Reduces the effectiveness of credentials captured through phishing.
+Reduz a eficácia de credenciais capturadas por phishing.
 :::
 
 ::: {.need #FUN-003 type="functional-requirement" status="approved" priority="high" tags="authentication;session" derives-from="SYS-001" implemented-by="COMP-001" verified-by="TC-003"}
-## Revoke sessions after a risk change
+## Revogar sessões após mudança de risco
 
-The service shall revoke sessions when the account is suspended or risk increases.
+O serviço deve revogar sessões quando a conta for suspensa ou o risco subir.
 
 ### Rationale
 
-Limits the abuse window after a risk event.
+Limita a janela de abuso após um evento de risco.
 :::
 
 ::: {.need #FUN-004 type="functional-requirement" status="approved" priority="high" tags="authorization;policy" derives-from="SYS-002" implemented-by="COMP-002" verified-by="TC-004"}
-## Evaluate attribute-based policies
+## Avaliar políticas por atributo
 
-The engine shall evaluate subject, resource, action, and context when deciding access.
+O motor deve avaliar sujeito, recurso, ação e contexto na decisão de acesso.
 
 ### Rationale
 
-Allows consistent policy enforcement regardless of the consuming application.
+Permite aplicar políticas consistentes independentemente da aplicação consumidora.
 :::
 
 ::: {.need #FUN-005 type="functional-requirement" status="approved" priority="high" tags="authorization;least-privilege" derives-from="SYS-002" implemented-by="COMP-002" verified-by="TC-005" mitigates="RISK-002"}
-## Enforce least privilege by default
+## Aplicar menor privilégio por padrão
 
-The engine shall deny requests that do not match a permissive rule.
+O motor deve negar solicitações que não correspondam a uma regra permissiva.
 
 ### Rationale
 
-Prevents privilege escalation caused by missing or overly broad policy.
+Evita escalada de privilégio causada por política ausente ou excessivamente ampla.
 :::
 
 ::: {.need #FUN-006 type="functional-requirement" status="approved" priority="medium" tags="authorization;delegation" derives-from="SYS-002" implemented-by="COMP-002" verified-by="TC-006"}
-## Record temporary delegation
+## Registrar delegação temporária
 
-The system shall limit and record access delegations with an expiration date.
+O sistema deve limitar e registrar delegações de acesso com data de expiração.
 
 ### Rationale
 
-Keeps exceptional delegations temporary and accountable.
+Mantém delegações excepcionais temporárias e responsabilizáveis.
 :::
 
 ::: {.need #FUN-007 type="functional-requirement" status="approved" priority="high" tags="lifecycle;provisioning" derives-from="SYS-003" implemented-by="COMP-003" verified-by="TC-007"}
-## Provision an account from an onboarding event
+## Provisionar conta por evento de admissão
 
-The orchestrator shall create an account after receiving a valid onboarding event.
+O orquestrador deve criar conta após receber evento válido de admissão.
 
 ### Rationale
 
-Reduces manual work and ensures access starts from trusted source data.
+Reduz trabalho manual e garante que o acesso comece com dados de origem confiável.
 :::
 
 ::: {.need #FUN-008 type="functional-requirement" status="approved" priority="high" tags="lifecycle;offboarding" derives-from="SYS-003" implemented-by="COMP-003" verified-by="TC-008"}
-## Suspend an account on offboarding
+## Suspender conta no desligamento
 
-The orchestrator shall suspend the account and remove sessions after an offboarding event.
+O orquestrador deve suspender a conta e remover sessões após evento de desligamento.
 
 ### Rationale
 
-Prevents departed identities from retaining operational access.
+Evita que identidades desligadas mantenham acesso operacional.
 :::
 
 ::: {.need #FUN-009 type="functional-requirement" status="approved" priority="medium" tags="lifecycle;review" derives-from="SYS-003" implemented-by="COMP-003" verified-by="TC-009"}
-## Request periodic access review
+## Solicitar revisão periódica de acesso
 
-The system shall open review campaigns for resource owners.
+O sistema deve abrir campanhas de revisão para responsáveis por recursos.
 
 ### Rationale
 
-Periodic reviews remove privileges that are no longer needed.
+Revisões periódicas removem privilégios que deixaram de ser necessários.
 :::
 
 ::: {.need #FUN-010 type="functional-requirement" status="approved" priority="high" tags="audit;security" derives-from="SYS-004" implemented-by="COMP-004" verified-by="TC-010"}
-## Record the authorization decision
+## Registrar decisão de autorização
 
-The system shall record the applied policy, subject, resource, outcome, and correlation.
+O sistema deve registrar política aplicada, sujeito, recurso, resultado e correlação.
 
 ### Rationale
 
-Makes authorization decisions explainable and investigable.
+Permite explicar e investigar decisões de autorização.
 :::
 
 ::: {.need #FUN-011 type="functional-requirement" status="approved" priority="medium" tags="audit;retention" derives-from="SYS-004" implemented-by="COMP-004" verified-by="TC-011"}
-## Query the audit trail by account
+## Consultar trilha de auditoria por conta
 
-Auditors shall query account events in temporal order with filters.
+Auditores devem consultar eventos de uma conta em ordem temporal e com filtros.
 
 ### Rationale
 
-Reduces the time needed to investigate a specific identity.
+Reduz o tempo necessário para investigar uma identidade específica.
 :::
 
 ::: {.need #FUN-012 type="functional-requirement" status="approved" priority="high" tags="recovery;security" derives-from="SYS-005" implemented-by="COMP-005" verified-by="TC-012"}
-## Recover an account with strengthened verification
+## Recuperar conta com verificação reforçada
 
-The flow shall require proof of possession and additional validation for a high-risk account.
+O fluxo deve exigir prova de posse e validação adicional para uma conta de alto risco.
 
 ### Rationale
 
-Prevents account recovery from being exploited for account takeover.
+Evita que a recuperação de conta seja explorada como tomada de acesso.
 :::
 
 ::: {.need #FUN-013 type="functional-requirement" status="in-review" priority="medium" tags="recovery;support" derives-from="SYS-005"}
-## Delegate recovery to supervised support
+## Delegar recuperação ao suporte supervisionado
 
-The product shall allow assisted recovery with approval from a second operator.
+O produto deve permitir recuperação assistida com aprovação de segundo operador.
 :::
 
 ::: {.need #FUN-014 type="functional-requirement" status="draft" priority="medium" tags="integration;scim" derives-from="SYS-006"}
-## Provision groups through SCIM
+## Provisionar grupos via SCIM
 
-The product may synchronize authorized groups from an external provider.
+O produto poderá sincronizar grupos autorizados a partir de provedor externo.
 :::
 
 ::: {.need #FUN-015 type="functional-requirement" status="disapproved" priority="low" tags="authentication;password" conflicts-with="SYS-001"}
-## Allow a shared team password
+## Permitir senha compartilhada por equipe
 
-The proposal would allow a common password for temporary teams; it was rejected because
-it removes individual accountability.
+A proposta permitiria uma senha comum para equipes temporárias; foi reprovada por
+eliminar responsabilização individual.
 :::

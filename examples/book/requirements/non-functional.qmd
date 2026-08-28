@@ -1,96 +1,96 @@
-# Requisitos não funcionais
+# Non-functional requirements
 
-Segurança, privacidade, disponibilidade e experiência são critérios verificáveis
-da plataforma, não promessas genéricas.
+Security, privacy, availability, and experience are verifiable platform criteria,
+not generic promises.
 
 ::: {.need #NFR-001 type="non-functional-requirement" status="approved" priority="high" tags="security;encryption" derives-from="STK-001" implemented-by="COMP-001" verified-by="TC-016"}
-## Proteger credenciais em trânsito e repouso
+## Protect credentials in transit and at rest
 
-Credenciais e segredos devem usar criptografia aprovada durante transporte e armazenamento.
+Credentials and secrets shall use approved encryption during transport and storage.
 
 ### Rationale
 
-Protege segredos contra interceptação e exposição em armazenamento persistente.
+Protects secrets from interception and exposure in persistent storage.
 :::
 
 ::: {.need #NFR-002 type="non-functional-requirement" status="approved" priority="high" tags="security;availability" derives-from="STK-003" implemented-by="COMP-001" verified-by="TC-014"}
-## Manter autenticação disponível
+## Keep authentication available
 
-O serviço de autenticação deve atingir disponibilidade mensal de 99,95%.
+The authentication service shall achieve 99.95% monthly availability.
 
 ### Rationale
 
-Identidade indisponível bloqueia o trabalho de todos os sistemas consumidores.
+Unavailable identity blocks work across all consuming systems.
 :::
 
 ::: {.need #NFR-003 type="non-functional-requirement" status="approved" priority="high" tags="privacy;compliance" derives-from="STK-002" implemented-by="COMP-004" verified-by="TC-015" mitigates="RISK-003"}
-## Minimizar dados pessoais em eventos
+## Minimize personal data in events
 
-Eventos de auditoria devem conter somente dados pessoais necessários à finalidade.
+Audit events shall contain only personal data necessary for their purpose.
 
 ### Rationale
 
-Minimiza o impacto de um acesso indevido ou vazamento do repositório de logs.
+Minimizes the impact of improper access or leakage from the log repository.
 :::
 
 ::: {.need #NFR-004 type="non-functional-requirement" status="approved" priority="medium" tags="performance;authorization" derives-from="STK-004" implemented-by="COMP-002" verified-by="TC-006"}
-## Responder decisão de acesso em até 200 ms
+## Respond to access decisions within 200 ms
 
-O percentil 95 das decisões de autorização deve ser inferior a 200 ms sob carga nominal.
+The 95th percentile of authorization decisions shall be below 200 ms under nominal load.
 
 ### Rationale
 
-Decisões lentas degradam a experiência e estimulam contornos inseguros.
+Slow decisions degrade experience and encourage insecure workarounds.
 :::
 
 ::: {.need #NFR-005 type="non-functional-requirement" status="approved" priority="high" tags="security;logging" derives-from="STK-005" implemented-by="COMP-004" verified-by="TC-010"}
-## Preservar integridade de auditoria
+## Preserve audit integrity
 
-O armazenamento de auditoria deve detectar alteração ou remoção de eventos.
+Audit storage shall detect event modification or removal.
 
 ### Rationale
 
-Uma trilha adulterável não sustenta investigação nem comprovação de conformidade.
+A tamperable trail cannot support investigation or evidence compliance.
 :::
 
 ::: {.need #NFR-006 type="non-functional-requirement" status="approved" priority="medium" tags="usability;accessibility" derives-from="STK-004" implemented-by="COMP-006" verified-by="TC-013"}
-## Oferecer autenticação acessível
+## Provide accessible authentication
 
-As telas de autenticação devem atender critérios de acessibilidade de nível AA.
+Authentication screens shall meet level-AA accessibility criteria.
 
 ### Rationale
 
-Todos os usuários precisam concluir autenticação sem depender de um único modo de interação.
+All users need to complete authentication without depending on a single interaction mode.
 :::
 
 ::: {.need #NFR-007 type="non-functional-requirement" status="approved" priority="high" tags="compliance;retention" derives-from="STK-002" implemented-by="COMP-004" verified-by="TC-011"}
-## Reter evidências pelo prazo regulatório
+## Retain evidence for the regulatory period
 
-Evidências de acesso devem permanecer disponíveis durante o prazo de retenção definido.
+Access evidence shall remain available for the defined retention period.
 
 ### Rationale
 
-Atende obrigações de auditoria e permite investigar fatos ocorridos no passado.
+Meets audit obligations and allows investigation of historical events.
 :::
 
 ::: {.need #NFR-008 type="non-functional-requirement" status="approved" priority="medium" tags="resilience;recovery" derives-from="STK-003" implemented-by="COMP-005" verified-by="TC-012" mitigates="RISK-004"}
-## Restaurar fluxo de recuperação em até quatro horas
+## Restore the recovery flow within four hours
 
-O serviço deve restaurar a recuperação de conta dentro do objetivo de quatro horas.
+The service shall restore account recovery within the four-hour objective.
 
 ### Rationale
 
-Limita o período em que usuários legítimos ficam sem um caminho seguro de retorno.
+Limits the period in which legitimate users lack a safe recovery path.
 :::
 
 ::: {.need #NFR-009 type="non-functional-requirement" status="in-review" priority="medium" tags="observability;operations" derives-from="STK-003"}
-## Expor métricas operacionais de identidade
+## Expose operational identity metrics
 
-O produto deve publicar métricas de latência, erros e bloqueios para operações.
+The product shall publish latency, error, and lockout metrics for operations.
 :::
 
 ::: {.need #NFR-010 type="non-functional-requirement" status="draft" priority="low" tags="sustainability;operations" derives-from="STK-004"}
-## Medir consumo energético por autenticação
+## Measure energy consumption per authentication
 
-O produto poderá medir consumo energético por transação de autenticação.
+The product may measure energy consumption per authentication transaction.
 :::

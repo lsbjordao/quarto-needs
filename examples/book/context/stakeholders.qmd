@@ -1,33 +1,33 @@
-# Stakeholders e necessidades
+# Stakeholders and needs
 
-As necessidades são a origem de cada decisão de engenharia do Aegis IAM.
+Needs are the origin of every engineering decision in Aegis IAM.
 
 ::: {.need #STK-001 type="stakeholder-need" status="approved" priority="high" tags="security;authentication"}
-## Diretora de segurança precisa reduzir invasões de conta
+## Security leadership needs to reduce account takeovers
 
-A CISO precisa de autenticação resistente a phishing para contas privilegiadas.
+The CISO needs phishing-resistant authentication for privileged accounts.
 :::
 
 ::: {.need #STK-002 type="stakeholder-need" status="approved" priority="high" tags="privacy;compliance"}
-## Encarregado de dados precisa controlar exposição de dados pessoais
+## Data protection needs control over personal-data exposure
 
-O DPO precisa de evidências de consentimento, retenção e acesso mínimo.
+The DPO needs evidence of consent, retention, and least-access practices.
 :::
 
 ::: {.need #STK-003 type="stakeholder-need" status="approved" priority="high" tags="operations;availability"}
-## Operações precisam recuperar acesso com segurança
+## Operations needs to recover access safely
 
-A central de suporte precisa restaurar contas sem criar um atalho para fraude.
+The support center needs to restore accounts without creating a shortcut for fraud.
 :::
 
 ::: {.need #STK-004 type="stakeholder-need" status="approved" priority="medium" tags="developer;integration"}
-## Equipes de produto precisam integrar aplicações rapidamente
+## Product teams need to integrate applications quickly
 
-Times internos precisam de uma interface padronizada para login e autorização.
+Internal teams need a standardized interface for login and authorization.
 :::
 
 ::: {.need #STK-005 type="stakeholder-need" status="approved" priority="medium" tags="audit;governance"}
-## Auditoria precisa de rastreabilidade de decisões de acesso
+## Audit needs traceability for access decisions
 
-Auditores precisam reconstruir quem autorizou cada privilégio e quando.
+Auditors need to reconstruct who authorized each privilege and when.
 :::
