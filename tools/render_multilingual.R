@@ -15,11 +15,17 @@ if (!requireNamespace("babelquarto", quietly = TRUE)) {
 }
 
 project_path <- normalizePath(args[[1]], mustWork = TRUE)
+repo_root <- normalizePath(".", mustWork = TRUE)
 
-# babelquarto stages a copy of the project in a temporary directory. Quarto's
-# own transient state can be surprisingly large and may itself contain nested
-# session directories from interrupted renders. Never copy that state into the
-# BabelQuarto staging area; it is reproducible and safe to discard.
+# BabelQuarto renders a staged copy of the book. Export the original repository
+# root so project-local hooks can still reach the canonical Python package and
+# pre-render implementation without relying on paths that escape the staged
+# project directory.
+Sys.setenv(QUARTO_NEEDS_REPO_ROOT = repo_root)
+
+# Quarto's transient state can be surprisingly large and may itself contain
+# nested session directories from interrupted renders. Never copy that state
+# into the BabelQuarto staging area; it is reproducible and safe to discard.
 for (name in c(".quarto", "_book")) {
   path <- file.path(project_path, name)
   if (dir.exists(path)) {
