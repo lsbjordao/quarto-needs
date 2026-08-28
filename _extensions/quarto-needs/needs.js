@@ -1,5 +1,26 @@
 (() => {
   const normalize = (value) => value.trim().toLocaleLowerCase();
+  const codeToken = /^[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)+$/;
+
+  function markAtomicCodes(table) {
+    table.querySelectorAll("a").forEach((link) => {
+      const value = link.textContent.trim();
+      if (!codeToken.test(value)) return;
+      link.classList.add("need-code");
+      link.style.setProperty("display", "inline-block", "important");
+      link.style.setProperty("white-space", "nowrap", "important");
+      link.style.setProperty("overflow-wrap", "normal", "important");
+      link.style.setProperty("word-break", "keep-all", "important");
+      link.style.setProperty("hyphens", "none", "important");
+    });
+
+    table.querySelectorAll(".need-badge").forEach((badge) => {
+      badge.style.setProperty("white-space", "nowrap", "important");
+      badge.style.setProperty("overflow-wrap", "normal", "important");
+      badge.style.setProperty("word-break", "keep-all", "important");
+      badge.style.setProperty("hyphens", "none", "important");
+    });
+  }
 
   function filterRows(table, query) {
     const needle = normalize(query);
@@ -23,6 +44,7 @@
   function enhance(container) {
     const table = container.querySelector("table");
     if (!table) return;
+    markAtomicCodes(table);
     let input = container.querySelector(".need-table-search");
     if (!input) {
       const searchBase = (table.id || "need-table") + "-search";
