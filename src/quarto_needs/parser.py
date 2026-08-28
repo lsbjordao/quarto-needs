@@ -80,8 +80,15 @@ def _source_file(path: Path, root: Path | None) -> str:
 
 
 def _relation_targets(value: object) -> list[str]:
+    """Normalize scalar/list relation syntax into individual graph endpoints."""
     values = value if isinstance(value, list) else [value]
-    return [str(target) for target in values if str(target).strip()]
+    targets: list[str] = []
+    for item in values:
+        for target in re.split(r"[;,]", str(item)):
+            normalized = target.strip()
+            if normalized:
+                targets.append(normalized)
+    return targets
 
 
 def parse_qmd_declarations(
