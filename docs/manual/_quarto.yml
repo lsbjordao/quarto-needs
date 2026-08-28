@@ -20,6 +20,7 @@ format:
   html:
     theme: cosmo
     css: language-switch.css
+    include-after-body: language-switch.html
     toc: true
     code-copy: true
     code-overflow: wrap
