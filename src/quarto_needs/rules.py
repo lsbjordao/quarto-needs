@@ -313,6 +313,30 @@ def _decision_cycle(ctx: RuleContext) -> Iterable[Finding]:
             return
 
 
+def _decision_revisit(ctx: RuleContext) -> Iterable[Finding]:
+    today = reference_date()
+    for obj in _decs(ctx):
+        if obj.status != "accepted":
+            continue
+        raw = obj.attributes.get("revisit-after")
+        if raw is None or not str(raw).strip():
+            continue
+        parsed = parse_iso_date(str(raw))
+        props = {"attribute": "revisit-after", "referenceDate": today.isoformat()}
+        if parsed is None:
+            yield Finding(
+                "DEC006", RULES["DEC006"].default_severity,
+                f"{obj.id} has an unparseable revisit-after value: {raw}", obj.id, _loc(obj),
+                {**props, "reason": "unparseable"},
+            )
+        elif parsed < today:
+            yield Finding(
+                "DEC006", RULES["DEC006"].default_severity,
+                f"{obj.id} was due for architecture-decision review on {parsed.isoformat()}",
+                obj.id, _loc(obj), {**props, "reason": "overdue", "due": parsed.isoformat()},
+            )
+
+
 RULES: Mapping[str, RuleSpec]
 RULES = {spec.code: spec for spec in (
     RuleSpec("REQ002", "Missing rationale", "Requirement declarations should explain why they exist.", "warning"),
@@ -334,8 +358,9 @@ RULES = {spec.code: spec for spec in (
     RuleSpec("DEC003", "Accepted decision without confirmation", "Accepted architecture decisions should define how continued conformance is confirmed.", "warning", evaluator=_decision_confirmation),
     RuleSpec("DEC004", "Superseded decision without successor", "Superseded decisions need explicit lineage to another decision.", "warning", evaluator=_decision_successor),
     RuleSpec("DEC005", "Decision supersession cycle", "Supersession lineage must remain acyclic.", "error", supported_severities=("error",), evaluator=_decision_cycle),
+    RuleSpec("DEC006", "Accepted decision overdue for review", "Accepted decisions with revisit-after dates should be reviewed when due.", "warning", evaluator=_decision_revisit),
 )}
-RULE_SET_VERSION = "2"
+RULE_SET_VERSION = "3"
 
 for _spec in RULES.values():
     if _spec.evaluator is None and _spec.code not in LEGACY_CODES:
