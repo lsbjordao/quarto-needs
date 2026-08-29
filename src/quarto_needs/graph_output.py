@@ -9,6 +9,7 @@ static and interactive views therefore cannot disagree.
 """
 from __future__ import annotations
 
+import json
 import os
 import tempfile
 from pathlib import Path
@@ -20,10 +21,10 @@ from .graph_projection import (
     build_projection as build_catalog,
     build_diff_overlay,
     build_impact_overlay,
-    render_projection,
     select_graph,
 )
 from .queries import DEFAULT_QUERY_NAME, query_ids
+from .relations import DEFAULT_RELATION_CATALOG
 from .snapshot import AnalysisSnapshot
 
 DEFAULT_VIEW_ID = "need-graph-1"
@@ -62,6 +63,45 @@ def _selection(snapshot: AnalysisSnapshot, config: NeedsConfig):
         depth=config.graph.depth,
         limits=_limits(config),
     )
+
+
+def _public_relation_semantics() -> dict[str, dict[str, object]]:
+    """Expose presentation-safe relation semantics from the canonical catalog.
+
+    Browser and Lua clients must consume this table rather than re-declaring
+    engineering meaning. Aliases sharing a v1 name collapse into one entry.
+    """
+    result: dict[str, dict[str, object]] = {}
+    for kind in DEFAULT_RELATION_CATALOG.entries.values():
+        if not kind.public:
+            continue
+        result.setdefault(
+            kind.v1_name,
+            {
+                "family": kind.semantic_family,
+                "directLabel": kind.direct_label,
+                "inverseLabel": kind.inverse_label,
+                "sourceRole": kind.source_role,
+                "targetRole": kind.target_role,
+                "impactDirection": kind.impact_direction,
+                "traversalDirection": kind.traversal_direction,
+            },
+        )
+    return {name: result[name] for name in sorted(result)}
+
+
+def render_public_projection(
+    projection: GraphProjection,
+    config: NeedsConfig,
+) -> str:
+    """Serialize a graph projection plus canonical, presentation-safe semantics."""
+    payload = projection.to_dict()
+    payload["relationCatalogVersion"] = DEFAULT_RELATION_CATALOG.version
+    payload["relationSemantics"] = _public_relation_semantics()
+    payload["typeRoles"] = {
+        name: config.type_roles[name] for name in sorted(config.type_roles)
+    }
+    return json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
 
 
 def build_default_projection(
@@ -149,5 +189,5 @@ def write_default_projection(
         snapshot, config, baseline_path=root / DEFAULT_BASELINE_PATH
     )
     target = root / ".quarto-needs" / "graphs" / f"{DEFAULT_VIEW_ID}.json"
-    _atomic_text(target, render_projection(projection))
+    _atomic_text(target, render_public_projection(projection, config))
     return target
