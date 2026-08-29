@@ -29,6 +29,7 @@ The inverse forms `addressed-by`, `confirms`, and `superseded-by` belong to the 
 ```markdown
 ::: {.need #ADR-007 type="architecture-decision" status="accepted"}
 date: 2026-08-28
+revisit-after: 2027-08-28
 decision-makers: Architecture Team
 addresses: NFR-003;RISK-002
 applies-to: COMP-004;IF-003
@@ -59,6 +60,8 @@ tags: audit;privacy
 
 Fields used by queries and rules stay structured. Context, alternatives, outcome, and consequences remain in Markdown. The narrative structure is compatible with ADR practices such as MADR without coupling the core to a single textual presentation.
 
+`revisit-after` is optional. Use it for decisions whose validity should be reconsidered after a known date — for example, temporary technology constraints, transitional architectures, or decisions tied to an external standard. It is not a replacement for `superseded`: a review may conclude that the existing decision remains valid.
+
 ## Selecting and filtering ADRs
 
 Architecture decisions can be rendered as a focused catalog with `adr-table`, or counted with `adr-count`. Filters can be combined by lifecycle status, tags, decision makers, and ISO date ranges; `date-sort` controls chronological ordering.
@@ -70,6 +73,14 @@ Accepted decisions: {{< adr-count status="accepted" >}}
 ```
 
 Supported selectors are `status`, `tags`, `decision-makers`, `date-from`, `date-to`, and `query`. The default columns are `id`, `title`, `status`, `date`, `decision-makers`, and `tags`.
+
+Named queries are also materialized as reusable graph projections. If the project declares a query called `accepted-decisions`, the same Python-evaluated selection can be explored without restating the filter in Lua:
+
+```markdown
+{{< need-graph query="accepted-decisions" >}}
+```
+
+`view="accepted-decisions"` is an equivalent, presentation-oriented spelling. Query evaluation still belongs exclusively to the Python core.
 
 ## Lifecycle
 
@@ -85,7 +96,7 @@ A `superseded` decision must retain explicit lineage. The replacement points to 
 
 ## DEC rules
 
-The initial implementation includes:
+The implementation includes:
 
 | Code | Check |
 |---|---|
@@ -94,8 +105,9 @@ The initial implementation includes:
 | `DEC003` | an accepted decision must declare confirmation (`confirmed-by`) |
 | `DEC004` | a decision marked `superseded` needs consistent lineage |
 | `DEC005` | the decision-supersession graph must be acyclic |
+| `DEC006` | an accepted decision with `revisit-after` is reported when its review date is overdue or invalid |
 
-Required metadata such as date and decision makers remains covered by `required-attributes` policy. The rules are configurable through the same mechanism used by `REQxxx` rules.
+Required metadata such as date and decision makers remains covered by `required-attributes` policy. The rules are configurable through the same mechanism used by `REQxxx` rules. Date-sensitive findings use the same reproducible reference-date mechanism as evidence expiry (`SOURCE_DATE_EPOCH` when provided).
 
 ## Impact
 
