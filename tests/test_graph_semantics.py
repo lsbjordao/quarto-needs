@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from jsonschema import Draft202012Validator
+
 from quarto_needs.analysis import analyze_project
 from quarto_needs.config import load_config
 from quarto_needs.graph_output import (
@@ -12,6 +14,9 @@ from quarto_needs.graph_output import (
 )
 from quarto_needs.graph_projection import build_projection
 
+
+ROOT = Path(__file__).resolve().parents[1]
+SCHEMA = json.loads((ROOT / "schemas" / "graph-public-v1.schema.json").read_text(encoding="utf-8"))
 
 PROJECT = '''
 ::: {.need #STK-001 type="stakeholder-need" status="approved" tags="security"}
@@ -55,6 +60,10 @@ def prepare(tmp_path: Path):
     return config, result.snapshot
 
 
+def validate_public(payload: dict[str, object]) -> None:
+    Draft202012Validator(SCHEMA).validate(payload)
+
+
 def test_public_projection_publishes_catalog_semantics(tmp_path: Path) -> None:
     config, snapshot = prepare(tmp_path)
     projection = build_projection(
@@ -64,6 +73,7 @@ def test_public_projection_publishes_catalog_semantics(tmp_path: Path) -> None:
     )
 
     payload = json.loads(render_public_projection(projection, config, snapshot=snapshot))
+    validate_public(payload)
 
     assert payload["relationCatalogVersion"] == "3"
     derives = payload["relationSemantics"]["derives-from"]
@@ -100,6 +110,7 @@ def test_public_projection_omits_provenance_without_snapshot(tmp_path: Path) -> 
     )
 
     payload = json.loads(render_public_projection(projection, config))
+    validate_public(payload)
 
     assert "provenance" not in payload["edges"][0]
     assert "traversalProfiles" in payload
@@ -111,6 +122,9 @@ def test_named_query_is_materialized_as_reusable_graph_view(tmp_path: Path) -> N
     default_path = write_default_projection(tmp_path, snapshot, config)
     assert default_path.is_file()
 
+    default_payload = json.loads(default_path.read_text(encoding="utf-8"))
+    validate_public(default_payload)
+
     view_id = query_view_id("security-driver")
     query_path = tmp_path / ".quarto-needs" / "graphs" / f"{view_id}.json"
     manifest_path = tmp_path / ".quarto-needs" / "graphs" / "views.json"
@@ -120,6 +134,7 @@ def test_named_query_is_materialized_as_reusable_graph_view(tmp_path: Path) -> N
 
     query_payload = json.loads(query_path.read_text(encoding="utf-8"))
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    validate_public(query_payload)
 
     assert query_payload["view"]["id"] == view_id
     assert query_payload["view"]["query"] == "security-driver"
