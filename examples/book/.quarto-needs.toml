@@ -135,6 +135,8 @@ enabled = true
 enabled = true
 [rules.DEC005]
 enabled = true
+[rules.DEC006]
+enabled = true
 
 [queries.approved-high-unverified]
 all = [
