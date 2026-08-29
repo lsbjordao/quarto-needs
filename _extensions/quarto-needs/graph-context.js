@@ -54,7 +54,7 @@
       const relation = String(edge.data("relation") || "");
       const definition = semantics[relation] || {};
       const family = String(definition.family || "");
-      if (allowedFamilies && allowedFamilies.size && !allowedFamilies.has(family)) return;
+      if (allowedFamilies && !allowedFamilies.has(family)) return;
       const direction = String(definition.traversalDirection || "none");
       if (direction === "none") return;
 
@@ -179,6 +179,10 @@
       container.__needGraphTraversalFamilies instanceof Set
         ? container.__needGraphTraversalFamilies
         : null;
+    const forcedNodes = () =>
+      container.__needGraphForcedNodes instanceof Set
+        ? container.__needGraphForcedNodes
+        : null;
     const nodeAllowed = (node) =>
       typeof container.__needGraphNodeAllowed !== "function" || container.__needGraphNodeAllowed(node);
     const edgeAllowed = (edge) =>
@@ -201,9 +205,11 @@
 
     const setVisible = (visibleIds) => {
       const hidden = collapseHiddenIds();
+      const forced = forcedNodes();
       cy.nodes().forEach((node) => {
-        const permitted = (visibleIds === null || visibleIds.has(node.id())) && nodeAllowed(node);
-        node.style("display", permitted && !hidden.has(node.id()) ? "element" : "none");
+        const force = Boolean(forced && forced.has(node.id()));
+        const permitted = (force || visibleIds === null || visibleIds.has(node.id())) && nodeAllowed(node);
+        node.style("display", permitted && (force || !hidden.has(node.id())) ? "element" : "none");
       });
       applyEdges();
     };
@@ -261,8 +267,10 @@
       }
       const hidden = collapseHiddenIds();
       hidden.delete(selectedNodeId);
+      const forced = forcedNodes();
       cy.nodes().forEach((node) => {
-        const show = visible.has(node.id()) && !hidden.has(node.id()) && nodeAllowed(node);
+        const force = Boolean(forced && forced.has(node.id()));
+        const show = (force || visible.has(node.id())) && (force || !hidden.has(node.id())) && nodeAllowed(node);
         node.style("display", show ? "element" : "none");
       });
       applyEdges();
@@ -273,10 +281,15 @@
       if (searchActive() && selectedNodeId) showContext();
       else if (!searchActive()) { setVisible(null); refreshLayout(); }
       else {
-        // graph.js owns plain search matching. Reapply external edge filters only
-        // after it has selected the matching nodes.
+        // graph.js owns plain search matching. Reapply external filters after it
+        // has selected matching nodes, while keeping an explicit root path visible.
+        const forced = forcedNodes();
         cy.nodes().forEach((node) => {
-          if (node.style("display") !== "none" && !nodeAllowed(node)) node.style("display", "none");
+          if (forced && forced.has(node.id())) {
+            node.style("display", nodeAllowed(node) ? "element" : "none");
+          } else if (node.style("display") !== "none" && !nodeAllowed(node)) {
+            node.style("display", "none");
+          }
         });
         applyEdges();
         refreshLayout();
@@ -368,6 +381,7 @@
       reset.addEventListener("click", () => {
         selectedNodeId = null;
         container.__needGraphFocusNode = null;
+        container.__needGraphForcedNodes = new Set();
         collapsed.clear();
         lastTap = null;
         parents.input.checked = true;
