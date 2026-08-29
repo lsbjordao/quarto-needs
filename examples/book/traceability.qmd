@@ -20,3 +20,9 @@ An architecture decision acts as a semantic bridge between problem and solution:
 The projection below is generated during the build and rendered in the browser with vendored Cytoscape.js, without network access. Use search to locate a requirement or ADR by ID/title, then select a node to highlight its neighborhood.
 
 {{< need-graph >}}
+
+### STK-001 descendants
+
+The graph below keeps `STK-001` and only the traceability descendants reachable from it within the public graph projection.
+
+{{< need-graph id="need-graph-stk-001" projection="need-graph-1" root="STK-001" depth="10" >}}
