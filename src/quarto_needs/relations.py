@@ -86,3 +86,60 @@ DEFAULT_RELATION_CATALOG = RelationCatalog.create(
         RelationKind("confirms", "confirms", "confirms", "decision-confirmation", "Confirms", "Confirmed by", "confirmation", "decision", "both", "target_to_source"),
     ),
 )
+
+
+# Named traversal profiles are presentation-safe semantic slices over relation
+# families. They live beside the relation catalog so CLI/Lua/browser clients can
+# consume the same definitions instead of inventing their own groupings.
+TRAVERSAL_PROFILES: Mapping[str, tuple[str, ...]] = MappingProxyType(
+    {
+        "architecture": (
+            "decision-addressing",
+            "decision-scope",
+            "implementation",
+            "constraint",
+            "dependency",
+        ),
+        "decision": (
+            "decision-addressing",
+            "decision-scope",
+            "decision-lineage",
+            "decision-confirmation",
+        ),
+        "derivation": (
+            "derivation",
+            "refinement",
+            "decomposition",
+        ),
+        "implementation": (
+            "implementation",
+            "decision-scope",
+        ),
+        "risk": (
+            "mitigation",
+            "constraint",
+            "dependency",
+        ),
+        "traceability": (
+            "derivation",
+            "refinement",
+            "decomposition",
+            "dependency",
+            "constraint",
+            "implementation",
+            "verification",
+            "evidence",
+            "mitigation",
+            "justification",
+            "decision-addressing",
+            "decision-scope",
+            "decision-lineage",
+            "decision-confirmation",
+        ),
+        "verification": (
+            "verification",
+            "evidence",
+            "decision-confirmation",
+        ),
+    }
+)
