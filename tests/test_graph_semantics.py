@@ -63,7 +63,7 @@ def test_public_projection_publishes_catalog_semantics(tmp_path: Path) -> None:
         view_id="semantic-test",
     )
 
-    payload = json.loads(render_public_projection(projection, config))
+    payload = json.loads(render_public_projection(projection, config, snapshot=snapshot))
 
     assert payload["relationCatalogVersion"] == "3"
     derives = payload["relationSemantics"]["derives-from"]
@@ -72,10 +72,37 @@ def test_public_projection_publishes_catalog_semantics(tmp_path: Path) -> None:
     assert derives["targetRole"] == "source"
     assert derives["impactDirection"] == "target_to_source"
     assert derives["traversalDirection"] == "target_to_source"
+    assert "derivation" in payload["traversalProfiles"]["traceability"]
+    assert payload["traversalProfiles"]["verification"] == [
+        "verification",
+        "evidence",
+        "decision-confirmation",
+    ]
     assert payload["typeRoles"] == {
         "stakeholder-need": "need",
         "system-requirement": "requirement",
     }
+
+    edge = payload["edges"][0]
+    assert edge["source"] == "SYS-001"
+    assert edge["target"] == "STK-001"
+    assert edge["provenance"] == [
+        {"file": "index.qmd", "line": 5, "anchor": "SYS-001"}
+    ]
+
+
+def test_public_projection_omits_provenance_without_snapshot(tmp_path: Path) -> None:
+    config, snapshot = prepare(tmp_path)
+    projection = build_projection(
+        snapshot,
+        node_ids=("STK-001", "SYS-001"),
+        view_id="semantic-test",
+    )
+
+    payload = json.loads(render_public_projection(projection, config))
+
+    assert "provenance" not in payload["edges"][0]
+    assert "traversalProfiles" in payload
 
 
 def test_named_query_is_materialized_as_reusable_graph_view(tmp_path: Path) -> None:
@@ -97,6 +124,8 @@ def test_named_query_is_materialized_as_reusable_graph_view(tmp_path: Path) -> N
     assert query_payload["view"]["id"] == view_id
     assert query_payload["view"]["query"] == "security-driver"
     assert "STK-001" in {node["id"] for node in query_payload["nodes"]}
+    assert query_payload["traversalProfiles"]["architecture"]
+    assert any("provenance" in edge for edge in query_payload["edges"])
     assert manifest == {
         "schemaVersion": "graph-views-v1",
         "queries": {"security-driver": view_id},
