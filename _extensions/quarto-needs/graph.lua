@@ -149,11 +149,44 @@ local function filter_projection(projection, conditions)
   return projected_copy(projection, nodes, edges)
 end
 
--- Restrict an already-public projection to the bounded neighborhood of one
--- root. This deliberately follows the same undirected reachability semantics as
--- need-flow: relation direction expresses authored semantics, not visual
--- parent/child orientation, so either endpoint may be the next descendant in a
--- traceability chain (for example SYS-001 derives-from STK-001).
+-- Traversal direction for a rooted/downstream view. These directions mirror the
+-- dependency semantics in the relation catalog, but intentionally exclude
+-- symmetric/non-lineage relations such as conflicts-with and references. For
+-- example, SYS-001 derives-from STK-001 is authored SYS -> STK, while a
+-- descendant traversal from STK-001 must follow target -> source.
+local descendant_direction = {
+  ["derives-from"] = "target_to_source",
+  ["refines"] = "target_to_source",
+  ["depends-on"] = "target_to_source",
+  ["implements"] = "target_to_source",
+  ["implemented-by"] = "source_to_target",
+  ["verifies"] = "target_to_source",
+  ["verified-by"] = "source_to_target",
+  ["validated-by"] = "source_to_target",
+  ["mitigates"] = "target_to_source",
+  ["evidences"] = "target_to_source",
+  ["evidenced-by"] = "source_to_target",
+  ["addresses"] = "target_to_source",
+  ["addressed-by"] = "source_to_target",
+  ["applies-to"] = "source_to_target",
+  ["supersedes"] = "target_to_source",
+  ["superseded-by"] = "source_to_target",
+  ["confirmed-by"] = "source_to_target",
+  ["confirms"] = "target_to_source",
+}
+
+local function downstream_target(edge, current)
+  local source, target = text(edge.source), text(edge.target)
+  local direction = descendant_direction[text(edge.relation)]
+  if direction == "source_to_target" and source == current then return target end
+  if direction == "target_to_source" and target == current then return source end
+  return nil
+end
+
+-- Restrict an already-public projection to descendants reachable from one root.
+-- Traversal is directional: it may move from a driver to requirements and then
+-- to implementation/tests/evidence, but it cannot climb back through a shared
+-- implementation or requirement and enter an unrelated stakeholder branch.
 local function root_projection(projection, root_id, raw_depth)
   if root_id == "" then return projection end
 
@@ -170,9 +203,12 @@ local function root_projection(projection, root_id, raw_depth)
   for _ = 1, depth do
     local candidates = {}
     for _, edge in ipairs(projection.edges or {}) do
-      local source, target = text(edge.source), text(edge.target)
-      if frontier[source] and by_id[target] and not selected[target] then candidates[target] = true end
-      if frontier[target] and by_id[source] and not selected[source] then candidates[source] = true end
+      for current in pairs(frontier) do
+        local next_id = downstream_target(edge, current)
+        if next_id and by_id[next_id] and not selected[next_id] then
+          candidates[next_id] = true
+        end
+      end
     end
     if not next(candidates) then break end
     for id in pairs(candidates) do selected[id] = true end
