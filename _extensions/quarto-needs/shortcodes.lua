@@ -9,6 +9,21 @@ local dashboard=dofile(script_dir().."dashboard.lua")
 local graph=dofile(script_dir().."graph.lua")
 local function L(en,pt) return views.tr(en,pt) end
 local function graph_or_warning() views.ensure_assets(); local graph_data,message=views.load(); if not graph_data then return nil,views.warning(message) end; return graph_data end
+local function project_dir() local ok,directory=pcall(function() return quarto.project.directory end); if ok and type(directory)=="string" and directory~="" then return directory end; local input=PANDOC_STATE.input_files and PANDOC_STATE.input_files[1]; return input and input:match("(.*/)") or "." end
+local function graph_view_projection(name)
+  if name=="" then return nil,nil end
+  local path=pandoc.path.join({project_dir(),".quarto-needs","graphs","views.json"}); local file=io.open(path,"rb"); if not file then return nil,L("Graph view manifest not found: ","Manifesto de visões do grafo não encontrado: ")..path end
+  local raw=file:read("*a"); file:close(); local ok,payload=pcall(pandoc.json.decode,raw); if not ok or type(payload)~="table" or type(payload.queries)~="table" then return nil,L("Graph view manifest is invalid.","O manifesto de visões do grafo é inválido.") end
+  local projection=payload.queries[name]; if not projection then return nil,L("Unknown graph view/query: ","Visão/consulta de grafo desconhecida: ")..name end; return pandoc.utils.stringify(projection),nil
+end
+local function render_need_graph(args,kwargs)
+  local query=views.kwarg(kwargs,"query"); local named_view=views.kwarg(kwargs,"view"); if query~="" and named_view~="" and query~=named_view then return views.warning(L("need-graph query and view disagree.","query e view de need-graph são diferentes.")) end
+  local requested=query~="" and query or named_view
+  if requested=="" then return graph.render_shortcode(args,kwargs) end
+  local projection,message=graph_view_projection(requested); if not projection then quarto.log.warning(message); return views.warning(message) end
+  local effective={}; for key,value in pairs(kwargs or {}) do effective[key]=value end; effective.projection=projection; effective.query=nil; effective.view=nil
+  return graph.render_shortcode(args,effective)
+end
 local function object_cell(graph_data,object,column)
   if column=="id" then return {views.link(object)} end
   if column=="title" then return {pandoc.Str(pandoc.utils.stringify(object.title))} end
@@ -51,5 +66,5 @@ end
 local function render_need_dashboard(args,kwargs) local graph_data,warning=graph_or_warning(); if not graph_data then return warning end; local blocks,message=dashboard.render(graph_data,kwargs); if not blocks then if message then return views.warning(message) end; return views.empty(L("Dashboard report unavailable.","Relatório do painel indisponível.")) end; local id=views.reserve_view_id("need-dashboard",views.kwarg(kwargs,"id")); return pandoc.Div(blocks,pandoc.Attr(id,{"need-dashboard"},{role="region"})) end
 return {
   need=function(args,kwargs,meta) local id=pandoc.utils.stringify(args[1] or ""); if id=="" then return pandoc.Str(L("[missing need id]","[id ausente]")) end; local graph_data,message=views.load(); if not graph_data then return pandoc.Span({pandoc.Str(id)},pandoc.Attr("",{"need-ref","need-ref-missing"})) end; local object=views.get(graph_data,id); if not object then return pandoc.Span({pandoc.Str(id)},pandoc.Attr("",{"need-ref","need-ref-missing"})) end; local label=id; if kwargs and kwargs["title"] and pandoc.utils.stringify(kwargs["title"])=="true" then label=id.." — "..pandoc.utils.stringify(object.title) end; return views.link(object,label) end,
-  ["need-table"]=render_need_table,["need-list"]=render_need_list,["need-count"]=render_need_count,["need-matrix"]=render_need_matrix,["need-backlinks"]=render_need_backlinks,["need-inspector"]=render_need_inspector,["need-flow"]=render_need_flow,["need-dashboard"]=render_need_dashboard,["need-graph"]=graph.render_shortcode,
+  ["need-table"]=render_need_table,["need-list"]=render_need_list,["need-count"]=render_need_count,["need-matrix"]=render_need_matrix,["need-backlinks"]=render_need_backlinks,["need-inspector"]=render_need_inspector,["need-flow"]=render_need_flow,["need-dashboard"]=render_need_dashboard,["need-graph"]=render_need_graph,
 }
