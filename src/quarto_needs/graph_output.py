@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import tempfile
 from pathlib import Path
 
@@ -28,7 +29,7 @@ from .relations import DEFAULT_RELATION_CATALOG
 from .snapshot import AnalysisSnapshot
 
 DEFAULT_VIEW_ID = "need-graph-1"
-
+QUERY_VIEW_PREFIX = "need-graph-query-"
 DEFAULT_BASELINE_PATH = Path(".quarto-needs/baseline.json")
 
 
@@ -54,8 +55,8 @@ def _limits(config: NeedsConfig) -> dict[str, int]:
     return {"nodes": config.graph.max_nodes, "edges": config.graph.max_edges}
 
 
-def _selection(snapshot: AnalysisSnapshot, config: NeedsConfig):
-    seeds = query_ids(config, snapshot, DEFAULT_QUERY_NAME)
+def _selection(snapshot: AnalysisSnapshot, config: NeedsConfig, query_name: str = DEFAULT_QUERY_NAME):
+    seeds = query_ids(config, snapshot, query_name)
     return select_graph(
         snapshot,
         seeds=seeds,
@@ -93,6 +94,8 @@ def _public_relation_semantics() -> dict[str, dict[str, object]]:
 def render_public_projection(
     projection: GraphProjection,
     config: NeedsConfig,
+    *,
+    query_name: str | None = None,
 ) -> str:
     """Serialize a graph projection plus canonical, presentation-safe semantics."""
     payload = projection.to_dict()
@@ -101,7 +104,36 @@ def render_public_projection(
     payload["typeRoles"] = {
         name: config.type_roles[name] for name in sorted(config.type_roles)
     }
+    if query_name is not None:
+        payload["view"]["query"] = query_name
     return json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+
+
+def _safe_view_token(name: str) -> str:
+    token = re.sub(r"[^a-z0-9]+", "-", name.casefold()).strip("-")
+    return token or "query"
+
+
+def query_view_id(name: str) -> str:
+    return QUERY_VIEW_PREFIX + _safe_view_token(name)
+
+
+def _build_query_projection(
+    snapshot: AnalysisSnapshot,
+    config: NeedsConfig,
+    query_name: str,
+) -> GraphProjection:
+    selection = _selection(snapshot, config, query_name)
+    return build_catalog(
+        snapshot,
+        node_ids=selection.node_ids,
+        view_id=query_view_id(query_name),
+        mode="catalog",
+        limits=_limits(config),
+        relations=config.graph.relations,
+        layout=config.graph.layout,
+        seed=config.graph.seed,
+    )
 
 
 def build_default_projection(
@@ -184,10 +216,38 @@ def write_default_projection(
     snapshot: AnalysisSnapshot,
     config: NeedsConfig,
 ) -> Path:
-    """Write the default graph projection and return the written path."""
+    """Write the default graph plus reusable projections for every named query.
+
+    Named query projections deliberately reuse the safe Python query evaluator.
+    No second filtering language is introduced in Lua or JavaScript.
+    """
+    graph_dir = root / ".quarto-needs" / "graphs"
     projection = build_default_projection(
         snapshot, config, baseline_path=root / DEFAULT_BASELINE_PATH
     )
-    target = root / ".quarto-needs" / "graphs" / f"{DEFAULT_VIEW_ID}.json"
+    target = graph_dir / f"{DEFAULT_VIEW_ID}.json"
     _atomic_text(target, render_public_projection(projection, config))
+
+    manifest: dict[str, str] = {}
+    for query_name in sorted(config.named_query_sources):
+        query_projection = _build_query_projection(snapshot, config, query_name)
+        view_id = query_projection.view_id
+        _atomic_text(
+            graph_dir / f"{view_id}.json",
+            render_public_projection(query_projection, config, query_name=query_name),
+        )
+        manifest[query_name] = view_id
+
+    _atomic_text(
+        graph_dir / "views.json",
+        json.dumps(
+            {
+                "schemaVersion": "graph-views-v1",
+                "queries": manifest,
+            },
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+        ) + "\n",
+    )
     return target
