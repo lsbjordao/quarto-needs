@@ -4,7 +4,13 @@ from quarto_needs.analysis import analyze_project
 from quarto_needs.config import load_config
 
 
-def write_project(root: Path, *, decision_id: str = "ADR-001", status: str = "accepted") -> None:
+def write_project(
+    root: Path,
+    *,
+    decision_id: str = "ADR-001",
+    status: str = "accepted",
+    revisit_after: str | None = None,
+) -> None:
     (root / ".quarto-needs.toml").write_text(
         '''profile = "strict"
 
@@ -48,9 +54,12 @@ enabled = true
 enabled = true
 [rules.DEC005]
 enabled = true
+[rules.DEC006]
+enabled = true
 ''',
         encoding="utf-8",
     )
+    revisit = f"revisit-after: {revisit_after}\n" if revisit_after else ""
     (root / "objects.qmd").write_text(
         f'''::: {{.need #NFR-001 type=non-functional-requirement status=draft}}
 ## Driver
@@ -71,7 +80,7 @@ Body.
 date: 2026-08-28
 decision-makers: Architecture Team
 tags: architecture
-addresses: NFR-001
+{revisit}addresses: NFR-001
 applies-to: COMP-001
 confirmed-by: TC-001
 
@@ -127,3 +136,20 @@ def test_accepted_decision_without_driver_is_reported(tmp_path: Path) -> None:
 
     assert result.snapshot is not None
     assert any(finding.code == "DEC001" and finding.object_id == "ADR-001" for finding in result.findings)
+
+
+def test_accepted_decision_overdue_for_revisit_is_reported(tmp_path: Path, monkeypatch) -> None:
+    # 2027-01-01T00:00:00Z
+    monkeypatch.setenv("SOURCE_DATE_EPOCH", "1798761600")
+    write_project(tmp_path, revisit_after="2026-12-01")
+    config = load_config(tmp_path)
+    result = analyze_project(tmp_path, config=config)
+
+    assert result.snapshot is not None
+    finding = next(
+        finding for finding in result.findings
+        if finding.code == "DEC006" and finding.object_id == "ADR-001"
+    )
+    assert finding.properties["reason"] == "overdue"
+    assert finding.properties["due"] == "2026-12-01"
+    assert finding.properties["referenceDate"] == "2027-01-01"
