@@ -38,12 +38,13 @@ def normalize(output: Path, locale: str) -> int:
 
     for source in sources:
         target = source.with_name(source.name[: -len(suffix)] + ".html")
+        # BabelQuarto may publish both the canonical-language copy and the
+        # localized page inside the locale directory. In that case the
+        # localized file is authoritative and should replace the existing
+        # canonical-named file at the public locale URL.
         if target.exists():
-            raise SystemExit(
-                "Cannot normalize localized HTML because target already exists: "
-                f"{target} (source: {source})"
-            )
-        source.rename(target)
+            target.unlink()
+        source.replace(target)
 
     # BabelQuarto writes localized filenames into navigation links, search
     # indexes and other generated text assets. Rewrite all textual references
