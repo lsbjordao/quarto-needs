@@ -16,6 +16,17 @@ local function text(value)
   return tostring(value)
 end
 
+local COPY_ASSET_FLAG = "__quarto_needs_graph_clipboard_added_v1"
+local function ensure_clipboard_asset()
+  if rawget(_G, COPY_ASSET_FLAG) or not quarto.doc.is_format("html:js") then return end
+  rawset(_G, COPY_ASSET_FLAG, true)
+  quarto.doc.add_html_dependency({
+    name = "quarto-needs-graph-clipboard",
+    version = "0.1.0",
+    scripts = {"clipboard.js"},
+  })
+end
+
 local function node_ref(identifier)
   local hex = text(identifier):gsub(".", function(char) return string.format("%02X", char:byte()) end)
   return "need_" .. hex
@@ -97,6 +108,16 @@ local function summary_entries(projection)
   return entries
 end
 
+local function projected_copy(projection, nodes, edges)
+  return {
+    schemaVersion = projection.schemaVersion,
+    nodes = nodes,
+    edges = edges,
+    view = projection.view,
+    impact = projection.impact,
+  }
+end
+
 local function parse_filter(raw)
   local conditions = {}
   local raw_text = text(raw)
@@ -113,14 +134,53 @@ local function filter_projection(projection, conditions)
   local keep, nodes = {}, {}
   for _, node in ipairs(projection.nodes or {}) do
     local ok = true
-    for key, value in pairs(conditions) do if text(node[key]) ~= value then ok = false break end end
-    if ok then keep[text(node.id)] = true; table.insert(nodes, node) end
+    for key, value in pairs(conditions) do
+      if text(node[key]) ~= value then ok = false break end
+    end
+    if ok then
+      keep[text(node.id)] = true
+      table.insert(nodes, node)
+    end
   end
   local edges = {}
   for _, edge in ipairs(projection.edges or {}) do
     if keep[text(edge.source)] and keep[text(edge.target)] then table.insert(edges, edge) end
   end
-  return {nodes=nodes, edges=edges, view=projection.view, impact=projection.impact}
+  return projected_copy(projection, nodes, edges)
+end
+
+local function root_projection(projection, root_id, raw_depth)
+  if root_id == "" then return projection end
+  local by_id = {}
+  for _, node in ipairs(projection.nodes or {}) do by_id[text(node.id)] = node end
+  if not by_id[root_id] then return nil, "Unknown need-graph root: " .. root_id end
+
+  local requested_depth = tonumber(raw_depth) or 3
+  requested_depth = math.max(0, math.floor(requested_depth))
+  local depth = math.min(requested_depth, 10)
+  local selected = {[root_id] = true}
+  local frontier = {[root_id] = true}
+
+  for _ = 1, depth do
+    local candidates = {}
+    for _, edge in ipairs(projection.edges or {}) do
+      local source, target = text(edge.source), text(edge.target)
+      if frontier[source] and by_id[target] and not selected[target] then candidates[target] = true end
+      if frontier[target] and by_id[source] and not selected[source] then candidates[source] = true end
+    end
+    if not next(candidates) then break end
+    for id in pairs(candidates) do selected[id] = true end
+    frontier = candidates
+  end
+
+  local nodes, edges = {}, {}
+  for _, node in ipairs(projection.nodes or {}) do
+    if selected[text(node.id)] then table.insert(nodes, node) end
+  end
+  for _, edge in ipairs(projection.edges or {}) do
+    if selected[text(edge.source)] and selected[text(edge.target)] then table.insert(edges, edge) end
+  end
+  return projected_copy(projection, nodes, edges)
 end
 
 local function project_dir()
@@ -176,20 +236,30 @@ end
 
 function M.render_shortcode(args, kwargs)
   views.ensure_assets()
+  ensure_clipboard_asset()
   local root = project_dir()
-  local view_id = views.kwarg(kwargs, "id", "need-graph-1")
-  local projection, raw_json, message = load_projection(root, view_id)
+  local instance_id = views.kwarg(kwargs, "id", "need-graph-1")
+  local projection_id = views.kwarg(kwargs, "projection", instance_id)
+  local projection, raw_json, message = load_projection(root, projection_id)
   if not projection then quarto.log.warning(message); return views.warning(message) end
   if not projection.nodes or not projection.edges then return views.warning(views.tr("Graph projection is incomplete.", "A projeção do grafo está incompleta.")) end
   views.localize_projection(projection)
+
   local filter_cond = parse_filter(views.kwarg(kwargs, "filter", ""))
   if next(filter_cond) then projection = filter_projection(projection, filter_cond) end
+
+  local root_id = views.kwarg(kwargs, "root", "")
+  if root_id ~= "" then
+    local rooted, root_error = root_projection(projection, root_id, views.kwarg(kwargs, "depth", "3"))
+    if not rooted then return views.warning(root_error) end
+    projection = rooted
+  end
 
   local blocks = {}
   local source = mermaid_source(projection)
   local image_name = render_mermaid_image(source)
   if image_name then
-    local image = pandoc.Image({pandoc.Str(views.tr("Traceability graph for ", "Grafo de rastreabilidade para ") .. view_id)}, image_name, "", pandoc.Attr("", {"need-graph-figure"}, {role="img"}))
+    local image = pandoc.Image({pandoc.Str(views.tr("Traceability graph for ", "Grafo de rastreabilidade para ") .. instance_id)}, image_name, "", pandoc.Attr("", {"need-graph-figure"}, {role="img"}))
     table.insert(blocks, pandoc.Para({image}))
   else
     table.insert(blocks, views.warning(views.tr("Could not render this graph diagram.", "Não foi possível renderizar este diagrama de grafo.")))
@@ -208,16 +278,17 @@ function M.render_shortcode(args, kwargs)
   table.insert(blocks, table_block(header, rows))
 
   local encoded_ok, encoded = pcall(pandoc.json.encode, projection)
-  local json_payload = (views.language() ~= "en" or next(filter_cond)) and encoded_ok and encoded or raw_json
+  local projection_changed = views.language() ~= "en" or next(filter_cond) or root_id ~= ""
+  local json_payload = projection_changed and encoded_ok and encoded or raw_json
   local search = views.tr("Search graph", "Buscar no grafo")
   local placeholder = views.tr("Search by ID or title", "Buscar por ID ou título")
   local color = views.tr("Color nodes by", "Colorir nós por")
   local controls = pandoc.RawBlock("html",
-    '<div class="need-graph-controls" data-need-graph-controls="' .. view_id .. '">' ..
-    '<label class="visually-hidden" for="' .. view_id .. '-search">' .. search .. '</label>' ..
-    '<input id="' .. view_id .. '-search" class="need-graph-search" type="search" placeholder="' .. placeholder .. '">' ..
-    '<label class="visually-hidden" for="' .. view_id .. '-color">' .. color .. '</label>' ..
-    '<select id="' .. view_id .. '-color" class="need-graph-color" data-need-graph-color>' ..
+    '<div class="need-graph-controls" data-need-graph-controls="' .. instance_id .. '">' ..
+    '<label class="visually-hidden" for="' .. instance_id .. '-search">' .. search .. '</label>' ..
+    '<input id="' .. instance_id .. '-search" class="need-graph-search" type="search" placeholder="' .. placeholder .. '">' ..
+    '<label class="visually-hidden" for="' .. instance_id .. '-color">' .. color .. '</label>' ..
+    '<select id="' .. instance_id .. '-color" class="need-graph-color" data-need-graph-color>' ..
     '<option value="change" selected>' .. views.tr("Color: change", "Cor: mudança") .. '</option>' ..
     '<option value="type">' .. views.tr("Color: type", "Cor: tipo") .. '</option>' ..
     '<option value="status">' .. views.tr("Color: status", "Cor: status") .. '</option>' ..
@@ -225,13 +296,13 @@ function M.render_shortcode(args, kwargs)
     '<option value="none">' .. views.tr("No color", "Sem cor") .. '</option></select>' ..
     '<button type="button" class="need-graph-fit">' .. views.tr("Fit", "Ajustar") .. '</button>' ..
     '<button type="button" class="need-graph-reset">' .. views.tr("Reset", "Redefinir") .. '</button></div>')
-  local canvas = pandoc.RawBlock("html", '<div class="need-graph-canvas" data-need-graph-canvas="' .. view_id .. '" role="img" aria-label="' .. views.tr("Interactive traceability graph", "Grafo de rastreabilidade interativo") .. '"><div class="need-graph-loading">' .. views.tr("Loading interactive graph…", "Carregando grafo interativo…") .. '</div></div>')
-  local data_script = pandoc.RawBlock("html", '<script type="application/json" data-need-graph-data="' .. view_id .. '">' .. json_payload .. '</script>')
-  local status = pandoc.RawBlock("html", '<div class="need-graph-status visually-hidden" role="status" data-need-graph-status="' .. view_id .. '"></div>')
+  local canvas = pandoc.RawBlock("html", '<div class="need-graph-canvas" data-need-graph-canvas="' .. instance_id .. '" role="img" aria-label="' .. views.tr("Interactive traceability graph", "Grafo de rastreabilidade interativo") .. '"><div class="need-graph-loading">' .. views.tr("Loading interactive graph…", "Carregando grafo interativo…") .. '</div></div>')
+  local data_script = pandoc.RawBlock("html", '<script type="application/json" data-need-graph-data="' .. instance_id .. '">' .. json_payload .. '</script>')
+  local status = pandoc.RawBlock("html", '<div class="need-graph-status visually-hidden" role="status" data-need-graph-status="' .. instance_id .. '"></div>')
   table.insert(blocks, pandoc.RawBlock("html", '<div class="need-graph-container">'))
   table.insert(blocks, controls); table.insert(blocks, canvas); table.insert(blocks, status); table.insert(blocks, data_script)
   table.insert(blocks, pandoc.RawBlock("html", "</div>"))
-  return pandoc.Div(blocks, pandoc.Attr(view_id, {"need-graph", "need-graph-progressive"}, {["data-need-graph"]=view_id}))
+  return pandoc.Div(blocks, pandoc.Attr(instance_id, {"need-graph", "need-graph-progressive"}, {["data-need-graph"]=instance_id}))
 end
 
 return M
