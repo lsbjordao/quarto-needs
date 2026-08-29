@@ -20,3 +20,9 @@ A decisão arquitetural funciona como ponte semântica entre o problema e a solu
 A projeção abaixo é gerada no `build` e renderizada no navegador com Cytoscape.js (vendored, sem rede). Use a busca para localizar um requisito ou ADR por ID/título e clique em um nó para destacar a vizinhança.
 
 {{< need-graph >}}
+
+### Descendentes de STK-001
+
+O grafo abaixo mantém `STK-001` e apenas os descendentes de rastreabilidade alcançáveis a partir dele dentro da projeção pública do grafo.
+
+{{< need-graph id="need-graph-stk-001" projection="need-graph-1" root="STK-001" depth="10" >}}
