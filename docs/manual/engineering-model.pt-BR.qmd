@@ -10,6 +10,16 @@ QMD → DeclarationBatch → AnalysisSnapshot → exports / Quarto views
 
 Essa separação é importante: Python é dono da semântica e Lua lê apenas projeções já resolvidas. Assim, HTML, PDF, DOCX, CLI e exportadores partem do mesmo estado analisado.
 
+## Autoridade semântica
+
+Quarto-Needs adota deliberadamente uma regra arquitetural:
+
+> **Toda semântica de engenharia é resolvida pelo core. As camadas de apresentação consomem projeções semânticas e não devem redefinir o significado de engenharia.**
+
+Por isso, o catálogo de relações é responsável não apenas pelos nomes e rótulos das relações, mas também por família semântica, papéis dos extremos, direção de impacto e direção hierárquica/de travessia. As projeções públicas do grafo carregam esses metadados seguros junto com nós e arestas. Lua, Cytoscape, adaptadores Mermaid e futuros renderers os consomem em vez de manter tabelas independentes que poderiam divergir do core.
+
+Isso deixa a política de apresentação livre para evoluir. O navegador pode escolher outro layout, espaçamento, esquema de cores ou modelo de interação; ele não pode decidir independentemente que `derives-from` possui outra direção pai/filho.
+
 ## Tipos como política
 
 Tipos podem declarar atributos obrigatórios, papel semântico, estados permitidos e prefixo de ID.
@@ -44,6 +54,28 @@ Papéis evitam inferir significado por convenções frágeis de nomes. Exemplos:
 | `risk` | `risk` |
 
 O nome do tipo continua sendo parte do domínio do projeto; o papel fornece uma camada semântica mais estável para regras e integrações.
+
+## Visões de grafo apoiadas por queries
+
+Named queries são avaliadas exclusivamente pelo Python e materializadas como conjuntos ordenados de IDs. A geração de grafos reutiliza essas mesmas seleções para publicar projeções limitadas em `.quarto-needs/graphs/`, além de um pequeno manifesto `views.json`.
+
+Assim, a mesma consulta pode ser reutilizada em tabelas, painéis, análise por CLI e exploração do grafo sem duplicar seu predicado:
+
+```toml
+[queries.accepted-decisions]
+all = [
+  { field = "type", op = "eq", value = "architecture-decision" },
+  { field = "status", op = "eq", value = "accepted" },
+]
+sort = ["id:asc"]
+```
+
+```markdown
+{{< need-table query="accepted-decisions" >}}
+{{< need-graph query="accepted-decisions" >}}
+```
+
+Se uma visão de grafo apoiada por query ultrapassar o orçamento configurado de nós/arestas, a análise de engenharia permanece válida. O manifesto registra a apresentação como indisponível e o shortcode informa o motivo, em vez de truncar silenciosamente o grafo.
 
 ## Baselines e identidade
 
