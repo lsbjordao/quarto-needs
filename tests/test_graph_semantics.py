@@ -100,4 +100,5 @@ def test_named_query_is_materialized_as_reusable_graph_view(tmp_path: Path) -> N
     assert manifest == {
         "schemaVersion": "graph-views-v1",
         "queries": {"security-driver": view_id},
+        "unavailable": {},
     }
