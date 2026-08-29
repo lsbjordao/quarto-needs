@@ -7,6 +7,40 @@
   "required": ["schemaVersion", "view", "nodes", "edges"],
   "properties": {
     "schemaVersion": {"const": "graph-public-v1"},
+    "relationCatalogVersion": {"type": "string"},
+    "relationSemantics": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "family",
+          "directLabel",
+          "inverseLabel",
+          "sourceRole",
+          "targetRole",
+          "impactDirection",
+          "traversalDirection"
+        ],
+        "properties": {
+          "family": {"type": "string"},
+          "directLabel": {"type": "string"},
+          "inverseLabel": {"type": "string"},
+          "sourceRole": {"type": "string"},
+          "targetRole": {"type": "string"},
+          "impactDirection": {
+            "enum": ["source_to_target", "target_to_source", "both", "none"]
+          },
+          "traversalDirection": {
+            "enum": ["source_to_target", "target_to_source", "both", "none"]
+          }
+        }
+      }
+    },
+    "typeRoles": {
+      "type": "object",
+      "additionalProperties": {"type": "string"}
+    },
     "view": {
       "type": "object",
       "additionalProperties": false,
@@ -16,6 +50,7 @@
         "layout": {"type": "string"},
         "mode": {"enum": ["catalog", "diff", "impact"]},
         "seed": {"type": "integer"},
+        "query": {"type": "string"},
         "limits": {
           "type": "object",
           "additionalProperties": false,
