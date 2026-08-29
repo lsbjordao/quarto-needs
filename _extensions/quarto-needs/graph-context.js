@@ -11,15 +11,14 @@
   window.cytoscape = new Proxy(original, {
     apply(target, thisArg, args) {
       const cy = Reflect.apply(target, thisArg, args);
-      const container = args && args[0] && args[0].container;
-      if (container && typeof container === "object") registry.set(container, cy);
+      const canvas = args && args[0] && args[0].container;
+      if (canvas && typeof canvas === "object") registry.set(canvas, cy);
       return cy;
     },
   });
 
-  // Keep the adjustable layout aligned with graph.js's engineering hierarchy.
-  // This map is presentation policy only; engineering relation semantics come
-  // exclusively from the public projection emitted by the Python core.
+  // Presentation policy only. Engineering relation semantics come exclusively
+  // from the projection emitted by the Python core.
   const TYPE_LEVEL_MAP = {
     "stakeholder-need": 0,
     stakeholder: 0,
@@ -46,18 +45,16 @@
   function projectionFor(container) {
     const script = container.querySelector("[data-need-graph-data]");
     if (!script) return {};
-    try {
-      return JSON.parse(script.textContent || "{}");
-    } catch (_error) {
-      return {};
-    }
+    try { return JSON.parse(script.textContent || "{}"); } catch (_error) { return {}; }
   }
 
-  function directRelatives(cy, semantics, nodeId, kind) {
+  function directRelatives(cy, semantics, nodeId, kind, allowedFamilies = null) {
     const ids = new Set();
     cy.edges().forEach((edge) => {
       const relation = String(edge.data("relation") || "");
       const definition = semantics[relation] || {};
+      const family = String(definition.family || "");
+      if (allowedFamilies && allowedFamilies.size && !allowedFamilies.has(family)) return;
       const direction = String(definition.traversalDirection || "none");
       if (direction === "none") return;
 
@@ -75,15 +72,14 @@
     return ids;
   }
 
-  function recursiveRelatives(cy, semantics, nodeId, kind) {
+  function recursiveRelatives(cy, semantics, nodeId, kind, allowedFamilies = null) {
     const visited = new Set([nodeId]);
     const result = new Set();
     let frontier = [nodeId];
-
     while (frontier.length) {
       const next = [];
       frontier.forEach((current) => {
-        directRelatives(cy, semantics, current, kind).forEach((id) => {
+        directRelatives(cy, semantics, current, kind, allowedFamilies).forEach((id) => {
           if (visited.has(id)) return;
           visited.add(id);
           result.add(id);
@@ -98,19 +94,15 @@
   function makeToggle(kind, labelText, checked = true) {
     const label = document.createElement("label");
     label.className = `need-graph-context-toggle need-graph-context-${kind}`;
-    label.style.display = "inline-flex";
-    label.style.alignItems = "center";
-    label.style.gap = ".3rem";
-    label.style.whiteSpace = "nowrap";
-    label.style.fontSize = ".9rem";
-    label.style.cursor = "pointer";
-
+    Object.assign(label.style, {
+      display: "inline-flex", alignItems: "center", gap: ".3rem",
+      whiteSpace: "nowrap", fontSize: ".9rem", cursor: "pointer",
+    });
     const input = document.createElement("input");
     input.type = "checkbox";
     input.checked = checked;
     input.dataset.needGraphContext = kind;
     input.setAttribute("aria-label", labelText);
-
     const text = document.createElement("span");
     text.textContent = labelText;
     label.append(input, text);
@@ -120,18 +112,11 @@
   function makeSpacingControl() {
     const wrapper = document.createElement("span");
     wrapper.className = "need-graph-spacing-control";
-    wrapper.style.display = "inline-flex";
-    wrapper.style.alignItems = "center";
-    wrapper.style.gap = ".35rem";
-    wrapper.style.whiteSpace = "nowrap";
-    wrapper.style.fontSize = ".9rem";
-
-    const toggle = makeToggle(
-      "fixed-spacing",
-      isPt() ? "Espaçamento fixo" : "Fixed spacing",
-      false,
-    );
-
+    Object.assign(wrapper.style, {
+      display: "inline-flex", alignItems: "center", gap: ".35rem",
+      whiteSpace: "nowrap", fontSize: ".9rem",
+    });
+    const toggle = makeToggle("fixed-spacing", isPt() ? "Espaçamento fixo" : "Fixed spacing", false);
     const range = document.createElement("input");
     range.type = "range";
     range.min = String(MIN_SPACING);
@@ -143,14 +128,12 @@
     range.dataset.needGraphSpacing = "true";
     range.setAttribute("aria-label", isPt() ? "Distância entre os nós" : "Distance between nodes");
     range.style.width = "8rem";
-
     const value = document.createElement("output");
     value.className = "need-graph-spacing-value";
     value.value = `${DEFAULT_SPACING} px`;
     value.textContent = `${DEFAULT_SPACING} px`;
     value.style.minWidth = "3.6rem";
     value.style.fontVariantNumeric = "tabular-nums";
-
     wrapper.append(toggle.label, range, value);
     return { wrapper, toggle: toggle.input, range, value };
   }
@@ -170,11 +153,12 @@
 
     const cy = registry.get(canvas);
     if (!cy) return false;
+    canvas.__quartoNeedsCy = cy;
 
     const projection = projectionFor(container);
     const relationSemantics = projection.relationSemantics || {};
-
     container.dataset.needGraphContextReady = "true";
+
     const parents = makeToggle("parents", isPt() ? "Pais" : "Parents");
     const children = makeToggle("children", isPt() ? "Filhos" : "Children");
     const spacing = makeSpacingControl();
@@ -189,10 +173,16 @@
     let dragGesture = null;
     let suppressTapUntil = 0;
 
-    const announce = (message) => {
-      if (status) status.textContent = message;
-    };
+    const announce = (message) => { if (status) status.textContent = message; };
     const searchActive = () => Boolean(String(search.value || "").trim());
+    const traversalFamilies = () =>
+      container.__needGraphTraversalFamilies instanceof Set
+        ? container.__needGraphTraversalFamilies
+        : null;
+    const nodeAllowed = (node) =>
+      typeof container.__needGraphNodeAllowed !== "function" || container.__needGraphNodeAllowed(node);
+    const edgeAllowed = (edge) =>
+      typeof container.__needGraphEdgeAllowed !== "function" || container.__needGraphEdgeAllowed(edge);
 
     const collapseHiddenIds = () => {
       const hidden = new Set();
@@ -202,17 +192,20 @@
       return hidden;
     };
 
+    const applyEdges = () => {
+      cy.edges().forEach((edge) => {
+        const endpointsVisible = edge.source().style("display") !== "none" && edge.target().style("display") !== "none";
+        edge.style("display", endpointsVisible && edgeAllowed(edge) ? "element" : "none");
+      });
+    };
+
     const setVisible = (visibleIds) => {
       const hidden = collapseHiddenIds();
       cy.nodes().forEach((node) => {
-        const permitted = visibleIds === null || visibleIds.has(node.id());
+        const permitted = (visibleIds === null || visibleIds.has(node.id())) && nodeAllowed(node);
         node.style("display", permitted && !hidden.has(node.id()) ? "element" : "none");
       });
-      cy.edges().forEach((edge) => {
-        const show = edge.source().style("display") !== "none" &&
-          edge.target().style("display") !== "none";
-        edge.style("display", show ? "element" : "none");
-      });
+      applyEdges();
     };
 
     const fitVisible = () => {
@@ -225,14 +218,12 @@
       const distance = Number(spacing.range.value) || DEFAULT_SPACING;
       const visibleNodes = cy.nodes().filter((node) => node.visible());
       if (!visibleNodes.length) return;
-
       const levels = new Map();
       visibleNodes.forEach((node) => {
         const level = levelForType(node.data("type"));
         if (!levels.has(level)) levels.set(level, []);
         levels.get(level).push(node);
       });
-
       const ranked = [...levels.entries()].sort((a, b) => a[0] - b[0]);
       const positions = new Map();
       ranked.forEach(([, nodes], row) => {
@@ -245,7 +236,6 @@
           });
         });
       });
-
       cy.layout({
         name: "preset",
         positions: (node) => positions.get(node.id()) || node.position(),
@@ -255,43 +245,50 @@
       fitVisible();
     };
 
-    const refreshLayout = () => {
-      if (spacing.toggle.checked) applyFixedSpacing();
-      else fitVisible();
-    };
+    const refreshLayout = () => spacing.toggle.checked ? applyFixedSpacing() : fitVisible();
 
     const showContext = () => {
       if (!selectedNodeId || !searchActive()) return;
       const selected = cy.getElementById(selectedNodeId);
       if (!selected || !selected.length) return;
-
       const visible = new Set([selectedNodeId]);
+      const families = traversalFamilies();
       if (parents.input.checked) {
-        recursiveRelatives(cy, relationSemantics, selectedNodeId, "parents").forEach((id) => visible.add(id));
+        recursiveRelatives(cy, relationSemantics, selectedNodeId, "parents", families).forEach((id) => visible.add(id));
       }
       if (children.input.checked) {
-        recursiveRelatives(cy, relationSemantics, selectedNodeId, "children").forEach((id) => visible.add(id));
+        recursiveRelatives(cy, relationSemantics, selectedNodeId, "children", families).forEach((id) => visible.add(id));
       }
       const hidden = collapseHiddenIds();
       hidden.delete(selectedNodeId);
       cy.nodes().forEach((node) => {
-        node.style("display", visible.has(node.id()) && !hidden.has(node.id()) ? "element" : "none");
+        const show = visible.has(node.id()) && !hidden.has(node.id()) && nodeAllowed(node);
+        node.style("display", show ? "element" : "none");
       });
-      cy.edges().forEach((edge) => {
-        const show = edge.source().style("display") !== "none" &&
-          edge.target().style("display") !== "none";
-        edge.style("display", show ? "element" : "none");
-      });
+      applyEdges();
       refreshLayout();
     };
 
     const applyHierarchyView = () => {
-      if (searchActive() && selectedNodeId) {
-        showContext();
-      } else if (!searchActive()) {
-        setVisible(null);
+      if (searchActive() && selectedNodeId) showContext();
+      else if (!searchActive()) { setVisible(null); refreshLayout(); }
+      else {
+        // graph.js owns plain search matching. Reapply external edge filters only
+        // after it has selected the matching nodes.
+        cy.nodes().forEach((node) => {
+          if (node.style("display") !== "none" && !nodeAllowed(node)) node.style("display", "none");
+        });
+        applyEdges();
         refreshLayout();
       }
+    };
+
+    container.__needGraphContextApi = {
+      refresh: applyHierarchyView,
+      fit: refreshLayout,
+      selectedNode: () => selectedNodeId,
+      recursiveRelatives: (nodeId, kind) =>
+        recursiveRelatives(cy, relationSemantics, nodeId, kind, traversalFamilies()),
     };
 
     const toggleCollapse = (nodeId) => {
@@ -310,11 +307,8 @@
     search.addEventListener("input", () => {
       selectedNodeId = null;
       lastTap = null;
-      // graph.js performs the actual text filtering in the same input event.
-      // Wait until it has hidden the non-matches before reapplying fixed spacing.
-      requestAnimationFrame(refreshLayout);
+      requestAnimationFrame(applyHierarchyView);
     });
-
     parents.input.addEventListener("change", showContext);
     children.input.addEventListener("change", showContext);
 
@@ -334,9 +328,6 @@
       applyFixedSpacing();
     });
 
-    // Distinguish a true two-click gesture from dragging. Any movement beyond a
-    // small threshold during grab/drag suppresses double-click collapse, leaving
-    // Cytoscape's native node dragging untouched.
     cy.on("grab", "node", (event) => {
       const p = event.target.renderedPosition();
       dragGesture = { id: event.target.id(), x: p.x, y: p.y, moved: false };
@@ -344,9 +335,7 @@
     cy.on("drag", "node", (event) => {
       if (!dragGesture || dragGesture.id !== event.target.id()) return;
       const p = event.target.renderedPosition();
-      const dx = p.x - dragGesture.x;
-      const dy = p.y - dragGesture.y;
-      if (Math.hypot(dx, dy) >= DRAG_DISTANCE_PX) dragGesture.moved = true;
+      if (Math.hypot(p.x - dragGesture.x, p.y - dragGesture.y) >= DRAG_DISTANCE_PX) dragGesture.moved = true;
     });
     cy.on("free", "node", (event) => {
       if (dragGesture && dragGesture.id === event.target.id() && dragGesture.moved) {
@@ -359,12 +348,12 @@
     cy.on("tap", "node", (event) => {
       const nodeId = event.target.id();
       const now = Date.now();
-
+      container.__needGraphFocusNode = nodeId;
+      container.dispatchEvent(new CustomEvent("quarto-needs-node-focus", { detail: { nodeId } }));
       if (searchActive()) {
         selectedNodeId = nodeId;
         showContext();
       }
-
       if (now < suppressTapUntil) return;
       if (lastTap && lastTap.id === nodeId && now - lastTap.time <= DOUBLE_TAP_MS) {
         lastTap = null;
@@ -378,10 +367,12 @@
     if (reset) {
       reset.addEventListener("click", () => {
         selectedNodeId = null;
+        container.__needGraphFocusNode = null;
         collapsed.clear();
         lastTap = null;
         parents.input.checked = true;
         children.input.checked = true;
+        container.dispatchEvent(new CustomEvent("quarto-needs-context-reset"));
         if (spacing.toggle.checked) requestAnimationFrame(applyFixedSpacing);
       });
     }
@@ -391,16 +382,11 @@
   function enhanceAll() {
     document.querySelectorAll("[data-need-graph]").forEach(enhance);
   }
-
   function schedule() {
     requestAnimationFrame(enhanceAll);
     setTimeout(enhanceAll, 100);
     setTimeout(enhanceAll, 500);
   }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", schedule);
-  } else {
-    schedule();
-  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", schedule);
+  else schedule();
 })();
