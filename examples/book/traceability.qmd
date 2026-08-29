@@ -25,4 +25,4 @@ The projection below is generated during the build and rendered in the browser w
 
 The graph below keeps `STK-001` and only the traceability descendants reachable from it.
 
-{{< need-graph id="need-graph-stk-001" >}}
+{{< need-graph id="need-graph-stk-001" projection="need-graph-1" root="STK-001" depth="10" >}}
