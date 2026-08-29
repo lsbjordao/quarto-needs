@@ -5,6 +5,7 @@ from types import MappingProxyType
 from typing import Literal, Mapping
 
 ImpactDirection = Literal["source_to_target", "target_to_source", "both", "none"]
+TraversalDirection = Literal["source_to_target", "target_to_source", "both", "none"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -18,6 +19,7 @@ class RelationKind:
     source_role: str
     target_role: str
     impact_direction: ImpactDirection
+    traversal_direction: TraversalDirection = "none"
     public: bool = True
     allowed_source_types: tuple[str, ...] = ()
     allowed_target_types: tuple[str, ...] = ()
@@ -52,35 +54,35 @@ class RelationCatalog:
 
 
 DEFAULT_RELATION_CATALOG = RelationCatalog.create(
-    "2",
+    "3",
     (
-        RelationKind("derives-from", "derives-from", "derives-from", "derivation", "Derives from", "Source for", "derived", "source", "target_to_source"),
-        RelationKind("derived-from", "derives-from", "derives-from", "derivation", "Derives from", "Source for", "derived", "source", "target_to_source"),
-        RelationKind("refines", "refines", "refines", "refinement", "Refines", "Refined by", "refinement", "subject", "target_to_source"),
-        RelationKind("decomposes", "decomposes", "decomposes", "decomposition", "Decomposes", "Part of", "whole", "part", "none"),
-        RelationKind("depends-on", "depends-on", "depends-on", "dependency", "Depends on", "Depended on by", "dependent", "dependency", "target_to_source"),
-        RelationKind("conflicts-with", "conflicts-with", "conflicts-with", "conflict", "Conflicts with", "Conflicts with", "subject", "subject", "both"),
-        RelationKind("constrains", "constrains", "constrains", "constraint", "Constrains", "Constrained by", "constraint", "subject", "none"),
-        RelationKind("implements", "implements", "implements", "implementation", "Implements", "Implemented by", "implementation-artifact", "requirement", "target_to_source"),
-        RelationKind("implemented-by", "implemented-by", "implemented-by", "implementation", "Implemented by", "Implements", "requirement", "implementation-artifact", "source_to_target"),
-        RelationKind("verifies", "verifies", "verifies", "verification", "Verifies", "Verified by", "test", "requirement", "target_to_source"),
-        RelationKind("verified-by", "verified-by", "verified-by", "verification", "Verified by", "Verifies", "requirement", "test", "source_to_target"),
-        RelationKind("validated-by", "validated-by", "validated-by", "verification", "Validated by", "Validates", "requirement", "test", "source_to_target"),
-        RelationKind("mitigates", "mitigates", "mitigates", "mitigation", "Mitigates", "Mitigated by", "mitigation", "risk", "target_to_source"),
-        RelationKind("justified-by", "justified-by", "justified-by", "justification", "Justified by", "Justifies", "subject", "justification", "none"),
-        RelationKind("evidences", "evidences", "evidences", "evidence", "Evidences", "Evidenced by", "evidence", "test", "target_to_source"),
-        RelationKind("evidenced-by", "evidenced-by", "evidenced-by", "evidence", "Evidenced by", "Evidences", "test", "evidence", "source_to_target"),
-        RelationKind("references", "references", "references", "reference", "References", "Referenced by", "source", "target", "none"),
+        RelationKind("derives-from", "derives-from", "derives-from", "derivation", "Derives from", "Source for", "derived", "source", "target_to_source", "target_to_source"),
+        RelationKind("derived-from", "derives-from", "derives-from", "derivation", "Derives from", "Source for", "derived", "source", "target_to_source", "target_to_source"),
+        RelationKind("refines", "refines", "refines", "refinement", "Refines", "Refined by", "refinement", "subject", "target_to_source", "target_to_source"),
+        RelationKind("decomposes", "decomposes", "decomposes", "decomposition", "Decomposes", "Part of", "whole", "part", "none", "source_to_target"),
+        RelationKind("depends-on", "depends-on", "depends-on", "dependency", "Depends on", "Depended on by", "dependent", "dependency", "target_to_source", "target_to_source"),
+        RelationKind("conflicts-with", "conflicts-with", "conflicts-with", "conflict", "Conflicts with", "Conflicts with", "subject", "subject", "both", "none"),
+        RelationKind("constrains", "constrains", "constrains", "constraint", "Constrains", "Constrained by", "constraint", "subject", "none", "source_to_target"),
+        RelationKind("implements", "implements", "implements", "implementation", "Implements", "Implemented by", "implementation-artifact", "requirement", "target_to_source", "target_to_source"),
+        RelationKind("implemented-by", "implemented-by", "implemented-by", "implementation", "Implemented by", "Implements", "requirement", "implementation-artifact", "source_to_target", "source_to_target"),
+        RelationKind("verifies", "verifies", "verifies", "verification", "Verifies", "Verified by", "test", "requirement", "target_to_source", "target_to_source"),
+        RelationKind("verified-by", "verified-by", "verified-by", "verification", "Verified by", "Verifies", "requirement", "test", "source_to_target", "source_to_target"),
+        RelationKind("validated-by", "validated-by", "validated-by", "verification", "Validated by", "Validates", "requirement", "test", "source_to_target", "source_to_target"),
+        RelationKind("mitigates", "mitigates", "mitigates", "mitigation", "Mitigates", "Mitigated by", "mitigation", "risk", "target_to_source", "target_to_source"),
+        RelationKind("justified-by", "justified-by", "justified-by", "justification", "Justified by", "Justifies", "subject", "justification", "none", "source_to_target"),
+        RelationKind("evidences", "evidences", "evidences", "evidence", "Evidences", "Evidenced by", "evidence", "test", "target_to_source", "target_to_source"),
+        RelationKind("evidenced-by", "evidenced-by", "evidenced-by", "evidence", "Evidenced by", "Evidences", "test", "evidence", "source_to_target", "source_to_target"),
+        RelationKind("references", "references", "references", "reference", "References", "Referenced by", "source", "target", "none", "none"),
         # Architecture decision management. Decisions are first-class graph nodes;
         # these relations connect rationale to requirements, architectural scope,
         # decision lineage, and confirmation without treating an ADR as an
         # implementation artifact.
-        RelationKind("addresses", "addresses", "addresses", "decision-addressing", "Addresses", "Addressed by", "decision", "driver", "target_to_source"),
-        RelationKind("addressed-by", "addressed-by", "addressed-by", "decision-addressing", "Addressed by", "Addresses", "driver", "decision", "source_to_target"),
-        RelationKind("applies-to", "applies-to", "applies-to", "decision-scope", "Applies to", "Decision applies to", "decision", "architecture-element", "source_to_target"),
-        RelationKind("supersedes", "supersedes", "supersedes", "decision-lineage", "Supersedes", "Superseded by", "successor", "predecessor", "target_to_source"),
-        RelationKind("superseded-by", "superseded-by", "superseded-by", "decision-lineage", "Superseded by", "Supersedes", "predecessor", "successor", "source_to_target"),
-        RelationKind("confirmed-by", "confirmed-by", "confirmed-by", "decision-confirmation", "Confirmed by", "Confirms", "decision", "confirmation", "both"),
-        RelationKind("confirms", "confirms", "confirms", "decision-confirmation", "Confirms", "Confirmed by", "confirmation", "decision", "both"),
+        RelationKind("addresses", "addresses", "addresses", "decision-addressing", "Addresses", "Addressed by", "decision", "driver", "target_to_source", "target_to_source"),
+        RelationKind("addressed-by", "addressed-by", "addressed-by", "decision-addressing", "Addressed by", "Addresses", "driver", "decision", "source_to_target", "source_to_target"),
+        RelationKind("applies-to", "applies-to", "applies-to", "decision-scope", "Applies to", "Decision applies to", "decision", "architecture-element", "source_to_target", "source_to_target"),
+        RelationKind("supersedes", "supersedes", "supersedes", "decision-lineage", "Supersedes", "Superseded by", "successor", "predecessor", "target_to_source", "target_to_source"),
+        RelationKind("superseded-by", "superseded-by", "superseded-by", "decision-lineage", "Superseded by", "Supersedes", "predecessor", "successor", "source_to_target", "source_to_target"),
+        RelationKind("confirmed-by", "confirmed-by", "confirmed-by", "decision-confirmation", "Confirmed by", "Confirms", "decision", "confirmation", "both", "source_to_target"),
+        RelationKind("confirms", "confirms", "confirms", "decision-confirmation", "Confirms", "Confirmed by", "confirmation", "decision", "both", "target_to_source"),
     ),
 )
