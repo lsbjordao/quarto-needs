@@ -10,6 +10,16 @@ QMD → DeclarationBatch → AnalysisSnapshot → exports / Quarto views
 
 This separation matters: Python owns semantics and Lua reads only already-resolved projections. HTML, PDF, DOCX, the CLI, and exporters therefore start from the same analyzed state.
 
+## Semantic authority
+
+Quarto-Needs follows one architectural rule deliberately:
+
+> **All engineering semantics are resolved by the core. Presentation layers consume semantic projections and must not redefine engineering meaning.**
+
+The relation catalog therefore owns not only relation names and labels, but also semantic family, endpoint roles, impact direction, and hierarchy/traversal direction. Public graph projections carry this safe semantic metadata alongside nodes and edges. Lua, Cytoscape, Mermaid adapters, and future renderers use it instead of maintaining independent tables that could drift from the core.
+
+This distinction leaves presentation policy free to evolve. A browser may choose a different layout, spacing, color scheme, or interaction model; it may not independently decide that `derives-from` means a different parent/child direction.
+
 ## Types as policy
 
 Types can declare required attributes, a semantic role, allowed states, and an ID prefix.
@@ -44,6 +54,28 @@ Roles avoid inferring meaning from fragile naming conventions. Examples:
 | `risk` | `risk` |
 
 The type name remains part of the project domain; the role provides a more stable semantic layer for rules and integrations.
+
+## Query-backed graph views
+
+Named queries are evaluated only by Python and materialized as ordered ID sets. Graph generation now reuses those same selections to publish bounded graph projections under `.quarto-needs/graphs/`, plus a small `views.json` manifest.
+
+That makes a query reusable across tables, dashboards, CLI analysis, and graph exploration without duplicating its predicate:
+
+```toml
+[queries.accepted-decisions]
+all = [
+  { field = "type", op = "eq", value = "architecture-decision" },
+  { field = "status", op = "eq", value = "accepted" },
+]
+sort = ["id:asc"]
+```
+
+```markdown
+{{< need-table query="accepted-decisions" >}}
+{{< need-graph query="accepted-decisions" >}}
+```
+
+If a query-backed graph exceeds the configured node/edge budget, the engineering analysis remains valid. The view manifest records that presentation as unavailable and the shortcode reports the reason rather than silently truncating the graph.
 
 ## Baselines and identity
 
