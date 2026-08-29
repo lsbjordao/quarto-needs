@@ -31,7 +31,7 @@ function M.ensure_assets()
   rawset(_G, ASSETS_FLAG, true)
   quarto.doc.add_html_dependency({
     name = "quarto-needs",
-    version = "0.1.3",
+    version = "0.1.4",
     stylesheets = {"needs.css", "graph.css"},
     scripts = {
       "needs.js",
@@ -138,15 +138,6 @@ function M.is_html_format()
   return detect_format() == "html"
 end
 
--- Quarto's mermaid→PNG pipeline screenshots the SVG through headless Chrome with
--- the default ~800px viewport; Mermaid's `useMaxWidth` default rescales any
--- wider diagram to that viewport and the CDP clip then cuts the re-laid-out
--- content at the right and bottom edges. Embedding the vector SVG inline in the
--- page avoids the screenshot entirely for HTML targets; non-HTML targets keep
--- PNG. The SVG must be inlined (not loaded through <img>): Mermaid renders node
--- labels as HTML inside <foreignObject>, and several browsers (WebKit notably)
--- refuse to render <foreignObject> content in image context, which would leave
--- empty boxes.
 local function normalize_mermaid_svg(html)
   local start = html:find("<svg", 1, true)
   if not start then return nil end
@@ -156,10 +147,6 @@ local function normalize_mermaid_svg(html)
     if next_close then finish, cursor = next_close, next_close end
   until not next_close
   local document = html:sub(start, finish + 6)
-  -- Quarto's svg handler normalizes the markup for inline HTML embedding in
-  -- ways that break strict XML parsing: tag lowercasing (foreignobject), the
-  -- XHTML namespace demoted to data-xmlns, and unclosed <br> in labels. Undo
-  -- exactly those.
   document = document:gsub("foreignobject", "foreignObject")
   document = document:gsub("<br>", "<br/>")
   document = document:gsub("data%-xmlns", "xmlns")
@@ -183,10 +170,6 @@ local function normalize_mermaid_svg(html)
 end
 
 local function with_temp_mermaid(source, temp_name, mermaid_format, collect)
-  -- htmlLabels:false renders labels as plain SVG <text> instead of HTML in
-  -- <foreignObject>. Mermaid 11 mismeasures wrapped <foreignObject> labels,
-  -- emitting boxes shorter than their text; inlined into a page, that clips
-  -- node labels to invisible. Text labels cannot be clipped this way.
   local labeled = "%%{init: {\"htmlLabels\": false}}%%\n" .. source
   local ok, result = pcall(pandoc.system.with_temporary_directory, temp_name, function(directory)
     local input = pandoc.path.join({directory, "diagram.qmd"})
@@ -225,10 +208,6 @@ local function escape_html_attr(value)
   return (value:gsub("[&<\"]", {["&"] = "&amp;", ["<"] = "&lt;", ['"'] = "&quot;"}))
 end
 
--- Every inline Mermaid SVG carries the same internal ids (node ids, edge-label
--- ids, the root figure id, and CSS scoped by that root id), so two diagrams on
--- one page would collide. Prefix every known id and its #references, longest
--- first so a shorter id can never match inside a prefixed longer one.
 local function namespace_svg_ids(svg, prefix)
   local ids = {}
   for id in svg:gmatch('%sid="([^"]+)"') do ids[#ids + 1] = id end
