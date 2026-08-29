@@ -26,7 +26,7 @@ from .graph_projection import (
     select_graph,
 )
 from .queries import DEFAULT_QUERY_NAME, query_ids
-from .relations import DEFAULT_RELATION_CATALOG
+from .relations import DEFAULT_RELATION_CATALOG, TRAVERSAL_PROFILES
 from .snapshot import AnalysisSnapshot
 
 DEFAULT_VIEW_ID = "need-graph-1"
@@ -92,19 +92,60 @@ def _public_relation_semantics() -> dict[str, dict[str, object]]:
     return {name: result[name] for name in sorted(result)}
 
 
+def _public_traversal_profiles() -> dict[str, list[str]]:
+    """Expose canonical named traversal profiles as semantic family allowlists."""
+    return {
+        name: list(TRAVERSAL_PROFILES[name])
+        for name in sorted(TRAVERSAL_PROFILES)
+    }
+
+
+def _public_edge_provenance(snapshot: AnalysisSnapshot) -> dict[tuple[str, str, str], list[dict[str, object]]]:
+    """Collect only safe, relative source metadata for authored relations."""
+    result: dict[tuple[str, str, str], list[dict[str, object]]] = {}
+    for relation in snapshot.relations:
+        key = (relation.source, relation.target, relation.v1_name)
+        bucket = result.setdefault(key, [])
+        for location in relation.provenance:
+            item: dict[str, object] = {
+                "file": location.file,
+                "line": location.line,
+            }
+            if location.anchor:
+                item["anchor"] = location.anchor
+            if item not in bucket:
+                bucket.append(item)
+    return result
+
+
 def render_public_projection(
     projection: GraphProjection,
     config: NeedsConfig,
     *,
     query_name: str | None = None,
+    snapshot: AnalysisSnapshot | None = None,
 ) -> str:
     """Serialize a graph projection plus canonical, presentation-safe semantics."""
     payload = projection.to_dict()
     payload["relationCatalogVersion"] = DEFAULT_RELATION_CATALOG.version
     payload["relationSemantics"] = _public_relation_semantics()
+    payload["traversalProfiles"] = _public_traversal_profiles()
     payload["typeRoles"] = {
         name: config.type_roles[name] for name in sorted(config.type_roles)
     }
+    if snapshot is not None:
+        provenance = _public_edge_provenance(snapshot)
+        for edge in payload.get("edges", []):
+            if not isinstance(edge, dict):
+                continue
+            key = (
+                str(edge.get("source", "")),
+                str(edge.get("target", "")),
+                str(edge.get("relation", "")),
+            )
+            locations = provenance.get(key)
+            if locations:
+                edge["provenance"] = locations
     if query_name is not None:
         payload["view"]["query"] = query_name
     return json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
@@ -233,7 +274,10 @@ def write_default_projection(
         snapshot, config, baseline_path=root / DEFAULT_BASELINE_PATH
     )
     target = graph_dir / f"{DEFAULT_VIEW_ID}.json"
-    _atomic_text(target, render_public_projection(projection, config))
+    _atomic_text(
+        target,
+        render_public_projection(projection, config, snapshot=snapshot),
+    )
 
     manifest: dict[str, str] = {}
     errors: dict[str, str] = {}
@@ -246,7 +290,12 @@ def write_default_projection(
         view_id = query_projection.view_id
         _atomic_text(
             graph_dir / f"{view_id}.json",
-            render_public_projection(query_projection, config, query_name=query_name),
+            render_public_projection(
+                query_projection,
+                config,
+                query_name=query_name,
+                snapshot=snapshot,
+            ),
         )
         manifest[query_name] = view_id
 
