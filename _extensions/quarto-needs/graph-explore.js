@@ -64,7 +64,7 @@
       const relation = String(edge.data("relation") || "");
       const definition = semantics[relation] || {};
       const family = String(definition.family || "");
-      if (allowedFamilies && allowedFamilies.size && !allowedFamilies.has(family)) return;
+      if (allowedFamilies && !allowedFamilies.has(family)) return;
       const direction = String(definition.traversalDirection || "none");
       const source = edge.source().id();
       const target = edge.target().id();
@@ -81,7 +81,7 @@
       const relation = String(edge.data("relation") || "");
       const definition = semantics[relation] || {};
       const family = String(definition.family || "");
-      if (allowedFamilies && allowedFamilies.size && !allowedFamilies.has(family)) return;
+      if (allowedFamilies && !allowedFamilies.has(family)) return;
       const direction = String(definition.traversalDirection || "none");
       const source = edge.source().id();
       const target = edge.target().id();
@@ -266,6 +266,7 @@
       const statusValue = statusField.select.value;
       const family = familyField.select.value;
       const incident = familyIncidentNodes();
+      container.__needGraphForcedNodes = pathNodes;
       container.__needGraphTraversalFamilies = activeProfileFamilies();
       container.__needGraphNodeAllowed = (node) => {
         if (pathNodes.has(node.id())) return true;
@@ -291,6 +292,7 @@
       pathNodes = new Set();
       pathEdges = new Set();
       pathActive = false;
+      container.__needGraphForcedNodes = pathNodes;
       cy.elements().removeClass("need-root-path-node need-root-path-edge");
       pathButton.textContent = t("Path to root", "Caminho até a raiz");
       installPredicates();
