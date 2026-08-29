@@ -1,7 +1,8 @@
 (() => {
   // Search-context and hierarchy interaction for the interactive Cytoscape
   // need graph. The base graph client owns rendering/search/popups; this module
-  // augments it with semantic parent/child traversal and collapse/expand.
+  // augments it with semantic parent/child traversal, collapse/expand, and an
+  // optional fixed-spacing layout for the currently visible nodes.
   if (!window.cytoscape || window.__quartoNeedsGraphContextInstalled) return;
   window.__quartoNeedsGraphContextInstalled = true;
 
@@ -40,8 +41,28 @@
     confirms: "target_to_source",
   };
 
+  // Keep the adjustable layout aligned with graph.js's engineering hierarchy.
+  const TYPE_LEVEL_MAP = {
+    "stakeholder-need": 0,
+    stakeholder: 0,
+    "system-requirement": 1,
+    "functional-requirement": 2,
+    "non-functional-requirement": 2,
+    "architecture-decision": 3,
+    component: 4,
+    interface: 5,
+    risk: 6,
+    threat: 6,
+    "test-case": 7,
+    evidence: 8,
+  };
+
   const DOUBLE_TAP_MS = 360;
   const DRAG_DISTANCE_PX = 6;
+  const DEFAULT_SPACING = 90;
+  const MIN_SPACING = 50;
+  const MAX_SPACING = 240;
+  const SPACING_STEP = 10;
   const isPt = () => String(document.documentElement.lang || "").toLowerCase().startsWith("pt");
 
   function directRelatives(cy, nodeId, kind) {
@@ -83,7 +104,7 @@
     return result;
   }
 
-  function makeToggle(kind, labelText) {
+  function makeToggle(kind, labelText, checked = true) {
     const label = document.createElement("label");
     label.className = `need-graph-context-toggle need-graph-context-${kind}`;
     label.style.display = "inline-flex";
@@ -95,7 +116,7 @@
 
     const input = document.createElement("input");
     input.type = "checkbox";
-    input.checked = true;
+    input.checked = checked;
     input.dataset.needGraphContext = kind;
     input.setAttribute("aria-label", labelText);
 
@@ -103,6 +124,49 @@
     text.textContent = labelText;
     label.append(input, text);
     return { label, input };
+  }
+
+  function makeSpacingControl() {
+    const wrapper = document.createElement("span");
+    wrapper.className = "need-graph-spacing-control";
+    wrapper.style.display = "inline-flex";
+    wrapper.style.alignItems = "center";
+    wrapper.style.gap = ".35rem";
+    wrapper.style.whiteSpace = "nowrap";
+    wrapper.style.fontSize = ".9rem";
+
+    const toggle = makeToggle(
+      "fixed-spacing",
+      isPt() ? "Espaçamento fixo" : "Fixed spacing",
+      false,
+    );
+
+    const range = document.createElement("input");
+    range.type = "range";
+    range.min = String(MIN_SPACING);
+    range.max = String(MAX_SPACING);
+    range.step = String(SPACING_STEP);
+    range.value = String(DEFAULT_SPACING);
+    range.disabled = true;
+    range.className = "need-graph-spacing-range";
+    range.dataset.needGraphSpacing = "true";
+    range.setAttribute("aria-label", isPt() ? "Distância entre os nós" : "Distance between nodes");
+    range.style.width = "8rem";
+
+    const value = document.createElement("output");
+    value.className = "need-graph-spacing-value";
+    value.value = `${DEFAULT_SPACING} px`;
+    value.textContent = `${DEFAULT_SPACING} px`;
+    value.style.minWidth = "3.6rem";
+    value.style.fontVariantNumeric = "tabular-nums";
+
+    wrapper.append(toggle.label, range, value);
+    return { wrapper, toggle: toggle.input, range, value };
+  }
+
+  function levelForType(type) {
+    const normalized = String(type || "").toLowerCase().trim();
+    return TYPE_LEVEL_MAP[normalized] != null ? TYPE_LEVEL_MAP[normalized] : 1000;
   }
 
   function enhance(container) {
@@ -119,9 +183,11 @@
     container.dataset.needGraphContextReady = "true";
     const parents = makeToggle("parents", isPt() ? "Pais" : "Parents");
     const children = makeToggle("children", isPt() ? "Filhos" : "Children");
+    const spacing = makeSpacingControl();
     const anchor = search.nextSibling;
     controls.insertBefore(parents.label, anchor);
     controls.insertBefore(children.label, anchor);
+    controls.insertBefore(spacing.wrapper, anchor);
 
     let selectedNodeId = null;
     const collapsed = new Set();
@@ -160,6 +226,46 @@
       if (shown.length) cy.fit(shown, 40);
     };
 
+    const applyFixedSpacing = () => {
+      if (!spacing.toggle.checked) return;
+      const distance = Number(spacing.range.value) || DEFAULT_SPACING;
+      const visibleNodes = cy.nodes().filter((node) => node.visible());
+      if (!visibleNodes.length) return;
+
+      const levels = new Map();
+      visibleNodes.forEach((node) => {
+        const level = levelForType(node.data("type"));
+        if (!levels.has(level)) levels.set(level, []);
+        levels.get(level).push(node);
+      });
+
+      const ranked = [...levels.entries()].sort((a, b) => a[0] - b[0]);
+      const positions = new Map();
+      ranked.forEach(([, nodes], row) => {
+        nodes.sort((a, b) => a.id().localeCompare(b.id()));
+        const count = nodes.length;
+        nodes.forEach((node, column) => {
+          positions.set(node.id(), {
+            x: (column - (count - 1) / 2) * distance,
+            y: row * distance,
+          });
+        });
+      });
+
+      cy.layout({
+        name: "preset",
+        positions: (node) => positions.get(node.id()) || node.position(),
+        fit: false,
+        animate: false,
+      }).run();
+      fitVisible();
+    };
+
+    const refreshLayout = () => {
+      if (spacing.toggle.checked) applyFixedSpacing();
+      else fitVisible();
+    };
+
     const showContext = () => {
       if (!selectedNodeId || !searchActive()) return;
       const selected = cy.getElementById(selectedNodeId);
@@ -172,8 +278,6 @@
       if (children.input.checked) {
         recursiveRelatives(cy, selectedNodeId, "children").forEach((id) => visible.add(id));
       }
-      // The explicitly selected node remains visible even if an ancestor was
-      // previously collapsed; collapse affects its descendants, not the focus.
       const hidden = collapseHiddenIds();
       hidden.delete(selectedNodeId);
       cy.nodes().forEach((node) => {
@@ -184,7 +288,7 @@
           edge.target().style("display") !== "none";
         edge.style("display", show ? "element" : "none");
       });
-      fitVisible();
+      refreshLayout();
     };
 
     const applyHierarchyView = () => {
@@ -192,7 +296,7 @@
         showContext();
       } else if (!searchActive()) {
         setVisible(null);
-        fitVisible();
+        refreshLayout();
       }
     };
 
@@ -209,15 +313,32 @@
       applyHierarchyView();
     };
 
-    // graph.js applies text matching first. A changed query returns to the set of
-    // text matches; recursive context starts only after the user chooses one.
     search.addEventListener("input", () => {
       selectedNodeId = null;
       lastTap = null;
+      // graph.js performs the actual text filtering in the same input event.
+      // Wait until it has hidden the non-matches before reapplying fixed spacing.
+      requestAnimationFrame(refreshLayout);
     });
 
     parents.input.addEventListener("change", showContext);
     children.input.addEventListener("change", showContext);
+
+    spacing.toggle.addEventListener("change", () => {
+      spacing.range.disabled = !spacing.toggle.checked;
+      if (spacing.toggle.checked) {
+        applyFixedSpacing();
+        announce(isPt() ? "Espaçamento fixo ativado" : "Fixed spacing enabled");
+      } else {
+        announce(isPt() ? "Espaçamento fixo desativado" : "Fixed spacing disabled");
+      }
+    });
+    spacing.range.addEventListener("input", () => {
+      const distance = Number(spacing.range.value) || DEFAULT_SPACING;
+      spacing.value.value = `${distance} px`;
+      spacing.value.textContent = `${distance} px`;
+      applyFixedSpacing();
+    });
 
     // Distinguish a true two-click gesture from dragging. Any movement beyond a
     // small threshold during grab/drag suppresses double-click collapse, leaving
@@ -267,6 +388,7 @@
         lastTap = null;
         parents.input.checked = true;
         children.input.checked = true;
+        if (spacing.toggle.checked) requestAnimationFrame(applyFixedSpacing);
       });
     }
     return true;
