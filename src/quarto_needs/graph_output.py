@@ -18,6 +18,7 @@ from pathlib import Path
 from .baseline import BaselineError, load_baseline
 from .config import NeedsConfig
 from .graph_projection import (
+    GraphLimitExceeded,
     GraphProjection,
     build_projection as build_catalog,
     build_diff_overlay,
@@ -219,9 +220,15 @@ def write_default_projection(
     """Write the default graph plus reusable projections for every named query.
 
     Named query projections deliberately reuse the safe Python query evaluator.
-    No second filtering language is introduced in Lua or JavaScript.
+    They are optional presentation artifacts: exceeding the graph budget records
+    an unavailable view instead of turning an otherwise valid engineering graph
+    into a failed build.
     """
     graph_dir = root / ".quarto-needs" / "graphs"
+    graph_dir.mkdir(parents=True, exist_ok=True)
+    for stale in graph_dir.glob(f"{QUERY_VIEW_PREFIX}*.json"):
+        stale.unlink()
+
     projection = build_default_projection(
         snapshot, config, baseline_path=root / DEFAULT_BASELINE_PATH
     )
@@ -229,8 +236,13 @@ def write_default_projection(
     _atomic_text(target, render_public_projection(projection, config))
 
     manifest: dict[str, str] = {}
+    errors: dict[str, str] = {}
     for query_name in sorted(config.named_query_sources):
-        query_projection = _build_query_projection(snapshot, config, query_name)
+        try:
+            query_projection = _build_query_projection(snapshot, config, query_name)
+        except GraphLimitExceeded as error:
+            errors[query_name] = str(error)
+            continue
         view_id = query_projection.view_id
         _atomic_text(
             graph_dir / f"{view_id}.json",
@@ -244,6 +256,7 @@ def write_default_projection(
             {
                 "schemaVersion": "graph-views-v1",
                 "queries": manifest,
+                "unavailable": errors,
             },
             ensure_ascii=False,
             indent=2,
