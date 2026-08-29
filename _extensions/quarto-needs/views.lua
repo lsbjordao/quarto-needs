@@ -243,75 +243,104 @@ function M.sort(objects, kwargs)
       if field == "priority" then
         av = priority_order[text(attributes(a).priority):lower()] or 5
         bv = priority_order[text(attributes(b).priority):lower()] or 5
-      elseif field:sub(1, 11) == "attributes." then
-        local key = field:sub(12)
-        av, bv = text(attributes(a)[key]):lower(), text(attributes(b)[key]):lower()
       else
-        av, bv = text(a[field]):lower(), text(b[field]):lower()
+        av = text(a[field] or attributes(a)[field]):lower()
+        bv = text(b[field] or attributes(b)[field]):lower()
       end
       if av ~= bv then return av < bv end
     end
-    return text(a.id):lower() < text(b.id):lower()
+    return text(a.id) < text(b.id)
   end)
   return objects
 end
 
-function M.limit(objects, kwargs, default_limit)
-  local raw = M.kwarg(kwargs, "limit")
-  local limit = tonumber(raw) or default_limit or #objects
-  limit = math.max(0, math.floor(limit))
-  if #objects <= limit then return objects end
+local generated_ids = {}
+local reserved_view_ids = {}
+local function safe_view_id(value, fallback)
+  local normalized = M.slug(value)
+  if normalized == "" then normalized = M.slug(fallback) end
+  if normalized == "" then normalized = "need-view" end
+  return normalized
+end
+
+function M.reserve_view_id(prefix, requested)
+  local safe_prefix = safe_view_id(prefix, "need-view")
+  local base
+  if text(requested) == "" then
+    generated_ids[safe_prefix] = (generated_ids[safe_prefix] or 0) + 1
+    base = safe_prefix .. "-" .. tostring(generated_ids[safe_prefix])
+  else
+    base = safe_view_id(requested, safe_prefix)
+  end
+  local candidate = base
+  local suffix = 2
+  while reserved_view_ids[candidate] do
+    candidate = base .. "-" .. tostring(suffix)
+    suffix = suffix + 1
+  end
+  reserved_view_ids[candidate] = true
+  return candidate
+end
+
+function M.next_id(prefix) return M.reserve_view_id(prefix) end
+
+function M.badge(kind, value)
+  local raw = text(value)
+  if raw == "" then return {} end
+  return {pandoc.Span({pandoc.Str(raw)}, pandoc.Attr("", {"need-badge", "need-" .. kind, "need-" .. kind .. "-" .. M.slug(raw)}))}
+end
+
+function M.link(object, label, options)
+  local resolved = {
+    format = options and options.format or detect_format(),
+    current_input = options and options.current_input or current_input(),
+  }
+  return pandoc.Link({pandoc.Str(label or text(object.id))}, data.link_target(object, resolved), "")
+end
+
+function M.objects_by_id(objects)
   local result = {}
-  for index = 1, limit do result[index] = objects[index] end
+  for _, object in ipairs(objects or {}) do result[text(object.id)] = object end
   return result
 end
 
-function M.output_format(kwargs)
-  return M.kwarg(kwargs, "format", detect_format())
+function M.related(graph, source, relation_type)
+  local result = {}
+  for _, relation in ipairs(data.outgoing(graph, source, relation_type)) do
+    table.insert(result, relation.target)
+  end
+  return result
 end
 
-function M.table(headers, rows, classes)
+function M.table(caption, headers, rows, attr)
+  local function blocks(cells)
+    local result = {}
+    for _, cell in ipairs(cells) do result[#result + 1] = pandoc.Plain(cell) end
+    return result
+  end
+  local normalized_rows = {}
+  for _, row in ipairs(rows) do normalized_rows[#normalized_rows + 1] = blocks(row) end
   local aligns, widths = {}, {}
   for _ = 1, #headers do
-    table.insert(aligns, "AlignDefault")
-    table.insert(widths, 0)
+    aligns[#aligns + 1] = "AlignDefault"
+    widths[#widths + 1] = 0
   end
-  local function cell_blocks(value)
-    if type(value) == "table" and value.t then return {pandoc.Plain({value})} end
-    if type(value) == "table" and value[1] and value[1].t then return {pandoc.Plain(value)} end
-    return {pandoc.Plain({pandoc.Str(text(value))})}
-  end
-  local header_cells, body_rows = {}, {}
-  for _, value in ipairs(headers) do table.insert(header_cells, cell_blocks(value)) end
-  for _, row in ipairs(rows) do
-    local cells = {}
-    for _, value in ipairs(row) do table.insert(cells, cell_blocks(value)) end
-    table.insert(body_rows, cells)
-  end
-  local simple = pandoc.SimpleTable({pandoc.Str("")}, aligns, widths, header_cells, body_rows)
-  local table = pandoc.utils.from_simple_table(simple)
-  table.classes = classes or {"need-table"}
-  return table
+  local simple = pandoc.SimpleTable({pandoc.Str(caption or "")}, aligns, widths, blocks(headers), normalized_rows)
+  local table_block = pandoc.utils.from_simple_table(simple)
+  table_block.attr = attr or pandoc.Attr()
+  return table_block
 end
 
-function M.badge(kind, value)
-  local label = text(value)
-  if label == "" then return nil end
-  local classes = {"need-badge", "need-" .. M.slug(kind), "need-" .. M.slug(kind) .. "-" .. M.slug(value)}
-  return pandoc.Span({pandoc.Str(label)}, pandoc.Attr("", classes, {}))
-end
-
-function M.link(id, label, href)
-  local target = href or ("#" .. text(id))
-  return pandoc.Link({pandoc.Code(text(label or id))}, target, "", pandoc.Attr("", {"need-ref"}, {}))
+function M.node_id(id)
+  return "need_" .. text(id):gsub(".", function(char) return string.format("%02X", string.byte(char)) end)
 end
 
 function M.escape_mermaid(value)
-  return text(value)
-    :gsub("\\", "/")
-    :gsub('"', "'")
-    :gsub("[\r\n]+", " ")
-    :gsub("%s+", " ")
+  return text(value):gsub("[\"\\\n\r]", function(char)
+    if char == "\"" then return "'" end
+    if char == "\\" then return "/" end
+    return " "
+  end)
 end
 
 return M
