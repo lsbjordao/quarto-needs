@@ -134,6 +134,156 @@ local function detect_format()
   return writer
 end
 
+function M.is_html_format()
+  return detect_format() == "html"
+end
+
+-- Quarto's mermaid→PNG pipeline screenshots the SVG through headless Chrome with
+-- the default ~800px viewport; Mermaid's `useMaxWidth` default rescales any
+-- wider diagram to that viewport and the CDP clip then cuts the re-laid-out
+-- content at the right and bottom edges. Embedding the vector SVG inline in the
+-- page avoids the screenshot entirely for HTML targets; non-HTML targets keep
+-- PNG. The SVG must be inlined (not loaded through <img>): Mermaid renders node
+-- labels as HTML inside <foreignObject>, and several browsers (WebKit notably)
+-- refuse to render <foreignObject> content in image context, which would leave
+-- empty boxes.
+local function normalize_mermaid_svg(html)
+  local start = html:find("<svg", 1, true)
+  if not start then return nil end
+  local finish, cursor = start, start
+  repeat
+    local next_close = html:find("</svg>", cursor + 1, true)
+    if next_close then finish, cursor = next_close, next_close end
+  until not next_close
+  local document = html:sub(start, finish + 6)
+  -- Quarto's svg handler normalizes the markup for inline HTML embedding in
+  -- ways that break strict XML parsing: tag lowercasing (foreignobject), the
+  -- XHTML namespace demoted to data-xmlns, and unclosed <br> in labels. Undo
+  -- exactly those.
+  document = document:gsub("foreignobject", "foreignObject")
+  document = document:gsub("<br>", "<br/>")
+  document = document:gsub("data%-xmlns", "xmlns")
+  document = document:gsub('%sxlink="http://www%.w3%.org/1999/xlink"', ' xmlns:xlink="http://www.w3.org/1999/xlink"')
+  local open_end = document:find(">", 1, true)
+  if not open_end then return nil end
+  local open_tag = document:sub(1, open_end - 1)
+  local body = document:sub(open_end + 1)
+  open_tag = open_tag:gsub("%s*viewbox=", " viewBox=")
+  local width, height = open_tag:match('viewBox%s*=%s*"[%d%.%-]+%s+[%d%.%-]+%s+([%d%.%-]+)%s+([%d%.%-]+)"')
+  if not width then
+    width, height = open_tag:match("viewBox%s*=%s*'[%d%.%-]+%s+[%d%.%-]+%s+([%d%.%-]+)%s+([%d%.%-]+)'")
+  end
+  if not width then return nil end
+  open_tag = open_tag:gsub('%s*width%s*=%s*"[^"]*"', "")
+  open_tag = open_tag:gsub("%s*width%s*=%s*'[^']*'", "")
+  open_tag = open_tag:gsub('%s*height%s*=%s*"[^"]*"', "")
+  open_tag = open_tag:gsub("%s*height%s*=%s*'[^']*'", "")
+  open_tag = open_tag:gsub('%s*style%s*=%s*"[^"]*"', "")
+  return open_tag .. string.format(' width="%s" height="%s">', width, height) .. body
+end
+
+local function with_temp_mermaid(source, temp_name, mermaid_format, collect)
+  local ok, result = pcall(pandoc.system.with_temporary_directory, temp_name, function(directory)
+    local input = pandoc.path.join({directory, "diagram.qmd"})
+    local output = io.open(input, "wb")
+    if not output then return {error = "temporary source"} end
+    output:write("---\nmermaid-format: ", mermaid_format, "\nformat: html\n---\n\n```{mermaid}\n", source, "\n```\n")
+    output:close()
+    local rendered = pandoc.system.with_working_directory(directory, function()
+      return pcall(pandoc.pipe, quarto.config.cli_path(), {"render", "diagram.qmd", "--to", "html", "--output", "diagram.html"}, "")
+    end)
+    if not rendered then return {error = "render failed"} end
+    return collect(directory)
+  end)
+  if not ok then return nil, pandoc.utils.stringify(result) end
+  if type(result) ~= "table" or result.error then
+    return nil, (type(result) == "table" and result.error) or "render failed"
+  end
+  return result.data
+end
+
+local function collect_temp_html(directory)
+  local f = io.open(pandoc.path.join({directory, "diagram.html"}), "rb")
+  if not f then return {error = "no html output"} end
+  local html = f:read("*a"); f:close()
+  return {data = html}
+end
+
+local function collect_temp_png(directory)
+  local f = io.open(pandoc.path.join({directory, "diagram_files", "figure-html", "mermaid-figure-1.png"}), "rb")
+  if not f then return {error = "no png"} end
+  local contents = f:read("*a"); f:close()
+  return {data = contents}
+end
+
+local function escape_html_attr(value)
+  return (value:gsub("[&<\"]", {["&"] = "&amp;", ["<"] = "&lt;", ['"'] = "&quot;"}))
+end
+
+-- Every inline Mermaid SVG carries the same internal ids (node ids, edge-label
+-- ids, the root figure id, and CSS scoped by that root id), so two diagrams on
+-- one page would collide. Prefix every known id and its #references, longest
+-- first so a shorter id can never match inside a prefixed longer one.
+local function namespace_svg_ids(svg, prefix)
+  local ids = {}
+  for id in svg:gmatch('%sid="([^"]+)"') do ids[#ids + 1] = id end
+  table.sort(ids, function(a, b) return #a > #b end)
+  for _, id in ipairs(ids) do
+    local escaped = id:gsub("%W", "%%%0")
+    svg = svg:gsub('id="' .. escaped .. '"', 'id="' .. prefix .. id .. '"')
+    svg = svg:gsub("#" .. escaped, "#" .. prefix .. id)
+  end
+  return svg
+end
+
+local inline_svg_cache = {}
+
+function M.mermaid_inline_svg(source, description, class_name)
+  local digest = pandoc.utils.sha1(source)
+  local svg = inline_svg_cache[digest]
+  if not svg then
+    local html = with_temp_mermaid(source, "quarto-needs-svg", "svg", collect_temp_html)
+    svg = html and normalize_mermaid_svg(html)
+    if not svg then return nil end
+    inline_svg_cache[digest] = svg
+  end
+  svg = namespace_svg_ids(svg, M.reserve_view_id("need-svg") .. "-")
+  local open_end = svg:find(">", 1, true)
+  if not open_end then return nil end
+  local open_tag = svg:sub(1, open_end - 1)
+  local body = svg:sub(open_end + 1)
+  if class_name and class_name ~= "" then
+    if open_tag:find('class="') then
+      open_tag = open_tag:gsub('class="', 'class="' .. class_name .. " ", 1)
+    else
+      open_tag = open_tag .. ' class="' .. class_name .. '"'
+    end
+  end
+  open_tag = open_tag:gsub('%s*role="[^"]*"', "")
+  local extras = ' role="img"'
+  if description and description ~= "" then
+    extras = extras .. ' aria-label="' .. escape_html_attr(description) .. '"'
+  end
+  return open_tag .. extras .. ' style="max-width:100%;height:auto">' .. body
+end
+
+local mermaid_assets = {}
+
+function M.render_mermaid_asset(source, prefix)
+  local digest = pandoc.utils.sha1(source)
+  local cached = mermaid_assets[digest]
+  if cached then
+    pandoc.mediabag.insert(cached.name, "image/png", cached.data)
+    return cached.name
+  end
+  local data = with_temp_mermaid(source, prefix, "png", collect_temp_png)
+  if not data then return nil, "mermaid render failed" end
+  local name = prefix .. "-" .. digest .. ".png"
+  pandoc.mediabag.insert(name, "image/png", data)
+  mermaid_assets[digest] = {name = name, data = data}
+  return name
+end
+
 local function current_input()
   local input
   local ok, declared = pcall(function() return quarto.doc.input_file end)

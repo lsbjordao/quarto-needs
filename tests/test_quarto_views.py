@@ -29,7 +29,7 @@ def render_views(tmp_path: Path) -> str:
         text=True,
         capture_output=True,
     )
-    assert not (project / "flow.html").exists(), "need-flow leaked its temporary renderer output"
+    assert not (project / "diagram.html").exists(), "need-flow leaked its temporary renderer output"
     return (project / "_site" / "index.html").read_text(encoding="utf-8")
 
 
@@ -217,16 +217,62 @@ def test_need_table_search_and_sort_work_in_chromium(tmp_path: Path):
 
 @pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
 def test_matrix_and_flow_render_relation_links(tmp_path: Path):
-    """The flow is a rendered Mermaid image, never an unprocessed code block."""
+    """The flow is a rendered Mermaid diagram, never an unprocessed code block."""
     html = render_views(tmp_path)
 
     matrix = html.split('id="verification-matrix"', 1)[1].split("</table>", 1)[0]
     assert "REQ-APPROVED" in matrix
     assert "TC-LOGIN" in matrix
     assert "verified-by" in html
-    assert re.search(r'<img[^>]+src="[^"]+\.png"[^>]+class="[^"]*need-flow', html)
+    assert re.search(r'<div class="need-flow-scroll">\s*<svg[^>]*class="[^"]*need-flow', html)
     assert '<pre class="mermaid' not in html
     assert "flowchart TD" not in html
+
+
+def extract_inline_need_flow_svgs(html: str) -> list[str]:
+    """Return the raw <svg>...</svg> markup of every inline need-flow diagram."""
+    svgs = []
+    for match in re.finditer(r'<svg\b[^>]*\bclass="[^"]*need-flow[^"]*"', html):
+        end = html.find("</svg>", match.start())
+        svgs.append(html[match.start() : end + len("</svg>")])
+    return svgs
+
+
+@pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
+def test_flow_svg_is_well_formed_and_keeps_full_view_box(tmp_path: Path):
+    """HTML embeds the diagram as an inline SVG whose width/height match the viewBox.
+
+    Quarto's mermaid-to-PNG pipeline screenshots through headless Chrome with
+    the default ~800px viewport, and diagrams wider than that get cut at the
+    right and bottom edges. The inline SVG keeps its intrinsic dimensions so
+    the whole diagram is always present, and carries namespaced ids so two
+    diagrams on one page cannot collide. Labels live in <foreignObject>
+    (Mermaid's default), which only renders reliably when the SVG is inlined
+    rather than loaded through <img>. Attribute names are matched
+    case-insensitively because Quarto's HTML post-processing lowercases them
+    (the browser parser restores SVG casing per the HTML spec).
+    """
+    html = render_views(tmp_path)
+
+    diagrams = extract_inline_need_flow_svgs(html)
+    assert diagrams, "expected the need-flow diagram to be inlined as SVG"
+
+    root_ids = []
+    for diagram in diagrams:
+        root_tag = diagram[: diagram.find(">")]
+        view_box = re.search(r'\bviewbox\s*=\s*"([^"]+)"', root_tag, re.IGNORECASE)
+        assert view_box, "inline diagram must declare a viewBox"
+        parts = view_box.group(1).split()
+        assert len(parts) == 4
+        width = re.search(r'\bwidth\s*=\s*"' + re.escape(parts[2]) + '"', root_tag, re.IGNORECASE)
+        height = re.search(r'\bheight\s*=\s*"' + re.escape(parts[3]) + '"', root_tag, re.IGNORECASE)
+        assert width and height, "inline diagram width/height must match the viewBox"
+        assert re.search(r'\brole\s*=\s*"img"', root_tag, re.IGNORECASE)
+        assert re.search(r'\bforeignobject\b', diagram, re.IGNORECASE)
+        id_attr = re.search(r'\bid\s*=\s*"([^"]+)"', root_tag, re.IGNORECASE)
+        assert id_attr, "inline diagram must carry a namespaced root id"
+        root_ids.append(id_attr.group(1))
+    assert len(root_ids) == len(set(root_ids)), "inline diagram ids must be unique"
 
 
 @pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")

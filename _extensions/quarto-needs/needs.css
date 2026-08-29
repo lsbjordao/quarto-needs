@@ -113,7 +113,8 @@ div:has(> table.need-matrix) {
   overflow-x: auto;
   overscroll-behavior-inline: contain;
 }
-.need-flow-scroll img.need-flow {
+.need-flow-scroll img.need-flow,
+.need-flow-scroll svg.need-flow {
   max-width: 100%;
   height: auto;
   display: block;
