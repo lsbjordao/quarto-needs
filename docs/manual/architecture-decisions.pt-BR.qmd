@@ -29,6 +29,7 @@ As formas inversas `addressed-by`, `confirms` e `superseded-by` pertencem às me
 ```markdown
 ::: {.need #ADR-007 type="architecture-decision" status="accepted"}
 date: 2026-08-28
+revisit-after: 2027-08-28
 decision-makers: Architecture Team
 addresses: NFR-003;RISK-002
 applies-to: COMP-004;IF-003
@@ -59,6 +60,8 @@ tags: audit;privacy
 
 Campos usados por consultas e regras ficam estruturados. Contexto, alternativas, resultado e consequências permanecem em Markdown. A estrutura narrativa é compatível com práticas de ADR como MADR sem acoplar o núcleo a uma única apresentação textual.
 
+`revisit-after` é opcional. Use-o para decisões cuja validade deva ser reconsiderada após uma data conhecida — por exemplo, restrições tecnológicas temporárias, arquiteturas de transição ou decisões vinculadas a um padrão externo. Ele não substitui `superseded`: uma revisão pode concluir que a decisão existente continua válida.
+
 ## Seleção e filtragem de ADRs
 
 As decisões arquiteturais podem ser apresentadas como um catálogo filtrado com `adr-table`, ou contadas com `adr-count`. Os filtros podem ser combinados por status do lifecycle, tags, decisores e intervalos de datas ISO; `date-sort` controla a ordenação cronológica.
@@ -70,6 +73,14 @@ Decisões aceitas: {{< adr-count status="accepted" >}}
 ```
 
 Os seletores disponíveis são `status`, `tags`, `decision-makers`, `date-from`, `date-to` e `query`. As colunas padrão são `id`, `title`, `status`, `date`, `decision-makers` e `tags`.
+
+Named queries também são materializadas como projeções de grafo reutilizáveis. Se o projeto declarar uma query chamada `accepted-decisions`, a mesma seleção avaliada pelo Python pode ser explorada sem reescrever o filtro em Lua:
+
+```markdown
+{{< need-graph query="accepted-decisions" >}}
+```
+
+`view="accepted-decisions"` é uma forma equivalente orientada à apresentação. A avaliação da query continua pertencendo exclusivamente ao core Python.
 
 ## Lifecycle
 
@@ -85,7 +96,7 @@ Uma decisão `superseded` deve manter lineage explícito. A substituta aponta pa
 
 ## Regras DEC
 
-A implementação inicial inclui:
+A implementação inclui:
 
 | Código | Verificação |
 |---|---|
@@ -94,8 +105,9 @@ A implementação inicial inclui:
 | `DEC003` | decisão aceita deve declarar confirmação (`confirmed-by`) |
 | `DEC004` | decisão marcada `superseded` precisa de lineage consistente |
 | `DEC005` | o grafo de supersessão de decisões deve ser acíclico |
+| `DEC006` | decisão aceita com `revisit-after` é reportada quando sua data de revisão está vencida ou é inválida |
 
-Metadados obrigatórios, como data e decisores, permanecem cobertos pela política `required-attributes`. As regras são configuráveis pelo mesmo mecanismo usado pelas regras `REQxxx`.
+Metadados obrigatórios, como data e decisores, permanecem cobertos pela política `required-attributes`. As regras são configuráveis pelo mesmo mecanismo usado pelas regras `REQxxx`. Achados dependentes de data usam o mesmo mecanismo de data de referência reproduzível do vencimento de evidências (`SOURCE_DATE_EPOCH` quando fornecido).
 
 ## Impacto
 
