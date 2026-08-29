@@ -17,31 +17,9 @@
     },
   });
 
-  // Hierarchy semantics. source_to_target means source=parent,target=child;
-  // target_to_source means target=parent,source=child. Symmetric/non-lineage
-  // relations are omitted deliberately.
-  const RELATION_DIRECTION = {
-    "derives-from": "target_to_source",
-    refines: "target_to_source",
-    "depends-on": "target_to_source",
-    implements: "target_to_source",
-    "implemented-by": "source_to_target",
-    verifies: "target_to_source",
-    "verified-by": "source_to_target",
-    "validated-by": "source_to_target",
-    mitigates: "target_to_source",
-    evidences: "target_to_source",
-    "evidenced-by": "source_to_target",
-    addresses: "target_to_source",
-    "addressed-by": "source_to_target",
-    "applies-to": "source_to_target",
-    supersedes: "target_to_source",
-    "superseded-by": "source_to_target",
-    "confirmed-by": "source_to_target",
-    confirms: "target_to_source",
-  };
-
   // Keep the adjustable layout aligned with graph.js's engineering hierarchy.
+  // This map is presentation policy only; engineering relation semantics come
+  // exclusively from the public projection emitted by the Python core.
   const TYPE_LEVEL_MAP = {
     "stakeholder-need": 0,
     stakeholder: 0,
@@ -65,18 +43,31 @@
   const SPACING_STEP = 10;
   const isPt = () => String(document.documentElement.lang || "").toLowerCase().startsWith("pt");
 
-  function directRelatives(cy, nodeId, kind) {
+  function projectionFor(container) {
+    const script = container.querySelector("[data-need-graph-data]");
+    if (!script) return {};
+    try {
+      return JSON.parse(script.textContent || "{}");
+    } catch (_error) {
+      return {};
+    }
+  }
+
+  function directRelatives(cy, semantics, nodeId, kind) {
     const ids = new Set();
     cy.edges().forEach((edge) => {
-      const direction = RELATION_DIRECTION[String(edge.data("relation") || "")];
-      if (!direction) return;
+      const relation = String(edge.data("relation") || "");
+      const definition = semantics[relation] || {};
+      const direction = String(definition.traversalDirection || "none");
+      if (direction === "none") return;
+
       const source = edge.source().id();
       const target = edge.target().id();
-
-      if (direction === "source_to_target") {
+      if (direction === "source_to_target" || direction === "both") {
         if (kind === "parents" && target === nodeId) ids.add(source);
         if (kind === "children" && source === nodeId) ids.add(target);
-      } else {
+      }
+      if (direction === "target_to_source" || direction === "both") {
         if (kind === "parents" && source === nodeId) ids.add(target);
         if (kind === "children" && target === nodeId) ids.add(source);
       }
@@ -84,7 +75,7 @@
     return ids;
   }
 
-  function recursiveRelatives(cy, nodeId, kind) {
+  function recursiveRelatives(cy, semantics, nodeId, kind) {
     const visited = new Set([nodeId]);
     const result = new Set();
     let frontier = [nodeId];
@@ -92,7 +83,7 @@
     while (frontier.length) {
       const next = [];
       frontier.forEach((current) => {
-        directRelatives(cy, current, kind).forEach((id) => {
+        directRelatives(cy, semantics, current, kind).forEach((id) => {
           if (visited.has(id)) return;
           visited.add(id);
           result.add(id);
@@ -180,6 +171,9 @@
     const cy = registry.get(canvas);
     if (!cy) return false;
 
+    const projection = projectionFor(container);
+    const relationSemantics = projection.relationSemantics || {};
+
     container.dataset.needGraphContextReady = "true";
     const parents = makeToggle("parents", isPt() ? "Pais" : "Parents");
     const children = makeToggle("children", isPt() ? "Filhos" : "Children");
@@ -203,7 +197,7 @@
     const collapseHiddenIds = () => {
       const hidden = new Set();
       collapsed.forEach((id) => {
-        recursiveRelatives(cy, id, "children").forEach((child) => hidden.add(child));
+        recursiveRelatives(cy, relationSemantics, id, "children").forEach((child) => hidden.add(child));
       });
       return hidden;
     };
@@ -273,10 +267,10 @@
 
       const visible = new Set([selectedNodeId]);
       if (parents.input.checked) {
-        recursiveRelatives(cy, selectedNodeId, "parents").forEach((id) => visible.add(id));
+        recursiveRelatives(cy, relationSemantics, selectedNodeId, "parents").forEach((id) => visible.add(id));
       }
       if (children.input.checked) {
-        recursiveRelatives(cy, selectedNodeId, "children").forEach((id) => visible.add(id));
+        recursiveRelatives(cy, relationSemantics, selectedNodeId, "children").forEach((id) => visible.add(id));
       }
       const hidden = collapseHiddenIds();
       hidden.delete(selectedNodeId);
@@ -301,7 +295,7 @@
     };
 
     const toggleCollapse = (nodeId) => {
-      const descendants = recursiveRelatives(cy, nodeId, "children");
+      const descendants = recursiveRelatives(cy, relationSemantics, nodeId, "children");
       if (!descendants.size) return;
       if (collapsed.has(nodeId)) {
         collapsed.delete(nodeId);
