@@ -279,7 +279,7 @@ function M.table(headers, rows, classes)
   local function cell_blocks(value)
     if type(value) == "table" and value.t then return {pandoc.Plain({value})} end
     if type(value) == "table" and value[1] and value[1].t then return {pandoc.Plain(value)} end
-    return {pandoc.Plain({pandoc.Str(text(value))})
+    return {pandoc.Plain({pandoc.Str(text(value))})}
   end
   local header_cells, body_rows = {}, {}
   for _, value in ipairs(headers) do table.insert(header_cells, cell_blocks(value)) end
