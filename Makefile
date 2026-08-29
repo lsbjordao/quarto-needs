@@ -38,15 +38,19 @@ check-example:
 
 render-example:
 	Rscript tools/render_multilingual.R examples/book
+	$(VENV_PYTHON) tools/normalize_multilingual_output.py examples/book/_book --locale pt-BR
 
 render-example-multilingual:
 	Rscript tools/render_multilingual.R examples/book
+	$(VENV_PYTHON) tools/normalize_multilingual_output.py examples/book/_book --locale pt-BR
 
 render-manual-multilingual:
 	Rscript tools/render_multilingual.R docs/manual
+	$(VENV_PYTHON) tools/normalize_multilingual_output.py docs/manual/_book --locale pt-BR
 
 render-example-all:
 	Rscript tools/render_multilingual.R examples/book
+	$(VENV_PYTHON) tools/normalize_multilingual_output.py examples/book/_book --locale pt-BR
 	quarto render examples/book --to docx
 	quarto render examples/book --to pdf
 
