@@ -256,6 +256,7 @@ def _records(
                     source_role=kind.source_role,
                     target_role=kind.target_role,
                     impact_direction=kind.impact_direction,
+                    traversal_direction=kind.traversal_direction,
                     attributes=token.attributes,
                     provenance=(token.location,)
                     if token.location is not None
