@@ -246,9 +246,10 @@ def test_flow_svg_is_well_formed_and_keeps_full_view_box(tmp_path: Path):
     the default ~800px viewport, and diagrams wider than that get cut at the
     right and bottom edges. The inline SVG keeps its intrinsic dimensions so
     the whole diagram is always present, and carries namespaced ids so two
-    diagrams on one page cannot collide. Labels live in <foreignObject>
-    (Mermaid's default), which only renders reliably when the SVG is inlined
-    rather than loaded through <img>. Attribute names are matched
+    diagrams on one page cannot collide. Labels are rendered as plain SVG
+    text (htmlLabels:false) because Mermaid mismeasures wrapped
+    <foreignObject> labels, which would leave node text invisible once
+    inlined. Attribute names are matched
     case-insensitively because Quarto's HTML post-processing lowercases them
     (the browser parser restores SVG casing per the HTML spec).
     """
@@ -268,7 +269,10 @@ def test_flow_svg_is_well_formed_and_keeps_full_view_box(tmp_path: Path):
         height = re.search(r'\bheight\s*=\s*"' + re.escape(parts[3]) + '"', root_tag, re.IGNORECASE)
         assert width and height, "inline diagram width/height must match the viewBox"
         assert re.search(r'\brole\s*=\s*"img"', root_tag, re.IGNORECASE)
-        assert re.search(r'\bforeignobject\b', diagram, re.IGNORECASE)
+        # Node labels must be plain SVG <text> (htmlLabels:false). Mermaid
+        # mismeasures wrapped <foreignObject> labels, and inlined clipped
+        # foreignObject text is exactly the invisible-label bug.
+        assert re.search(r"<text[\s>]", diagram), "node labels must render as SVG text"
         id_attr = re.search(r'\bid\s*=\s*"([^"]+)"', root_tag, re.IGNORECASE)
         assert id_attr, "inline diagram must carry a namespaced root id"
         root_ids.append(id_attr.group(1))

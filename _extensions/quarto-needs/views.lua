@@ -183,11 +183,16 @@ local function normalize_mermaid_svg(html)
 end
 
 local function with_temp_mermaid(source, temp_name, mermaid_format, collect)
+  -- htmlLabels:false renders labels as plain SVG <text> instead of HTML in
+  -- <foreignObject>. Mermaid 11 mismeasures wrapped <foreignObject> labels,
+  -- emitting boxes shorter than their text; inlined into a page, that clips
+  -- node labels to invisible. Text labels cannot be clipped this way.
+  local labeled = "%%{init: {\"htmlLabels\": false}}%%\n" .. source
   local ok, result = pcall(pandoc.system.with_temporary_directory, temp_name, function(directory)
     local input = pandoc.path.join({directory, "diagram.qmd"})
     local output = io.open(input, "wb")
     if not output then return {error = "temporary source"} end
-    output:write("---\nmermaid-format: ", mermaid_format, "\nformat: html\n---\n\n```{mermaid}\n", source, "\n```\n")
+    output:write("---\nmermaid-format: ", mermaid_format, "\nformat: html\n---\n\n```{mermaid}\n", labeled, "\n```\n")
     output:close()
     local rendered = pandoc.system.with_working_directory(directory, function()
       return pcall(pandoc.pipe, quarto.config.cli_path(), {"render", "diagram.qmd", "--to", "html", "--output", "diagram.html"}, "")
