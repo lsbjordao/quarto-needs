@@ -111,6 +111,9 @@ end
 local function projected_copy(projection, nodes, edges)
   return {
     schemaVersion = projection.schemaVersion,
+    relationCatalogVersion = projection.relationCatalogVersion,
+    relationSemantics = projection.relationSemantics,
+    typeRoles = projection.typeRoles,
     nodes = nodes,
     edges = edges,
     view = projection.view,
@@ -149,44 +152,28 @@ local function filter_projection(projection, conditions)
   return projected_copy(projection, nodes, edges)
 end
 
--- Traversal direction for a rooted/downstream view. These directions mirror the
--- dependency semantics in the relation catalog, but intentionally exclude
--- symmetric/non-lineage relations such as conflicts-with and references. For
--- example, SYS-001 derives-from STK-001 is authored SYS -> STK, while a
--- descendant traversal from STK-001 must follow target -> source.
-local descendant_direction = {
-  ["derives-from"] = "target_to_source",
-  ["refines"] = "target_to_source",
-  ["depends-on"] = "target_to_source",
-  ["implements"] = "target_to_source",
-  ["implemented-by"] = "source_to_target",
-  ["verifies"] = "target_to_source",
-  ["verified-by"] = "source_to_target",
-  ["validated-by"] = "source_to_target",
-  ["mitigates"] = "target_to_source",
-  ["evidences"] = "target_to_source",
-  ["evidenced-by"] = "source_to_target",
-  ["addresses"] = "target_to_source",
-  ["addressed-by"] = "source_to_target",
-  ["applies-to"] = "source_to_target",
-  ["supersedes"] = "target_to_source",
-  ["superseded-by"] = "source_to_target",
-  ["confirmed-by"] = "source_to_target",
-  ["confirms"] = "target_to_source",
-}
+local function traversal_direction(projection, relation)
+  local semantics = projection.relationSemantics or {}
+  local definition = semantics[text(relation)]
+  if type(definition) ~= "table" then return "none" end
+  local direction = text(definition.traversalDirection)
+  if direction == "source_to_target" or direction == "target_to_source" or direction == "both" then
+    return direction
+  end
+  return "none"
+end
 
-local function downstream_target(edge, current)
+local function downstream_target(projection, edge, current)
   local source, target = text(edge.source), text(edge.target)
-  local direction = descendant_direction[text(edge.relation)]
-  if direction == "source_to_target" and source == current then return target end
-  if direction == "target_to_source" and target == current then return source end
+  local direction = traversal_direction(projection, edge.relation)
+  if (direction == "source_to_target" or direction == "both") and source == current then return target end
+  if (direction == "target_to_source" or direction == "both") and target == current then return source end
   return nil
 end
 
 -- Restrict an already-public projection to descendants reachable from one root.
--- Traversal is directional: it may move from a driver to requirements and then
--- to implementation/tests/evidence, but it cannot climb back through a shared
--- implementation or requirement and enter an unrelated stakeholder branch.
+-- Engineering direction is resolved by the Python relation catalog and carried
+-- in relationSemantics; this presentation layer never redefines relation meaning.
 local function root_projection(projection, root_id, raw_depth)
   if root_id == "" then return projection end
 
@@ -204,7 +191,7 @@ local function root_projection(projection, root_id, raw_depth)
     local candidates = {}
     for _, edge in ipairs(projection.edges or {}) do
       for current in pairs(frontier) do
-        local next_id = downstream_target(edge, current)
+        local next_id = downstream_target(projection, edge, current)
         if next_id and by_id[next_id] and not selected[next_id] then
           candidates[next_id] = true
         end
