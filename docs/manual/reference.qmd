@@ -65,6 +65,30 @@ Requirement ← addresses ← ADR → applies-to → Component
 ADR-002 ──supersedes──► ADR-001
 ```
 
+## Interactive graph exploration
+
+The HTML `need-graph` view combines text search with semantic exploration controls. **Type** and **Status** filter nodes; **Family** restricts the graph to one canonical relation family. These filters compose with the Parents/Children controls, collapse/expand gestures, and fixed-spacing layout.
+
+**Traversal** selects a canonical semantic profile published by the Python core. The built-in profiles are `traceability`, `derivation`, `architecture`, `decision`, `implementation`, `verification`, and `risk`. A profile does not reinterpret edge direction in JavaScript: it is a family allowlist over the catalog's published `traversalDirection` semantics.
+
+When a node is selected, **Path to root** finds the nearest semantic root through the active traversal profile and highlights the complete root-to-focus path. This explicit path remains visible even when node filters or the Parents checkbox would otherwise hide an ancestor.
+
+Clicking an edge opens its engineering inspector. The inspector shows the canonical relation family, semantic traversal direction, endpoint roles, impact direction, active profile/filter, and safe declaration provenance (`file:line` and anchor when available). Only provenance already present in the analyzed snapshot is published; arbitrary source attributes and absolute filesystem paths are not exposed.
+
+Named queries can also be reused as graph views:
+
+```markdown
+{{< need-graph query="accepted-decisions" >}}
+```
+
+or equivalently:
+
+```markdown
+{{< need-graph view="accepted-decisions" >}}
+```
+
+Complex selection remains owned by the Python query engine; the browser controls are presentation filters over an already materialized, bounded public projection.
+
 ## Accepted ADR checklist
 
 At minimum, an `accepted` decision should have stable identity, date, decision makers, a traceable driver, architectural scope, and planned or executable confirmation. Context, drivers, considered options, outcome, consequences, and confirmation should remain readable in the Markdown body.
