@@ -149,6 +149,7 @@ class RelationRecord:
     source_role: str
     target_role: str
     impact_direction: str
+    traversal_direction: str
     attributes: Mapping[str, object]
     provenance: tuple[LocationRecord, ...]
 
