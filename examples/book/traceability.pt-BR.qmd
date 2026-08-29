@@ -25,4 +25,4 @@ A projeção abaixo é gerada no `build` e renderizada no navegador com Cytoscap
 
 O grafo abaixo mantém `STK-001` e apenas os descendentes de rastreabilidade alcançáveis a partir dele.
 
-{{< need-graph id="need-graph-stk-001" >}}
+{{< need-graph id="need-graph-stk-001" projection="need-graph-1" root="STK-001" depth="10" >}}
