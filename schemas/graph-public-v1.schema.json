@@ -37,6 +37,14 @@
         }
       }
     },
+    "traversalProfiles": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {"type": "string"},
+        "uniqueItems": true
+      }
+    },
     "typeRoles": {
       "type": "object",
       "additionalProperties": {"type": "string"}
@@ -89,7 +97,20 @@
           "relation": {"type": "string"},
           "label": {"type": "string"},
           "change": {"enum": ["added", "removed", "unchanged"]},
-          "pathMember": {"type": "boolean"}
+          "pathMember": {"type": "boolean"},
+          "provenance": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["file", "line"],
+              "properties": {
+                "file": {"type": "string"},
+                "line": {"type": "integer", "minimum": 1},
+                "anchor": {"type": "string"}
+              }
+            }
+          }
         }
       }
     },
