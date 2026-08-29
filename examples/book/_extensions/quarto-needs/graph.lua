@@ -149,8 +149,14 @@ local function filter_projection(projection, conditions)
   return projected_copy(projection, nodes, edges)
 end
 
+-- Restrict an already-public projection to the bounded neighborhood of one
+-- root. This deliberately follows the same undirected reachability semantics as
+-- need-flow: relation direction expresses authored semantics, not visual
+-- parent/child orientation, so either endpoint may be the next descendant in a
+-- traceability chain (for example SYS-001 derives-from STK-001).
 local function root_projection(projection, root_id, raw_depth)
   if root_id == "" then return projection end
+
   local by_id = {}
   for _, node in ipairs(projection.nodes or {}) do by_id[text(node.id)] = node end
   if not by_id[root_id] then return nil, "Unknown need-graph root: " .. root_id end
