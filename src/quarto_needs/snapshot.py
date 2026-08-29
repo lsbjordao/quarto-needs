@@ -149,9 +149,9 @@ class RelationRecord:
     source_role: str
     target_role: str
     impact_direction: str
-    traversal_direction: str
     attributes: Mapping[str, object]
     provenance: tuple[LocationRecord, ...]
+    traversal_direction: str = "none"
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "attributes", _freeze_mapping(self.attributes))
