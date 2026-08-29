@@ -31,13 +31,14 @@ function M.ensure_assets()
   rawset(_G, ASSETS_FLAG, true)
   quarto.doc.add_html_dependency({
     name = "quarto-needs",
-    version = "0.1.4",
+    version = "0.1.5",
     stylesheets = {"needs.css", "graph.css"},
     scripts = {
       "needs.js",
       "vendor/cytoscape/cytoscape.min.js",
       "graph-context.js",
       "graph.js",
+      "graph-explore.js",
     },
   })
 end
