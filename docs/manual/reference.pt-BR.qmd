@@ -65,6 +65,30 @@ Requirement ← addresses ← ADR → applies-to → Component
 ADR-002 ──supersedes──► ADR-001
 ```
 
+## Exploração interativa do grafo
+
+A visão HTML de `need-graph` combina busca textual com controles de exploração semântica. **Tipo** e **Status** filtram nós; **Família** restringe o grafo a uma família canônica de relações. Esses filtros se combinam com Pais/Filhos, os gestos de colapsar/expandir e o layout de espaçamento fixo.
+
+**Travessia** seleciona um perfil semântico canônico publicado pelo core Python. Os perfis incorporados são `traceability`, `derivation`, `architecture`, `decision`, `implementation`, `verification` e `risk`. O perfil não reinterpreta a direção das arestas no JavaScript: ele é uma allowlist de famílias aplicada à semântica `traversalDirection` publicada pelo catálogo.
+
+Depois de selecionar um nó, **Caminho até a raiz** procura a raiz semântica mais próxima segundo o perfil de travessia ativo e destaca o caminho completo da raiz até o nó em foco. Esse caminho explícito permanece visível mesmo quando filtros de nós ou o checkbox Pais normalmente esconderiam um ancestral.
+
+Clicar em uma aresta abre seu inspetor de engenharia. O inspetor apresenta a família canônica da relação, direção semântica de travessia, papéis dos endpoints, direção de impacto, perfil/filtro ativos e a proveniência segura da declaração (`arquivo:linha` e anchor, quando disponível). Apenas a proveniência já existente no snapshot analisado é publicada; atributos arbitrários da fonte e caminhos absolutos do sistema de arquivos não são expostos.
+
+Named queries também podem ser reutilizadas como visões de grafo:
+
+```markdown
+{{< need-graph query="accepted-decisions" >}}
+```
+
+ou, de forma equivalente:
+
+```markdown
+{{< need-graph view="accepted-decisions" >}}
+```
+
+A seleção complexa continua pertencendo ao mecanismo de queries do Python; os controles do navegador são filtros de apresentação sobre uma projeção pública já materializada e limitada.
+
 ## Checklist para ADR aceita
 
 Uma decisão `accepted` deve, no mínimo, ter identidade estável, data, decisores, um driver rastreável, escopo arquitetural e confirmação planejada ou executável. Contexto, drivers, opções consideradas, resultado, consequências e confirmação devem estar legíveis no corpo Markdown.
