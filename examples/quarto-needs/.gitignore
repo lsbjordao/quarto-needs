@@ -4,6 +4,7 @@
 /_extensions/quarto-needs/*
 !/_extensions/quarto-needs/_extension.yml
 !/_extensions/quarto-needs/needs.lua
+!/_extensions/quarto-needs/margin-sidebar.lua
 !/_extensions/quarto-needs/shortcodes.lua
 !/_extensions/quarto-needs/adr-shortcodes.lua
 **/*.quarto_ipynb
