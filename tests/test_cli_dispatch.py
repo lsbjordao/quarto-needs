@@ -48,6 +48,12 @@ def _complete_pytest_payload() -> dict[str, object]:
                 "testCases": ["TC-004"],
             },
             {
+                "nodeid": "tests/test_graph_assets.py::test_margin_sidebar_toggle_stays_entirely_outside_page_toc",
+                "outcome": "passed",
+                "requirements": ["FUN-009"],
+                "testCases": ["TC-014"],
+            },
+            {
                 "nodeid": "tests/test_graph_semantics.py::test_public_projection_publishes_catalog_semantics",
                 "outcome": "passed",
                 "requirements": ["SYS-006", "FUN-008", "NFR-002", "NFR-004"],
@@ -148,7 +154,7 @@ def test_dispatch_delegates_raw_pytest_evidence_to_legacy_cli(tmp_path: Path, ca
     report = json.loads(capsys.readouterr().out)
     assert exit_code == 0
     assert report["provider"] == "pytest"
-    assert report["tests"] == 5
+    assert report["tests"] == 6
     assert report["valid"] is True
 
 
@@ -194,7 +200,7 @@ def test_attest_wraps_pytest_payload_and_result_is_checkable(
     assert exit_code == 0
     assert checked["valid"] is True
     assert checked["attested"] is True
-    assert checked["tests"] == 5
+    assert checked["tests"] == 6
 
 
 def test_attest_wraps_generic_check_payload(tmp_path: Path, capsys) -> None:
