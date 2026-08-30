@@ -42,7 +42,7 @@ A escrita do artefato é opt-in. Execuções pytest comuns não possuem efeitos 
 
 ```bash
 pytest \
-  --quarto-needs-evidence=.quarto-needs/evidence/pytest.json
+  --quarto-needs-evidence=.quarto-needs/evidence/pytest-provider.json
 ```
 
 O mesmo destino pode ser fornecido por `QUARTO_NEEDS_PYTEST_EVIDENCE`.
@@ -71,6 +71,17 @@ Timestamps e durações são excluídos intencionalmente do payload do provider 
 ## Envelope de atestação neutro em relação ao provider
 
 A proveniência da execução pertence a um envelope separado e neutro em relação ao provider, definido por `schemas/evidence-envelope-v1.schema.json`. Isso preserva o payload determinístico do provider enquanto o vincula a um estado concreto do modelo de engenharia.
+
+Crie uma atestação a partir de um payload do provider com:
+
+```bash
+quarto-needs --root . evidence attest \
+  .quarto-needs/evidence/pytest-provider.json \
+  --output .quarto-needs/evidence/pytest.json \
+  --expires-hours 24
+```
+
+`--source-revision` pode ser fornecido explicitamente. No GitHub Actions, `GITHUB_SHA` é capturado automaticamente quando nenhuma revisão explícita é informada.
 
 O envelope registra:
 
@@ -105,13 +116,13 @@ Conceitualmente:
 }
 ```
 
-O envelope é intencionalmente provider-neutral. O pytest é o primeiro provider executável, mas o mesmo contrato de atestação foi desenhado para envolver normalização de JUnit XML, resultados de coverage, verificações de renderização do Quarto, validação por JSON Schema e providers de lint/type-check sem alterar o grafo canônico de engenharia.
+O envelope é intencionalmente provider-neutral. O pytest é o primeiro provider executável, enquanto `evidence-checks-v1` fornece um payload determinístico comum para adapters de JUnit XML, coverage.py, Quarto render, JSON Schema, lint e type-check.
 
 O digest do payload é validado antes da verificação semântica. Portanto, um payload modificado não pode continuar reutilizando silenciosamente uma atestação antiga.
 
 ## Valide a evidência contra o modelo atual
 
-A geração é apenas metade do contrato. O mesmo comando valida tanto o JSON pytest cru quanto um envelope pytest atestado:
+A geração é apenas metade do contrato. O mesmo comando valida artefatos crus de provider e envelopes atestados contra o grafo canônico de engenharia:
 
 ```bash
 quarto-needs evidence check .quarto-needs/evidence/pytest.json
@@ -125,9 +136,9 @@ quarto-needs evidence check \
   --format json
 ```
 
-O comando permanece retrocompatível com `evidence-pytest-v1`. Quando recebe um envelope de atestação, ele também valida a proveniência contra o snapshot atual.
+O comando permanece retrocompatível com `evidence-pytest-v1` cru. Ele também reconhece `evidence-checks-v1` cru ou atestado. Quando recebe uma atestação, valida a proveniência contra o snapshot atual.
 
-A verificação semântica confirma que:
+A verificação semântica do pytest confirma que:
 
 - todo teste executável passou;
 - toda entrada de evidência está vinculada a um caso de teste modelado;
@@ -145,14 +156,14 @@ Para evidência atestada, também são verificados:
 - fingerprint da representação;
 - `generatedAt` válido e não futuro;
 - `expiresAt`, quando presente, ainda válido e posterior a `generatedAt`;
-- revisão de origem, quando um chamador fornece a revisão esperada.
+- quando `GITHUB_SHA` está disponível, concordância entre `sourceRevision` atestada e a revisão corrente do CI.
 
 Assim, a cadeia passa a incluir também o estado exato do grafo que a execução pretende provar:
 
 ```text
 requisito --verified-by--> caso de teste modelado
                               │
-                              │ pytest-nodeid
+                              │ vínculo de execução
                               ▼
                          provider executável
                               │
@@ -195,20 +206,25 @@ Os diagnósticos neutros de atestação usam `EVD2xx`:
 | `EVD210` | evidência expirada |
 | `EVD211` | `expiresAt` anterior a `generatedAt` |
 
+A validação genérica de machine checks usa diagnósticos `EVD3xx`; veja [Providers de evidência de máquina](evidence-providers.qmd).
+
 `EVD107` e `EVD109` formam a barreira recíproca de rastreabilidade: juntos exigem concordância entre os markers executáveis e as relações de verificação do modelo, em vez de aceitar qualquer uma das fontes isoladamente como autoridade suficiente.
 
 Artefatos malformados, não suportados ou com digest inválido são erros de uso/artefato e retornam código `2`. Falhas de I/O retornam `3`. Um artefato estruturalmente legível que diverge do modelo de engenharia, ou cuja atestação esteja obsoleta, retorna `1`.
 
 ## Exemplo autocontido
 
-O estudo de caso autocontido do Quarto-Needs exercita a evidência executável diretamente:
+O estudo de caso autocontido do Quarto-Needs exercita o fluxo completo diretamente:
 
 ```bash
 make evidence-self-example
 ```
 
-Esse alvo executa testes reais representativos de governança de ADR, segurança do grafo público, views nomeadas e análise de impacto; grava `examples/quarto-needs/.quarto-needs/evidence/pytest.json`; e então executa `quarto-needs evidence check` contra o grafo de engenharia autocontido.
+Esse alvo:
 
-O payload pytest cru permanece suportado durante a transição para evidência autocontida atestada. O envelope provider-neutral é o contrato-alvo para novos providers de evidência de máquina e para uso de CI sensível a frescor/proveniência.
+1. executa testes reais representativos de governança de ADR, segurança do grafo público, views nomeadas e análise de impacto;
+2. grava o artefato determinístico do provider em `examples/quarto-needs/.quarto-needs/evidence/pytest-provider.json`;
+3. cria uma atestação com validade de 24 horas em `examples/quarto-needs/.quarto-needs/evidence/pytest.json`, incluindo `GITHUB_SHA` automaticamente no CI;
+4. valida a atestação contra o grafo de engenharia autocontido atual.
 
-`make render-self-example` depende do alvo de evidência, portanto o exemplo não pode ser renderizado com sucesso quando seus vínculos executáveis estiverem inconsistentes.
+`make render-self-example` depende desse alvo, portanto o exemplo não pode ser renderizado com sucesso quando houver fingerprints obsoletos, atestação expirada, revisão de CI divergente ou vínculos executáveis inconsistentes.
