@@ -108,13 +108,21 @@ def test_reqif_is_accepted_by_independent_parser(tmp_path: Path) -> None:
 
 def test_reqif_validates_against_normative_xsd_when_supplied(tmp_path: Path) -> None:
     """Validate against OMG's normative schema without vendoring or downloading it implicitly."""
-    schema_path = os.environ.get("REQIF_12_XSD")
-    if not schema_path:
+    configured_path = os.environ.get("REQIF_12_XSD")
+    if not configured_path:
         pytest.skip("set REQIF_12_XSD to the normative OMG ReqIF 1.2 reqif.xsd")
+
+    schema_path = Path(configured_path).expanduser()
+    if not schema_path.is_file():
+        pytest.fail(
+            "REQIF_12_XSD does not point to an existing file: "
+            f"{schema_path}. Download the normative OMG ReqIF 1.2 reqif.xsd and "
+            "set REQIF_12_XSD to its real local path."
+        )
 
     write_project(tmp_path)
     destination = tmp_path / "requirements.reqif"
     reqif_export.write(destination, build(tmp_path))
 
-    schema = xmlschema.XMLSchema(schema_path)
+    schema = xmlschema.XMLSchema(str(schema_path))
     schema.validate(str(destination))
