@@ -16,9 +16,16 @@ from typing import BinaryIO, Mapping
 from urllib.parse import unquote, urlparse
 
 from .language_service import LanguageService, LanguageServiceError
+from .parser import ATTR_RE, RELATION_KEYS
 from .snapshot import LocationRecord
 
 IDENTIFIER_RE = re.compile(r"[A-Za-z0-9_.:-]+")
+VALUE_CONTEXT_RE = re.compile(
+    r"(?P<key>[A-Za-z0-9_-]+)\s*=\s*[\"']?(?P<prefix>[A-Za-z0-9_.:-]*)$"
+)
+META_CONTEXT_RE = re.compile(
+    r"^\s*(?P<key>[A-Za-z0-9_-]+)\s*:\s*(?P<prefix>[A-Za-z0-9_.:-]*)$"
+)
 
 
 def _path_from_uri(uri: str) -> Path:
@@ -71,6 +78,52 @@ def _identifier_at(path: Path, line: int, character: int) -> str | None:
     return _identifier_in_text(text, line, character)
 
 
+def _type_on_need_line(source: str) -> str | None:
+    for match in ATTR_RE.finditer(source):
+        if match.group(1) != "type":
+            continue
+        return next(value for value in match.groups()[1:] if value is not None)
+    return None
+
+
+def _completion_context(
+    text: str,
+    line: int,
+    character: int,
+) -> tuple[str, set[str] | None, str | None, str | None]:
+    """Return prefix, completion kinds, object type, and relation context.
+
+    The lexical rules deliberately reuse the parser's attribute/relation grammar.
+    ``None`` kinds means broad completion; an empty set means the current value
+    has no safe semantic completion source yet.
+    """
+    lines = text.splitlines()
+    if line < 0 or line >= len(lines):
+        return "", None, None, None
+    source = lines[line]
+    cursor = min(max(character, 0), len(source))
+    before = source[:cursor]
+    value = VALUE_CONTEXT_RE.search(before)
+    if value is not None:
+        key = value.group("key")
+        prefix = value.group("prefix")
+        object_type = _type_on_need_line(source)
+        if key == "type":
+            return prefix, {"type"}, None, None
+        if key == "status":
+            return prefix, {"status"}, object_type, None
+        if key in RELATION_KEYS:
+            return prefix, {"object"}, object_type, key
+        return prefix, set(), object_type, None
+
+    meta = META_CONTEXT_RE.match(before)
+    if meta is not None and meta.group("key") in RELATION_KEYS:
+        return meta.group("prefix"), {"object"}, None, meta.group("key")
+
+    identifier = _identifier_in_text(text, line, character)
+    return identifier or "", None, _type_on_need_line(source), None
+
+
 @dataclass
 class LspSession:
     root: Path
@@ -115,6 +168,14 @@ class LspSession:
             raise ValueError("textDocument.uri is required")
         uri = str(document["uri"])
         return uri, _path_from_uri(uri)
+
+    def _text(self, uri: str, path: Path) -> str:
+        if uri in self.documents:
+            return self.documents[uri]
+        try:
+            return path.read_text(encoding="utf-8")
+        except OSError:
+            return ""
 
     def _identifier(self, uri: str, path: Path, line: int, character: int) -> str | None:
         text = self.documents.get(uri)
@@ -169,14 +230,15 @@ class LspSession:
             uri, path = self._document(values)
             position = values.get("position")
             prefix = ""
+            kinds: set[str] | None = None
+            object_type = None
+            relation = None
             if isinstance(position, Mapping):
-                identifier = self._identifier(
-                    uri,
-                    path,
+                prefix, kinds, object_type, relation = _completion_context(
+                    self._text(uri, path),
                     int(position.get("line", 0)),
                     int(position.get("character", 0)),
                 )
-                prefix = identifier or ""
             kind_map = {"object": 6, "type": 7, "relation": 10, "status": 12}
             return [
                 {
@@ -184,7 +246,12 @@ class LspSession:
                     "kind": kind_map.get(item.kind, 1),
                     "detail": item.detail,
                 }
-                for item in self.service.completions(prefix)
+                for item in self.service.completions(
+                    prefix,
+                    kinds=kinds,
+                    object_type=object_type,
+                    relation=relation,
+                )
             ]
         if method in {"textDocument/hover", "textDocument/definition", "textDocument/references"}:
             uri, path = self._document(values)
