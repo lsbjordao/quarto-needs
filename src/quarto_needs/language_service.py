@@ -126,13 +126,25 @@ class LanguageService:
         *,
         kinds: Iterable[str] | None = None,
         object_type: str | None = None,
+        relation: str | None = None,
     ) -> tuple[CompletionItem, ...]:
         """Return canonical completion candidates, optionally context-filtered."""
         folded = prefix.casefold()
         accepted = set(kinds) if kinds is not None else None
         items: list[CompletionItem] = []
         if accepted is None or "object" in accepted:
+            allowed_target_types: tuple[str, ...] = ()
+            if relation is not None:
+                try:
+                    canonical = DEFAULT_RELATION_CATALOG.resolve(relation).v1_name
+                except ValueError:
+                    canonical = relation
+                policy = self.config.relation_policies.get(canonical)
+                if policy is not None:
+                    allowed_target_types = policy.allowed_target_types
             for record in self.snapshot.objects:
+                if allowed_target_types and record.type not in allowed_target_types:
+                    continue
                 if not folded or record.id.casefold().startswith(folded):
                     items.append(
                         CompletionItem(
@@ -152,12 +164,12 @@ class LanguageService:
                         )
                     )
         if accepted is None or "relation" in accepted:
-            for relation in DEFAULT_RELATION_CATALOG.names:
-                if not folded or relation.casefold().startswith(folded):
-                    kind = DEFAULT_RELATION_CATALOG.resolve(relation)
+            for relation_name in DEFAULT_RELATION_CATALOG.names:
+                if not folded or relation_name.casefold().startswith(folded):
+                    kind = DEFAULT_RELATION_CATALOG.resolve(relation_name)
                     items.append(
                         CompletionItem(
-                            relation,
+                            relation_name,
                             "relation",
                             f"{kind.semantic_family}: {kind.source_role} → {kind.target_role}",
                         )
