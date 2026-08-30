@@ -1,0 +1,113 @@
+# Schemas de atributos por tipo
+
+O Quarto-Needs pode restringir os atributos de um tipo de engenharia configurado com JSON Schema Draft 2020-12. Isso complementa — e não substitui — semânticas de tipo existentes, como prefixos de ID, estados de ciclo de vida, papéis semânticos e `required-attributes`.
+
+## Schemas validam somente atributos
+
+Um `attribute-schema` é avaliado contra o mapa canônico `attributes` de cada objeto correspondente. Ele **não** redefine os campos nativos `id`, `type`, `title`, `status`, `body`, `rationale` nem as relações.
+
+```toml
+[types.non-functional-requirement]
+id-prefix = "NFR-"
+role = "requirement"
+allowed-statuses = ["approved", "deprecated"]
+
+[types.non-functional-requirement.attribute-schema]
+type = "object"
+required = ["priority", "budget-ms"]
+
+[types.non-functional-requirement.attribute-schema.properties.priority]
+enum = ["critical", "high"]
+
+[types.non-functional-requirement.attribute-schema.properties.budget-ms]
+type = "string"
+pattern = "^[1-9][0-9]{0,2}$"
+```
+
+Um objeto cujo `priority` seja `medium`, ou cujo `budget-ms` não corresponda ao padrão, produz um finding `OBJ002`.
+
+## Valores autorados não são convertidos silenciosamente
+
+O Quarto-Needs valida intencionalmente a representação canônica autorada. Atributos inline em QMD são strings, salvo quando outro mecanismo de autoria já produz um valor estruturado. O motor de schemas não converte `"250"` em inteiro `250`, não reinterpreta booleanos e não tenta adivinhar datas.
+
+Por exemplo:
+
+```qmd
+::: {.need #NFR-001 type="non-functional-requirement" status="approved" budget-ms="250"}
+## Orçamento de latência
+...
+:::
+```
+
+Aqui `budget-ms` é a string `"250"`. O schema deve validar essa representação explicitamente, por exemplo com `type = "string"` e um `pattern`.
+
+Isso evita uma segunda interpretação oculta dos metadados autorados e mantém snapshots, fingerprints, consultas e schemas alinhados.
+
+## Findings determinísticos
+
+Violações de schema usam o código nativo `OBJ002`. Os findings incluem:
+
+- ID do objeto de engenharia;
+- tipo do objeto;
+- caminho da instância em formato semelhante a JSON Pointer;
+- caminho no schema;
+- palavra-chave do validador;
+- mensagem de validação.
+
+Múltiplos erros de schema são ordenados deterministicamente antes da emissão.
+
+A severidade padrão é `error` e pode ser governada como qualquer outra regra nativa:
+
+```toml
+[rules.OBJ002]
+severity = "warning"
+```
+
+## Referências seguras
+
+Schemas podem usar referências locais dentro do próprio schema:
+
+```toml
+[types.functional-requirement.attribute-schema]
+"$ref" = "#/$defs/attrs"
+```
+
+Referências externas são rejeitadas durante a carga da configuração:
+
+```toml
+# Rejeitado
+"$ref" = "https://example.com/schema.json"
+```
+
+A mesma restrição se aplica a `$dynamicRef`. Isso impede que a configuração provoque acesso à rede, importe semântica remota mutável ou faça builds offline/reprodutíveis dependerem da disponibilidade de schemas externos.
+
+## Fingerprints e inteligência de mudança
+
+Schemas por tipo fazem parte de `NeedsConfig.canonical_document()`. Portanto, qualquer mudança no schema altera o fingerprint de configuração e participa de:
+
+- compatibilidade de baselines;
+- análise de mudanças por intervalos Git;
+- compatibilidade de atestações de evidência;
+- verificações de reprodutibilidade.
+
+Um endurecimento da governança não pode reutilizar silenciosamente uma atestação produzida sob o schema anterior.
+
+## Exemplo autocontido
+
+O modelo autocontido usa um schema de atributos para objetos `source-module`:
+
+```toml
+[types.source-module.attribute-schema]
+type = "object"
+required = ["path", "language", "layer", "tags"]
+
+[types.source-module.attribute-schema.properties.path]
+type = "string"
+minLength = 1
+```
+
+O schema permanece deliberadamente conservador: ele garante que a rastreabilidade de implementação contenha metadados físicos de origem utilizáveis sem impor uma lista artificialmente fechada de linguagens de programação ou camadas arquiteturais.
+
+## Relação com políticas declarativas
+
+Schemas por tipo respondem perguntas sobre a **forma dos atributos de um único objeto**. Políticas declarativas respondem perguntas sobre **relações entre objetos de engenharia selecionados**. Manter essas responsabilidades separadas torna falhas mais explicáveis e evita transformar uma DSL em linguagem de expressões de uso geral.
