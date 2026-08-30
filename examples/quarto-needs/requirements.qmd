@@ -84,6 +84,16 @@ Public graph projections shall expose only presentation-safe relative source pro
 Explainability benefits from `file:line` provenance, but public projections must not leak absolute paths or arbitrary source content.
 :::
 
+::: {.need #FUN-009 type="functional-requirement" status="approved" priority="medium" tags="quarto;toc;sidebar;usability;progressive-enhancement" derives-from="SYS-002" implemented-by="COMP-EXTENSION" verified-by="TC-014"}
+## Collapse the page margin TOC without obscuring navigation
+
+The HTML extension shall provide an optional persistent control that collapses and restores the page margin table of contents, reclaims content width while collapsed, and positions the expanded-state control entirely outside the TOC so it does not obscure the title or navigation items.
+
+### Rationale
+
+A collapsible margin TOC is only useful if the control itself does not interfere with the navigation surface it manages.
+:::
+
 ## Non-functional requirements
 
 ::: {.need #NFR-001 type="non-functional-requirement" status="approved" priority="critical" tags="determinism;reproducibility;governance" derives-from="SYS-003" implemented-by="COMP-ANALYSIS;COMP-BASELINE" verified-by="TC-013"}
