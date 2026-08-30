@@ -121,6 +121,7 @@ def _self_hosted_snapshot():
 def _self_hosted_records() -> list[dict[str, object]]:
     return [
         {"nodeid": "tests/test_architecture_decisions.py::test_accepted_decision_passes_decision_governance", "outcome": "passed", "requirements": ["SYS-004"], "testCases": ["TC-004"]},
+        {"nodeid": "tests/test_graph_assets.py::test_margin_sidebar_toggle_stays_entirely_outside_page_toc", "outcome": "passed", "requirements": ["FUN-009"], "testCases": ["TC-014"]},
         {"nodeid": "tests/test_graph_semantics.py::test_public_projection_publishes_catalog_semantics", "outcome": "passed", "requirements": ["SYS-006", "FUN-008", "NFR-002", "NFR-004"], "testCases": ["TC-006"]},
         {"nodeid": "tests/test_graph_semantics.py::test_named_query_is_materialized_as_reusable_graph_view", "outcome": "passed", "requirements": ["FUN-003"], "testCases": ["TC-009"]},
         {"nodeid": "tests/test_impact.py::test_editing_a_requirement_impacts_its_verification", "outcome": "passed", "requirements": ["FUN-005"], "testCases": ["TC-011"]},
@@ -135,7 +136,7 @@ def test_machine_evidence_agrees_with_self_hosted_model() -> None:
 
 def test_machine_evidence_reports_model_disagreement() -> None:
     records = _self_hosted_records()
-    records[2] = {"nodeid": "tests/test_wrong.py::test_wrong", "outcome": "failed", "requirements": ["FUN-003", "UNKNOWN-REQ"], "testCases": ["TC-009", "UNKNOWN-TC"]}
+    records[3] = {"nodeid": "tests/test_wrong.py::test_wrong", "outcome": "failed", "requirements": ["FUN-003", "UNKNOWN-REQ"], "testCases": ["TC-009", "UNKNOWN-TC"]}
     payload = build_pytest_evidence(records, provider_version="8.0")
     issues = validate_pytest_evidence(_self_hosted_snapshot(), payload)
     codes = {issue.code for issue in issues}
@@ -154,8 +155,8 @@ def test_machine_evidence_reports_missing_modeled_binding() -> None:
 
 def test_machine_evidence_reports_requirement_omitted_from_bound_test_case() -> None:
     records = _self_hosted_records()
-    records[1] = {
-        **records[1],
+    records[2] = {
+        **records[2],
         "requirements": ["SYS-006", "FUN-008", "NFR-002"],
     }
     payload = build_pytest_evidence(records, provider_version="8.0")
@@ -179,4 +180,4 @@ def test_evidence_check_cli_validates_against_current_graph(tmp_path: Path, caps
     assert exit_code == 0
     assert report["valid"] is True
     assert report["issues"] == []
-    assert report["tests"] == 5
+    assert report["tests"] == 6
