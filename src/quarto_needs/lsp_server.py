@@ -21,6 +21,7 @@ from .diagnostics import Finding
 from .language_service import LanguageService, LanguageServiceError
 from .parser import ATTR_RE, RELATION_KEYS
 from .snapshot import LocationRecord
+from .source_index import SourceSpan, build_source_index
 
 IDENTIFIER_RE = re.compile(r"[A-Za-z0-9_.:-]+")
 VALUE_CONTEXT_RE = re.compile(
@@ -48,6 +49,17 @@ def _range(line: int, *, width: int = 1) -> dict[str, object]:
         "start": {"line": zero, "character": 0},
         "end": {"line": zero, "character": max(1, width)},
     }
+
+
+def _span_range(span: SourceSpan) -> dict[str, object]:
+    return {
+        "start": {"line": span.line, "character": span.start},
+        "end": {"line": span.line, "character": span.end},
+    }
+
+
+def _span_location(root: Path, span: SourceSpan) -> dict[str, object]:
+    return {"uri": _uri(root / span.file), "range": _span_range(span)}
 
 
 def _location(root: Path, location: LocationRecord) -> dict[str, object]:
@@ -146,6 +158,9 @@ class LspSession:
             overlays[relative] = text
         return overlays
 
+    def _index(self) -> Mapping[str, tuple[SourceSpan, ...]]:
+        return build_source_index(self.root, overlays=self._overlays())
+
     def reload(self) -> bool:
         config = load_config(self.root)
         result = analyze_project(
@@ -192,6 +207,19 @@ class LspSession:
         if text is not None:
             return _identifier_in_text(text, line, character)
         return _identifier_at(path, line, character)
+
+    def _semantic_span(
+        self, uri: str, object_id: str, line: int, character: int
+    ) -> SourceSpan | None:
+        path = _path_from_uri(uri)
+        try:
+            relative = path.relative_to(self.root).as_posix()
+        except ValueError:
+            return None
+        for span in self._index().get(object_id, ()):
+            if span.file == relative and span.line == line and span.start <= character <= span.end:
+                return span
+        return None
 
     def diagnostics_for_uri(self, uri: str) -> dict[str, object]:
         path = _path_from_uri(uri)
@@ -251,6 +279,7 @@ class LspSession:
                     "hoverProvider": True,
                     "definitionProvider": True,
                     "referencesProvider": True,
+                    "renameProvider": {"prepareProvider": True},
                     "documentSymbolProvider": True,
                     "workspaceSymbolProvider": True,
                 },
@@ -286,17 +315,20 @@ class LspSession:
                     relation=relation,
                 )
             ]
-        if method in {"textDocument/hover", "textDocument/definition", "textDocument/references"}:
+        if method in {
+            "textDocument/hover",
+            "textDocument/definition",
+            "textDocument/references",
+            "textDocument/prepareRename",
+            "textDocument/rename",
+        }:
             uri, path = self._document(values)
             position = values.get("position")
             if not isinstance(position, Mapping):
                 return None if method != "textDocument/references" else []
-            object_id = self._identifier(
-                uri,
-                path,
-                int(position.get("line", 0)),
-                int(position.get("character", 0)),
-            )
+            line = int(position.get("line", 0))
+            character = int(position.get("character", 0))
+            object_id = self._identifier(uri, path, line, character)
             if not object_id:
                 return None if method != "textDocument/references" else []
             if method == "textDocument/hover":
@@ -322,14 +354,48 @@ class LspSession:
                     f"Relations: {hover.outgoing} outgoing, {hover.incoming} incoming"
                 )
                 return {"contents": {"kind": "markdown", "value": "\n".join(lines)}}
+
+            spans = self._index().get(object_id, ())
             if method == "textDocument/definition":
+                declaration = next((span for span in spans if span.kind == "declaration"), None)
+                if declaration is not None:
+                    return _span_location(self.root, declaration)
                 definition = self.service.definition(object_id)
                 return _location(self.root, definition) if definition else None
-            return [
-                _location(self.root, ref.location)
-                for ref in self.service.references(object_id)
-                if ref.location is not None
-            ]
+
+            if method == "textDocument/references":
+                context = values.get("context")
+                include_declaration = bool(
+                    isinstance(context, Mapping) and context.get("includeDeclaration")
+                )
+                return [
+                    _span_location(self.root, span)
+                    for span in spans
+                    if include_declaration or span.kind != "declaration"
+                ]
+
+            semantic_span = self._semantic_span(uri, object_id, line, character)
+            if semantic_span is None or object_id not in self.service.snapshot.objects_by_id:
+                return None
+            if method == "textDocument/prepareRename":
+                return {
+                    "range": _span_range(semantic_span),
+                    "placeholder": object_id,
+                }
+
+            new_name = values.get("newName")
+            if not isinstance(new_name, str) or IDENTIFIER_RE.fullmatch(new_name) is None:
+                raise ValueError("newName must be a valid Quarto-Needs identifier")
+            if new_name != object_id and new_name in self.service.snapshot.objects_by_id:
+                raise ValueError(f"Cannot rename {object_id} to existing object ID {new_name}")
+            changes: dict[str, list[dict[str, object]]] = {}
+            for span in spans:
+                target_uri = _uri(self.root / span.file)
+                changes.setdefault(target_uri, []).append(
+                    {"range": _span_range(span), "newText": new_name}
+                )
+            return {"changes": changes}
+
         if method == "textDocument/documentSymbol":
             _, path = self._document(values)
             try:
