@@ -568,10 +568,16 @@ def _parse_constraints(raw: object) -> dict[str, Mapping[str, Any]]:
         compiled = compile_graph_constraints(raw)
     except GraphConstraintError as error:
         raise _fail(str(error)) from error
-    return {
-        name: MappingProxyType(dict(spec.to_dict()))
-        for name, spec in compiled.items()
-    }
+    normalized: dict[str, Mapping[str, Any]] = {}
+    for name, spec in compiled.items():
+        payload = dict(spec.to_dict())
+        # For `connected`, omitting relations means any incoming/outgoing edge.
+        # Preserve that semantic distinction through canonical round-trips rather
+        # than serializing an empty list that the bounded grammar rejects.
+        if spec.kind == "connected" and not spec.relations:
+            payload.pop("relations", None)
+        normalized[name] = MappingProxyType(payload)
+    return normalized
 
 
 def embedded_defaults() -> NeedsConfig:
