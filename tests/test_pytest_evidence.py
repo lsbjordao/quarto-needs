@@ -65,6 +65,39 @@ def test_unlinked():
     assert payload["tests"] == [{"nodeid": "test_sample.py::test_linked", "outcome": "passed", "requirements": ["FUN-004"], "testCases": ["TC-010"]}]
 
 
+def test_pytest_plugin_normalizes_xfail_and_xpass_conservatively(pytester, monkeypatch) -> None:
+    monkeypatch.setenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
+    pytester.makepyfile(test_sample='''
+import pytest
+
+@pytest.mark.requirement("FUN-004")
+@pytest.mark.quarto_need_test_case("TC-010")
+@pytest.mark.xfail(reason="known defect")
+def test_expected_failure():
+    assert False
+
+@pytest.mark.requirement("FUN-004")
+@pytest.mark.quarto_need_test_case("TC-010")
+@pytest.mark.xfail(reason="known defect", strict=False)
+def test_unexpected_pass():
+    assert True
+''')
+    pytester.runpytest_subprocess(
+        "-p",
+        "quarto_needs.pytest_plugin",
+        "--quarto-needs-evidence=evidence.json",
+        "-q",
+    )
+    payload = json.loads((pytester.path / "evidence.json").read_text(encoding="utf-8"))
+    Draft202012Validator(SCHEMA).validate(payload)
+    outcomes = {entry["nodeid"]: entry["outcome"] for entry in payload["tests"]}
+    assert outcomes == {
+        "test_sample.py::test_expected_failure": "skipped",
+        "test_sample.py::test_unexpected_pass": "failed",
+    }
+    assert payload["summary"] == {"total": 2, "passed": 0, "failed": 1, "skipped": 1}
+
+
 def test_pytest_plugin_has_no_artifact_side_effect_without_opt_in(pytester, monkeypatch) -> None:
     monkeypatch.setenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
     pytester.makepyfile(test_sample='''
@@ -114,6 +147,23 @@ def test_machine_evidence_reports_missing_modeled_binding() -> None:
     missing = [issue for issue in issues if issue.code == "EVD108"]
     assert [(issue.object_id, issue.nodeid) for issue in missing] == [
         ("TC-011", "tests/test_impact.py::test_editing_a_requirement_impacts_its_verification")
+    ]
+
+
+def test_machine_evidence_reports_requirement_omitted_from_bound_test_case() -> None:
+    records = _self_hosted_records()
+    records[1] = {
+        **records[1],
+        "requirements": ["SYS-006", "FUN-008", "NFR-002"],
+    }
+    payload = build_pytest_evidence(records, provider_version="8.0")
+    issues = validate_pytest_evidence(_self_hosted_snapshot(), payload)
+    missing = [issue for issue in issues if issue.code == "EVD109"]
+    assert [(issue.object_id, issue.nodeid) for issue in missing] == [
+        (
+            "NFR-004",
+            "tests/test_graph_semantics.py::test_public_projection_publishes_catalog_semantics",
+        )
     ]
 
 
