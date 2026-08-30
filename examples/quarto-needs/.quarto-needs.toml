@@ -45,6 +45,12 @@ role = "architecture-element"
 allowed-statuses = ["planned", "implemented", "deprecated"]
 required-attributes = ["tags"]
 
+[types.source-module]
+id-prefix = "SRC-"
+role = "implementation-artifact"
+allowed-statuses = ["implemented", "deprecated"]
+required-attributes = ["path", "language", "layer", "tags"]
+
 [types.risk]
 id-prefix = "RISK-"
 role = "risk"
@@ -70,6 +76,10 @@ allowed-target-types = ["stakeholder-need", "system-requirement"]
 [relations."implemented-by"]
 allowed-source-types = ["system-requirement", "functional-requirement", "non-functional-requirement"]
 allowed-target-types = ["component", "interface"]
+
+[relations."implements"]
+allowed-source-types = ["source-module"]
+allowed-target-types = ["system-requirement", "functional-requirement", "non-functional-requirement"]
 
 [relations."verified-by"]
 allowed-source-types = ["system-requirement", "functional-requirement", "non-functional-requirement"]
@@ -152,9 +162,46 @@ any = [
 ]
 sort = ["id:asc"]
 
+[queries.implementation-surface]
+all = [
+  { field = "type", op = "eq", value = "source-module" },
+]
+sort = ["id:asc"]
+
+[queries.requirement-to-code]
+any = [
+  { field = "type", op = "eq", value = "system-requirement" },
+  { field = "type", op = "eq", value = "functional-requirement" },
+  { field = "type", op = "eq", value = "non-functional-requirement" },
+  { field = "type", op = "eq", value = "source-module" },
+]
+sort = ["id:asc"]
+
+[queries.localization-path]
+any = [
+  { field = "tags", op = "contains", value = "localization" },
+  { field = "tags", op = "contains", value = "i18n" },
+]
+sort = ["id:asc"]
+
+[queries.adr-path]
+any = [
+  { field = "tags", op = "contains", value = "adr" },
+  { field = "tags", op = "contains", value = "decision" },
+]
+sort = ["id:asc"]
+
+[queries.change-analysis]
+any = [
+  { field = "tags", op = "contains", value = "baseline" },
+  { field = "tags", op = "contains", value = "diff" },
+  { field = "tags", op = "contains", value = "impact" },
+]
+sort = ["id:asc"]
+
 [graph]
-max-nodes = 140
-max-edges = 420
+max-nodes = 160
+max-edges = 500
 depth = 3
 layout = "hierarchical"
 seed = 17
