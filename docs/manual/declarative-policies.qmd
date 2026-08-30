@@ -1,0 +1,111 @@
+# Declarative engineering policies
+
+Built-in rules cover stable product semantics, but projects often need organization- or domain-specific governance. Quarto-Needs therefore supports a deliberately bounded declarative policy layer in `.quarto-needs.toml`.
+
+The policy layer is **not** a scripting engine. It cannot execute Python, Lua, JavaScript, shell commands, templates, or arbitrary expressions. A policy composes three semantic capabilities already owned by the core:
+
+1. a named query selects the source objects;
+2. the canonical relation catalog defines the required relation view;
+3. configured type roles optionally constrain the relation target.
+
+## A minimal policy
+
+```toml
+[policies.APPROVED_REQUIRES_TEST]
+scope = "approved-requirements"
+assert-relation = "verified-by"
+target-role = "verification"
+minimum = 1
+severity = "error"
+```
+
+This means: for every object selected by `approved-requirements`, require at least one `verified-by` relation whose target has semantic role `verification`.
+
+A violation becomes an ordinary engineering finding with code:
+
+```text
+POLICY:APPROVED_REQUIRES_TEST
+```
+
+It therefore participates in the same quality reports, Git diffs, PR reports, GitHub projections, and gates as built-in findings.
+
+## Grammar
+
+Each `[policies.<NAME>]` table currently accepts only:
+
+| Key | Required | Meaning |
+|---|---:|---|
+| `scope` | yes | Existing safe named query, including the built-in `approved-requirements` query. |
+| `assert-relation` | yes | Relation name resolved through the canonical relation catalog. |
+| `target-role` | no | Semantic role required on matching targets. |
+| `minimum` | no | Minimum number of matching relations; integer `>= 1`, default `1`. |
+| `severity` | no | `error`, `warning`, or `info`; default `error`. |
+
+Unknown keys are rejected. This is intentional: extending the grammar requires an explicit Quarto-Needs capability rather than silently creating an escape hatch for code execution.
+
+## Named scopes
+
+Policies reuse the existing bounded query language instead of inventing another selector language. For example:
+
+```toml
+[queries.approved-high-nfr]
+all = [
+  { field = "type", op = "eq", value = "non-functional-requirement" },
+  { field = "status", op = "eq", value = "approved" },
+  { field = "priority", op = "in", values = ["critical", "high"] },
+]
+
+[policies.HIGH_NFR_REQUIRES_TEST]
+scope = "approved-high-nfr"
+assert-relation = "verified-by"
+target-role = "verification"
+minimum = 1
+severity = "error"
+```
+
+The query is compiled by the same safe query evaluator used by generated tables and graph views.
+
+## Direct and inverse authoring
+
+Policies describe a logical relation view, not a particular spelling location. If a requirement is linked with:
+
+```text
+FUN-001 --verified-by--> TC-001
+```
+
+or the test authors the inverse:
+
+```text
+TC-001 --verifies--> FUN-001
+```
+
+then a policy asserting `verified-by` sees the same logical relationship. The inverse is derived from the canonical relation catalog; the policy engine does not maintain a second inverse-relation table.
+
+## Configuration fingerprints
+
+Policies are part of `NeedsConfig.canonical_document()`. Changing policy scope, relation, target role, minimum, or severity changes the configuration fingerprint. Consequently:
+
+- baselines can detect policy changes;
+- evidence attestations cannot silently survive a governance change;
+- Git-range analysis can distinguish states governed by different policy configurations.
+
+This is why policies are not loaded as an external side file or applied only inside CI.
+
+## Self-hosted example
+
+`examples/quarto-needs/.quarto-needs.toml` dogfoods the feature with:
+
+```toml
+[policies.APPROVED_REQUIRES_TEST]
+scope = "approved-requirements"
+assert-relation = "verified-by"
+target-role = "verification"
+minimum = 1
+severity = "error"
+```
+
+The self-hosted model already requires 100% verification coverage. This declarative policy independently expresses the project-specific governance expectation, so a future approved requirement without a verification relation produces `POLICY:APPROVED_REQUIRES_TEST` and blocks the strict quality gate.
+
+## Current boundary
+
+Phase 3.1 intentionally starts with required-relation policies. Later policy phases may add bounded type-schema constraints, graph path/cardinality/cycle constraints, and safe derived values. Those capabilities should extend the canonical policy model rather than add arbitrary expression evaluation.
