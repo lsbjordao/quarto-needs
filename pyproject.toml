@@ -20,6 +20,9 @@ classifiers = [
 [project.scripts]
 quarto-needs = "quarto_needs.cli:main"
 
+[project.entry-points.pytest11]
+quarto-needs = "quarto_needs.pytest_plugin"
+
 [project.optional-dependencies]
 test = [
   "pytest>=8",
