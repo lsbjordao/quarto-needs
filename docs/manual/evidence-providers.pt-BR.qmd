@@ -1,0 +1,109 @@
+# Providers de evidência de máquina
+
+O Quarto-Needs trata ferramentas externas como **providers de evidência**, e não como autoridades semânticas. Os providers reportam fatos de execução; o core em Python decide se esses fatos concordam com o grafo de engenharia.
+
+## Pipeline dos providers
+
+O fluxo provider-neutral é:
+
+```text
+resultado da ferramenta externa
+        │
+        ▼
+adapter do provider
+        │
+        ▼
+payload determinístico evidence-checks-v1
+        │
+        ├── validação semântica contra requisitos/casos de teste/evidências
+        │
+        ▼
+atestação evidence-envelope-v1
+        │
+        ▼
+CI / revisão / projeção Quarto
+```
+
+Adapters de provider nunca alteram arquivos `.qmd` autorados. Eles normalizam resultados de máquina existentes em artefatos versionados sob `.quarto-needs/evidence/`.
+
+## Contrato genérico de checks
+
+`schemas/evidence-checks-v1.schema.json` define o payload comum usado pelos providers que não são pytest. Cada check registra:
+
+- `id` estável;
+- `outcome` normalizado: `passed`, `failed` ou `skipped`;
+- IDs de requisitos vinculados;
+- IDs de casos de teste modelados vinculados;
+- IDs de objetos de evidência modelados vinculados;
+- `details` provider-specific opcionais.
+
+O payload não possui timestamp. Determinismo pertence a esta camada; identidade da execução e frescor pertencem ao envelope de atestação.
+
+## Adapters iniciais
+
+A camada inicial de providers inclui:
+
+| Provider | Entrada | Semântica normalizada |
+|---|---|---|
+| JUnit | JUnit XML | resultado do testcase e propriedades Quarto-Needs opcionais |
+| coverage.py | coverage JSON | limiar explícito de cobertura total |
+| Quarto render | resultado de processo | target renderizado + veredito pelo exit code |
+| JSON Schema | resultados de validação pré-computados | vereditos de validação de schema |
+| lint | resultado de processo | identidade da ferramenta + veredito pelo exit code |
+| type-check | resultado de processo | identidade da ferramenta + veredito pelo exit code |
+
+### Propriedades JUnit
+
+Testcases JUnit podem carregar vínculos com o modelo por properties:
+
+```xml
+<properties>
+  <property name="quarto-needs.requirement" value="FUN-001;NFR-004"/>
+  <property name="quarto-needs.test-case" value="TC-006"/>
+  <property name="quarto-needs.evidence" value="EVD-006"/>
+</properties>
+```
+
+O adapter normaliza IDs separados por vírgula ou ponto e vírgula e preserva ordenação determinística.
+
+### Política de coverage
+
+Coverage não se transforma em evidência apenas porque existe um percentual. O adapter exige um **limiar explícito** fornecido pelo chamador. O payload registra tanto a cobertura observada quanto o limiar usado para derivar o veredito.
+
+### Providers de processo
+
+Os adapters de Quarto render, lint e type-check normalizam o resultado de um processo já executado. Eles não executam comandos por conta própria. Isso mantém a política de execução fora do adapter semântico e evita execução arbitrária de comandos dentro da configuração.
+
+### JSON Schema
+
+O adapter de JSON Schema normaliza resultados de validação já calculados. Ele deliberadamente não resolve nem executa schemas arbitrários e referências remotas por conta própria.
+
+## Validação semântica genérica
+
+`validate_check_evidence()` compara payloads genéricos com o grafo canônico. Por padrão, todo machine check deve estar vinculado a pelo menos um objeto `evidence` modelado.
+
+O verificador checa:
+
+- resultado de máquina aprovado;
+- existência dos IDs de requisito;
+- existência dos IDs de casos de teste modelados;
+- conexão dos requisitos reivindicados aos casos de teste reivindicados pela família semântica de verificação;
+- existência dos objetos de evidência modelados;
+- compatibilidade entre o `provider` declarado pelo objeto de evidência, quando presente, e o provider de máquina;
+- conexão dos objetos de evidência modelados aos casos de teste reivindicados pela família semântica de evidência.
+
+A validação genérica usa diagnósticos `EVD3xx`. Ela é separada dos diagnósticos pytest `EVD1xx` e dos diagnósticos provider-neutral de atestação/frescor `EVD2xx`.
+
+## Fronteira de confiança
+
+Um resultado do provider nunca é suficiente por si só. Evidência positiva de engenharia exige concordância de todas as camadas aplicáveis:
+
+```text
+resultado do provider
+  E rastreabilidade do modelo
+  E vínculo com evidência modelada
+  E estado de grafo/configuração atestado
+  E política de frescor
+```
+
+Essa separação é intencional: uma execução bem-sucedida de ferramenta não pode redefinir silenciosamente qual requisito ela prova.
