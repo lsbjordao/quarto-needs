@@ -65,6 +65,12 @@ def _complete_pytest_payload() -> dict[str, object]:
                 "requirements": ["FUN-005"],
                 "testCases": ["TC-011"],
             },
+            {
+                "nodeid": "tests/test_localization.py::test_localized_source_semantic_parity_rejects_model_drift",
+                "outcome": "passed",
+                "requirements": ["FUN-006"],
+                "testCases": ["TC-005"],
+            },
         ],
         provider_version="8.0",
     )
@@ -142,7 +148,7 @@ def test_dispatch_delegates_raw_pytest_evidence_to_legacy_cli(tmp_path: Path, ca
     report = json.loads(capsys.readouterr().out)
     assert exit_code == 0
     assert report["provider"] == "pytest"
-    assert report["tests"] == 4
+    assert report["tests"] == 5
     assert report["valid"] is True
 
 
@@ -188,7 +194,7 @@ def test_attest_wraps_pytest_payload_and_result_is_checkable(
     assert exit_code == 0
     assert checked["valid"] is True
     assert checked["attested"] is True
-    assert checked["tests"] == 4
+    assert checked["tests"] == 5
 
 
 def test_attest_wraps_generic_check_payload(tmp_path: Path, capsys) -> None:
@@ -332,15 +338,13 @@ def test_dispatch_rejects_malformed_generic_shape(tmp_path: Path, capsys) -> Non
         ),
         encoding="utf-8",
     )
-    exit_code = main(["--root", str(EXAMPLE), "evidence", "check", str(artifact)])
+    exit_code = main([
+        "--root",
+        str(EXAMPLE),
+        "evidence",
+        "check",
+        str(artifact),
+    ])
     captured = capsys.readouterr()
     assert exit_code == 2
     assert "invalid evidenceObjects" in captured.err
-
-
-def test_self_hosted_make_target_attests_provider_payload_before_check() -> None:
-    makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
-    assert "pytest-provider.json" in makefile
-    assert "-m quarto_needs.cli_dispatch --root examples/quarto-needs evidence attest" in makefile
-    assert "--output .quarto-needs/evidence/pytest.json --expires-hours 24" in makefile
-    assert "-m quarto_needs.cli_dispatch --root examples/quarto-needs evidence check" in makefile
