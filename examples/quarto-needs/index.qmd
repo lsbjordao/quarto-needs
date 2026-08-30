@@ -1,0 +1,47 @@
+# Engineering Quarto-Needs with Quarto-Needs
+
+This book is a **self-hosted engineering case study**: Quarto-Needs is used to specify, explain, govern, verify, and explore the engineering of Quarto-Needs itself.
+
+The example is intentionally different from the Aegis IAM showcase. Aegis demonstrates that the tool works in an external application domain. This case study demonstrates how requirements engineering concepts connect inside the product that implements them.
+
+The canonical engineering graph is authored in English. Every chapter has a Brazilian Portuguese sibling (`*.pt-BR.qmd`) that translates titles and narrative while preserving the same IDs, types, statuses, attributes, and relations. The pre-render step rejects semantic drift between languages.
+
+## What to look for
+
+Follow the chain from a real stakeholder need to implementation and evidence:
+
+```text
+Stakeholder need
+      ↓ derives-from
+System requirement
+      ↓
+Functional / non-functional requirement
+      ↓ addresses
+Architecture decision
+      ↓ applies-to
+Component or interface
+      ↓ verified-by
+Test case
+      ↓ evidenced-by
+Evidence
+```
+
+This is not a synthetic taxonomy. The objects describe capabilities and architectural choices that exist in the repository today.
+
+## The learning path
+
+1. **Drivers** introduces stakeholder needs and system requirements.
+2. **Requirements** refines those drivers into functional and quality requirements.
+3. **Architecture** records the components, interfaces, risks, and ADRs that shape the implementation.
+4. **Verification** connects requirements and decisions to executable checks and evidence.
+5. **Traceability** uses the interactive graph as an analysis instrument rather than a static diagram.
+
+## Live overview
+
+The table below is generated from the same engineering graph used by the rest of the book.
+
+{{< need-table types="system-requirement" columns="id;title;status;priority" sort="priority;id" >}}
+
+The graph is progressively enhanced: the static representation remains available, while the HTML view adds semantic traversal, filtering, root paths, edge inspection, collapse/expand, and fixed spacing.
+
+{{< need-graph id="quarto-needs-overview" >}}
