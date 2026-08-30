@@ -101,6 +101,7 @@ class NeedsConfig:
     type_roles: Mapping[str, str] = MappingProxyType({})
     allowed_statuses: Mapping[str, tuple[str, ...]] = MappingProxyType({})
     policy_sources: Mapping[str, Mapping[str, Any]] = MappingProxyType({})
+    attribute_schemas: Mapping[str, Mapping[str, Any]] = MappingProxyType({})
 
     def canonical_document(self) -> dict[str, object]:
         try:
@@ -112,9 +113,13 @@ class NeedsConfig:
                 name: thaw_json(freeze_json(dict(source)))
                 for name, source in sorted(self.policy_sources.items())
             }
+            schemas = {
+                name: thaw_json(freeze_json(dict(source)))
+                for name, source in sorted(self.attribute_schemas.items())
+            }
         except TypeError as error:
             raise _fail(
-                "[queries]/[policies] contains a value that is not valid JSON: "
+                "[queries]/[policies]/attribute-schema contains a value that is not valid JSON: "
                 f"{error}"
             ) from error
 
@@ -123,6 +128,7 @@ class NeedsConfig:
             | set(self.id_prefixes)
             | set(self.type_roles)
             | set(self.allowed_statuses)
+            | set(self.attribute_schemas)
         )
         types: dict[str, object] = {}
         for name in type_names:
@@ -135,6 +141,8 @@ class NeedsConfig:
                 entry["role"] = self.type_roles[name]
             if name in self.allowed_statuses:
                 entry["allowed-statuses"] = list(self.allowed_statuses[name])
+            if name in schemas:
+                entry["attribute-schema"] = schemas[name]
             types[name] = entry
 
         return {
@@ -230,23 +238,32 @@ def _optional_percent(value: object, context: str) -> float | None:
 
 
 def _parse_types(raw: object) -> tuple[
-    dict[str, tuple[str, ...]], dict[str, str], dict[str, str], dict[str, tuple[str, ...]]
+    dict[str, tuple[str, ...]],
+    dict[str, str],
+    dict[str, str],
+    dict[str, tuple[str, ...]],
+    dict[str, Mapping[str, Any]],
 ]:
     if raw is None:
-        return {}, {}, {}, {}
+        return {}, {}, {}, {}, {}
     if not isinstance(raw, dict):
         raise _fail("[types] must be a table")
     required: dict[str, tuple[str, ...]] = {}
     prefixes: dict[str, str] = {}
     roles: dict[str, str] = {}
     statuses: dict[str, tuple[str, ...]] = {}
+    schemas: dict[str, Mapping[str, Any]] = {}
     for name, section in raw.items():
         if not isinstance(name, str) or not name.strip():
             raise _fail("[types.*] keys must be non-empty strings")
         if not isinstance(section, dict):
             raise _fail(f"[types.{name}] must be a table")
         unknown = set(section) - {
-            "required-attributes", "id-prefix", "role", "allowed-statuses"
+            "required-attributes",
+            "id-prefix",
+            "role",
+            "allowed-statuses",
+            "attribute-schema",
         }
         if unknown:
             raise _fail(
@@ -273,7 +290,18 @@ def _parse_types(raw: object) -> tuple[
             if not values:
                 raise _fail(f"[types.{name}] allowed-statuses must not be empty")
             statuses[name] = values
-    return required, prefixes, roles, statuses
+        if "attribute-schema" in section:
+            schema_raw = section["attribute-schema"]
+            if not isinstance(schema_raw, dict):
+                raise _fail(f"[types.{name}] attribute-schema must be a table")
+            from .type_schema import TypeSchemaError, compile_type_schema
+
+            try:
+                spec = compile_type_schema(name, schema_raw)
+            except TypeSchemaError as error:
+                raise _fail(str(error)) from error
+            schemas[name] = MappingProxyType(dict(spec.to_dict()))
+    return required, prefixes, roles, statuses, schemas
 
 
 def _parse_relations(raw: object) -> dict[str, RelationPolicy]:
@@ -511,7 +539,6 @@ def _parse_policies(raw: object) -> dict[str, Mapping[str, Any]]:
     if not isinstance(raw, dict):
         raise _fail("[policies] must be a table")
 
-    # Import lazily to avoid config -> policy -> queries -> config at module load.
     from .policy import PolicyError, compile_policies
 
     try:
@@ -545,6 +572,7 @@ def embedded_defaults() -> NeedsConfig:
         type_roles=MappingProxyType({}),
         allowed_statuses=MappingProxyType({}),
         policy_sources=MappingProxyType({}),
+        attribute_schemas=MappingProxyType({}),
     )
 
 
@@ -573,7 +601,7 @@ def load_config(root: Path) -> NeedsConfig:
     queries = document.get("queries")
     if queries is not None and not isinstance(queries, dict):
         raise _fail("[queries] must be a table of named queries")
-    required, prefixes, roles, statuses = _parse_types(document.get("types"))
+    required, prefixes, roles, statuses, schemas = _parse_types(document.get("types"))
     policies = _parse_policies(document.get("policies"))
 
     return NeedsConfig(
@@ -601,4 +629,5 @@ def load_config(root: Path) -> NeedsConfig:
         type_roles=MappingProxyType(roles),
         allowed_statuses=MappingProxyType(statuses),
         policy_sources=MappingProxyType(policies),
+        attribute_schemas=MappingProxyType(schemas),
     )
