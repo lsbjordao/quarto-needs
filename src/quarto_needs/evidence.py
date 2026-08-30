@@ -149,11 +149,13 @@ def validate_pytest_evidence(
         if not test_cases:
             issues.append(EvidenceIssue("EVD102", f"executable test {nodeid} is not bound to a modeled test-case", nodeid=nodeid))
 
+        known_test_cases: list[str] = []
         for test_case_id in test_cases:
             test_case = snapshot.objects_by_id.get(test_case_id)
             if test_case is None:
                 issues.append(EvidenceIssue("EVD103", f"pytest evidence references unknown test-case {test_case_id}", nodeid=nodeid, object_id=test_case_id))
                 continue
+            known_test_cases.append(test_case_id)
             modeled_nodeid = _attribute(snapshot, test_case_id, "pytest-nodeid")
             if modeled_nodeid is None:
                 issues.append(EvidenceIssue("EVD104", f"modeled test-case {test_case_id} has no pytest-nodeid binding", nodeid=nodeid, object_id=test_case_id))
@@ -168,6 +170,26 @@ def validate_pytest_evidence(
             modeled_targets = {rel.target for rel in snapshot.outgoing.get(requirement_id, ()) if rel.semantic_family == "verification"}
             if test_cases and not any(tc in modeled_targets for tc in test_cases):
                 issues.append(EvidenceIssue("EVD107", f"requirement {requirement_id} is not verified by any test-case bound to {nodeid}", nodeid=nodeid, object_id=requirement_id))
+
+        claimed_requirements = set(requirements)
+        modeled_by_requirement: dict[str, set[str]] = {}
+        for test_case_id in known_test_cases:
+            for relation in snapshot.incoming.get(test_case_id, ()):
+                if relation.semantic_family != "verification":
+                    continue
+                modeled_by_requirement.setdefault(relation.source, set()).add(test_case_id)
+        for requirement_id in sorted(modeled_by_requirement.keys() - claimed_requirements, key=_text_key):
+            modeled_test_cases = ", ".join(
+                sorted(modeled_by_requirement[requirement_id], key=_text_key)
+            )
+            issues.append(
+                EvidenceIssue(
+                    "EVD109",
+                    f"modeled test-case(s) {modeled_test_cases} verify requirement {requirement_id}, but executable test {nodeid} does not claim that requirement",
+                    nodeid=nodeid,
+                    object_id=requirement_id,
+                )
+            )
 
     if require_complete:
         for item in snapshot.objects:
