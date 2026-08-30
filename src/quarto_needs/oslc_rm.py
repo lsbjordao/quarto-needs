@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from types import MappingProxyType
 from typing import Literal, Mapping
 from urllib.parse import quote, urlparse
@@ -28,6 +29,20 @@ OSLC_RELATION_MAP: Mapping[str, str] = MappingProxyType(
 )
 
 TrustState = Literal["trusted", "unverified", "stale", "rejected"]
+CacheDecision = Literal["fresh", "stale-allowed", "stale-rejected"]
+
+
+def _parse_instant(value: str, field: str) -> datetime:
+    normalized = value.strip()
+    if normalized.endswith("Z"):
+        normalized = normalized[:-1] + "+00:00"
+    try:
+        parsed = datetime.fromisoformat(normalized)
+    except ValueError as error:
+        raise ValueError(f"{field} must be an ISO-8601 timestamp") from error
+    if parsed.tzinfo is None:
+        raise ValueError(f"{field} must include a timezone")
+    return parsed.astimezone(timezone.utc)
 
 
 @dataclass(frozen=True, slots=True)
@@ -48,8 +63,40 @@ class ExternalResourceIdentity:
         hex_digest = self.digest.removeprefix("sha256:")
         if any(character not in "0123456789abcdef" for character in hex_digest):
             raise ValueError("digest must use sha256:<64 lowercase hexadecimal digits>")
+        _parse_instant(self.fetched_at, "fetched_at")
         if self.trust_state not in {"trusted", "unverified", "stale", "rejected"}:
             raise ValueError(f"unsupported OSLC trust state: {self.trust_state}")
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "resourceUri": self.resource_uri,
+            "serviceProviderUri": self.service_provider_uri,
+            "digest": self.digest,
+            "fetchedAt": self.fetched_at,
+            "trustState": self.trust_state,
+            "etag": self.etag,
+            "lastModified": self.last_modified,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class CachePolicy:
+    max_age_seconds: int
+    allow_stale: bool = False
+
+    def __post_init__(self) -> None:
+        if self.max_age_seconds < 0:
+            raise ValueError("max_age_seconds must be non-negative")
+
+    def decide(self, identity: ExternalResourceIdentity, *, now: str) -> CacheDecision:
+        fetched = _parse_instant(identity.fetched_at, "fetched_at")
+        current = _parse_instant(now, "now")
+        age = (current - fetched).total_seconds()
+        if age < 0:
+            raise ValueError("now must not precede fetched_at")
+        if age <= self.max_age_seconds:
+            return "fresh"
+        return "stale-allowed" if self.allow_stale else "stale-rejected"
 
 
 def _require_absolute_http_uri(value: str, field: str) -> None:
