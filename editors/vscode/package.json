@@ -1,0 +1,65 @@
+{
+  "name": "quarto-needs-vscode",
+  "displayName": "Quarto-Needs",
+  "description": "Thin VS Code client for the Quarto-Needs language server.",
+  "version": "0.1.0",
+  "private": true,
+  "publisher": "lsbjordao",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Other"
+  ],
+  "activationEvents": [
+    "workspaceContains:.quarto-needs.toml",
+    "onLanguage:quarto",
+    "onLanguage:markdown"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "quartoNeeds.restartLanguageServer",
+        "title": "Quarto-Needs: Restart Language Server"
+      },
+      {
+        "command": "quartoNeeds.showLanguageServerOutput",
+        "title": "Quarto-Needs: Show Language Server Output"
+      }
+    ],
+    "configuration": {
+      "title": "Quarto-Needs",
+      "properties": {
+        "quartoNeeds.server.command": {
+          "type": "string",
+          "default": "quarto-needs",
+          "description": "Executable used to start the Quarto-Needs language server."
+        },
+        "quartoNeeds.server.extraArgs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Additional arguments passed before the `lsp` subcommand."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p .",
+    "check": "tsc -p . --noEmit",
+    "vscode:prepublish": "npm run compile"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/vscode": "^1.95.0",
+    "typescript": "^5.7.2"
+  }
+}
