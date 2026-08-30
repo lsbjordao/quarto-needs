@@ -1,0 +1,102 @@
+# Traceability: investigate the product as an engineering graph
+
+This chapter is where the example becomes self-referential in a useful way. The graph below describes the system that generated the graph, and its exploration controls are themselves requirements, decisions, implementation, tests, and evidence inside that model.
+
+## Start with the complete engineering view
+
+{{< need-graph >}}
+
+Instead of reading this as a single diagram, use the graph as a sequence of engineering questions.
+
+## 1. Where did a requirement come from?
+
+Select a requirement such as `FUN-004`, choose the **derivation** traversal profile, and inspect its parents. The path explains how interactive graph exploration traces back through `SYS-002` / `SYS-006` to stakeholder needs.
+
+A useful reading pattern is:
+
+```text
+stakeholder concern
+      ↓
+system obligation
+      ↓
+refined capability
+```
+
+The important point is that derivation is not inferred from page order. It is an explicit graph relation.
+
+## 2. Why does the architecture look this way?
+
+Choose the **decision** profile and focus on `ADR-004`. The decision does not pretend to implement a requirement. It `addresses` engineering drivers, `applies-to` architecture elements, and is `confirmed-by` verification objects.
+
+{{< need-graph view="architecture-decisions" >}}
+
+This lets an architecture review ask:
+
+- Which requirements or risks motivated this decision?
+- Which component or interface is inside its scope?
+- Which test confirms continued conformance?
+- Does the decision have an explicit review date?
+
+## 3. What proves that a requirement is satisfied?
+
+Choose the **verification** traversal profile and focus on a requirement such as `NFR-002` or `FUN-003`. The engineering chain should lead to a test case and then to evidence.
+
+```text
+Requirement
+   ↓ verified-by
+Test case
+   ↓ evidenced-by
+Evidence
+```
+
+{{< need-graph view="verification-assets" >}}
+
+The distinction matters: a test describes the verification activity; evidence records the durable basis for claiming that the activity succeeded.
+
+## 4. What happens if this object changes?
+
+The same typed relations used for documentation also support baseline comparison and impact propagation. A future version of this case study can therefore show an actual historical change in Quarto-Needs and ask the graph which requirements, decisions, components, tests, and evidence are downstream of it.
+
+That is the deeper purpose of requirements-as-code: version history is interpreted through engineering semantics rather than treated only as textual diff.
+
+## 5. Why is this node visible?
+
+Use **Path to root** after focusing a node. The browser follows the traversal direction published by the Python relation catalog. It does not guess parent/child meaning from Cytoscape edge orientation.
+
+Click an edge to inspect:
+
+- canonical relation;
+- semantic family;
+- semantic traversal direction;
+- source and target roles;
+- impact direction;
+- active traversal context;
+- safe relative declaration provenance.
+
+The inspector is therefore an explanation of the graph, not merely a tooltip.
+
+## 6. Explore one concern at a time
+
+The `graph-exploration` named view demonstrates a reusable semantic selection evaluated by the core:
+
+{{< need-graph view="graph-exploration" >}}
+
+Try combining:
+
+- **Traversal = architecture** with `COMP-GRAPH`;
+- **Traversal = verification** with `TC-010`;
+- **Family = decision-scope** with `ADR-004`;
+- **Type = non-functional-requirement** to isolate quality constraints;
+- **Status = accepted** to isolate active ADRs.
+
+## What this example is intended to become
+
+The case study is not meant to freeze the current implementation. As Quarto-Needs evolves, its own engineering graph should evolve with it. A significant feature can add or change the relevant need, requirement, ADR, component, test, and evidence in the same pull request as the implementation.
+
+That makes this example simultaneously:
+
+1. a tutorial on requirements engineering;
+2. a living architecture description;
+3. an integration fixture;
+4. a demonstration of Quarto-Needs;
+5. the engineering model of Quarto-Needs itself.
