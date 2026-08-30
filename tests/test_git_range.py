@@ -10,6 +10,7 @@ import pytest
 
 from quarto_needs import diff as diff_module
 from quarto_needs import impact as impact_module
+from quarto_needs import suspect as suspect_module
 from quarto_needs.cli_entry import main
 from quarto_needs.git_range import GitRangeError, materialize_git_range, parse_git_range
 
@@ -46,6 +47,25 @@ def _commit(repo: Path, message: str, timestamp: str) -> str:
 def _project(repo: Path) -> Path:
     project = repo / "engineering"
     project.mkdir()
+    (project / ".quarto-needs.toml").write_text(
+        '''profile = "default"
+
+[types.functional-requirement]
+id-prefix = "FUN-"
+role = "requirement"
+allowed-statuses = ["approved"]
+
+[types.test-case]
+id-prefix = "TC-"
+role = "verification"
+allowed-statuses = ["passed"]
+
+[relations."verified-by"]
+allowed-source-types = ["functional-requirement"]
+allowed-target-types = ["test-case"]
+''',
+        encoding="utf-8",
+    )
     (project / "requirements.qmd").write_text(
         '''# Requirements
 
@@ -134,6 +154,29 @@ def test_git_range_materializes_both_states_and_reuses_canonical_diff_impact(tmp
         ("TC-001", ["FUN-001", "TC-001"], ["verified-by"])
     ]
 
+    suspect = suspect_module.analyze(
+        states.base_baseline,
+        states.head_snapshot,
+        states.head_config,
+    )
+    assert suspect.claims == (
+        {
+            "id": "TC-001",
+            "state": "suspect",
+            "origin": "FUN-001",
+            "originChange": "modified",
+            "classification": "direct",
+            "distance": 1,
+            "type": "test-case",
+            "role": "verification",
+            "sourceState": "current",
+            "relations": ["verified-by"],
+            "path": ["FUN-001", "TC-001"],
+            "witness": "FUN-001 --verified-by--> TC-001",
+            "reason": "reachable-from-changed-engineering-object",
+        },
+    )
+
 
 def test_git_range_ignores_wall_clock_source_date_epoch(tmp_path: Path, monkeypatch) -> None:
     _, project, base, head = _repository(tmp_path)
@@ -221,6 +264,41 @@ def test_impact_git_cli_reports_explicit_verification_path(tmp_path: Path, capsy
             "relations": ["verified-by"],
             "path": ["FUN-001", "TC-001"],
             "priority": None,
+        }
+    ]
+
+
+def test_suspect_git_cli_reports_role_and_witness(tmp_path: Path, capsys) -> None:
+    _, project, base, head = _repository(tmp_path)
+    exit_code = main([
+        "--root",
+        str(project),
+        "suspect",
+        "--git",
+        f"{base}..{head}",
+        "--format",
+        "json",
+    ])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload["git"]["baseSha"] == base
+    assert payload["git"]["headSha"] == head
+    assert payload["claims"] == [
+        {
+            "id": "TC-001",
+            "state": "suspect",
+            "origin": "FUN-001",
+            "originChange": "modified",
+            "classification": "direct",
+            "distance": 1,
+            "type": "test-case",
+            "role": "verification",
+            "sourceState": "current",
+            "relations": ["verified-by"],
+            "path": ["FUN-001", "TC-001"],
+            "witness": "FUN-001 --verified-by--> TC-001",
+            "reason": "reachable-from-changed-engineering-object",
         }
     ]
 
