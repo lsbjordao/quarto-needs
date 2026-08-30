@@ -6,6 +6,11 @@
   "private": true,
   "publisher": "lsbjordao",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lsbjordao/quarto-needs.git",
+    "directory": "editors/vscode"
+  },
   "engines": {
     "vscode": "^1.95.0"
   },
@@ -52,6 +57,7 @@
   "scripts": {
     "compile": "tsc -p .",
     "check": "tsc -p . --noEmit",
+    "package": "vsce package --out quarto-needs-vscode.vsix",
     "vscode:prepublish": "npm run compile"
   },
   "dependencies": {
@@ -60,6 +66,7 @@
   "devDependencies": {
     "@types/node": "^22.10.0",
     "@types/vscode": "^1.95.0",
+    "@vscode/vsce": "^3.2.1",
     "typescript": "^5.7.2"
   }
 }
