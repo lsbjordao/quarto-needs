@@ -1,14 +1,15 @@
 """Pure content fingerprints over the canonical snapshot records.
 
 Every fingerprint excludes line numbers, `href` values, generated metrics,
-and any other derived data, so provenance changes and rendering changes can
-never masquerade as semantic ones.
+and any other incidental rendering data. Deterministic derived engineering
+values are semantic projections and therefore participate explicitly in the
+semantic graph fingerprint; named build variants have their own fingerprint.
 """
 from __future__ import annotations
 
 import hashlib
 import json
-from typing import Iterable
+from typing import Iterable, Mapping
 
 from .config import NeedsConfig
 from .rules import RULE_SET_VERSION
@@ -50,11 +51,7 @@ def relation_authored_fingerprint(record: RelationRecord) -> str:
 
 
 def relation_semantic_fingerprint(record: RelationRecord) -> str:
-    """Identity of the edge itself, independent of which end authored it.
-
-    Endpoints are sorted by role, so an alias flip that preserves the roles
-    yields the same fingerprint and is classified as representation-only.
-    """
+    """Identity of the edge itself, independent of which end authored it."""
     endpoints = sorted(
         (
             {"id": record.source, "role": record.source_role},
@@ -87,15 +84,38 @@ def semantic_graph_fingerprint(
     objects: Iterable[ObjectRecord],
     relations: Iterable[RelationRecord],
     configuration: str,
+    derived: Mapping[str, Mapping[str, object]] | None = None,
 ) -> str:
+    canonical_derived = {
+        object_id: {
+            name: thaw_json(value)
+            for name, value in sorted(fields.items())
+        }
+        for object_id, fields in sorted((derived or {}).items())
+    }
     return _digest(
         {
             "objects": sorted(object_content_fingerprint(item) for item in objects),
             "relations": sorted(relation_semantic_fingerprint(item) for item in relations),
             "configuration": configuration,
+            "derived": canonical_derived,
         }
     )
 
 
 def representation_fingerprint(relations: Iterable[RelationRecord]) -> str:
     return _digest(sorted(relation_authored_fingerprint(item) for item in relations))
+
+
+def variant_fingerprint(
+    variants: Mapping[str, tuple[str, ...]], semantic_graph: str
+) -> str:
+    return _digest(
+        {
+            "semanticGraphFingerprint": semantic_graph,
+            "variants": {
+                name: list(ids)
+                for name, ids in sorted(variants.items())
+            },
+        }
+    )
