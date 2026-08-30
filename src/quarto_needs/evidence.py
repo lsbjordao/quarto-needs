@@ -41,62 +41,29 @@ def _text_key(value: str) -> tuple[str, str]:
 def build_pytest_evidence(
     records: Iterable[Mapping[str, Any]], *, provider_version: str
 ) -> dict[str, object]:
-    """Build a deterministic pytest evidence artifact.
-
-    Runtime-only values such as timestamps and durations are intentionally
-    excluded. A later attestation layer may add signed run metadata without
-    changing the stable semantic evidence payload.
-    """
-
+    """Build a deterministic pytest evidence artifact."""
     tests: list[dict[str, object]] = []
     for raw in records:
         nodeid = str(raw["nodeid"])
         outcome = str(raw["outcome"])
-        requirements = tuple(
-            sorted({str(value) for value in raw.get("requirements", ())}, key=_text_key)
-        )
-        test_cases = tuple(
-            sorted({str(value) for value in raw.get("testCases", ())}, key=_text_key)
-        )
-        tests.append(
-            {
-                "nodeid": nodeid,
-                "outcome": outcome,
-                "requirements": list(requirements),
-                "testCases": list(test_cases),
-            }
-        )
-
+        requirements = tuple(sorted({str(v) for v in raw.get("requirements", ())}, key=_text_key))
+        test_cases = tuple(sorted({str(v) for v in raw.get("testCases", ())}, key=_text_key))
+        tests.append({"nodeid": nodeid, "outcome": outcome, "requirements": list(requirements), "testCases": list(test_cases)})
     tests.sort(key=lambda item: _text_key(str(item["nodeid"])))
     counts = Counter(str(item["outcome"]) for item in tests)
     return {
         "schemaVersion": EVIDENCE_SCHEMA_VERSION,
         "provider": "pytest",
         "providerVersion": provider_version,
-        "generator": {
-            "name": "quarto-needs",
-            "version": quarto_needs.__version__,
-        },
-        "summary": {
-            "total": len(tests),
-            "passed": counts.get("passed", 0),
-            "failed": counts.get("failed", 0),
-            "skipped": counts.get("skipped", 0),
-        },
+        "generator": {"name": "quarto-needs", "version": quarto_needs.__version__},
+        "summary": {"total": len(tests), "passed": counts.get("passed", 0), "failed": counts.get("failed", 0), "skipped": counts.get("skipped", 0)},
         "tests": tests,
     }
 
 
 def write_json_atomic(path: Path, payload: Mapping[str, Any]) -> None:
-    """Write a JSON artifact atomically and deterministically."""
-
     path.parent.mkdir(parents=True, exist_ok=True)
-    text = json.dumps(
-        payload,
-        ensure_ascii=False,
-        indent=2,
-        sort_keys=True,
-    ) + "\n"
+    text = json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     fd, temporary = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
     try:
         with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as stream:
@@ -111,8 +78,6 @@ def write_json_atomic(path: Path, payload: Mapping[str, Any]) -> None:
 
 
 def load_pytest_evidence(path: Path) -> dict[str, object]:
-    """Load and minimally validate a pytest evidence artifact without optional deps."""
-
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as error:
@@ -120,9 +85,7 @@ def load_pytest_evidence(path: Path) -> dict[str, object]:
     if not isinstance(payload, dict):
         raise ValueError(f"{path} must contain a JSON object")
     if payload.get("schemaVersion") != EVIDENCE_SCHEMA_VERSION:
-        raise ValueError(
-            f"{path} has unsupported evidence schemaVersion {payload.get('schemaVersion')!r}"
-        )
+        raise ValueError(f"{path} has unsupported evidence schemaVersion {payload.get('schemaVersion')!r}")
     if payload.get("provider") != "pytest":
         raise ValueError(f"{path} is not a pytest evidence artifact")
     if not isinstance(payload.get("providerVersion"), str) or not payload["providerVersion"]:
@@ -146,7 +109,7 @@ def load_pytest_evidence(path: Path) -> dict[str, object]:
         if outcome not in PYTEST_OUTCOMES:
             raise ValueError(f"{path} tests[{index}] has invalid outcome {outcome!r}")
         for key, values in (("requirements", requirements), ("testCases", test_cases)):
-            if not isinstance(values, list) or not all(isinstance(value, str) and value for value in values):
+            if not isinstance(values, list) or not all(isinstance(v, str) and v for v in values):
                 raise ValueError(f"{path} tests[{index}] has invalid {key}")
     return payload
 
@@ -160,108 +123,58 @@ def _attribute(snapshot: AnalysisSnapshot, object_id: str, name: str) -> object 
 
 
 def validate_pytest_evidence(
-    snapshot: AnalysisSnapshot, payload: Mapping[str, object]
+    snapshot: AnalysisSnapshot,
+    payload: Mapping[str, object],
+    *,
+    require_complete: bool = True,
 ) -> tuple[EvidenceIssue, ...]:
     """Check executable pytest evidence against the current engineering graph."""
-
     issues: list[EvidenceIssue] = []
     tests = payload.get("tests", [])
     if not isinstance(tests, list):
         return (EvidenceIssue("EVD001", "pytest evidence has no valid tests array"),)
 
+    observed_test_cases: set[str] = set()
     for raw in tests:
         if not isinstance(raw, Mapping):
             continue
         nodeid = str(raw.get("nodeid", ""))
         outcome = str(raw.get("outcome", ""))
-        requirements = tuple(str(value) for value in raw.get("requirements", ()) if isinstance(value, str))
-        test_cases = tuple(str(value) for value in raw.get("testCases", ()) if isinstance(value, str))
+        requirements = tuple(str(v) for v in raw.get("requirements", ()) if isinstance(v, str))
+        test_cases = tuple(str(v) for v in raw.get("testCases", ()) if isinstance(v, str))
+        observed_test_cases.update(test_cases)
 
         if outcome != "passed":
-            issues.append(
-                EvidenceIssue(
-                    "EVD101",
-                    f"executable test {nodeid} outcome is {outcome}, not passed",
-                    nodeid=nodeid,
-                )
-            )
-
+            issues.append(EvidenceIssue("EVD101", f"executable test {nodeid} outcome is {outcome}, not passed", nodeid=nodeid))
         if not test_cases:
-            issues.append(
-                EvidenceIssue(
-                    "EVD102",
-                    f"executable test {nodeid} is not bound to a modeled test-case",
-                    nodeid=nodeid,
-                )
-            )
+            issues.append(EvidenceIssue("EVD102", f"executable test {nodeid} is not bound to a modeled test-case", nodeid=nodeid))
 
         for test_case_id in test_cases:
             test_case = snapshot.objects_by_id.get(test_case_id)
             if test_case is None:
-                issues.append(
-                    EvidenceIssue(
-                        "EVD103",
-                        f"pytest evidence references unknown test-case {test_case_id}",
-                        nodeid=nodeid,
-                        object_id=test_case_id,
-                    )
-                )
+                issues.append(EvidenceIssue("EVD103", f"pytest evidence references unknown test-case {test_case_id}", nodeid=nodeid, object_id=test_case_id))
                 continue
             modeled_nodeid = _attribute(snapshot, test_case_id, "pytest-nodeid")
             if modeled_nodeid is None:
-                issues.append(
-                    EvidenceIssue(
-                        "EVD104",
-                        f"modeled test-case {test_case_id} has no pytest-nodeid binding",
-                        nodeid=nodeid,
-                        object_id=test_case_id,
-                    )
-                )
+                issues.append(EvidenceIssue("EVD104", f"modeled test-case {test_case_id} has no pytest-nodeid binding", nodeid=nodeid, object_id=test_case_id))
             elif str(modeled_nodeid) != nodeid:
-                issues.append(
-                    EvidenceIssue(
-                        "EVD105",
-                        f"modeled test-case {test_case_id} binds to {modeled_nodeid}, evidence reports {nodeid}",
-                        nodeid=nodeid,
-                        object_id=test_case_id,
-                    )
-                )
+                issues.append(EvidenceIssue("EVD105", f"modeled test-case {test_case_id} binds to {modeled_nodeid}, evidence reports {nodeid}", nodeid=nodeid, object_id=test_case_id))
 
         for requirement_id in requirements:
             requirement = snapshot.objects_by_id.get(requirement_id)
             if requirement is None:
-                issues.append(
-                    EvidenceIssue(
-                        "EVD106",
-                        f"pytest evidence references unknown requirement {requirement_id}",
-                        nodeid=nodeid,
-                        object_id=requirement_id,
-                    )
-                )
+                issues.append(EvidenceIssue("EVD106", f"pytest evidence references unknown requirement {requirement_id}", nodeid=nodeid, object_id=requirement_id))
                 continue
-            modeled_targets = {
-                relation.target
-                for relation in snapshot.outgoing.get(requirement_id, ())
-                if relation.semantic_family == "verification"
-            }
-            if test_cases and not any(test_case_id in modeled_targets for test_case_id in test_cases):
-                issues.append(
-                    EvidenceIssue(
-                        "EVD107",
-                        f"requirement {requirement_id} is not verified by any test-case bound to {nodeid}",
-                        nodeid=nodeid,
-                        object_id=requirement_id,
-                    )
-                )
+            modeled_targets = {rel.target for rel in snapshot.outgoing.get(requirement_id, ()) if rel.semantic_family == "verification"}
+            if test_cases and not any(tc in modeled_targets for tc in test_cases):
+                issues.append(EvidenceIssue("EVD107", f"requirement {requirement_id} is not verified by any test-case bound to {nodeid}", nodeid=nodeid, object_id=requirement_id))
 
-    return tuple(
-        sorted(
-            issues,
-            key=lambda issue: (
-                issue.code,
-                _text_key(issue.object_id or ""),
-                _text_key(issue.nodeid or ""),
-                issue.message,
-            ),
-        )
-    )
+    if require_complete:
+        for item in snapshot.objects:
+            attributes = thaw_json(item.attributes)
+            if not isinstance(attributes, dict) or "pytest-nodeid" not in attributes:
+                continue
+            if item.id not in observed_test_cases:
+                issues.append(EvidenceIssue("EVD108", f"modeled pytest-bound test-case {item.id} is missing from the evidence artifact", nodeid=str(attributes["pytest-nodeid"]), object_id=item.id))
+
+    return tuple(sorted(issues, key=lambda issue: (issue.code, _text_key(issue.object_id or ""), _text_key(issue.nodeid or ""), issue.message)))
