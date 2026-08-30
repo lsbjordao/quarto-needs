@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from dataclasses import replace
 from pathlib import Path
 from typing import cast
@@ -387,6 +387,7 @@ def analyze_project(
     files: Iterable[Path] | None = None,
     *,
     config: NeedsConfig | None = None,
+    overlays: Mapping[str, str] | None = None,
 ) -> AnalysisResult:
     effective_config = config if config is not None else load_config(root)
     if files is None:
@@ -408,7 +409,10 @@ def analyze_project(
                 key=lambda path: (path.as_posix().casefold(), path.as_posix()),
             )
         )
-    return _analyze_batch(parse_project_declarations(root, selected), config=effective_config)
+    return _analyze_batch(
+        parse_project_declarations(root, selected, overlays=overlays),
+        config=effective_config,
+    )
 
 
 def analyze_objects(
