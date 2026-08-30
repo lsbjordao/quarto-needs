@@ -61,6 +61,8 @@ evidence-self-example:
 		tests/test_graph_semantics.py::test_public_projection_publishes_catalog_semantics \
 		tests/test_graph_semantics.py::test_named_query_is_materialized_as_reusable_graph_view \
 		tests/test_impact.py::test_editing_a_requirement_impacts_its_verification
+	PYTHONPATH=src $(VENV_PYTHON) -m quarto_needs.cli --root examples/quarto-needs evidence check \
+		.quarto-needs/evidence/pytest.json
 
 render-self-example: evidence-self-example
 	Rscript tools/render_multilingual.R examples/quarto-needs
