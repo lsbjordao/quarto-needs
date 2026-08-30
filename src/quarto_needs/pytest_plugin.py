@@ -65,12 +65,28 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
     config._quarto_needs_links = links  # type: ignore[attr-defined]
 
 
+def _evidence_phase_outcome(report: Any) -> str:
+    """Normalize pytest report states to the evidence-v1 outcome set.
+
+    Pytest represents an expected failure as ``skipped`` plus ``wasxfail`` and
+    a non-strict unexpected pass as ``passed`` plus ``wasxfail``. Evidence v1
+    only exposes passed/failed/skipped, so XFAIL remains non-passing (skipped)
+    while any XPASS is conservatively treated as failed. A strict XPASS is
+    already reported as failed and therefore remains failed.
+    """
+    if bool(getattr(report, "wasxfail", False)):
+        if bool(getattr(report, "skipped", False)):
+            return "skipped"
+        return "failed"
+    return str(report.outcome)
+
+
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]):
     outcome = yield
     report = outcome.get_result()
     results = item.config._quarto_needs_results  # type: ignore[attr-defined]
-    results[item.nodeid][report.when] = report.outcome
+    results[item.nodeid][report.when] = _evidence_phase_outcome(report)
 
 
 def _combined_outcome(phases: dict[str, str]) -> str:
