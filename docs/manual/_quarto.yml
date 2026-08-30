@@ -18,6 +18,7 @@ book:
     - governance.qmd
     - declarative-policies.qmd
     - type-schemas.qmd
+    - graph-constraints.qmd
     - reference.qmd
 
 format:
