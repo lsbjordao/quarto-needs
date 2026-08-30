@@ -41,12 +41,48 @@ def test_discovery_selects_only_rm_services_and_query_capabilities() -> None:
     services = discover_rm_services(provider)
 
     assert len(services) == 1
-    assert services[0].service_uri == "https://provider.test/oslc/service/rm"
+    assert services[0].service_id == "https://provider.test/oslc/service/rm"
     assert len(services[0].query_capabilities) == 1
     query = services[0].query_capabilities[0]
     assert query.query_base_uri == "https://provider.test/oslc/rm/requirements"
     assert query.resource_shape_uri == "https://provider.test/oslc/shapes/requirement"
     assert query.resource_types == (f"{OSLC_RM_NS}Requirement",)
+
+
+def test_discovery_requires_exactly_one_service_domain() -> None:
+    provider = {
+        f"{OSLC_CORE_NS}service": [
+            {
+                f"{OSLC_CORE_NS}domain": [
+                    _ref(OSLC_RM_NS),
+                    _ref("http://open-services.net/ns/cm#"),
+                ]
+            }
+        ]
+    }
+
+    with pytest.raises(ValueError, match="exactly one oslc:domain"):
+        discover_rm_services(provider)
+
+
+def test_discovery_accepts_blank_node_service_identity() -> None:
+    provider = {
+        f"{OSLC_CORE_NS}service": [
+            {
+                "@id": "_:rm-service",
+                f"{OSLC_CORE_NS}domain": [_ref(OSLC_RM_NS)],
+                f"{OSLC_CORE_NS}queryCapability": [
+                    {
+                        f"{OSLC_CORE_NS}queryBase": [
+                            _ref("https://provider.test/oslc/rm/requirements")
+                        ]
+                    }
+                ],
+            }
+        ]
+    }
+
+    assert discover_rm_services(provider)[0].service_id == "_:rm-service"
 
 
 def test_discovery_requires_exactly_one_query_base() -> None:
@@ -121,7 +157,7 @@ def test_discovery_is_deterministic_by_service_and_query_base() -> None:
     }
 
     services = discover_rm_services(provider)
-    assert [service.service_uri for service in services] == [
+    assert [service.service_id for service in services] == [
         "https://provider.test/oslc/service/a",
         "https://provider.test/oslc/service/z",
     ]
