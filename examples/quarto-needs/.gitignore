@@ -1,0 +1,5 @@
+/.quarto/
+/_book/
+/.quarto-needs/
+/_extensions/
+**/*.quarto_ipynb
