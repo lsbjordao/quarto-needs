@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 from quarto_needs.analysis import analyze_project
@@ -141,3 +142,36 @@ def test_self_hosted_model_exposes_pedagogical_queries() -> None:
         "adr-path",
         "change-analysis",
     } <= set(config.named_query_sources)
+
+
+def test_custom_graph_instance_ids_do_not_implicitly_name_projection_files() -> None:
+    shortcode = re.compile(r"\{\{<\s*need-graph\s+([^>]*)>\}\}")
+    attr = re.compile(r'(id|projection|view)="([^"]+)"')
+
+    for stem in CHAPTERS:
+        for suffix in (".qmd", ".pt-BR.qmd"):
+            path = EXAMPLE / f"{stem}{suffix}"
+            text = path.read_text(encoding="utf-8")
+            for match in shortcode.finditer(text):
+                attrs = dict(attr.findall(match.group(1)))
+                instance_id = attrs.get("id")
+                if not instance_id or instance_id == "need-graph-1":
+                    continue
+                assert attrs.get("projection") or attrs.get("view"), (
+                    f"{path.name}: need-graph id={instance_id!r} would be treated as a projection "
+                    "filename unless projection= or view= is explicit"
+                )
+
+
+def test_derivation_is_authored_from_derived_requirement_to_source_need() -> None:
+    result = analyze_project(EXAMPLE, config=load_config(EXAMPLE))
+    assert result.snapshot is not None
+
+    derives = {
+        (edge.source, edge.target)
+        for edge in result.snapshot.relations
+        if edge.v1_name == "derives-from"
+    }
+    assert ("SYS-001", "STK-001") in derives
+    assert ("FUN-004", "SYS-002") in derives
+    assert ("STK-001", "SYS-001") not in derives
