@@ -1,6 +1,6 @@
 # Engenharia do Quarto-Needs com Quarto-Needs
 
-Este livro é um **estudo de caso de engenharia autocontido**: o Quarto-Needs é usado para especificar, explicar, governar, verificar e explorar a engenharia do próprio Quarto-Needs.
+Este livro é um **estudo de caso de engenharia autocontido**: o Quarto-Needs é usado para especificar, explicar, governar, implementar, verificar e explorar a engenharia do próprio Quarto-Needs.
 
 O exemplo é intencionalmente diferente do showcase Aegis IAM. O Aegis demonstra que a ferramenta funciona em um domínio de aplicação externo. Este estudo de caso demonstra como os conceitos de engenharia de requisitos se conectam dentro do próprio produto que os implementa.
 
@@ -8,7 +8,7 @@ O grafo de engenharia canônico é escrito em inglês. Cada capítulo possui um 
 
 ## O que observar
 
-Acompanhe a cadeia de uma necessidade real de stakeholder até implementação e evidência:
+Acompanhe a cadeia de uma necessidade real de stakeholder até arquitetura, código do repositório, verificação e evidência:
 
 ```text
 Necessidade do stakeholder
@@ -16,25 +16,33 @@ Necessidade do stakeholder
 Requisito de sistema
       ↓
 Requisito funcional / não funcional
-      ↓ addresses
-Decisão de arquitetura
-      ↓ applies-to
-Componente ou interface
-      ↓ verified-by
+      ├────────────── addresses ──────────────┐
+      ↓ implemented-by                       ▼
+Componente ou interface              Decisão de arquitetura
+      │                                      │ applies-to
+      └──────── escopo arquitetural ──────────┘
+      ↓
+Módulo-fonte (arquivo real do repositório)
+      ↓
 Caso de teste
       ↓ evidenced-by
 Evidência
 ```
 
-Não se trata de uma taxonomia sintética. Os objetos descrevem capacidades e escolhas arquiteturais que existem hoje no repositório.
+Não se trata de uma taxonomia sintética. Os objetos descrevem capacidades, escolhas arquiteturais, arquivos de implementação e superfícies de verificação que existem hoje no repositório.
 
 ## Percurso de aprendizagem
 
-1. **Drivers** apresenta necessidades de stakeholders e requisitos de sistema.
-2. **Requisitos** refina esses drivers em requisitos funcionais e de qualidade.
-3. **Arquitetura** registra componentes, interfaces, riscos e ADRs que moldam a implementação.
-4. **Verificação** conecta requisitos e decisões a verificações executáveis e evidências.
-5. **Rastreabilidade** usa o grafo interativo como instrumento de análise, e não como diagrama estático.
+1. **Contexto do sistema** estabelece a fronteira do produto, atores, ferramentas externas e fluxos de informação.
+2. **Drivers** apresenta necessidades de stakeholders e requisitos de sistema.
+3. **Requisitos** refina esses drivers em requisitos funcionais e de qualidade.
+4. **Arquitetura** registra componentes, interfaces, riscos e ADRs que moldam a implementação.
+5. **Implementação** mapeia a arquitetura lógica para módulos-fonte reais em Python e JavaScript com rastreabilidade de requisito até código.
+6. **Verificação** conecta requisitos e decisões a casos de teste e evidências.
+7. **Rastreabilidade** usa o grafo interativo como instrumento de análise, e não como diagrama estático.
+8. **Mudança** transforma baselines, diff estruturado e caminhos de impacto em um fluxo de revisão de engenharia.
+
+Os capítulos reutilizam deliberadamente quatro cortes verticais — exploração do grafo, engenharia multilíngue, decisões de arquitetura e análise de mudanças — para que o leitor veja a mesma preocupação de engenharia desde a motivação do stakeholder até fonte, teste e evidência.
 
 ## Visão geral ao vivo
 
