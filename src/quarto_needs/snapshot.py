@@ -174,6 +174,9 @@ class AnalysisSnapshot:
     configuration_fingerprint: str = ""
     semantic_graph_fingerprint: str = ""
     representation_fingerprint: str = ""
+    derived: Mapping[str, Mapping[str, object]] = MappingProxyType({})
+    variants: Mapping[str, tuple[str, ...]] = MappingProxyType({})
+    variant_fingerprint: str = ""
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "objects", tuple(self.objects))
@@ -196,6 +199,17 @@ class AnalysisSnapshot:
             MappingProxyType(
                 {key: tuple(value) for key, value in self.incoming.items()}
             ),
+        )
+        frozen_derived: dict[str, Mapping[str, object]] = {}
+        for object_id, values in self.derived.items():
+            frozen = freeze_json(dict(values))
+            assert isinstance(frozen, Mapping)
+            frozen_derived[object_id] = frozen
+        object.__setattr__(self, "derived", MappingProxyType(frozen_derived))
+        object.__setattr__(
+            self,
+            "variants",
+            MappingProxyType({key: tuple(value) for key, value in self.variants.items()}),
         )
 
 
