@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
 from jsonschema import Draft202012Validator
 
 from quarto_needs.analysis import analyze_project
@@ -64,6 +65,8 @@ def validate_public(payload: dict[str, object]) -> None:
     Draft202012Validator(SCHEMA).validate(payload)
 
 
+@pytest.mark.requirement("SYS-006", "FUN-008", "NFR-002", "NFR-004")
+@pytest.mark.quarto_need_test_case("TC-006")
 def test_public_projection_publishes_catalog_semantics(tmp_path: Path) -> None:
     config, snapshot = prepare(tmp_path)
     projection = build_projection(
@@ -116,6 +119,8 @@ def test_public_projection_omits_provenance_without_snapshot(tmp_path: Path) -> 
     assert "traversalProfiles" in payload
 
 
+@pytest.mark.requirement("FUN-003")
+@pytest.mark.quarto_need_test_case("TC-009")
 def test_named_query_is_materialized_as_reusable_graph_view(tmp_path: Path) -> None:
     config, snapshot = prepare(tmp_path)
 
