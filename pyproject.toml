@@ -43,3 +43,7 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+markers = [
+  "requirement(*ids): link an executable test to one or more Quarto-Needs requirement IDs",
+  "quarto_need_test_case(*ids): bind an executable test to one or more modeled Quarto-Needs test-case IDs",
+]
