@@ -20,6 +20,19 @@ filters:
   - quarto-needs
 ```
 
+## Optional margin-sidebar toggle
+
+For HTML books and websites that use Quarto's right-hand page table of contents, Quarto-Needs can add a persistent collapse/expand control:
+
+```yaml
+quarto-needs:
+  margin-sidebar-toggle: true
+```
+
+The option is disabled by default. When enabled, the control targets Quarto's `#quarto-margin-sidebar`, stores the reader's preference in the browser, and expands the content layout while the margin sidebar is collapsed. On narrow viewports, Quarto's own responsive layout remains authoritative.
+
+This option is independent of the left navigation sidebar. For a Quarto Book, use Quarto's native `book.sidebar.collapse-level` option to control how deeply the left navigation tree is expanded by default.
+
 ## First object
 
 ```markdown
