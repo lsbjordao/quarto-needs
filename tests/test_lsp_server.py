@@ -4,7 +4,9 @@ import io
 import json
 from pathlib import Path
 
-from quarto_needs.lsp_server import LspSession, _read_message, _write_message
+import pytest
+
+from quarto_needs.lsp_server import LspSession, _read_message, _write_message, run_stdio
 
 
 def _project(tmp_path: Path) -> LspSession:
@@ -37,10 +39,25 @@ severity = "error"
     (tmp_path / "requirements.qmd").write_text(
         '''::: {.need #FUN-001 type="functional-requirement" status="approved" verified-by="TC-001"}
 ## Requirement one
+Narrative TC-001 must not be refactored as prose.
+{{< need TC-001 >}}
 :::
 
 ::: {.need #FUN-002 type="functional-requirement" status="approved"}
 ## Requirement two
+:::
+''',
+        encoding="utf-8",
+    )
+    (tmp_path / "requirements.pt-BR.qmd").write_text(
+        '''::: {.need #FUN-001 type="functional-requirement" status="approved" verified-by="TC-001"}
+## Requisito um
+Narrativa TC-001 também deve continuar como prosa.
+{{< need TC-001 >}}
+:::
+
+::: {.need #FUN-002 type="functional-requirement" status="approved"}
+## Requisito dois
 :::
 ''',
         encoding="utf-8",
@@ -75,6 +92,7 @@ def test_initialize_advertises_shared_semantic_capabilities(tmp_path: Path) -> N
     assert capabilities["hoverProvider"] is True
     assert capabilities["definitionProvider"] is True
     assert capabilities["referencesProvider"] is True
+    assert capabilities["renameProvider"] == {"prepareProvider": True}
     assert capabilities["documentSymbolProvider"] is True
     assert capabilities["workspaceSymbolProvider"] is True
 
@@ -87,6 +105,7 @@ def test_hover_definition_and_references_resolve_identifier_at_position(tmp_path
 
     definition = session.handle("textDocument/definition", _params(requirements, 0, 12))
     assert definition["uri"] == requirements.resolve().as_uri()
+    assert definition["range"]["start"]["character"] > 0
 
     verification = tmp_path / "verification.qmd"
     refs = session.handle("textDocument/references", _params(verification, 0, 12))
@@ -200,12 +219,100 @@ def test_close_document_returns_to_saved_graph(tmp_path: Path) -> None:
     assert session.service.hover("FUN-002").title == "Requirement two"
 
 
+def test_prepare_rename_requires_semantic_id_span(tmp_path: Path) -> None:
+    session = _project(tmp_path)
+    requirements = tmp_path / "requirements.qmd"
+    semantic = session.handle(
+        "textDocument/prepareRename",
+        _params(requirements, 0, requirements.read_text(encoding="utf-8").splitlines()[0].index("TC-001") + 2),
+    )
+    assert semantic["placeholder"] == "TC-001"
+
+    prose_line = requirements.read_text(encoding="utf-8").splitlines()[2]
+    prose = session.handle(
+        "textDocument/prepareRename",
+        _params(requirements, 2, prose_line.index("TC-001") + 2),
+    )
+    assert prose is None
+
+
+def test_rename_edits_canonical_localized_and_semantic_references_only(tmp_path: Path) -> None:
+    session = _project(tmp_path)
+    verification = tmp_path / "verification.qmd"
+    edit = session.handle(
+        "textDocument/rename",
+        {
+            **_params(verification, 0, 12),
+            "newName": "TC-RENAMED",
+        },
+    )
+    changes = edit["changes"]
+    assert set(changes) == {
+        (tmp_path / "requirements.qmd").resolve().as_uri(),
+        (tmp_path / "requirements.pt-BR.qmd").resolve().as_uri(),
+        verification.resolve().as_uri(),
+    }
+    assert sum(len(items) for items in changes.values()) == 5
+    assert all(item["newText"] == "TC-RENAMED" for items in changes.values() for item in items)
+
+
+def test_rename_rejects_existing_object_id(tmp_path: Path) -> None:
+    session = _project(tmp_path)
+    verification = tmp_path / "verification.qmd"
+    with pytest.raises(ValueError, match="existing object ID FUN-001"):
+        session.handle(
+            "textDocument/rename",
+            {
+                **_params(verification, 0, 12),
+                "newName": "FUN-001",
+            },
+        )
+
+
+def test_rename_uses_unsaved_overlay_spans(tmp_path: Path) -> None:
+    session = _project(tmp_path)
+    requirements = tmp_path / "requirements.qmd"
+    uri = requirements.resolve().as_uri()
+    edited = requirements.read_text(encoding="utf-8").replace("{{< need TC-001 >}}", "{{< need TC-001 title=true >}}")
+    session.open_document(uri, edited)
+    shortcode_line = edited.splitlines()[3]
+    edit = session.handle(
+        "textDocument/rename",
+        {
+            **_params(requirements, 3, shortcode_line.index("TC-001") + 2),
+            "newName": "TC-X",
+        },
+    )
+    assert uri in edit["changes"]
+    assert any(item["range"]["start"]["line"] == 3 for item in edit["changes"][uri])
+
+
 def test_json_rpc_content_length_round_trip() -> None:
     stream = io.BytesIO()
     payload = {"jsonrpc": "2.0", "id": 7, "method": "initialize", "params": {}}
     _write_message(stream, payload)
     stream.seek(0)
     assert _read_message(stream) == payload
+
+
+def test_stdio_initialize_shutdown_exit_lifecycle(tmp_path: Path) -> None:
+    _project(tmp_path)
+    incoming = io.BytesIO()
+    for payload in (
+        {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}},
+        {"jsonrpc": "2.0", "id": 2, "method": "shutdown", "params": {}},
+        {"jsonrpc": "2.0", "method": "exit", "params": {}},
+    ):
+        _write_message(incoming, payload)
+    incoming.seek(0)
+    outgoing = io.BytesIO()
+    assert run_stdio(tmp_path, incoming, outgoing) == 0
+    outgoing.seek(0)
+    initialize = _read_message(outgoing)
+    shutdown = _read_message(outgoing)
+    assert initialize["id"] == 1
+    assert initialize["result"]["capabilities"]["renameProvider"] == {"prepareProvider": True}
+    assert shutdown == {"jsonrpc": "2.0", "id": 2, "result": None}
 
 
 def test_shutdown_marks_session_for_clean_exit(tmp_path: Path) -> None:
