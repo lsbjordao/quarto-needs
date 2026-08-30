@@ -146,7 +146,7 @@ Implemented capabilities:
 - diagnostics projected from canonical structural, lifecycle, relation, policy, schema, and graph-constraint findings;
 - context-aware completion for configured types, type-specific statuses, relation names, and relation targets filtered by endpoint policy;
 - hover with engineering metadata and derived values;
-- exact go-to-definition across `.qmd` sources;
+- exact go-to-definition across `.qmd` sources, always preferring the canonical declaration over localized presentation siblings;
 - exact semantic references/backlinks;
 - relation-aware `prepareRename` and `rename` with collision protection;
 - document symbols and workspace symbols;
@@ -154,7 +154,8 @@ Implemented capabilities:
 - in-memory unsaved-buffer overlays through the canonical parser/analyzer;
 - retention of the last valid semantic graph while transient structural findings are exposed during incomplete edits;
 - exact source spans for declarations, relation attributes, scalar/list relation metadata, and `need` shortcodes;
-- localized presentation siblings included in identity refactors without becoming a second canonical graph.
+- localized presentation siblings included in identity refactors without becoming a second canonical graph;
+- `serverInfo.version` sourced from the installed Quarto-Needs package version rather than duplicated protocol metadata.
 
 The LSP server returns standard `WorkspaceEdit` values for refactors and never writes editor buffers or rename results directly to source files.
 
@@ -166,10 +167,12 @@ Implemented foundation:
 
 - `vscode-languageclient` transport only; no parser, relation catalog, rule engine, or graph implementation in TypeScript;
 - one language-server process per workspace folder containing `.quarto-needs.toml`;
+- stable client identity derived from the workspace URI rather than mutable workspace indices;
 - `.qmd` document selection for both Quarto and Markdown language IDs;
 - configurable `quartoNeeds.server.command` and extra server arguments;
 - restart and output-channel commands;
 - automatic resynchronization when workspace folders or server configuration change;
+- watcher-based start/stop when `.quarto-needs.toml` is created or removed after extension activation;
 - Python regression tests that enforce the thin-client architectural boundary;
 - independent CI TypeScript check/compile job.
 
@@ -178,7 +181,6 @@ Next hardening before calling 4.2 complete:
 - package-lock/reproducible Node dependency installation;
 - VS Code extension-host smoke tests;
 - packaging (`vsix`) and installation documentation;
-- clearer handling of workspace folders that gain or lose `.quarto-needs.toml` after activation;
 - optional UI conveniences only when they can be implemented as LSP/projection consumers rather than new semantics.
 
 Candidate later conveniences include traceability peek, graph preview for the focused object, quality-gate status, baseline/change indicators, and safe quick fixes.
