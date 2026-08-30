@@ -12,6 +12,7 @@ from quarto_needs.oslc_rm import (
     OSLC_REQUIREMENT,
     OSLC_RM_NS,
     QN_OSLC_NS,
+    CachePolicy,
     ExternalResourceIdentity,
     build_requirement_resources,
     content_digest,
@@ -116,6 +117,7 @@ def test_external_resource_identity_requires_provenance_digest_and_http_uris() -
     )
     assert identity.digest == digest
     assert identity.trust_state == "trusted"
+    assert identity.to_dict()["etag"] == '"abc"'
 
     with pytest.raises(ValueError, match="sha256"):
         ExternalResourceIdentity(
@@ -123,4 +125,41 @@ def test_external_resource_identity_requires_provenance_digest_and_http_uris() -
             service_provider_uri="https://provider.test/oslc/sp/1",
             digest="md5:bad",
             fetched_at="2026-08-30T21:00:00Z",
+        )
+
+
+def test_cache_policy_distinguishes_fresh_allowed_and_rejected_stale_data() -> None:
+    identity = ExternalResourceIdentity(
+        resource_uri="https://provider.test/requirements/1",
+        service_provider_uri="https://provider.test/oslc/sp/1",
+        digest=content_digest(b"payload"),
+        fetched_at="2026-08-30T20:00:00Z",
+    )
+
+    strict = CachePolicy(max_age_seconds=3600)
+    permissive = CachePolicy(max_age_seconds=3600, allow_stale=True)
+
+    assert strict.decide(identity, now="2026-08-30T20:30:00Z") == "fresh"
+    assert strict.decide(identity, now="2026-08-30T22:00:00Z") == "stale-rejected"
+    assert permissive.decide(identity, now="2026-08-30T22:00:00Z") == "stale-allowed"
+
+
+def test_cache_policy_rejects_naive_or_backwards_time() -> None:
+    with pytest.raises(ValueError, match="timezone"):
+        ExternalResourceIdentity(
+            resource_uri="https://provider.test/requirements/1",
+            service_provider_uri="https://provider.test/oslc/sp/1",
+            digest=content_digest(b"payload"),
+            fetched_at="2026-08-30T20:00:00",
+        )
+
+    identity = ExternalResourceIdentity(
+        resource_uri="https://provider.test/requirements/1",
+        service_provider_uri="https://provider.test/oslc/sp/1",
+        digest=content_digest(b"payload"),
+        fetched_at="2026-08-30T20:00:00Z",
+    )
+    with pytest.raises(ValueError, match="must not precede"):
+        CachePolicy(max_age_seconds=3600).decide(
+            identity, now="2026-08-30T19:59:59Z"
         )
