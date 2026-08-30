@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://quarto-needs.dev/schemas/evidence-envelope-v1.schema.json",
+  "title": "Quarto-Needs machine evidence envelope v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "kind",
+    "provider",
+    "generatedAt",
+    "subject",
+    "artifact"
+  ],
+  "properties": {
+    "schemaVersion": {"const": "1"},
+    "kind": {"const": "quarto-needs-evidence"},
+    "provider": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "version": {"type": "string", "minLength": 1}
+      }
+    },
+    "generatedAt": {"type": "string", "format": "date-time"},
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sourceRevision": {"type": "string", "minLength": 1},
+        "configurationFingerprint": {"type": "string", "minLength": 1},
+        "semanticGraphFingerprint": {"type": "string", "minLength": 1},
+        "representationFingerprint": {"type": "string", "minLength": 1}
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "digest", "payload"],
+      "properties": {
+        "schema": {"type": "string", "minLength": 1},
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "payload": {"type": "object"}
+      }
+    }
+  }
+}
