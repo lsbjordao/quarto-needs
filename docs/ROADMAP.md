@@ -95,43 +95,56 @@ Current GitHub Actions runs terminate before checkout with no job steps for both
 
 # Phase 5 — Interchange, migration, and federation 🚧
 
-## 5.1 ReqIF 1.2 🟡
+## 5.1 ReqIF 1.2 ✅
 
-**Status: active implementation.** See `docs/phase-5-reqif.md` for the detailed gate ledger.
+**Status: functionally implemented and locally validated.** See `docs/phase-5-reqif.md` for the detailed contract.
 
-Implemented so far:
+Implemented and validated capabilities include:
 
 - deterministic ReqIF 1.2 projection from the canonical `AnalysisSnapshot`;
-- `SPEC-OBJECT-TYPE`, `SPEC-OBJECT`, `SPEC-RELATION-TYPE`, `SPEC-RELATION`, `SPECIFICATION`, and `SPEC-HIERARCHY` projections;
-- XML-ID-safe deterministic ReqIF identifiers while retaining authored Quarto-Needs IDs explicitly;
-- canonical authored attributes preserved in the initial interchange slice;
-- byte-determinism and XML-escaping regression tests;
-- test-only independent parser contract using the Python `reqif` implementation;
-- test-only normative-XSD gate using `xmlschema` and an externally supplied official OMG `reqif.xsd` via `REQIF_12_XSD`.
+- normative ReqIF 1.2 XSD validation using the official OMG schema;
+- independent parsing through the test-only Python `reqif` implementation;
+- explicit distinction between ReqIF specification revision `1.2` and the normative `REQ-IF-VERSION` header value `1.0`;
+- deterministic XML-ID-safe ReqIF identifiers with authored Quarto-Needs IDs retained as explicit canonical attributes;
+- documented identity mapping, attribute mapping, relation mapping, and loss semantics;
+- deterministic byte output and XML escaping;
+- installed CLI support through `export --format reqif` with `.quarto-needs/requirements.reqif` as the default output.
 
-The independent-parser and normative-XSD gates are **encoded but not claimed as passed** until they run successfully in a real environment. Public CLI exposure (`export --format reqif`) remains deliberately blocked until the normative gate and remaining mapping/loss contracts are satisfied.
+ReqIF import remains intentionally deferred until conflict policy, typed attribute recovery, provenance handling, and round-trip guarantees are designed explicitly.
 
-Next 5.1 work:
+Repository-level CI confirmation remains blocked by the external Actions runner condition, but local normative and independent-parser acceptance gates have passed.
 
-1. execute and fix the independent-parser test if necessary;
-2. execute against the official OMG ReqIF 1.2 XSD;
-3. formalize Quarto-Needs ↔ ReqIF identity mapping;
-4. specify rich-text and unsupported-value loss semantics;
-5. document attribute and relation mapping;
-6. expose the CLI only after validation gates pass;
-7. add import only after export/round-trip semantics are explicit.
+## 5.2 JSON-LD 🟡
 
-## 5.2 JSON-LD ⚪
+**Status: functionally implemented; independent processor execution pending local validation.** See `docs/phase-5-jsonld.md`.
 
-Expose a versioned JSON-LD projection of the canonical graph with stable identities, typed objects, canonical relations, provenance, and a documented context. RDF/JSON-LD remains an interchange projection rather than internal storage.
+Implemented capabilities include:
+
+- deterministic JSON-LD 1.1 projection from the canonical `AnalysisSnapshot`;
+- one graph node plus typed engineering-object and relation nodes;
+- stable object IRIs and deterministic relation IRIs;
+- versioned public vocabulary namespace `urn:quarto-needs:v1:` with an explicit breaking-change policy;
+- embedded context with no remote-context runtime dependency;
+- canonical relation name, authored name, semantic family, roles, impact direction, source, and target preservation;
+- authored attributes represented as JSON-LD 1.1 `@json` values;
+- installed CLI support through `export --format jsonld` with `.quarto-needs/graph.jsonld` as the default output;
+- deterministic output and atomic writes;
+- test-only independent JSON-LD 1.1 processing through PyLD;
+- RDF/N-Quads verification that canonical relation endpoints survive projection.
+
+Remaining 5.2 acceptance gate: execute `tests/test_export_jsonld.py` and `tests/test_interchange_cli.py` successfully in a real local environment with refreshed test dependencies. If those pass, 5.2 is complete independently of the still-broken Actions runner.
 
 ## 5.3 OSLC Requirements Management ⚪
 
 Federation begins only after authentication, caching, provenance, identity, conflict, offline behavior, and trust boundaries have explicit contracts.
 
+The first OSLC slice should be **read-only and projection-first**: define canonical resource identity, local-to-external URI mapping, provenance/trust metadata, shape discovery, cache/digest policy, and failure behavior before adding network writes or synchronization.
+
 ## 5.4 Migration adapters ⚪
 
 Provide optional import/migration paths for established requirements/docs-as-code ecosystems, including **Sphinx-Needs as one of the inspirations and migration sources**, while retaining Quarto-native authoring as the primary interface.
+
+Migration adapters must preserve original identity/provenance and emit explicit diagnostics for information that cannot be represented canonically.
 
 ## 5.5 External service adapters ⚪
 
@@ -214,7 +227,7 @@ LSP semantic authoring ✅
           ↓
 Thin VS Code client 🟡 release validation
           ↓
-ReqIF 1.2 🟡 → JSON-LD → OSLC / migration / federation
+ReqIF 1.2 ✅ → JSON-LD 🟡 → OSLC / migration / federation
           ↓
 Architecture / C4 projections
           ↓
