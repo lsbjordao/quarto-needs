@@ -1,0 +1,102 @@
+# Rastreabilidade: investigue o produto como um grafo de engenharia
+
+Este capítulo é onde o exemplo se torna autorreferente de forma útil. O grafo abaixo descreve o sistema que gerou o próprio grafo, e seus controles de exploração são, eles mesmos, requisitos, decisões, implementação, testes e evidências dentro desse modelo.
+
+## Comece pela visão completa de engenharia
+
+{{< need-graph >}}
+
+Em vez de ler isso como um único diagrama, use o grafo como uma sequência de perguntas de engenharia.
+
+## 1. De onde veio um requisito?
+
+Selecione um requisito como `FUN-004`, escolha o perfil de travessia **derivation** e examine seus pais. O caminho explica como a exploração interativa do grafo remonta por `SYS-002` / `SYS-006` até necessidades de stakeholders.
+
+Um padrão útil de leitura é:
+
+```text
+preocupação do stakeholder
+      ↓
+obrigação do sistema
+      ↓
+capacidade refinada
+```
+
+O ponto importante é que a derivação não é inferida pela ordem das páginas. Ela é uma relação explícita do grafo.
+
+## 2. Por que a arquitetura é assim?
+
+Escolha o perfil **decision** e foque em `ADR-004`. A decisão não finge implementar um requisito. Ela `addresses` drivers de engenharia, `applies-to` elementos arquiteturais e é `confirmed-by` objetos de verificação.
+
+{{< need-graph view="architecture-decisions" >}}
+
+Isso permite que uma revisão de arquitetura pergunte:
+
+- Quais requisitos ou riscos motivaram esta decisão?
+- Qual componente ou interface está dentro de seu escopo?
+- Qual teste confirma a conformidade contínua?
+- A decisão possui data explícita de revisão?
+
+## 3. O que comprova que um requisito foi satisfeito?
+
+Escolha o perfil **verification** e foque em um requisito como `NFR-002` ou `FUN-003`. A cadeia de engenharia deve conduzir a um caso de teste e depois a uma evidência.
+
+```text
+Requisito
+   ↓ verified-by
+Caso de teste
+   ↓ evidenced-by
+Evidência
+```
+
+{{< need-graph view="verification-assets" >}}
+
+A distinção importa: um teste descreve a atividade de verificação; a evidência registra a base durável para afirmar que a atividade foi bem-sucedida.
+
+## 4. O que acontece se este objeto mudar?
+
+As mesmas relações tipadas usadas na documentação também sustentam comparação de baselines e propagação de impacto. Uma versão futura deste estudo de caso poderá, portanto, mostrar uma mudança histórica real no Quarto-Needs e perguntar ao grafo quais requisitos, decisões, componentes, testes e evidências estão a jusante dela.
+
+Esse é o propósito mais profundo de requirements-as-code: o histórico de versões é interpretado por meio de semântica de engenharia, e não tratado apenas como diff textual.
+
+## 5. Por que este nó está visível?
+
+Use **Caminho até a raiz** depois de focar um nó. O navegador segue a direção de travessia publicada pelo catálogo de relações do Python. Ele não deduz o significado pai/filho pela orientação da aresta no Cytoscape.
+
+Clique em uma aresta para inspecionar:
+
+- relação canônica;
+- família semântica;
+- direção semântica de travessia;
+- papéis da origem e do destino;
+- direção de impacto;
+- contexto de travessia ativo;
+- proveniência relativa e segura da declaração.
+
+O inspetor é, portanto, uma explicação do grafo, e não apenas um tooltip.
+
+## 6. Explore uma preocupação por vez
+
+A view nomeada `graph-exploration` demonstra uma seleção semântica reutilizável avaliada pelo núcleo:
+
+{{< need-graph view="graph-exploration" >}}
+
+Experimente combinar:
+
+- **Travessia = architecture** com `COMP-GRAPH`;
+- **Travessia = verification** com `TC-010`;
+- **Família = decision-scope** com `ADR-004`;
+- **Tipo = non-functional-requirement** para isolar restrições de qualidade;
+- **Status = accepted** para isolar ADRs ativas.
+
+## O que este exemplo pretende se tornar
+
+O estudo de caso não pretende congelar a implementação atual. À medida que o Quarto-Needs evoluir, seu próprio grafo de engenharia deve evoluir junto. Uma funcionalidade significativa pode adicionar ou alterar a necessidade, o requisito, a ADR, o componente, o teste e a evidência relevantes no mesmo pull request da implementação.
+
+Isso faz deste exemplo, simultaneamente:
+
+1. um tutorial de engenharia de requisitos;
+2. uma descrição viva de arquitetura;
+3. uma fixture de integração;
+4. uma demonstração do Quarto-Needs;
+5. o próprio modelo de engenharia do Quarto-Needs.
