@@ -20,6 +20,19 @@ filters:
   - quarto-needs
 ```
 
+## Toggle opcional da margin sidebar
+
+Para books e websites HTML que usam o sumário da página à direita do Quarto, o Quarto-Needs pode adicionar um controle persistente para recolher e expandir essa coluna:
+
+```yaml
+quarto-needs:
+  margin-sidebar-toggle: true
+```
+
+A opção fica desativada por padrão. Quando habilitada, o controle atua sobre `#quarto-margin-sidebar`, guarda a preferência do leitor no navegador e amplia o layout do conteúdo enquanto a margin sidebar estiver recolhida. Em viewports estreitos, o layout responsivo nativo do Quarto continua sendo a autoridade.
+
+Essa opção é independente da sidebar de navegação à esquerda. Em um Quarto Book, use a opção nativa `book.sidebar.collapse-level` para controlar até que profundidade a árvore de navegação esquerda começa expandida.
+
 ## Primeiro objeto
 
 ```markdown
