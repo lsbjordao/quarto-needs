@@ -1,0 +1,253 @@
+# Architecture: where requirements become design
+
+Requirements describe obligations; architecture explains how the product is organized to satisfy them. Quarto-Needs keeps those concerns distinct and links them explicitly.
+
+## Components
+
+::: {.need #COMP-PARSER type="component" status="implemented" tags="python;parser;authoring"}
+## Declaration parser
+
+Reads QMD declarations and produces structured declaration batches with source locations.
+:::
+
+::: {.need #COMP-ANALYSIS type="component" status="implemented" tags="python;semantics;graph"}
+## Semantic analysis core
+
+Builds the canonical engineering graph, resolves relation semantics, and produces immutable analysis snapshots.
+:::
+
+::: {.need #COMP-RULES type="component" status="implemented" tags="python;governance;validation"}
+## Governance rule engine
+
+Evaluates structural, requirement, decision, risk, and evidence governance against the canonical snapshot.
+:::
+
+::: {.need #COMP-CLI type="component" status="implemented" tags="python;cli;ci"}
+## Command-line interface
+
+Exposes scan, check, coverage, baseline, diff, impact, and related engineering workflows to local and CI execution.
+:::
+
+::: {.need #COMP-EXTENSION type="component" status="implemented" tags="quarto;lua;documentation"}
+## Quarto presentation extension
+
+Turns the resolved engineering model into cards, tables, matrices, dashboards, inspectors, diagrams, and progressive HTML views.
+:::
+
+::: {.need #COMP-GRAPH type="component" status="implemented" tags="graph;cytoscape;projection"}
+## Graph projection and exploration subsystem
+
+Publishes bounded public graph projections and enhances them with Cytoscape-based semantic exploration.
+:::
+
+::: {.need #COMP-BASELINE type="component" status="implemented" tags="baseline;diff;impact"}
+## Baseline and comparison subsystem
+
+Captures reproducible engineering states and computes structured changes and impact paths between states.
+:::
+
+::: {.need #COMP-I18N type="component" status="implemented" tags="localization;i18n;babelquarto"}
+## Localization projection subsystem
+
+Validates translated sources against the canonical engineering graph and emits presentation-only localized title projections.
+:::
+
+## Interfaces
+
+::: {.need #IF-001 type="interface" status="implemented" tags="qmd;authoring;source"}
+## QMD engineering declaration interface
+
+The author-facing contract for declaring typed engineering objects and relations in ordinary Quarto Markdown.
+:::
+
+::: {.need #IF-002 type="interface" status="implemented" tags="json;snapshot;machine-readable"}
+## Canonical engineering snapshot
+
+The machine-readable representation consumed by governance, generated views, comparison workflows, and integrations.
+:::
+
+::: {.need #IF-003 type="interface" status="implemented" tags="json;graph;projection"}
+## Public graph projection contract
+
+A bounded JSON contract containing approved node/edge fields, relation semantics, traversal profiles, type roles, and safe provenance.
+:::
+
+::: {.need #IF-004 type="interface" status="implemented" tags="cli;automation;ci"}
+## CLI automation interface
+
+The stable command surface used by developers and automation to invoke engineering analysis.
+:::
+
+## Engineering risks
+
+::: {.need #RISK-001 type="risk" status="approved" priority="critical" tags="semantics;drift;architecture"}
+## Semantic meaning diverges across core and presentation layers
+
+Duplicated relation semantics can cause Python, Lua, and JavaScript to disagree about the same engineering graph.
+:::
+
+::: {.need #RISK-002 type="risk" status="approved" priority="critical" tags="privacy;security;projection"}
+## Public documentation leaks internal source information
+
+Graph or diagnostic projections could accidentally expose absolute paths, arbitrary attributes, or internal source content.
+:::
+
+::: {.need #RISK-003 type="risk" status="approved" priority="medium" tags="graph;performance;usability"}
+## Large graph projections overwhelm interactive documentation
+
+Unbounded projections can become slow, visually unreadable, and unsuitable for review.
+:::
+
+::: {.need #RISK-004 type="risk" status="approved" priority="high" tags="localization;semantics;drift"}
+## Translations create a competing engineering model
+
+Localized files can silently diverge from canonical IDs, metadata, and relations unless semantic parity is enforced.
+:::
+
+## Architecture decisions
+
+::: {.need #ADR-001 type="architecture-decision" status="accepted" date="2026-08-29" revisit-after="2027-08-29" decision-makers="Quarto-Needs maintainers" tags="python;semantics;architecture" addresses="SYS-001;SYS-003;NFR-005;RISK-001" applies-to="COMP-ANALYSIS;IF-002" confirmed-by="TC-001;TC-008"}
+## Keep Python as the semantic authority
+
+### Context and Problem Statement
+
+The product has a Python analysis core, Lua rendering filters, and JavaScript interaction. If each layer defines engineering meaning independently, equivalent views can drift.
+
+### Decision Drivers
+
+- one source of engineering semantics;
+- deterministic analysis;
+- testability outside the browser;
+- presentation layers that remain replaceable.
+
+### Considered Options
+
+- duplicate relation maps in every client;
+- resolve semantics in Lua during rendering;
+- resolve semantics once in Python and publish semantic projections.
+
+### Decision Outcome
+
+Python owns engineering semantics. Lua and JavaScript consume relation metadata and other semantic projections emitted by the core.
+
+### Consequences
+
+Public projection contracts become more important, but presentation clients become simpler and cannot silently redefine engineering meaning.
+
+### Confirmation
+
+`TC-001` confirms the canonical snapshot and `TC-008` confirms relation-catalog semantics.
+:::
+
+::: {.need #ADR-002 type="architecture-decision" status="accepted" date="2026-08-29" revisit-after="2027-08-29" decision-makers="Quarto-Needs maintainers" tags="quarto;documentation;architecture" addresses="SYS-002;NFR-003" applies-to="COMP-EXTENSION;IF-001" confirmed-by="TC-002"}
+## Use Quarto as the executable documentation interface
+
+### Context and Problem Statement
+
+The engineering model needs both formal structure and high-quality human explanation.
+
+### Decision Drivers
+
+- text and Git workflows;
+- publishable documentation;
+- Markdown narrative;
+- extension-based generated views.
+
+### Decision Outcome
+
+Use Quarto documents as the authoring and publishing interface while keeping engineering semantics in the Python core.
+
+### Consequences
+
+The product remains compatible with ordinary documentation workflows and can progressively enhance HTML without making HTML the source of truth.
+
+### Confirmation
+
+`TC-002` renders the book and verifies the static/progressive presentation path.
+:::
+
+::: {.need #ADR-003 type="architecture-decision" status="accepted" date="2026-08-29" revisit-after="2027-08-29" decision-makers="Quarto-Needs maintainers" tags="graph;model;traceability" addresses="SYS-001;FUN-002" applies-to="COMP-ANALYSIS;IF-002" confirmed-by="TC-008"}
+## Model traceability as a typed property graph
+
+### Context and Problem Statement
+
+Requirements, decisions, risks, implementation, tests, and evidence need a common relationship model without collapsing their distinct meanings.
+
+### Decision Outcome
+
+Represent engineering objects as typed nodes and engineering relations as typed edges with canonical semantic families and directions.
+
+### Consequences
+
+Traceability, impact analysis, queries, and generated views can operate over one model while object roles remain explicit.
+
+### Confirmation
+
+`TC-008` verifies the relation catalog and canonical semantic projection.
+:::
+
+::: {.need #ADR-004 type="architecture-decision" status="accepted" date="2026-08-29" revisit-after="2027-08-29" decision-makers="Quarto-Needs maintainers" tags="graph;progressive-enhancement;accessibility" addresses="SYS-006;NFR-003;FUN-004" applies-to="COMP-GRAPH;COMP-EXTENSION;IF-003" confirmed-by="TC-006;TC-010"}
+## Drive static and interactive graphs from the same projection
+
+### Context and Problem Statement
+
+Separate graph-generation paths can cause the accessible static representation and the interactive Cytoscape view to disagree.
+
+### Decision Outcome
+
+Generate one bounded public projection and derive static diagram/table output and interactive exploration from that same artifact.
+
+### Consequences
+
+The public graph schema becomes a stable contract and interactive features must operate as progressive enhancement over it.
+
+### Confirmation
+
+`TC-006` validates the public projection contract and `TC-010` checks the exploration assets.
+:::
+
+::: {.need #ADR-005 type="architecture-decision" status="accepted" date="2026-08-29" revisit-after="2027-08-29" decision-makers="Quarto-Needs maintainers" tags="localization;i18n;semantics" addresses="SYS-005;FUN-006;RISK-004" applies-to="COMP-I18N" confirmed-by="TC-005"}
+## Keep English canonical and localization presentation-only
+
+### Context and Problem Statement
+
+A multilingual book should not create two engineering graphs that can evolve independently.
+
+### Decision Outcome
+
+English QMD files are canonical engineering sources; `*.pt-BR.qmd` siblings may translate presentation text only. Pre-render validation rejects semantic differences.
+
+### Consequences
+
+Translations remain useful to readers while governance, baselines, impact analysis, and machine-readable exports stay language-neutral.
+
+### Confirmation
+
+`TC-005` checks semantic parity and localized title projection generation.
+:::
+
+::: {.need #ADR-006 type="architecture-decision" status="accepted" date="2026-08-29" revisit-after="2027-08-29" decision-makers="Quarto-Needs maintainers" tags="query;graph;views" addresses="FUN-003" applies-to="COMP-ANALYSIS;COMP-GRAPH" confirmed-by="TC-009"}
+## Evaluate named queries in the core and materialize reusable views
+
+### Context and Problem Statement
+
+Reimplementing query semantics in Lua would create another semantic authority and make graph views harder to reproduce.
+
+### Decision Outcome
+
+Named queries are evaluated by the Python core. Their result sets can be materialized as bounded graph views and consumed by shortcodes through a view manifest.
+
+### Consequences
+
+Selection remains deterministic and reusable across tables and graphs; presentation layers only request an already resolved view.
+
+### Confirmation
+
+`TC-009` verifies named-query graph materialization and manifest resolution.
+:::
+
+## Generated architecture views
+
+{{< need-table query="architecture-decisions" columns="id;title;status" sort="id" >}}
+
+{{< need-graph view="architecture-decisions" id="decision-view" >}}
