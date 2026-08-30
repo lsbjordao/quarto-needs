@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import TextIO
 
 from . import diff as diff_module
+from . import evidence as evidence_module
 from . import impact as impact_module
 from .analysis import analyze_project
 from .baseline import DEFAULT_BASELINE_PATH, BaselineError, build_baseline, build_invalid_baseline, load_baseline, write_baseline
@@ -196,6 +197,52 @@ def _quality(root: Path, args: argparse.Namespace, config: NeedsConfig | None) -
     else:
         _print_quality_text(report)
     return report.exit_code()
+
+
+def _evidence_check(root: Path, args: argparse.Namespace, config: NeedsConfig) -> int:
+    artifact = Path(args.artifact)
+    if not artifact.is_absolute():
+        artifact = root / artifact
+    try:
+        payload = evidence_module.load_pytest_evidence(artifact)
+    except ValueError as error:
+        print(f"Evidence error: {error}", file=sys.stderr)
+        return 2
+    except OSError as error:
+        print(f"Could not read evidence artifact {artifact}: {error}", file=sys.stderr)
+        return 3
+
+    result = analyze_project(root, config=config)
+    if result.snapshot is None:
+        print_findings(result.findings, stream=sys.stderr)
+        return 1
+
+    issues = evidence_module.validate_pytest_evidence(result.snapshot, payload)
+    projection = {
+        "artifact": str(artifact),
+        "provider": payload["provider"],
+        "tests": len(payload["tests"]),
+        "valid": not issues,
+        "issues": [issue.to_dict() for issue in issues],
+    }
+    if args.format == "json":
+        print(json.dumps(projection, indent=2, sort_keys=True))
+    else:
+        if issues:
+            print(f"Evidence check failed: {len(issues)} issue(s)")
+            for issue in issues:
+                scope = ""
+                if issue.object_id:
+                    scope += f" {issue.object_id}"
+                if issue.nodeid:
+                    scope += f" [{issue.nodeid}]"
+                print(f"[{issue.code}]{scope}: {issue.message}")
+        else:
+            print(
+                f"Evidence check passed: {len(payload['tests'])} linked pytest test(s) "
+                f"from {artifact} agree with the current engineering graph"
+            )
+    return 1 if issues else 0
 
 
 def _baseline_destination(root: Path, output: str) -> Path:
@@ -480,6 +527,11 @@ def main(argv: list[str] | None = None) -> int:
     query = sub.add_parser("query", help="Evaluate a named query and print its ordered IDs")
     query.add_argument("name")
     query.add_argument("--format", choices=("text", "json"), default="text")
+    evidence = sub.add_parser("evidence", help="Validate machine evidence against the engineering graph")
+    evidence_sub = evidence.add_subparsers(dest="evidence_command", required=True)
+    evidence_check = evidence_sub.add_parser("check", help="Check a pytest evidence artifact against the current graph")
+    evidence_check.add_argument("artifact")
+    evidence_check.add_argument("--format", choices=("text", "json"), default="text")
     baseline_parser = sub.add_parser("baseline", help="Create or inspect a canonical baseline")
     baseline_sub = baseline_parser.add_subparsers(dest="baseline_command", required=True)
     baseline_create = baseline_sub.add_parser("create", help="Write a baseline for the current graph")
@@ -528,6 +580,8 @@ def main(argv: list[str] | None = None) -> int:
         return _quality(root, args, config)
     if args.command == "query":
         return _query(root, args, config)
+    if args.command == "evidence":
+        return _evidence_check(root, args, config)
     if args.command == "baseline":
         if args.baseline_command == "inspect":
             return _baseline_inspect(args)
