@@ -1,0 +1,109 @@
+# Machine evidence providers
+
+Quarto-Needs treats external tools as **evidence providers**, not as semantic authorities. Providers report execution facts; the Python core decides whether those facts agree with the engineering graph.
+
+## Provider pipeline
+
+The provider-neutral flow is:
+
+```text
+external tool result
+        │
+        ▼
+provider adapter
+        │
+        ▼
+evidence-checks-v1 deterministic payload
+        │
+        ├── semantic validation against requirements/test-cases/evidence
+        │
+        ▼
+evidence-envelope-v1 attestation
+        │
+        ▼
+CI / review / Quarto projection
+```
+
+Provider adapters never mutate authored `.qmd` files. They normalize existing machine results into versioned artifacts under `.quarto-needs/evidence/`.
+
+## Generic check contract
+
+`schemas/evidence-checks-v1.schema.json` defines the common payload used by non-pytest providers. Each check records:
+
+- stable `id`;
+- normalized `outcome`: `passed`, `failed`, or `skipped`;
+- linked requirement IDs;
+- linked modeled test-case IDs;
+- linked modeled evidence IDs;
+- optional provider-specific `details`.
+
+The payload itself has no timestamp. Determinism belongs here; run identity and freshness belong in the attestation envelope.
+
+## Initial adapters
+
+The initial provider layer includes:
+
+| Provider | Input | Normalized semantics |
+|---|---|---|
+| JUnit | JUnit XML | testcase outcome and optional Quarto-Needs properties |
+| coverage.py | coverage JSON | explicit total-coverage threshold |
+| Quarto render | process result | render target + exit-code verdict |
+| JSON Schema | precomputed validation results | schema-validation verdicts |
+| lint | process result | tool identity + exit-code verdict |
+| type-check | process result | tool identity + exit-code verdict |
+
+### JUnit properties
+
+JUnit testcases can carry model bindings as properties:
+
+```xml
+<properties>
+  <property name="quarto-needs.requirement" value="FUN-001;NFR-004"/>
+  <property name="quarto-needs.test-case" value="TC-006"/>
+  <property name="quarto-needs.evidence" value="EVD-006"/>
+</properties>
+```
+
+The adapter normalizes comma- or semicolon-separated IDs and preserves deterministic ordering.
+
+### Coverage policy
+
+Coverage does not become evidence merely because a percentage exists. The adapter requires an **explicit threshold** supplied by the caller. The payload records both the observed coverage and the threshold used to derive the verdict.
+
+### Process providers
+
+Quarto render, lint, and type-check adapters normalize an already executed process result. They do not shell out themselves. This keeps execution policy outside the semantic adapter and avoids arbitrary command execution inside configuration.
+
+### JSON Schema
+
+The JSON Schema adapter normalizes validation results that have already been computed. It deliberately does not resolve or execute arbitrary schemas and remote references itself.
+
+## Generic semantic validation
+
+`validate_check_evidence()` compares generic provider payloads with the canonical graph. By default, every machine check must bind to at least one modeled evidence object.
+
+The validator checks:
+
+- the machine outcome is passing;
+- requirement IDs exist;
+- modeled test-case IDs exist;
+- claimed requirements are connected to claimed test-cases through the verification semantic family;
+- modeled evidence IDs exist;
+- a modeled evidence object's declared `provider`, when present, matches the machine provider;
+- modeled evidence objects are connected to the claimed test-cases through the evidence semantic family.
+
+Generic validation uses `EVD3xx` diagnostics. This is separate from pytest-specific `EVD1xx` diagnostics and provider-neutral attestation/freshness `EVD2xx` diagnostics.
+
+## Trust boundary
+
+A provider result is never sufficient by itself. Positive engineering evidence requires all applicable layers to agree:
+
+```text
+provider result
+  AND model traceability
+  AND modeled evidence binding
+  AND attested graph/configuration state
+  AND freshness policy
+```
+
+That separation is intentional: a successful tool invocation cannot silently redefine which requirement it proves.
