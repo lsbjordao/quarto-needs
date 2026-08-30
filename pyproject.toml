@@ -18,7 +18,7 @@ classifiers = [
 ]
 
 [project.scripts]
-quarto-needs = "quarto_needs.cli_dispatch:main"
+quarto-needs = "quarto_needs.cli_entry:main"
 
 [project.entry-points.pytest11]
 quarto-needs = "quarto_needs.pytest_plugin"
