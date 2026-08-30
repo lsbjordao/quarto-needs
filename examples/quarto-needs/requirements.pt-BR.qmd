@@ -84,6 +84,16 @@ As projeções públicas do grafo devem expor apenas a proveniência relativa e 
 A explicabilidade se beneficia de proveniência `arquivo:linha`, mas projeções públicas não devem vazar caminhos absolutos nem conteúdo arbitrário da fonte.
 :::
 
+::: {.need #FUN-009 type="functional-requirement" status="approved" priority="medium" tags="quarto;toc;sidebar;usability;progressive-enhancement" derives-from="SYS-002" implemented-by="COMP-EXTENSION" verified-by="TC-014"}
+## Recolher o índice lateral da página sem ocultar a navegação
+
+A extensão HTML deve oferecer um controle opcional e persistente para recolher e restaurar o índice lateral da página, recuperar largura de conteúdo quando recolhido e posicionar o controle do estado expandido inteiramente fora do índice, sem encobrir o título nem os itens de navegação.
+
+### Justificativa
+
+Um índice lateral recolhível só é útil se o próprio controle não interferir na superfície de navegação que ele gerencia.
+:::
+
 ## Requisitos não funcionais
 
 ::: {.need #NFR-001 type="non-functional-requirement" status="approved" priority="critical" tags="determinism;reproducibility;governance" derives-from="SYS-003" implemented-by="COMP-ANALYSIS;COMP-BASELINE" verified-by="TC-013"}
