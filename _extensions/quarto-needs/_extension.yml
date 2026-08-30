@@ -5,6 +5,7 @@ quarto-required: ">=1.6.0"
 contributes:
   filters:
     - needs.lua
+    - margin-sidebar.lua
   shortcodes:
     - shortcodes.lua
     - adr-shortcodes.lua
