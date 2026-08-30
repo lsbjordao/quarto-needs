@@ -1,0 +1,105 @@
+# Drivers: why Quarto-Needs exists
+
+Requirements engineering starts before system requirements. The first layer records the concerns that justify the product; the second translates them into obligations for the system.
+
+## Stakeholder needs
+
+::: {.need #STK-001 type="stakeholder-need" status="approved" tags="traceability;requirements-as-code"}
+## Engineering teams need lifecycle-wide traceability
+
+Teams need requirements, architecture decisions, implementation, tests, risks, and evidence to remain connected as the system evolves.
+:::
+
+::: {.need #STK-002 type="stakeholder-need" status="approved" tags="documentation;quarto;usability"}
+## Engineers need the engineering model to remain readable documentation
+
+Formal traceability must not force teams to abandon explanatory prose, navigable documentation, or ordinary review workflows.
+:::
+
+::: {.need #STK-003 type="stakeholder-need" status="approved" tags="governance;git;ci;reproducibility"}
+## Teams need reproducible governance in Git and CI
+
+Validation, baselines, quality gates, and impact analysis need deterministic behaviour that can participate in normal version-control workflows.
+:::
+
+::: {.need #STK-004 type="stakeholder-need" status="approved" tags="architecture;adr;rationale"}
+## Architecture choices need durable rationale and traceability
+
+Engineers need to know not only what was required, but why architectural choices were made, where they apply, and how they are confirmed.
+:::
+
+::: {.need #STK-005 type="stakeholder-need" status="approved" tags="localization;i18n;collaboration"}
+## Multilingual teams need one engineering graph
+
+Translations should improve communication without creating competing semantic models or duplicated engineering truth.
+:::
+
+## System requirements
+
+::: {.need #SYS-001 type="system-requirement" status="approved" priority="critical" tags="graph;semantics;traceability" derives-from="STK-001" implemented-by="COMP-ANALYSIS" verified-by="TC-001"}
+## Maintain a canonical typed engineering graph
+
+Quarto-Needs shall resolve engineering objects and typed relations into one canonical graph that supports deterministic traversal and validation.
+
+### Rationale
+
+A single graph provides the semantic substrate for queries, governance, baselines, impact analysis, and generated views.
+:::
+
+::: {.need #SYS-002 type="system-requirement" status="approved" priority="high" tags="documentation;quarto;progressive-enhancement" derives-from="STK-002" implemented-by="COMP-EXTENSION" verified-by="TC-002"}
+## Use Quarto as the executable documentation interface
+
+Quarto-Needs shall make the engineering model navigable and publishable through ordinary Quarto documents while retaining machine-readable structure.
+
+### Rationale
+
+The documentation remains useful to humans while the same source carries formal engineering semantics.
+:::
+
+::: {.need #SYS-003 type="system-requirement" status="approved" priority="critical" tags="governance;determinism;ci" derives-from="STK-003" implemented-by="COMP-RULES;COMP-CLI" verified-by="TC-003"}
+## Provide deterministic validation and quality gates
+
+Quarto-Needs shall evaluate configured governance rules and quality gates reproducibly so that engineering policy can be enforced in local and CI workflows.
+
+### Rationale
+
+Requirements-as-code becomes operational only when the same project state produces the same engineering verdict.
+:::
+
+::: {.need #SYS-004 type="system-requirement" status="approved" priority="high" tags="architecture;adr;decision" derives-from="STK-004" implemented-by="COMP-ANALYSIS" verified-by="TC-004"}
+## Treat architecture decisions as first-class engineering objects
+
+Quarto-Needs shall model architecture decisions with identity, lifecycle, typed relations, governance, rationale, scope, confirmation, and lineage.
+
+### Rationale
+
+A decision is neither a requirement nor an implementation artifact; preserving it explicitly makes architectural reasoning traceable.
+:::
+
+::: {.need #SYS-005 type="system-requirement" status="approved" priority="high" tags="localization;i18n;semantics" derives-from="STK-005" implemented-by="COMP-I18N" verified-by="TC-005"}
+## Localize presentation without duplicating engineering semantics
+
+Quarto-Needs shall allow translated narrative and titles while enforcing invariant IDs, types, statuses, attributes, and relations across languages.
+
+### Rationale
+
+The engineering graph must remain a single source of truth even when documentation serves multilingual teams.
+:::
+
+::: {.need #SYS-006 type="system-requirement" status="approved" priority="high" tags="graph;projection;security;exploration" derives-from="STK-001;STK-002" implemented-by="COMP-GRAPH" verified-by="TC-006"}
+## Publish bounded semantic graph projections for exploration
+
+Quarto-Needs shall publish presentation-safe, bounded graph projections containing the semantics required by static and interactive views.
+
+### Rationale
+
+Exploration should be powerful without exposing arbitrary source data or moving engineering meaning into the browser.
+:::
+
+## Reading the first derivation layer
+
+The generated table makes the move from stakeholder concern to system obligation visible without duplicating the source data.
+
+{{< need-table types="stakeholder-need;system-requirement" columns="id;title;type;status;priority" sort="id" >}}
+
+{{< need-graph id="drivers-graph" root="STK-001" depth="3" >}}
