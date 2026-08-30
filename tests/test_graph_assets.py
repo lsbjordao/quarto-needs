@@ -80,7 +80,8 @@ def test_graph_lua_registers_the_shortcode() -> None:
         encoding="utf-8"
     )
     compact = "".join(shortcodes.split())
-    assert '["need-graph"]=graph.render_shortcode' in compact
+    assert '["need-graph"]=render_need_graph' in compact
+    assert "returngraph.render_shortcode(args,kwargs)" in compact
 
 
 def test_graph_lua_reads_and_applies_a_filter_argument() -> None:
