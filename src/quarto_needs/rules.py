@@ -254,6 +254,15 @@ def _allowed_status(ctx: RuleContext) -> Iterable[Finding]:
             )
 
 
+def _attribute_schema(ctx: RuleContext) -> Iterable[Finding]:
+    if not ctx.config.attribute_schemas:
+        return ()
+    from .type_schema import compile_type_schemas, validate_type_schemas
+
+    schemas = compile_type_schemas(ctx.config.attribute_schemas)
+    return validate_type_schemas(schemas, ctx.snapshot)
+
+
 def _decision_driver(ctx: RuleContext) -> Iterable[Finding]:
     for obj in _decs(ctx):
         has_driver = (
@@ -381,6 +390,7 @@ RULES = {spec.code: spec for spec in (
     RuleSpec("REQ015", "Expired evidence", "Evidence carrying an expiry attribute must still be valid.", "warning", evaluator=_expired_evidence),
     RuleSpec("ID001", "Configured ID prefix violated", "Object IDs may be governed by a prefix per engineering type.", "warning", evaluator=_id_prefix, auto_activates=lambda config: bool(config.id_prefixes)),
     RuleSpec("OBJ001", "Status outside type lifecycle", "Object status must belong to the configured lifecycle for its type.", "warning", evaluator=_allowed_status, auto_activates=lambda config: bool(config.allowed_statuses)),
+    RuleSpec("OBJ002", "Attribute schema violation", "Object attributes may be constrained by a per-type Draft 2020-12 JSON Schema.", "error", evaluator=_attribute_schema, auto_activates=lambda config: bool(config.attribute_schemas)),
     RuleSpec("DEC001", "Accepted decision without driver", "Accepted architecture decisions should address at least one engineering driver.", "warning", evaluator=_decision_driver),
     RuleSpec("DEC002", "Accepted decision without architectural scope", "Accepted architecture decisions should identify affected architecture elements.", "warning", evaluator=_decision_scope),
     RuleSpec("DEC003", "Accepted decision without confirmation", "Accepted architecture decisions should define how continued conformance is confirmed.", "warning", evaluator=_decision_confirmation),
@@ -388,7 +398,7 @@ RULES = {spec.code: spec for spec in (
     RuleSpec("DEC005", "Decision supersession cycle", "Supersession lineage must remain acyclic.", "error", supported_severities=("error",), evaluator=_decision_cycle),
     RuleSpec("DEC006", "Accepted decision overdue for review", "Accepted decisions with revisit-after dates should be reviewed when due.", "warning", evaluator=_decision_revisit),
 )}
-RULE_SET_VERSION = "4"
+RULE_SET_VERSION = "5"
 
 for _spec in RULES.values():
     if _spec.evaluator is None and _spec.code not in LEGACY_CODES:
