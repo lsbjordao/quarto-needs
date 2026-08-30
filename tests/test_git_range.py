@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import subprocess
@@ -9,6 +10,7 @@ import pytest
 
 from quarto_needs import diff as diff_module
 from quarto_needs import impact as impact_module
+from quarto_needs.cli_entry import main
 from quarto_needs.git_range import GitRangeError, materialize_git_range, parse_git_range
 
 
@@ -144,3 +146,74 @@ def test_git_range_ignores_wall_clock_source_date_epoch(tmp_path: Path, monkeypa
     assert first.base_snapshot.semantic_graph_fingerprint == second.base_snapshot.semantic_graph_fingerprint
     assert first.head_snapshot.semantic_graph_fingerprint == second.head_snapshot.semantic_graph_fingerprint
     assert os.environ["SOURCE_DATE_EPOCH"] == "4102444800"
+
+
+def test_diff_git_cli_materializes_refs_and_reports_commit_metadata(tmp_path: Path, capsys) -> None:
+    _, project, base, head = _repository(tmp_path)
+    exit_code = main([
+        "--root",
+        str(project),
+        "diff",
+        "--git",
+        f"{base}..{head}",
+        "--format",
+        "json",
+    ])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload["git"] == {
+        "range": f"{base}..{head}",
+        "baseRef": base,
+        "baseSha": base,
+        "headRef": head,
+        "headSha": head,
+        "referenceEpoch": 1788093296,
+    }
+    assert payload["objects"]["added"] == []
+    assert payload["objects"]["removed"] == []
+    assert [item["id"] for item in payload["objects"]["modified"]] == ["FUN-001"]
+
+
+def test_impact_git_cli_reports_explicit_verification_path(tmp_path: Path, capsys) -> None:
+    _, project, base, head = _repository(tmp_path)
+    exit_code = main([
+        "--root",
+        str(project),
+        "impact",
+        "--git",
+        f"{base}..{head}",
+        "--format",
+        "json",
+    ])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload["git"]["baseSha"] == base
+    assert payload["git"]["headSha"] == head
+    assert payload["origins"] == [{"id": "FUN-001", "change": "modified", "fields": ["title", "body"]}]
+    assert payload["impacted"] == [
+        {
+            "id": "TC-001",
+            "origin": "FUN-001",
+            "change": "modified",
+            "classification": "direct",
+            "distance": 1,
+            "relations": ["verified-by"],
+            "path": ["FUN-001", "TC-001"],
+            "priority": None,
+        }
+    ]
+
+
+def test_non_git_diff_still_delegates_to_established_cli(monkeypatch) -> None:
+    observed: list[list[str]] = []
+
+    def fake_dispatch(argv):
+        observed.append(list(argv))
+        return 23
+
+    monkeypatch.setattr("quarto_needs.cli_entry.dispatch_main", fake_dispatch)
+    argv = ["diff", "baselines/quarto-needs.json", "--format", "json"]
+    assert main(argv) == 23
+    assert observed == [argv]
