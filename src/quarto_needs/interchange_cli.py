@@ -7,7 +7,7 @@ from pathlib import Path
 
 from .analysis import analyze_project
 from .config import load_config
-from .exporters import reqif_export
+from .exporters import jsonld_export, reqif_export
 
 
 def interchange_action(argv: Sequence[str]) -> str | None:
@@ -26,12 +26,12 @@ def interchange_action(argv: Sequence[str]) -> str | None:
     if format_index + 1 >= len(tail):
         return None
     value = tail[format_index + 1]
-    return value if value in {"reqif"} else None
+    return value if value in {"reqif", "jsonld"} else None
 
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="quarto-needs export")
-    parser.add_argument("--format", choices=("reqif",), required=True)
+    parser.add_argument("--format", choices=("reqif", "jsonld"), required=True)
     parser.add_argument("--output")
     return parser
 
@@ -65,20 +65,28 @@ def run_interchange_export(root: Path, argv: Sequence[str], format_name: str) ->
         print_findings(result.findings, stream=sys.stderr)
         return 1
 
-    if format_name != "reqif":
+    if format_name == "reqif":
+        default_output = Path(".quarto-needs/requirements.reqif")
+        writer = reqif_export.write
+        label = f"ReqIF {reqif_export.REQIF_SPECIFICATION_VERSION}"
+    elif format_name == "jsonld":
+        default_output = Path(".quarto-needs/graph.jsonld")
+        writer = jsonld_export.write
+        label = f"JSON-LD projection v{jsonld_export.JSONLD_CONTEXT_VERSION}"
+    else:
         print(f"Unsupported interchange format: {format_name}", file=sys.stderr)
         return 2
 
-    output_arg = Path(args.output) if args.output else Path(".quarto-needs/requirements.reqif")
+    output_arg = Path(args.output) if args.output else default_output
     output = output_arg if output_arg.is_absolute() else root / output_arg
     try:
-        reqif_export.write(output, result.snapshot)
+        writer(output, result.snapshot)
     except OSError as error:
-        print(f"Could not write ReqIF export {output}: {error}", file=sys.stderr)
+        print(f"Could not write {format_name} export {output}: {error}", file=sys.stderr)
         return 3
 
     print(
-        f"Wrote ReqIF {reqif_export.REQIF_SPECIFICATION_VERSION} export to {output} "
+        f"Wrote {label} to {output} "
         f"({len(result.snapshot.objects)} objects, {len(result.snapshot.relations)} relations)"
     )
     return 0
