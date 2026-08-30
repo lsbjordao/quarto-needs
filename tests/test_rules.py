@@ -52,7 +52,7 @@ def test_fingerprint_is_stable_across_severity_changes() -> None:
 def test_registry_covers_legacy_and_governance_codes() -> None:
     assert tuple(sorted(RULES)) == (
         "DEC001", "DEC002", "DEC003", "DEC004", "DEC005", "DEC006",
-        "ID001", "OBJ001",
+        "ID001", "OBJ001", "OBJ002",
         "REQ002", "REQ004", "REQ005", "REQ006",
         "REQ008", "REQ009", "REQ010", "REQ011",
         "REQ012", "REQ013", "REQ014", "REQ015",
