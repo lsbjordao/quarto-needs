@@ -1,0 +1,111 @@
+# Políticas declarativas de engenharia
+
+As regras nativas cobrem semânticas estáveis do produto, mas projetos frequentemente precisam de governança específica da organização ou do domínio. Por isso, o Quarto-Needs oferece uma camada deliberadamente limitada de políticas declarativas em `.quarto-needs.toml`.
+
+A camada de políticas **não** é um motor de scripts. Ela não pode executar Python, Lua, JavaScript, comandos de shell, templates nem expressões arbitrárias. Uma política compõe três capacidades semânticas já pertencentes ao núcleo:
+
+1. uma consulta nomeada seleciona os objetos de origem;
+2. o catálogo canônico de relações define a relação exigida;
+3. papéis de tipos configurados podem restringir semanticamente o alvo da relação.
+
+## Uma política mínima
+
+```toml
+[policies.APPROVED_REQUIRES_TEST]
+scope = "approved-requirements"
+assert-relation = "verified-by"
+target-role = "verification"
+minimum = 1
+severity = "error"
+```
+
+Isso significa: para cada objeto selecionado por `approved-requirements`, exigir pelo menos uma relação `verified-by` cujo alvo tenha o papel semântico `verification`.
+
+Uma violação se torna um finding de engenharia comum com o código:
+
+```text
+POLICY:APPROVED_REQUIRES_TEST
+```
+
+Assim, ela participa dos mesmos relatórios de qualidade, diffs Git, relatórios de PR, projeções para GitHub e gates dos findings das regras nativas.
+
+## Gramática
+
+Cada tabela `[policies.<NOME>]` aceita atualmente somente:
+
+| Chave | Obrigatória | Significado |
+|---|---:|---|
+| `scope` | sim | Consulta nomeada segura existente, incluindo a consulta nativa `approved-requirements`. |
+| `assert-relation` | sim | Nome de relação resolvido pelo catálogo canônico de relações. |
+| `target-role` | não | Papel semântico exigido nos alvos correspondentes. |
+| `minimum` | não | Número mínimo de relações correspondentes; inteiro `>= 1`, padrão `1`. |
+| `severity` | não | `error`, `warning` ou `info`; padrão `error`. |
+
+Chaves desconhecidas são rejeitadas. Isso é intencional: ampliar a gramática exige uma capacidade explícita do Quarto-Needs, em vez de criar silenciosamente uma abertura para execução de código.
+
+## Escopos nomeados
+
+As políticas reutilizam a linguagem limitada de consultas existente em vez de criar outra linguagem de seleção. Por exemplo:
+
+```toml
+[queries.approved-high-nfr]
+all = [
+  { field = "type", op = "eq", value = "non-functional-requirement" },
+  { field = "status", op = "eq", value = "approved" },
+  { field = "priority", op = "in", values = ["critical", "high"] },
+]
+
+[policies.HIGH_NFR_REQUIRES_TEST]
+scope = "approved-high-nfr"
+assert-relation = "verified-by"
+target-role = "verification"
+minimum = 1
+severity = "error"
+```
+
+A consulta é compilada pelo mesmo avaliador seguro usado por tabelas geradas e visualizações de grafo.
+
+## Autoria direta e inversa
+
+Políticas descrevem uma visão lógica da relação, não o local específico onde ela foi escrita. Se um requisito estiver ligado como:
+
+```text
+FUN-001 --verified-by--> TC-001
+```
+
+ou se o teste autorar a inversa:
+
+```text
+TC-001 --verifies--> FUN-001
+```
+
+uma política que exige `verified-by` enxerga a mesma relação lógica. A inversa é derivada do catálogo canônico de relações; o motor de políticas não mantém uma segunda tabela de relações inversas.
+
+## Fingerprints de configuração
+
+As políticas fazem parte de `NeedsConfig.canonical_document()`. Alterar escopo, relação, papel do alvo, mínimo ou severidade muda o fingerprint de configuração. Consequentemente:
+
+- baselines podem detectar mudanças de política;
+- atestações de evidência não sobrevivem silenciosamente a uma mudança de governança;
+- análises por intervalos Git conseguem distinguir estados governados por configurações diferentes.
+
+É por isso que políticas não são carregadas de um arquivo lateral externo nem aplicadas apenas dentro do CI.
+
+## Exemplo autocontido
+
+`examples/quarto-needs/.quarto-needs.toml` usa a própria funcionalidade com:
+
+```toml
+[policies.APPROVED_REQUIRES_TEST]
+scope = "approved-requirements"
+assert-relation = "verified-by"
+target-role = "verification"
+minimum = 1
+severity = "error"
+```
+
+O modelo autocontido já exige 100% de cobertura de verificação. Essa política declarativa expressa de forma independente a expectativa de governança específica do projeto; assim, um requisito aprovado futuro sem relação de verificação produz `POLICY:APPROVED_REQUIRES_TEST` e bloqueia o quality gate estrito.
+
+## Limite atual
+
+A Phase 3.1 começa intencionalmente com políticas de relação obrigatória. Fases posteriores podem acrescentar, de forma igualmente limitada, schemas por tipo, restrições de caminhos/cardinalidade/ciclos do grafo e valores derivados seguros. Essas capacidades devem ampliar o modelo canônico de políticas, e não introduzir avaliação arbitrária de expressões.
