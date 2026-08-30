@@ -9,11 +9,12 @@ from ..export import _write_atomic_text
 from ..snapshot import AnalysisSnapshot, thaw_json
 
 JSONLD_CONTEXT_VERSION = "1"
-QN_NAMESPACE = "urn:quarto-needs:"
+QN_NAMESPACE = "urn:quarto-needs:v1:"
 
 _CONTEXT = {
     "@version": 1.1,
     "qn": QN_NAMESPACE,
+    "quartoNeedsJsonLdVersion": "qn:jsonLdProjectionVersion",
     "canonicalId": "qn:canonicalId",
     "objectType": "qn:objectType",
     "title": "qn:title",
