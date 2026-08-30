@@ -1,0 +1,122 @@
+# Restrições declarativas do grafo
+
+As restrições de grafo do Quarto-Needs expressam invariantes estruturais limitados sobre o grafo canônico de engenharia. Elas complementam as configurações de extremos/cardinalidade por relação e a DSL mais simples de políticas de relação obrigatória.
+
+Toda restrição é configuração, não código executável. As fontes de constraints entram no fingerprint canônico de configuração e violações se tornam findings comuns chamados `CONSTRAINT:<NOME>`.
+
+## Caminhos obrigatórios
+
+Uma restrição `required-path` exige uma rota semântica ordenada a partir de cada objeto de um escopo definido por consulta nomeada.
+
+```toml
+[constraints.APPROVED_REQUIRES_EVIDENCE_PATH]
+kind = "required-path"
+scope = "approved-requirements"
+relations = ["verified-by", "evidenced-by"]
+target-role = "evidence"
+severity = "error"
+```
+
+Isso é mais forte do que exigir um único vínculo de verificação: o requisito precisa alcançar evidência pela sequência exata:
+
+```text
+requirement --verified-by--> test --evidenced-by--> evidence
+```
+
+Relações autoradas pela inversa são interpretadas pelo catálogo canônico de relações. Por exemplo, uma aresta `verifies` autorada pelo teste satisfaz uma etapa `verified-by`.
+
+## Ciclos proibidos
+
+`forbidden-cycle` rejeita ciclos formados por uma ou mais relações lógicas selecionadas:
+
+```toml
+[constraints.ACYCLIC_DEPENDENCIES]
+kind = "forbidden-cycle"
+scope = "architecture-components"
+relations = ["depends-on"]
+severity = "error"
+```
+
+O finding inclui um witness explícito do ciclo, como:
+
+```text
+COMP-A → COMP-B → COMP-C → COMP-A
+```
+
+O escopo é opcional para ciclos. Sem `scope`, todos os objetos modelados participam.
+
+## Conectividade por escopo
+
+`connected` exige que objetos selecionados por uma consulta participem do grafo:
+
+```toml
+[constraints.NO_ORPHAN_COMPONENTS]
+kind = "connected"
+scope = "architecture-components"
+minimum = 1
+severity = "warning"
+```
+
+Quando `relations` é omitido, qualquer relação de engenharia de entrada ou saída conta. Um array opcional `relations` restringe as visões lógicas aceitas.
+
+Isso oferece uma alternativa declarativa e por escopo à regra global de órfãos `REQ014`.
+
+## Máximo de relações lógicas
+
+`max-relations` limita uma relação lógica por objeto do escopo e pode restringir o papel semântico do alvo:
+
+```toml
+[constraints.ONE_PRIMARY_VERIFICATION]
+kind = "max-relations"
+scope = "critical-requirements"
+relations = ["verified-by"]
+target-role = "verification"
+maximum = 1
+severity = "warning"
+```
+
+Diferentemente da cardinalidade autorada de baixo nível em `[relations.*]`, esse constraint avalia a visão lógica da relação e reconhece autoria inversa quando o catálogo define uma inversa.
+
+## Por que a gramática é intencionalmente finita
+
+Os tipos de constraint atuais são exatamente:
+
+- `required-path`;
+- `forbidden-cycle`;
+- `connected`;
+- `max-relations`.
+
+Kinds e chaves desconhecidos são rejeitados. Não existe expressão de predicado, callback, script, template, import dinâmico nem linguagem arbitrária de travessia.
+
+Isso mantém a semântica:
+
+- determinística;
+- revisável em Git;
+- compatível com builds offline;
+- explicável por witnesses explícitos;
+- reutilizável por CLI, CI, relatórios de PR, projeções semelhantes a SARIF e futuro tooling de editor.
+
+## Relação com as outras camadas de governança
+
+Use o mecanismo mais estreito que expresse o invariante:
+
+- `[types.*]` — identidade, papel, ciclo de vida, atributos obrigatórios e forma por JSON Schema;
+- `[relations.*]` — **tipos** permitidos nos extremos e cardinalidade autorada simples;
+- `[policies.*]` — uma relação lógica obrigatória sobre um escopo de consulta;
+- `[constraints.*]` — caminhos, ciclos, conectividade por escopo e limites de relações lógicas;
+- regras nativas — semânticas estáveis do produto que não devem ser reescritas por cada projeto.
+
+## Exemplo autocontido
+
+O modelo autocontido do Quarto-Needs usa `required-path` em si mesmo:
+
+```toml
+[constraints.APPROVED_REQUIRES_EVIDENCE_PATH]
+kind = "required-path"
+scope = "approved-requirements"
+relations = ["verified-by", "evidenced-by"]
+target-role = "evidence"
+severity = "error"
+```
+
+Assim, um requisito aprovado não é considerado estruturalmente completo apenas porque declara um teste; esse teste precisa também alcançar evidência modelada.
