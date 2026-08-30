@@ -13,7 +13,7 @@ QN_NAMESPACE = "urn:quarto-needs:v1:"
 
 _CONTEXT = {
     "@version": 1.1,
-    "qn": QN_NAMESPACE,
+    "qn": {"@id": QN_NAMESPACE, "@prefix": True},
     "quartoNeedsJsonLdVersion": "qn:jsonLdProjectionVersion",
     "canonicalId": "qn:canonicalId",
     "objectType": "qn:objectType",
