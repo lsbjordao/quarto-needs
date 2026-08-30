@@ -1,0 +1,46 @@
+# Contexto do sistema: de onde vêm os requisitos
+
+Um modelo de requisitos fica mais fácil de compreender quando o leitor conhece primeiro a fronteira do sistema, seus atores e as superfícies externas pelas quais o trabalho de engenharia entra e sai do produto.
+
+## Fronteira do sistema
+
+O Quarto-Needs não é a própria documentação nem o grafo do navegador. Ele é o motor semântico entre as fontes de engenharia escritas e as visualizações, verificações e automações que as consomem.
+
+```text
+Engenheiro de requisitos / Arquiteto / Desenvolvedor / Revisor
+                              │
+                              ▼
+                     QMD + configuração
+                              │
+                              ▼
+                    núcleo Python Quarto-Needs
+          parser → análise → regras/consulta → snapshot
+               │             │                 │
+               │             │                 ├── CLI / CI
+               │             │                 ├── baseline / diff / impacto
+               │             │                 └── exports legíveis por máquina
+               │             ▼
+               └────── projeções públicas
+                              │
+                              ▼
+                      extensão Quarto
+                              │
+                ┌─────────────┴─────────────┐
+                ▼                           ▼
+        documentação estática        HTML interativo
+        tabelas / cards / SVG            Cytoscape
+```
+
+## Atores primários
+
+**Engenheiros de requisitos** registram necessidades, requisitos, relações, justificativas e política de governança. **Arquitetos** registram decisões de arquitetura e seu escopo. **Desenvolvedores** implementam as obrigações e mantêm os módulos-fonte rastreáveis. **Revisores** inspecionam cobertura, decisões, impacto e evidências. A **automação de CI** executa a mesma análise determinística sem se tornar uma autoridade semântica separada.
+
+As ferramentas externas também têm papéis deliberadamente limitados. O **Git** versiona texto e evidências geradas; o **Quarto** renderiza documentos; o **BabelQuarto** projeta a apresentação localizada; o **navegador** explora um grafo já resolvido.
+
+## Por que isso importa para o modelo
+
+As necessidades de stakeholders do próximo capítulo, portanto, não são personas abstratas. Elas surgem de tensões concretas nessa fronteira: pessoas precisam de documentos legíveis enquanto a automação precisa de semântica formal; leitores multilíngues precisam de apresentação traduzida enquanto o grafo de engenharia deve permanecer único; a exploração interativa precisa de metadados ricos enquanto as projeções públicas devem permanecer limitadas e seguras.
+
+A primeira camada de derivação pode ser explorada diretamente abaixo.
+
+{{< need-graph root="STK-001" depth="3" id="system-context-derivation" >}}
