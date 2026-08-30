@@ -99,6 +99,27 @@ Outcome.
     )
 
 
+def append_decision(root: Path, decision_id: str, *, status: str = "proposed") -> None:
+    path = root / "objects.qmd"
+    with path.open("a", encoding="utf-8") as stream:
+        stream.write(
+            f'''\n::: {{.need #{decision_id} type=architecture-decision status={status}}}
+date: 2026-08-29
+decision-makers: Architecture Team
+tags: architecture
+
+## Follow-up architecture decision
+
+### Context and Problem Statement
+Context.
+
+### Decision Outcome
+Outcome.
+:::
+'''
+        )
+
+
 @pytest.mark.requirement("SYS-004")
 @pytest.mark.quarto_need_test_case("TC-004")
 def test_accepted_decision_passes_decision_governance(tmp_path: Path) -> None:
@@ -140,6 +161,86 @@ def test_accepted_decision_without_driver_is_reported(tmp_path: Path) -> None:
 
     assert result.snapshot is not None
     assert any(finding.code == "DEC001" and finding.object_id == "ADR-001" for finding in result.findings)
+
+
+def test_inverse_addressed_by_satisfies_decision_driver(tmp_path: Path) -> None:
+    write_project(tmp_path)
+    path = tmp_path / "objects.qmd"
+    content = path.read_text(encoding="utf-8")
+    content = content.replace("addresses: NFR-001\n", "")
+    content = content.replace("## Driver\n", "addressed-by: ADR-001\n\n## Driver\n", 1)
+    path.write_text(content, encoding="utf-8")
+
+    config = load_config(tmp_path)
+    result = analyze_project(tmp_path, config=config)
+
+    assert result.snapshot is not None
+    assert not any(finding.code == "DEC001" and finding.object_id == "ADR-001" for finding in result.findings)
+
+
+def test_inverse_confirms_satisfies_decision_confirmation(tmp_path: Path) -> None:
+    write_project(tmp_path)
+    path = tmp_path / "objects.qmd"
+    content = path.read_text(encoding="utf-8")
+    content = content.replace("confirmed-by: TC-001\n", "")
+    content = content.replace("## Confirmation\n", "confirms: ADR-001\n\n## Confirmation\n", 1)
+    path.write_text(content, encoding="utf-8")
+
+    config = load_config(tmp_path)
+    result = analyze_project(tmp_path, config=config)
+
+    assert result.snapshot is not None
+    assert not any(finding.code == "DEC003" and finding.object_id == "ADR-001" for finding in result.findings)
+
+
+def test_superseded_decision_with_only_predecessor_is_reported(tmp_path: Path) -> None:
+    write_project(tmp_path, status="superseded")
+    append_decision(tmp_path, "ADR-000")
+    path = tmp_path / "objects.qmd"
+    content = path.read_text(encoding="utf-8")
+    content = content.replace("applies-to: COMP-001\n", "applies-to: COMP-001\nsupersedes: ADR-000\n", 1)
+    path.write_text(content, encoding="utf-8")
+
+    config = load_config(tmp_path)
+    result = analyze_project(tmp_path, config=config)
+
+    assert result.snapshot is not None
+    assert any(finding.code == "DEC004" and finding.object_id == "ADR-001" for finding in result.findings)
+
+
+def test_superseded_by_identifies_a_successor(tmp_path: Path) -> None:
+    write_project(tmp_path, status="superseded")
+    append_decision(tmp_path, "ADR-002")
+    path = tmp_path / "objects.qmd"
+    content = path.read_text(encoding="utf-8")
+    content = content.replace("applies-to: COMP-001\n", "applies-to: COMP-001\nsuperseded-by: ADR-002\n", 1)
+    path.write_text(content, encoding="utf-8")
+
+    config = load_config(tmp_path)
+    result = analyze_project(tmp_path, config=config)
+
+    assert result.snapshot is not None
+    assert not any(finding.code == "DEC004" and finding.object_id == "ADR-001" for finding in result.findings)
+
+
+def test_inverse_supersedes_identifies_a_successor(tmp_path: Path) -> None:
+    write_project(tmp_path, status="superseded")
+    append_decision(tmp_path, "ADR-002")
+    path = tmp_path / "objects.qmd"
+    content = path.read_text(encoding="utf-8")
+    marker = "tags: architecture\n\n## Follow-up architecture decision"
+    content = content.replace(
+        marker,
+        "tags: architecture\nsupersedes: ADR-001\n\n## Follow-up architecture decision",
+        1,
+    )
+    path.write_text(content, encoding="utf-8")
+
+    config = load_config(tmp_path)
+    result = analyze_project(tmp_path, config=config)
+
+    assert result.snapshot is not None
+    assert not any(finding.code == "DEC004" and finding.object_id == "ADR-001" for finding in result.findings)
 
 
 def test_accepted_decision_overdue_for_revisit_is_reported(tmp_path: Path, monkeypatch) -> None:
