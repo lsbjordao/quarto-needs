@@ -19,6 +19,7 @@ from .evidence import (
     load_pytest_evidence,
     parse_evidence_time,
     validate_evidence_envelope,
+    validate_pytest_evidence,
     write_json_atomic,
 )
 from .evidence_validation import validate_check_evidence
@@ -63,6 +64,16 @@ def _read_json_object(path: Path) -> dict[str, object]:
     if not isinstance(document, dict):
         raise ValueError(f"{path} must contain a JSON object")
     return document
+
+
+def _envelope_artifact_schema(document: Mapping[str, object]) -> str | None:
+    if document.get("kind") != EVIDENCE_KIND:
+        return None
+    artifact = document.get("artifact")
+    if not isinstance(artifact, Mapping):
+        return None
+    schema = artifact.get("schema")
+    return schema if isinstance(schema, str) else None
 
 
 def _generic_envelope(
@@ -137,6 +148,109 @@ def _shape_error(payload: Mapping[str, object]) -> str | None:
     return None
 
 
+def _analyzed_snapshot(root: Path):
+    try:
+        config = load_config(root)
+    except ValueError as error:
+        print(f"Configuration error: {error}", file=sys.stderr)
+        return None, 2
+    result = analyze_project(root, config=config)
+    if result.snapshot is None:
+        from .cli import print_findings
+
+        print_findings(result.findings, stream=sys.stderr)
+        return None, 1
+    return result.snapshot, 0
+
+
+def _sorted_issues(issues):
+    return sorted(
+        issues,
+        key=lambda issue: (
+            issue.code,
+            (issue.object_id or "").casefold(),
+            issue.object_id or "",
+            (issue.nodeid or "").casefold(),
+            issue.nodeid or "",
+            issue.message,
+        ),
+    )
+
+
+def _print_check_projection(projection: Mapping[str, object], issues, *, noun: str) -> None:
+    if projection.get("format") == "json":
+        rendered = dict(projection)
+        rendered.pop("format", None)
+        print(json.dumps(rendered, indent=2, sort_keys=True))
+        return
+    if issues:
+        print(f"Evidence check failed: {len(issues)} issue(s)")
+        for issue in issues:
+            scope = ""
+            if issue.object_id:
+                scope += f" {issue.object_id}"
+            if issue.nodeid:
+                scope += f" [{issue.nodeid}]"
+            print(f"[{issue.code}]{scope}: {issue.message}")
+    else:
+        print(f"Evidence check passed: {noun} agree with the current engineering graph")
+
+
+def _attested_pytest_check(argv: Sequence[str], artifact_arg: Path) -> int | None:
+    root = _root(argv)
+    artifact = artifact_arg if artifact_arg.is_absolute() else root / artifact_arg
+    try:
+        document = _read_json_object(artifact)
+    except ValueError as error:
+        print(f"Evidence error: {error}", file=sys.stderr)
+        return 2
+    except OSError as error:
+        print(f"Could not read evidence artifact {artifact}: {error}", file=sys.stderr)
+        return 3
+    if _envelope_artifact_schema(document) != "evidence-pytest-v1":
+        return None
+    try:
+        loaded = load_pytest_evidence(artifact)
+    except ValueError as error:
+        print(f"Evidence error: {error}", file=sys.stderr)
+        return 2
+    snapshot, exit_code = _analyzed_snapshot(root)
+    if snapshot is None:
+        return exit_code
+    artifact_node = document.get("artifact")
+    if not isinstance(artifact_node, Mapping):
+        print(f"Evidence error: {artifact} has invalid envelope artifact", file=sys.stderr)
+        return 2
+    payload = artifact_node.get("payload")
+    if not isinstance(payload, Mapping):
+        print(f"Evidence error: {artifact} has invalid pytest payload", file=sys.stderr)
+        return 2
+    issues = list(
+        validate_evidence_envelope(
+            snapshot,
+            document,
+            expected_source_revision=os.environ.get("GITHUB_SHA"),
+        )
+    )
+    issues.extend(validate_pytest_evidence(snapshot, payload))
+    issues = _sorted_issues(issues)
+    projection = {
+        "artifact": str(artifact),
+        "provider": loaded["provider"],
+        "tests": len(loaded["tests"]),
+        "attested": True,
+        "valid": not issues,
+        "issues": [issue.to_dict() for issue in issues],
+        "format": _format(argv),
+    }
+    _print_check_projection(
+        projection,
+        issues,
+        noun=f"{len(loaded['tests'])} attested linked pytest test(s) from {artifact}",
+    )
+    return 1 if issues else 0
+
+
 def _generic_evidence_check(argv: Sequence[str], artifact_arg: Path) -> int | None:
     root = _root(argv)
     artifact = artifact_arg if artifact_arg.is_absolute() else root / artifact_arg
@@ -156,33 +270,20 @@ def _generic_evidence_check(argv: Sequence[str], artifact_arg: Path) -> int | No
         print(f"Evidence error: {shape_error}", file=sys.stderr)
         return 2
 
-    try:
-        config = load_config(root)
-    except ValueError as error:
-        print(f"Configuration error: {error}", file=sys.stderr)
-        return 2
-    result = analyze_project(root, config=config)
-    if result.snapshot is None:
-        from .cli import print_findings
-
-        print_findings(result.findings, stream=sys.stderr)
-        return 1
-
+    snapshot, exit_code = _analyzed_snapshot(root)
+    if snapshot is None:
+        return exit_code
     issues = []
     if envelope is not None:
-        issues.extend(validate_evidence_envelope(result.snapshot, envelope))
-    issues.extend(validate_check_evidence(result.snapshot, payload))
-    issues = sorted(
-        issues,
-        key=lambda issue: (
-            issue.code,
-            (issue.object_id or "").casefold(),
-            issue.object_id or "",
-            (issue.nodeid or "").casefold(),
-            issue.nodeid or "",
-            issue.message,
-        ),
-    )
+        issues.extend(
+            validate_evidence_envelope(
+                snapshot,
+                envelope,
+                expected_source_revision=os.environ.get("GITHUB_SHA"),
+            )
+        )
+    issues.extend(validate_check_evidence(snapshot, payload))
+    issues = _sorted_issues(issues)
     projection = {
         "artifact": str(artifact),
         "provider": payload["provider"],
@@ -190,24 +291,14 @@ def _generic_evidence_check(argv: Sequence[str], artifact_arg: Path) -> int | No
         "attested": envelope is not None,
         "valid": not issues,
         "issues": [issue.to_dict() for issue in issues],
+        "format": _format(argv),
     }
-    if _format(argv) == "json":
-        print(json.dumps(projection, indent=2, sort_keys=True))
-    elif issues:
-        print(f"Evidence check failed: {len(issues)} issue(s)")
-        for issue in issues:
-            scope = ""
-            if issue.object_id:
-                scope += f" {issue.object_id}"
-            if issue.nodeid:
-                scope += f" [{issue.nodeid}]"
-            print(f"[{issue.code}]{scope}: {issue.message}")
-    else:
-        attestation = "attested " if envelope is not None else ""
-        print(
-            f"Evidence check passed: {len(payload['checks'])} {attestation}machine check(s) "
-            f"from {artifact} agree with the current engineering graph"
-        )
+    attestation = "attested " if envelope is not None else ""
+    _print_check_projection(
+        projection,
+        issues,
+        noun=f"{len(payload['checks'])} {attestation}machine check(s) from {artifact}",
+    )
     return 1 if issues else 0
 
 
@@ -257,18 +348,9 @@ def _attest_evidence(argv: Sequence[str], artifact_arg: Path) -> int:
         print(f"Could not read evidence artifact {artifact}: {error}", file=sys.stderr)
         return 3
 
-    try:
-        config = load_config(root)
-    except ValueError as error:
-        print(f"Configuration error: {error}", file=sys.stderr)
-        return 2
-    result = analyze_project(root, config=config)
-    if result.snapshot is None:
-        from .cli import print_findings
-
-        print_findings(result.findings, stream=sys.stderr)
-        return 1
-
+    snapshot, exit_code = _analyzed_snapshot(root)
+    if snapshot is None:
+        return exit_code
     provider = payload.get("provider")
     provider_version = payload.get("providerVersion")
     if not isinstance(provider, str) or not provider:
@@ -293,7 +375,7 @@ def _attest_evidence(argv: Sequence[str], artifact_arg: Path) -> int:
         provider_name=provider,
         provider_version=provider_version,
         artifact_schema=artifact_schema,
-        snapshot=result.snapshot,
+        snapshot=snapshot,
         generated_at=generated_at,
         expires_at=expires_at,
         source_revision=source_revision,
@@ -304,21 +386,25 @@ def _attest_evidence(argv: Sequence[str], artifact_arg: Path) -> int:
         print(f"Could not write evidence attestation {output}: {error}", file=sys.stderr)
         return 3
 
+    artifact_node = envelope["artifact"]
+    subject = envelope["subject"]
+    assert isinstance(artifact_node, Mapping)
+    assert isinstance(subject, Mapping)
     projection = {
         "input": str(artifact),
         "output": str(output),
         "provider": provider,
         "artifactSchema": artifact_schema,
-        "digest": envelope["artifact"]["digest"],
+        "digest": artifact_node["digest"],
         "expiresAt": envelope.get("expiresAt"),
-        "sourceRevision": envelope["subject"].get("sourceRevision"),
+        "sourceRevision": subject.get("sourceRevision"),
     }
     if args.format == "json":
         print(json.dumps(projection, indent=2, sort_keys=True))
     else:
         print(
             f"Wrote {provider} evidence attestation to {output} "
-            f"for semantic graph {result.snapshot.semantic_graph_fingerprint}"
+            f"for semantic graph {snapshot.semantic_graph_fingerprint}"
         )
     return 0
 
@@ -330,6 +416,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         name, artifact = action
         if name == "attest":
             return _attest_evidence(values, artifact)
+        pytest_result = _attested_pytest_check(values, artifact)
+        if pytest_result is not None:
+            return pytest_result
         result = _generic_evidence_check(values, artifact)
         if result is not None:
             return result
