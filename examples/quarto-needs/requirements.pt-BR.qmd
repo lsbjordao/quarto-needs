@@ -1,0 +1,145 @@
+# Requisitos: refinando as obrigações do produto
+
+Os requisitos de sistema estabelecem obrigações amplas. Este capítulo os refina em capacidades implementáveis e restrições de qualidade que moldam como essas capacidades devem se comportar.
+
+## Requisitos funcionais
+
+::: {.need #FUN-001 type="functional-requirement" status="approved" priority="critical" tags="parser;authoring;graph" derives-from="SYS-001" implemented-by="COMP-PARSER;IF-001" verified-by="TC-007"}
+## Interpretar declarações de engenharia a partir de fontes Quarto
+
+O Quarto-Needs deve interpretar declarações `.need` em fontes QMD como objetos de engenharia estruturados, com identidade estável e localização de origem.
+
+### Justificativa
+
+A autoria orientada a texto só é útil se o núcleo semântico puder recuperar objetos estruturados de forma determinística a partir de documentação comum.
+:::
+
+::: {.need #FUN-002 type="functional-requirement" status="approved" priority="critical" tags="relations;semantics;graph" derives-from="SYS-001" implemented-by="COMP-ANALYSIS" verified-by="TC-008"}
+## Resolver relações autoradas por meio de um catálogo canônico de relações
+
+O Quarto-Needs deve resolver nomes de relações autoradas em famílias semânticas canônicas, papéis dos extremos, direção de impacto e direção de travessia.
+
+### Justificativa
+
+Camadas de apresentação e análises posteriores precisam consumir um significado autoritativo único para cada relação de engenharia.
+:::
+
+::: {.need #FUN-003 type="functional-requirement" status="approved" priority="high" tags="query;graph;views" derives-from="SYS-001;SYS-006" implemented-by="COMP-ANALYSIS;COMP-GRAPH" verified-by="TC-009"}
+## Materializar consultas nomeadas como visões reutilizáveis do grafo
+
+O Quarto-Needs deve avaliar consultas nomeadas no núcleo Python e materializar projeções limitadas do grafo que possam ser reutilizadas pelas visualizações da documentação.
+
+### Justificativa
+
+Seleção complexa pertence ao núcleo semântico, e não a reimplementações independentes em Lua ou JavaScript.
+:::
+
+::: {.need #FUN-004 type="functional-requirement" status="approved" priority="high" tags="graph;cytoscape;exploration" derives-from="SYS-002;SYS-006" implemented-by="COMP-GRAPH" verified-by="TC-010"}
+## Explorar a rastreabilidade interativamente com controles semânticos do grafo
+
+O grafo HTML deve suportar exploração semântica de pais/filhos, perfis de travessia, filtros por tipo/status/família, análise de caminho até a raiz, inspeção de arestas, colapso/expansão e espaçamento ajustável.
+
+### Justificativa
+
+Um grafo de rastreabilidade se torna muito mais útil quando engenheiros podem investigar relações, e não apenas observar uma topologia estática.
+:::
+
+::: {.need #FUN-005 type="functional-requirement" status="approved" priority="high" tags="baseline;diff;impact;governance" derives-from="SYS-003" implemented-by="COMP-BASELINE" verified-by="TC-011"}
+## Comparar estados de engenharia por baseline, diff e análise de impacto
+
+O Quarto-Needs deve persistir baselines de engenharia e compará-los com snapshots atuais para identificar mudanças de conteúdo, relocação, relações e impacto.
+
+### Justificativa
+
+O histórico de versões se torna informação de engenharia quando as mudanças podem ser interpretadas em termos do grafo tipado de rastreabilidade.
+:::
+
+::: {.need #FUN-006 type="functional-requirement" status="approved" priority="high" tags="localization;i18n;validation" derives-from="SYS-005" implemented-by="COMP-I18N" verified-by="TC-005" mitigates="RISK-004"}
+## Validar a paridade semântica das fontes localizadas
+
+O Quarto-Needs deve rejeitar arquivos QMD localizados que alterem IDs, tipos, estados, atributos ou relações de engenharia em relação à fonte canônica.
+
+### Justificativa
+
+A tradução deve mudar a apresentação, e não criar um segundo modelo de engenharia.
+:::
+
+::: {.need #FUN-007 type="functional-requirement" status="approved" priority="medium" tags="quarto;extension;distribution" derives-from="SYS-002" implemented-by="COMP-EXTENSION" verified-by="TC-012"}
+## Sincronizar assets canônicos da extensão nos exemplos renderizados
+
+O fluxo de pre-render dos exemplos deve copiar os assets canônicos da extensão Quarto para o projeto preparado antes da análise e da renderização.
+
+### Justificativa
+
+Os exemplos devem exercitar a extensão realmente em desenvolvimento, e não divergir por cópias mantidas manualmente.
+:::
+
+::: {.need #FUN-008 type="functional-requirement" status="approved" priority="high" tags="graph;provenance;security" derives-from="SYS-006" implemented-by="COMP-GRAPH;IF-003" verified-by="TC-006"}
+## Publicar proveniência segura das declarações para inspeção do grafo
+
+As projeções públicas do grafo devem expor apenas a proveniência relativa e segura necessária para explicar onde uma relação de engenharia foi declarada.
+
+### Justificativa
+
+A explicabilidade se beneficia de proveniência `arquivo:linha`, mas projeções públicas não devem vazar caminhos absolutos nem conteúdo arbitrário da fonte.
+:::
+
+## Requisitos não funcionais
+
+::: {.need #NFR-001 type="non-functional-requirement" status="approved" priority="critical" tags="determinism;reproducibility;governance" derives-from="SYS-003" implemented-by="COMP-ANALYSIS;COMP-BASELINE" verified-by="TC-013"}
+## Produzir saídas de engenharia determinísticas
+
+Estados equivalentes do projeto devem produzir snapshots, fingerprints, projeções e resultados de comparação estáveis, independentemente da ordem incidental de travessia.
+
+### Justificativa
+
+Determinismo é necessário para CI confiável, comparação de baselines e revisão de código.
+:::
+
+::: {.need #NFR-002 type="non-functional-requirement" status="approved" priority="critical" tags="security;privacy;graph" derives-from="SYS-006" implemented-by="COMP-GRAPH" verified-by="TC-006" mitigates="RISK-002"}
+## Manter projeções públicas com política deny-by-default
+
+A saída pública do grafo deve expor apenas campos explicitamente aprovados e metadados seguros de proveniência.
+
+### Justificativa
+
+Documentação interativa não deve se tornar um canal acidental de exportação de dados internos de engenharia.
+:::
+
+::: {.need #NFR-003 type="non-functional-requirement" status="approved" priority="high" tags="accessibility;progressive-enhancement;quarto" derives-from="SYS-002" implemented-by="COMP-EXTENSION" verified-by="TC-002"}
+## Preservar um equivalente estático para visualizações interativas
+
+Todo grafo interativo deve ser sustentado por uma representação estática e por rastreabilidade tabular acessível derivadas da mesma projeção.
+
+### Justificativa
+
+A interatividade deve aprimorar o documento, e não se tornar a única forma de acessar a informação de engenharia.
+:::
+
+::: {.need #NFR-004 type="non-functional-requirement" status="approved" priority="high" tags="graph;performance;limits" derives-from="SYS-006" implemented-by="COMP-GRAPH" verified-by="TC-006" mitigates="RISK-003"}
+## Limitar a publicação de grafos por orçamentos explícitos
+
+As visualizações de grafo devem impor limites configuráveis de nós e arestas, em vez de publicar ou truncar silenciosamente resultados sem limite.
+
+### Justificativa
+
+Grafos grandes podem prejudicar renderização, usabilidade e revisão; a falha deve ser explícita e reproduzível.
+:::
+
+::: {.need #NFR-005 type="non-functional-requirement" status="approved" priority="critical" tags="semantics;architecture;graph" derives-from="SYS-001;SYS-003" implemented-by="COMP-ANALYSIS" verified-by="TC-001" mitigates="RISK-001"}
+## Resolver a semântica de engenharia apenas no núcleo
+
+O significado de engenharia deve ser resolvido pelo núcleo Python; clientes Lua e do navegador devem consumir projeções semânticas e não redefinir o significado das relações.
+
+### Justificativa
+
+Mapas semânticos duplicados geram deriva e fazem visualizações equivalentes discordarem sobre o mesmo grafo de engenharia.
+:::
+
+## Visualizações geradas de requisitos
+
+{{< need-table types="functional-requirement;non-functional-requirement" columns="id;title;type;status;priority" sort="priority;id" >}}
+
+A consulta focada em grafo é reutilizável em todo o livro e é avaliada pelo núcleo antes de chegar ao renderer.
+
+{{< need-graph view="graph-exploration" id="graph-requirements-view" >}}
