@@ -25,6 +25,7 @@ KNOWN_TOP_LEVEL_KEYS = (
     "rules",
     "queries",
     "policies",
+    "constraints",
     "gates",
     "graph",
 )
@@ -102,6 +103,7 @@ class NeedsConfig:
     allowed_statuses: Mapping[str, tuple[str, ...]] = MappingProxyType({})
     policy_sources: Mapping[str, Mapping[str, Any]] = MappingProxyType({})
     attribute_schemas: Mapping[str, Mapping[str, Any]] = MappingProxyType({})
+    constraint_sources: Mapping[str, Mapping[str, Any]] = MappingProxyType({})
 
     def canonical_document(self) -> dict[str, object]:
         try:
@@ -117,10 +119,14 @@ class NeedsConfig:
                 name: thaw_json(freeze_json(dict(source)))
                 for name, source in sorted(self.attribute_schemas.items())
             }
+            constraints = {
+                name: thaw_json(freeze_json(dict(source)))
+                for name, source in sorted(self.constraint_sources.items())
+            }
         except TypeError as error:
             raise _fail(
-                "[queries]/[policies]/attribute-schema contains a value that is not valid JSON: "
-                f"{error}"
+                "[queries]/[policies]/[constraints]/attribute-schema contains a value "
+                f"that is not valid JSON: {error}"
             ) from error
 
         type_names = sorted(
@@ -170,6 +176,7 @@ class NeedsConfig:
             },
             "queries": queries,
             "policies": policies,
+            "constraints": constraints,
             "gates": {
                 "scope": self.gates.scope,
                 "max-errors": self.gates.max_errors,
@@ -538,12 +545,28 @@ def _parse_policies(raw: object) -> dict[str, Mapping[str, Any]]:
         return {}
     if not isinstance(raw, dict):
         raise _fail("[policies] must be a table")
-
     from .policy import PolicyError, compile_policies
 
     try:
         compiled = compile_policies(raw)
     except PolicyError as error:
+        raise _fail(str(error)) from error
+    return {
+        name: MappingProxyType(dict(spec.to_dict()))
+        for name, spec in compiled.items()
+    }
+
+
+def _parse_constraints(raw: object) -> dict[str, Mapping[str, Any]]:
+    if raw is None:
+        return {}
+    if not isinstance(raw, dict):
+        raise _fail("[constraints] must be a table")
+    from .graph_constraints import GraphConstraintError, compile_graph_constraints
+
+    try:
+        compiled = compile_graph_constraints(raw)
+    except GraphConstraintError as error:
         raise _fail(str(error)) from error
     return {
         name: MappingProxyType(dict(spec.to_dict()))
@@ -573,6 +596,7 @@ def embedded_defaults() -> NeedsConfig:
         allowed_statuses=MappingProxyType({}),
         policy_sources=MappingProxyType({}),
         attribute_schemas=MappingProxyType({}),
+        constraint_sources=MappingProxyType({}),
     )
 
 
@@ -603,6 +627,7 @@ def load_config(root: Path) -> NeedsConfig:
         raise _fail("[queries] must be a table of named queries")
     required, prefixes, roles, statuses, schemas = _parse_types(document.get("types"))
     policies = _parse_policies(document.get("policies"))
+    constraints = _parse_constraints(document.get("constraints"))
 
     return NeedsConfig(
         profile=profile,
@@ -630,4 +655,5 @@ def load_config(root: Path) -> NeedsConfig:
         allowed_statuses=MappingProxyType(statuses),
         policy_sources=MappingProxyType(policies),
         attribute_schemas=MappingProxyType(schemas),
+        constraint_sources=MappingProxyType(constraints),
     )
