@@ -148,6 +148,25 @@ def test_git_range_ignores_wall_clock_source_date_epoch(tmp_path: Path, monkeypa
     assert os.environ["SOURCE_DATE_EPOCH"] == "4102444800"
 
 
+def test_git_range_rejects_symlink_that_escapes_materialized_tree(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git(repo, "init", "-q")
+    _git(repo, "config", "user.name", "Quarto Needs Test")
+    _git(repo, "config", "user.email", "quarto-needs@example.invalid")
+    project = _project(repo)
+    try:
+        (project / "escape-link").symlink_to("../../outside")
+    except OSError:
+        pytest.skip("symlinks are unavailable on this platform")
+    base = _commit(repo, "base", "2026-08-29T10:00:00+00:00")
+    (project / "note.txt").write_text("head\n", encoding="utf-8")
+    head = _commit(repo, "head", "2026-08-30T12:34:56+00:00")
+
+    with pytest.raises(GitRangeError, match="symlink.*escapes extraction root"):
+        materialize_git_range(project, f"{base}..{head}")
+
+
 def test_diff_git_cli_materializes_refs_and_reports_commit_metadata(tmp_path: Path, capsys) -> None:
     _, project, base, head = _repository(tmp_path)
     exit_code = main([
