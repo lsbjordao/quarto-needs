@@ -41,7 +41,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "outcome", "requirements", "testCases"],
+        "required": ["id", "outcome", "requirements", "testCases", "evidenceObjects"],
         "properties": {
           "id": {"type": "string", "minLength": 1},
           "title": {"type": "string", "minLength": 1},
@@ -52,6 +52,11 @@
             "items": {"type": "string", "minLength": 1}
           },
           "testCases": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {"type": "string", "minLength": 1}
+          },
+          "evidenceObjects": {
             "type": "array",
             "uniqueItems": true,
             "items": {"type": "string", "minLength": 1}
