@@ -1,0 +1,61 @@
+# Campos derivados e variantes de build
+
+O Quarto-Needs mantém os dados de engenharia autorados separados das projeções de engenharia calculadas. Por isso, um valor derivado do grafo **não** é inserido em `attributes`; ele é materializado na projeção `derived` do snapshot.
+
+Essa distinção é importante para auditabilidade. Revisores conseguem identificar se um valor foi escrito por um autor ou calculado de maneira reproduzível a partir do grafo e da configuração atuais.
+
+## Operações derivadas limitadas
+
+A primeira gramática de campos derivados oferece deliberadamente apenas duas operações:
+
+- `relation-count`: conta alvos lógicos de uma relação canônica;
+- `path-exists`: verifica se um caminho ordenado e fixo de relações alcança um alvo, opcionalmente restringido por papel semântico.
+
+Exemplo:
+
+```toml
+[derived.verification-count]
+scope = "approved-requirements"
+operation = "relation-count"
+relation = "verified-by"
+target-role = "verification"
+
+[derived.has-evidence-path]
+scope = "approved-requirements"
+operation = "path-exists"
+relations = ["verified-by", "evidenced-by"]
+target-role = "evidence"
+```
+
+O motor usa o catálogo canônico de relações, inclusive a semântica de autoria pela relação inversa. Ele nunca avalia Python, Lua, JavaScript, comandos shell, templates ou expressões arbitrárias.
+
+As definições derivadas fazem parte do fingerprint canônico de configuração. Os valores derivados materializados também participam do semantic graph fingerprint quando há campos derivados configurados.
+
+## Variantes de build nomeadas
+
+Uma variante é uma seleção nomeada e determinística sobre o mesmo snapshot canônico. Ela parte de uma query nomeada segura e pode, opcionalmente, expandir por um conjunto explícito de relações até uma profundidade limitada.
+
+```toml
+[variants.assurance-slice]
+scope = "approved-requirements"
+relations = ["verified-by", "evidenced-by"]
+depth = 2
+```
+
+Isso não cria um segundo grafo. A variante armazena somente os IDs estáveis selecionados do grafo canônico.
+
+As variantes configuradas podem ser inspecionadas pela CLI:
+
+```bash
+quarto-needs variant list
+quarto-needs variant show assurance-slice
+quarto-needs variant show assurance-slice --format json
+```
+
+As variantes recebem um `variantFingerprint` vinculado ao semantic graph fingerprint final e à composição ordenada da variante. Assim, uma projeção de variante não pode ser reutilizada como se pertencesse a outro estado de engenharia.
+
+## Exemplo self-hosted
+
+O livro self-hosted do Quarto-Needs calcula dois campos de assurance para requisitos aprovados: `verification-count` e `has-evidence-path`. Ele também define `assurance-slice`, expandida dos requisitos aprovados pelas relações de verificação e evidência.
+
+Assim, a Phase 3 é exercitada pelo próprio projeto que ela governa: políticas, schemas, constraints de grafo, valores derivados e variantes executam sobre o modelo de engenharia do Quarto-Needs.
