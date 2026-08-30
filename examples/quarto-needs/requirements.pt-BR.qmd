@@ -91,7 +91,7 @@ A extensão HTML deve oferecer um controle opcional e persistente para recolher 
 
 ### Justificativa
 
-Um índice lateral recolhível só é útil se o próprio controle não interferir na superfície de navegação que ele gerencia.
+Um índice lateral recolhível só é útil se o próprio controle não interferir na superfície de navegação que ele gerencia. Por isso, seu posicionamento é tratado como comportamento de engenharia protegido por um contrato executável de regressão, e não como estilização decorativa incidental.
 :::
 
 ## Requisitos não funcionais
