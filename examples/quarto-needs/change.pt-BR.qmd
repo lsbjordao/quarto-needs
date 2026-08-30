@@ -1,0 +1,99 @@
+# Mudança: do histórico de versões ao impacto de engenharia
+
+A engenharia de requisitos não termina quando o primeiro grafo coerente é aprovado. A pergunta difícil é o que uma mudança significa para o restante do sistema. Por isso, o Quarto-Needs trata comparação como um fluxo de engenharia, e não como um simples diff textual do Git.
+
+## O corte de análise de mudanças
+
+Essa capacidade já possui uma cadeia completa de rastreabilidade no modelo autocontido:
+
+```text
+STK-003  Equipes precisam de governança reproduzível em Git e CI
+   ↓ derives-from
+SYS-003  Fornecer validação determinística e quality gates
+   ↓
+FUN-005  Comparar estados de engenharia por baseline, diff e impacto
+   ↓ implemented-by
+COMP-BASELINE
+   ↓ superfície de implementação
+SRC-BASELINE   src/quarto_needs/baseline.py
+SRC-DIFF       src/quarto_needs/diff.py
+SRC-IMPACT     src/quarto_needs/impact.py
+   ↓ verificação
+TC-011  Regressão de baseline, diff e impacto
+   ↓ evidenced-by
+EVD-011 Suíte de comparação de baseline e impacto
+```
+
+{{< need-graph view="change-analysis" id="change-analysis-view" >}}
+
+## Etapa 1 — estabelecer um baseline
+
+Um baseline é mais do que uma cópia de `needs.json`. Ele carrega o estado autoral de engenharia junto com os eixos de comparação necessários à reprodutibilidade, incluindo fingerprint de configuração, versão do conjunto de regras e data de referência.
+
+Para este exemplo, o leitor pode criar um baseline a partir da raiz do repositório com:
+
+```bash
+PYTHONPATH=src .venv/bin/python -m quarto_needs.cli \
+  --root examples/quarto-needs baseline create --force
+```
+
+O artefato resultante registra o estado contra o qual mudanças posteriores podem ser interpretadas.
+
+## Etapa 2 — realizar uma mudança de engenharia
+
+Considere uma evolução plausível: a exploração do grafo deve preservar um estado de exploração compartilhável. Essa mudança não começaria no JavaScript. Primeiro ela alteraria ou introduziria uma obrigação de engenharia relacionada a `FUN-004`, podendo então afetar `ADR-004`, o contrato de projeção do grafo, módulos do navegador, testes e evidências.
+
+A distinção importante é:
+
+```text
+Git pergunta:         Quais linhas mudaram?
+Quarto-Needs pergunta: Quais objetos de engenharia mudaram e o que essas
+                       mudanças alcançam por relações semânticas tipadas?
+```
+
+## Etapa 3 — inspecionar o diff estruturado
+
+Depois de alterar o modelo, execute:
+
+```bash
+PYTHONPATH=src .venv/bin/python -m quarto_needs.cli \
+  --root examples/quarto-needs diff examples/quarto-needs/baselines/quarto-needs.json
+```
+
+A comparação distingue adições, remoções, relocação, mudanças de campos autorais e mudanças de relações. Essas categorias são mais úteis para revisão de engenharia do que um patch textual indiferenciado.
+
+## Etapa 4 — inspecionar caminhos de impacto
+
+A análise de impacto percorre então a **união dos grafos do baseline e do estado atual**. Isso importa porque um nó ou relação removido ainda precisa permanecer explicável durante a revisão.
+
+```bash
+PYTHONPATH=src .venv/bin/python -m quarto_needs.cli \
+  --root examples/quarto-needs impact examples/quarto-needs/baselines/quarto-needs.json
+```
+
+O resultado é deliberadamente expresso como caminhos, e não como uma pontuação sintética de risco. Assim, um revisor consegue ver *por que* determinado objeto é considerado afetado.
+
+Por exemplo, uma mudança em torno da exploração interativa do grafo poderia conceitualmente produzir um caminho como:
+
+```text
+FUN-004
+  → ADR-004
+  → COMP-GRAPH
+  → TC-010
+  → EVD-010
+```
+
+O caminho exato é resolvido a partir do grafo, e não codificado neste documento.
+
+## Perguntas para revisão
+
+Uma boa revisão de mudança deve conseguir responder:
+
+- Qual preocupação de stakeholder continua motivando o requisito alterado?
+- Quais ADRs passam a ser candidatos a reconsideração?
+- Quais componentes lógicos e módulos-fonte implementam a obrigação afetada?
+- Quais casos de verificação precisam ser reexecutados ou alterados?
+- Quais evidências ficaram obsoletas ou precisam ser regeneradas?
+- A mudança atravessa alguma fronteira de segurança, localização ou governança?
+
+É aqui que requirements-as-code se torna mais do que armazenar requisitos em Git: o próprio grafo versionado participa do raciocínio de engenharia.
