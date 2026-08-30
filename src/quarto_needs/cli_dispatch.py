@@ -5,6 +5,7 @@ import json
 import os
 import sys
 from collections.abc import Mapping, Sequence
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from .analysis import analyze_project
@@ -13,9 +14,12 @@ from .config import load_config
 from .evidence import (
     EVIDENCE_ENVELOPE_SCHEMA_VERSION,
     EVIDENCE_KIND,
+    build_evidence_envelope,
     evidence_digest,
+    load_pytest_evidence,
     parse_evidence_time,
     validate_evidence_envelope,
+    write_json_atomic,
 )
 from .evidence_validation import validate_check_evidence
 
@@ -37,15 +41,18 @@ def _format(argv: Sequence[str]) -> str:
     return str(argv[index + 1])
 
 
-def _evidence_artifact(argv: Sequence[str]) -> Path | None:
+def _evidence_action(argv: Sequence[str]) -> tuple[str, Path] | None:
     values = list(argv)
     try:
         index = values.index("evidence")
     except ValueError:
         return None
-    if index + 2 >= len(values) or values[index + 1] != "check":
+    if index + 2 >= len(values):
         return None
-    return Path(values[index + 2])
+    action = values[index + 1]
+    if action not in {"check", "attest"}:
+        return None
+    return action, Path(values[index + 2])
 
 
 def _read_json_object(path: Path) -> dict[str, object]:
@@ -204,10 +211,125 @@ def _generic_evidence_check(argv: Sequence[str], artifact_arg: Path) -> int | No
     return 1 if issues else 0
 
 
+def _attest_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="quarto-needs evidence attest")
+    parser.add_argument("artifact")
+    parser.add_argument("--output", required=True)
+    parser.add_argument("--expires-hours", type=float)
+    parser.add_argument("--source-revision")
+    parser.add_argument("--format", choices=("text", "json"), default="text")
+    return parser
+
+
+def _attest_args(argv: Sequence[str]) -> argparse.Namespace:
+    values = list(argv)
+    index = values.index("evidence")
+    tail = values[index + 2 :]
+    return _attest_parser().parse_args(tail)
+
+
+def _attest_evidence(argv: Sequence[str], artifact_arg: Path) -> int:
+    root = _root(argv)
+    try:
+        args = _attest_args(argv)
+    except SystemExit as error:
+        return int(error.code)
+    artifact = artifact_arg if artifact_arg.is_absolute() else root / artifact_arg
+    output_arg = Path(args.output)
+    output = output_arg if output_arg.is_absolute() else root / output_arg
+    try:
+        document = _read_json_object(artifact)
+        if document.get("kind") == EVIDENCE_KIND:
+            raise ValueError(f"{artifact} is already an evidence attestation")
+        if isinstance(document.get("checks"), list):
+            shape_error = _shape_error(document)
+            if shape_error is not None:
+                raise ValueError(shape_error)
+            payload = document
+            artifact_schema = "evidence-checks-v1"
+        else:
+            payload = load_pytest_evidence(artifact)
+            artifact_schema = "evidence-pytest-v1"
+    except ValueError as error:
+        print(f"Evidence error: {error}", file=sys.stderr)
+        return 2
+    except OSError as error:
+        print(f"Could not read evidence artifact {artifact}: {error}", file=sys.stderr)
+        return 3
+
+    try:
+        config = load_config(root)
+    except ValueError as error:
+        print(f"Configuration error: {error}", file=sys.stderr)
+        return 2
+    result = analyze_project(root, config=config)
+    if result.snapshot is None:
+        from .cli import print_findings
+
+        print_findings(result.findings, stream=sys.stderr)
+        return 1
+
+    provider = payload.get("provider")
+    provider_version = payload.get("providerVersion")
+    if not isinstance(provider, str) or not provider:
+        print("Evidence error: provider payload has invalid provider", file=sys.stderr)
+        return 2
+    if not isinstance(provider_version, str) or not provider_version:
+        print("Evidence error: provider payload has invalid providerVersion", file=sys.stderr)
+        return 2
+    if args.expires_hours is not None and args.expires_hours <= 0:
+        print("Evidence error: --expires-hours must be greater than zero", file=sys.stderr)
+        return 2
+
+    generated_at = datetime.now(timezone.utc)
+    expires_at = (
+        generated_at + timedelta(hours=args.expires_hours)
+        if args.expires_hours is not None
+        else None
+    )
+    source_revision = args.source_revision or os.environ.get("GITHUB_SHA")
+    envelope = build_evidence_envelope(
+        payload,
+        provider_name=provider,
+        provider_version=provider_version,
+        artifact_schema=artifact_schema,
+        snapshot=result.snapshot,
+        generated_at=generated_at,
+        expires_at=expires_at,
+        source_revision=source_revision,
+    )
+    try:
+        write_json_atomic(output, envelope)
+    except OSError as error:
+        print(f"Could not write evidence attestation {output}: {error}", file=sys.stderr)
+        return 3
+
+    projection = {
+        "input": str(artifact),
+        "output": str(output),
+        "provider": provider,
+        "artifactSchema": artifact_schema,
+        "digest": envelope["artifact"]["digest"],
+        "expiresAt": envelope.get("expiresAt"),
+        "sourceRevision": envelope["subject"].get("sourceRevision"),
+    }
+    if args.format == "json":
+        print(json.dumps(projection, indent=2, sort_keys=True))
+    else:
+        print(
+            f"Wrote {provider} evidence attestation to {output} "
+            f"for semantic graph {result.snapshot.semantic_graph_fingerprint}"
+        )
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     values = list(sys.argv[1:] if argv is None else argv)
-    artifact = _evidence_artifact(values)
-    if artifact is not None:
+    action = _evidence_action(values)
+    if action is not None:
+        name, artifact = action
+        if name == "attest":
+            return _attest_evidence(values, artifact)
         result = _generic_evidence_check(values, artifact)
         if result is not None:
             return result
