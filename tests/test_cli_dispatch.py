@@ -75,13 +75,7 @@ def test_dispatch_validates_raw_generic_evidence(tmp_path: Path, capsys) -> None
     write_json_atomic(artifact, _generic_payload())
 
     exit_code = main([
-        "--root",
-        str(EXAMPLE),
-        "evidence",
-        "check",
-        str(artifact),
-        "--format",
-        "json",
+        "--root", str(EXAMPLE), "evidence", "check", str(artifact), "--format", "json"
     ])
     report = json.loads(capsys.readouterr().out)
     assert exit_code == 0
@@ -107,13 +101,7 @@ def test_dispatch_validates_attested_generic_evidence(tmp_path: Path, capsys) ->
     write_json_atomic(artifact, envelope)
 
     exit_code = main([
-        "--root",
-        str(EXAMPLE),
-        "evidence",
-        "check",
-        str(artifact),
-        "--format",
-        "json",
+        "--root", str(EXAMPLE), "evidence", "check", str(artifact), "--format", "json"
     ])
     report = json.loads(capsys.readouterr().out)
     assert exit_code == 0
@@ -136,13 +124,7 @@ def test_dispatch_rejects_expired_generic_attestation(tmp_path: Path, capsys) ->
     write_json_atomic(artifact, envelope)
 
     exit_code = main([
-        "--root",
-        str(EXAMPLE),
-        "evidence",
-        "check",
-        str(artifact),
-        "--format",
-        "json",
+        "--root", str(EXAMPLE), "evidence", "check", str(artifact), "--format", "json"
     ])
     report = json.loads(capsys.readouterr().out)
     assert exit_code == 1
@@ -155,13 +137,7 @@ def test_dispatch_delegates_raw_pytest_evidence_to_legacy_cli(tmp_path: Path, ca
     write_json_atomic(artifact, _complete_pytest_payload())
 
     exit_code = main([
-        "--root",
-        str(EXAMPLE),
-        "evidence",
-        "check",
-        str(artifact),
-        "--format",
-        "json",
+        "--root", str(EXAMPLE), "evidence", "check", str(artifact), "--format", "json"
     ])
     report = json.loads(capsys.readouterr().out)
     assert exit_code == 0
@@ -170,10 +146,13 @@ def test_dispatch_delegates_raw_pytest_evidence_to_legacy_cli(tmp_path: Path, ca
     assert report["valid"] is True
 
 
-def test_attest_wraps_pytest_payload_and_result_is_checkable(tmp_path: Path, capsys) -> None:
+def test_attest_wraps_pytest_payload_and_result_is_checkable(
+    tmp_path: Path, capsys, monkeypatch
+) -> None:
     source = tmp_path / "pytest-provider.json"
     output = tmp_path / "pytest.json"
     write_json_atomic(source, _complete_pytest_payload())
+    monkeypatch.setenv("GITHUB_SHA", "abc123")
 
     exit_code = main([
         "--root",
@@ -203,17 +182,12 @@ def test_attest_wraps_pytest_payload_and_result_is_checkable(tmp_path: Path, cap
     assert envelope["expiresAt"]
 
     exit_code = main([
-        "--root",
-        str(EXAMPLE),
-        "evidence",
-        "check",
-        str(output),
-        "--format",
-        "json",
+        "--root", str(EXAMPLE), "evidence", "check", str(output), "--format", "json"
     ])
     checked = json.loads(capsys.readouterr().out)
     assert exit_code == 0
     assert checked["valid"] is True
+    assert checked["attested"] is True
     assert checked["tests"] == 4
 
 
@@ -244,13 +218,7 @@ def test_attest_wraps_generic_check_payload(tmp_path: Path, capsys) -> None:
     assert envelope["artifact"]["payload"]["checks"][0]["evidenceObjects"] == ["EVD-004"]
 
     exit_code = main([
-        "--root",
-        str(EXAMPLE),
-        "evidence",
-        "check",
-        str(output),
-        "--format",
-        "json",
+        "--root", str(EXAMPLE), "evidence", "check", str(output), "--format", "json"
     ])
     checked = json.loads(capsys.readouterr().out)
     assert exit_code == 0
@@ -258,7 +226,9 @@ def test_attest_wraps_generic_check_payload(tmp_path: Path, capsys) -> None:
     assert checked["attested"] is True
 
 
-def test_attest_uses_github_sha_when_revision_is_not_explicit(tmp_path: Path, capsys, monkeypatch) -> None:
+def test_attest_uses_github_sha_when_revision_is_not_explicit(
+    tmp_path: Path, capsys, monkeypatch
+) -> None:
     source = tmp_path / "checks-provider.json"
     output = tmp_path / "checks.json"
     write_json_atomic(source, _generic_payload())
@@ -276,6 +246,36 @@ def test_attest_uses_github_sha_when_revision_is_not_explicit(tmp_path: Path, ca
     capsys.readouterr()
     envelope = json.loads(output.read_text(encoding="utf-8"))
     assert envelope["subject"]["sourceRevision"] == "github-sha"
+
+
+def test_attested_revision_mismatch_is_reported_for_pytest_and_generic(
+    tmp_path: Path, capsys, monkeypatch
+) -> None:
+    monkeypatch.setenv("GITHUB_SHA", "current-revision")
+    now = datetime.now(timezone.utc)
+    cases = (
+        ("pytest", _complete_pytest_payload(), "evidence-pytest-v1"),
+        ("generic", _generic_payload(), "evidence-checks-v1"),
+    )
+    for name, payload, artifact_schema in cases:
+        artifact = tmp_path / f"{name}.json"
+        envelope = build_evidence_envelope(
+            payload,
+            provider_name="pytest",
+            provider_version="8.0",
+            artifact_schema=artifact_schema,
+            snapshot=_snapshot(),
+            generated_at=now - timedelta(minutes=1),
+            expires_at=now + timedelta(hours=1),
+            source_revision="old-revision",
+        )
+        write_json_atomic(artifact, envelope)
+        exit_code = main([
+            "--root", str(EXAMPLE), "evidence", "check", str(artifact), "--format", "json"
+        ])
+        report = json.loads(capsys.readouterr().out)
+        assert exit_code == 1
+        assert any(issue["code"] == "EVD205" for issue in report["issues"])
 
 
 def test_attest_rejects_nonpositive_expiry(tmp_path: Path, capsys) -> None:
@@ -332,13 +332,7 @@ def test_dispatch_rejects_malformed_generic_shape(tmp_path: Path, capsys) -> Non
         ),
         encoding="utf-8",
     )
-    exit_code = main([
-        "--root",
-        str(EXAMPLE),
-        "evidence",
-        "check",
-        str(artifact),
-    ])
+    exit_code = main(["--root", str(EXAMPLE), "evidence", "check", str(artifact)])
     captured = capsys.readouterr()
     assert exit_code == 2
     assert "invalid evidenceObjects" in captured.err
