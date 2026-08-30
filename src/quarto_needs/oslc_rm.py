@@ -6,7 +6,7 @@ from types import MappingProxyType
 from typing import Literal, Mapping
 from urllib.parse import quote, urlparse
 
-from .snapshot import AnalysisSnapshot, ResolvedRelation, thaw_json
+from .snapshot import AnalysisSnapshot, RelationRecord, thaw_json
 
 OSLC_CORE_NS = "http://open-services.net/ns/core#"
 OSLC_RM_NS = "http://open-services.net/ns/rm#"
@@ -72,7 +72,7 @@ def resource_uri(base_uri: str, canonical_id: str) -> str:
 
 
 def _relation_projection(
-    relation: ResolvedRelation,
+    relation: RelationRecord,
     *,
     base_uri: str,
 ) -> dict[str, object]:
