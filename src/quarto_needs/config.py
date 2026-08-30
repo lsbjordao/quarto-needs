@@ -26,6 +26,8 @@ KNOWN_TOP_LEVEL_KEYS = (
     "queries",
     "policies",
     "constraints",
+    "derived",
+    "variants",
     "gates",
     "graph",
 )
@@ -104,6 +106,8 @@ class NeedsConfig:
     policy_sources: Mapping[str, Mapping[str, Any]] = MappingProxyType({})
     attribute_schemas: Mapping[str, Mapping[str, Any]] = MappingProxyType({})
     constraint_sources: Mapping[str, Mapping[str, Any]] = MappingProxyType({})
+    derived_sources: Mapping[str, Mapping[str, Any]] = MappingProxyType({})
+    variant_sources: Mapping[str, Mapping[str, Any]] = MappingProxyType({})
 
     def canonical_document(self) -> dict[str, object]:
         try:
@@ -123,10 +127,18 @@ class NeedsConfig:
                 name: thaw_json(freeze_json(dict(source)))
                 for name, source in sorted(self.constraint_sources.items())
             }
+            derived = {
+                name: thaw_json(freeze_json(dict(source)))
+                for name, source in sorted(self.derived_sources.items())
+            }
+            variants = {
+                name: thaw_json(freeze_json(dict(source)))
+                for name, source in sorted(self.variant_sources.items())
+            }
         except TypeError as error:
             raise _fail(
-                "[queries]/[policies]/[constraints]/attribute-schema contains a value "
-                f"that is not valid JSON: {error}"
+                "[queries]/[policies]/[constraints]/[derived]/[variants]/attribute-schema "
+                f"contains a value that is not valid JSON: {error}"
             ) from error
 
         type_names = sorted(
@@ -177,6 +189,8 @@ class NeedsConfig:
             "queries": queries,
             "policies": policies,
             "constraints": constraints,
+            "derived": derived,
+            "variants": variants,
             "gates": {
                 "scope": self.gates.scope,
                 "max-errors": self.gates.max_errors,
@@ -571,13 +585,48 @@ def _parse_constraints(raw: object) -> dict[str, Mapping[str, Any]]:
     normalized: dict[str, Mapping[str, Any]] = {}
     for name, spec in compiled.items():
         payload = dict(spec.to_dict())
-        # For `connected`, omitting relations means any incoming/outgoing edge.
-        # Preserve that semantic distinction through canonical round-trips rather
-        # than serializing an empty list that the bounded grammar rejects.
         if spec.kind == "connected" and not spec.relations:
             payload.pop("relations", None)
         normalized[name] = MappingProxyType(payload)
     return normalized
+
+
+def _parse_derived(raw: object) -> dict[str, Mapping[str, Any]]:
+    if raw is None:
+        return {}
+    if not isinstance(raw, dict):
+        raise _fail("[derived] must be a table")
+    from .derived import DerivedError, compile_derived_fields
+
+    try:
+        compiled = compile_derived_fields(raw)
+    except DerivedError as error:
+        raise _fail(str(error)) from error
+    normalized: dict[str, Mapping[str, Any]] = {}
+    for name, spec in compiled.items():
+        payload = dict(spec.to_dict())
+        if spec.operation == "relation-count":
+            payload["relation"] = spec.relations[0]
+            payload.pop("relations", None)
+        normalized[name] = MappingProxyType(payload)
+    return normalized
+
+
+def _parse_variants(raw: object) -> dict[str, Mapping[str, Any]]:
+    if raw is None:
+        return {}
+    if not isinstance(raw, dict):
+        raise _fail("[variants] must be a table")
+    from .derived import DerivedError, compile_variants
+
+    try:
+        compiled = compile_variants(raw)
+    except DerivedError as error:
+        raise _fail(str(error)) from error
+    return {
+        name: MappingProxyType(dict(spec.to_dict()))
+        for name, spec in compiled.items()
+    }
 
 
 def embedded_defaults() -> NeedsConfig:
@@ -603,6 +652,8 @@ def embedded_defaults() -> NeedsConfig:
         policy_sources=MappingProxyType({}),
         attribute_schemas=MappingProxyType({}),
         constraint_sources=MappingProxyType({}),
+        derived_sources=MappingProxyType({}),
+        variant_sources=MappingProxyType({}),
     )
 
 
@@ -634,6 +685,8 @@ def load_config(root: Path) -> NeedsConfig:
     required, prefixes, roles, statuses, schemas = _parse_types(document.get("types"))
     policies = _parse_policies(document.get("policies"))
     constraints = _parse_constraints(document.get("constraints"))
+    derived = _parse_derived(document.get("derived"))
+    variants = _parse_variants(document.get("variants"))
 
     return NeedsConfig(
         profile=profile,
@@ -662,4 +715,6 @@ def load_config(root: Path) -> NeedsConfig:
         policy_sources=MappingProxyType(policies),
         attribute_schemas=MappingProxyType(schemas),
         constraint_sources=MappingProxyType(constraints),
+        derived_sources=MappingProxyType(derived),
+        variant_sources=MappingProxyType(variants),
     )
