@@ -23,6 +23,10 @@ def _root(argv: Sequence[str]) -> Path:
     return Path(args.root or os.getcwd()).resolve()
 
 
+def _is_lsp(argv: Sequence[str]) -> bool:
+    return "lsp" in argv
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     values = list(sys.argv[1:] if argv is None else argv)
     git = git_action(values)
@@ -33,6 +37,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     if variant is not None:
         action, name = variant
         return run_variant_action(_root(values), values, action, name)
+    if _is_lsp(values):
+        from .lsp_server import run_stdio
+
+        return run_stdio(_root(values))
     return dispatch_main(values)
 
 
