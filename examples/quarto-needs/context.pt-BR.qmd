@@ -41,6 +41,6 @@ As ferramentas externas também têm papéis deliberadamente limitados. O **Git*
 
 As necessidades de stakeholders do próximo capítulo, portanto, não são personas abstratas. Elas surgem de tensões concretas nessa fronteira: pessoas precisam de documentos legíveis enquanto a automação precisa de semântica formal; leitores multilíngues precisam de apresentação traduzida enquanto o grafo de engenharia deve permanecer único; a exploração interativa precisa de metadados ricos enquanto as projeções públicas devem permanecer limitadas e seguras.
 
-A primeira camada de derivação pode ser explorada diretamente abaixo.
+A primeira camada de derivação pode ser explorada diretamente abaixo. A visualização começa na necessidade do stakeholder e segue a direção semântica de travessia publicada pelo catálogo em direção aos requisitos; a relação `derives-from` armazenada aponta no sentido oposto, do requisito derivado para a necessidade que lhe deu origem.
 
-{{< need-graph root="STK-001" depth="3" id="system-context-derivation" >}}
+{{< need-graph root="STK-001" depth="3" id="system-context-derivation" projection="need-graph-1" >}}
