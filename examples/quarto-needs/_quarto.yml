@@ -8,6 +8,8 @@ book:
   subtitle: "A self-hosted requirements, architecture, verification and traceability case study"
   navbar:
     search: true
+  sidebar:
+    collapse-level: 1
   chapters:
     - index.qmd
     - context.qmd
@@ -28,6 +30,9 @@ format:
 
 filters:
   - quarto-needs
+
+quarto-needs:
+  margin-sidebar-toggle: true
 
 babelquarto:
   languagelinks: navbar
