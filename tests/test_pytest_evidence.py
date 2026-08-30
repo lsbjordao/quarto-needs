@@ -1,0 +1,119 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+from jsonschema import Draft202012Validator
+
+from quarto_needs.evidence import build_pytest_evidence
+from quarto_needs.pytest_plugin import _combined_outcome
+
+
+ROOT = Path(__file__).resolve().parents[1]
+SCHEMA = json.loads(
+    (ROOT / "schemas" / "evidence-pytest-v1.schema.json").read_text(encoding="utf-8")
+)
+
+pytest_plugins = ("pytester",)
+
+
+def test_pytest_evidence_is_deterministic_and_schema_valid() -> None:
+    records = [
+        {
+            "nodeid": "tests/test_b.py::test_b",
+            "outcome": "failed",
+            "requirements": ["FUN-004", "SYS-006", "FUN-004"],
+            "testCases": ["TC-010"],
+        },
+        {
+            "nodeid": "tests/test_a.py::test_a",
+            "outcome": "passed",
+            "requirements": ["FUN-006"],
+            "testCases": ["TC-005"],
+        },
+    ]
+
+    first = build_pytest_evidence(records, provider_version="8.0")
+    second = build_pytest_evidence(reversed(records), provider_version="8.0")
+
+    assert first == second
+    assert [entry["nodeid"] for entry in first["tests"]] == [
+        "tests/test_a.py::test_a",
+        "tests/test_b.py::test_b",
+    ]
+    assert first["tests"][1]["requirements"] == ["FUN-004", "SYS-006"]
+    assert first["summary"] == {
+        "total": 2,
+        "passed": 1,
+        "failed": 1,
+        "skipped": 0,
+    }
+    Draft202012Validator(SCHEMA).validate(first)
+
+
+def test_pytest_phase_outcomes_are_combined_conservatively() -> None:
+    assert _combined_outcome({"setup": "passed", "call": "passed", "teardown": "passed"}) == "passed"
+    assert _combined_outcome({"setup": "passed", "call": "skipped", "teardown": "passed"}) == "skipped"
+    assert _combined_outcome({"setup": "failed"}) == "failed"
+    assert _combined_outcome({"setup": "passed", "call": "passed", "teardown": "failed"}) == "failed"
+
+
+def test_pytest_plugin_emits_only_linked_tests(pytester, monkeypatch) -> None:
+    monkeypatch.setenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
+    pytester.makepyfile(
+        test_sample='''
+import pytest
+
+@pytest.mark.requirement("FUN-004")
+@pytest.mark.quarto_need_test_case("TC-010")
+def test_linked():
+    assert True
+
+def test_unlinked():
+    assert True
+'''
+    )
+    result = pytester.runpytest_subprocess(
+        "-p",
+        "quarto_needs.pytest_plugin",
+        "--quarto-needs-evidence=evidence.json",
+        "-q",
+    )
+    result.assert_outcomes(passed=2)
+
+    payload = json.loads((pytester.path / "evidence.json").read_text(encoding="utf-8"))
+    Draft202012Validator(SCHEMA).validate(payload)
+    assert payload["summary"] == {
+        "total": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+    }
+    assert payload["tests"] == [
+        {
+            "nodeid": "test_sample.py::test_linked",
+            "outcome": "passed",
+            "requirements": ["FUN-004"],
+            "testCases": ["TC-010"],
+        }
+    ]
+
+
+def test_pytest_plugin_has_no_artifact_side_effect_without_opt_in(pytester, monkeypatch) -> None:
+    monkeypatch.setenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
+    pytester.makepyfile(
+        test_sample='''
+import pytest
+
+@pytest.mark.requirement("FUN-004")
+def test_linked():
+    assert True
+'''
+    )
+    result = pytester.runpytest_subprocess(
+        "-p",
+        "quarto_needs.pytest_plugin",
+        "-q",
+    )
+    result.assert_outcomes(passed=1)
+    assert not (pytester.path / ".quarto-needs" / "evidence").exists()
