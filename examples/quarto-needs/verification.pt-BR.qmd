@@ -1,0 +1,173 @@
+# Verificação: comprovando as afirmações de engenharia
+
+A rastreabilidade fica incompleta quando os requisitos terminam no design. Este capítulo modela verificação como objetos de engenharia de primeira classe e conecta testes bem-sucedidos a evidências explícitas.
+
+Os casos de teste abaixo correspondem a classes reais de verificações de regressão do repositório. Os objetos de evidência identificam o artefato durável ou a superfície de teste que demonstra o resultado.
+
+## Casos de teste
+
+::: {.need #TC-001 type="test-case" status="passed" tags="snapshot;graph;semantics" evidenced-by="EVD-001"}
+## Regressão do grafo e snapshot canônicos
+
+Analisar um projeto representativo duas vezes e verificar objetos, relações, metadados semânticos e saída canônica do snapshot.
+:::
+
+::: {.need #TC-002 type="test-case" status="passed" tags="quarto;render;accessibility" evidenced-by="EVD-002"}
+## Regressão de renderização progressiva do Quarto
+
+Renderizar o exemplo e verificar que saída estática do grafo, rastreabilidade acessível e assets HTML progressivos são produzidos a partir da mesma projeção de engenharia.
+:::
+
+::: {.need #TC-003 type="test-case" status="passed" tags="governance;rules;gates" evidenced-by="EVD-003"}
+## Regressão de governança estrita
+
+Executar o motor de regras configurado e os quality gates sobre um projeto conforme e verificar um veredito determinístico bem-sucedido.
+:::
+
+::: {.need #TC-004 type="test-case" status="passed" tags="adr;decision;governance" evidenced-by="EVD-004"}
+## Regressão de governança de decisões de arquitetura
+
+Verificar regras de driver, escopo, confirmação, linhagem, ciclo de vida e data de revisão para decisões aceitas.
+:::
+
+::: {.need #TC-005 type="test-case" status="passed" tags="localization;i18n;parity" evidenced-by="EVD-005"}
+## Regressão de paridade semântica das fontes localizadas
+
+Comparar lotes de declarações canônicos e pt-BR e rejeitar qualquer mudança de IDs, tipos, estados, atributos ou relações.
+:::
+
+::: {.need #TC-006 type="test-case" status="passed" tags="graph;schema;security;limits" evidenced-by="EVD-006"}
+## Regressão do contrato e segurança do grafo público
+
+Validar o JSON público do grafo contra seu schema, impor limites do grafo e verificar que caminhos de origem inseguros não são publicados como proveniência.
+:::
+
+::: {.need #TC-007 type="test-case" status="passed" tags="parser;qmd;authoring" evidenced-by="EVD-007"}
+## Regressão de parsing de declarações QMD
+
+Interpretar blocos `.need` representativos e verificar identidade estável, atributos, relações, justificativa e localizações de origem.
+:::
+
+::: {.need #TC-008 type="test-case" status="passed" tags="relations;catalog;semantics" evidenced-by="EVD-008"}
+## Regressão semântica do catálogo de relações
+
+Verificar nomes canônicos de relações, famílias semânticas, papéis dos extremos, direção de impacto e direção de travessia.
+:::
+
+::: {.need #TC-009 type="test-case" status="passed" tags="query;graph;views" evidenced-by="EVD-009"}
+## Regressão de visão de grafo por consulta nomeada
+
+Avaliar uma consulta nomeada no núcleo, materializar a projeção correspondente e resolvê-la por meio do manifesto de views.
+:::
+
+::: {.need #TC-010 type="test-case" status="passed" tags="graph;cytoscape;exploration" evidenced-by="EVD-010"}
+## Regressão dos assets de exploração interativa do grafo
+
+Verificar módulos de exploração distribuídos, marcadores de travessia semântica, suporte a caminho até a raiz, filtros e paridade entre assets canônicos e do showcase.
+:::
+
+::: {.need #TC-011 type="test-case" status="passed" tags="baseline;diff;impact" evidenced-by="EVD-011"}
+## Regressão de baseline, diff e impacto
+
+Construir um baseline, modificar o modelo de engenharia e verificar mudanças determinísticas de campos, relocação, relações e propagação de impacto.
+:::
+
+::: {.need #TC-012 type="test-case" status="passed" tags="extension;distribution;quarto" evidenced-by="EVD-012"}
+## Regressão de sincronização da extensão canônica
+
+Sincronizar a extensão canônica em um projeto de exemplo e verificar que assets copiados obsoletos não podem se tornar uma implementação independente.
+:::
+
+::: {.need #TC-013 type="test-case" status="passed" tags="determinism;reproducibility;fingerprint" evidenced-by="EVD-013"}
+## Regressão de saída determinística
+
+Repetir entradas de análise e renderização e verificar saídas de engenharia estáveis em bytes ou fingerprints onde o contrato exige determinismo.
+:::
+
+## Evidências
+
+::: {.need #EVD-001 type="evidence" status="verified" tags="pytest;snapshot;analysis"}
+## Suíte de regressão de análise e exportação
+
+Testes versionados que cobrem snapshots canônicos, exports, semântica do grafo e comportamento estável da análise.
+:::
+
+::: {.need #EVD-002 type="evidence" status="verified" tags="quarto;render;static-equivalence"}
+## Superfícies de smoke test de renderização do grafo e multilíngue
+
+Testes de renderização estática do grafo e o fluxo Quarto/BabelQuarto demonstram apresentação progressiva a partir do modelo resolvido.
+:::
+
+::: {.need #EVD-003 type="evidence" status="verified" tags="pytest;rules;gates"}
+## Suíte de testes de regras e quality gates
+
+Testes de regressão exercitam regras estruturais, governança configurável, coverage e avaliação de gates.
+:::
+
+::: {.need #EVD-004 type="evidence" status="verified" tags="pytest;adr;decision"}
+## Suíte de testes de governança de ADR
+
+Testes de relações, ciclo de vida, ciclos, confirmação e data de revisão demonstram o modelo de ADR de primeira classe.
+:::
+
+::: {.need #EVD-005 type="evidence" status="verified" tags="pytest;i18n;babelquarto"}
+## Validador de paridade de localização e exemplos multilíngues
+
+O validador de paridade no pre-render e as fontes pareadas EN/pt-BR demonstram um único grafo semântico com apresentação traduzida.
+:::
+
+::: {.need #EVD-006 type="evidence" status="verified" tags="jsonschema;graph;security"}
+## Schema público do grafo e testes de projeção semântica
+
+Validação de schema e testes de semântica do grafo exercitam metadados limitados da projeção e publicação segura de proveniência.
+:::
+
+::: {.need #EVD-007 type="evidence" status="verified" tags="pytest;parser;qmd"}
+## Suíte de regressão do parser
+
+Fixtures do parser cobrem declarações QMD, formas de relações, localizações de origem, justificativa e normalização das declarações.
+:::
+
+::: {.need #EVD-008 type="evidence" status="verified" tags="pytest;relations;catalog"}
+## Suíte de regressão do catálogo de relações
+
+Testes do catálogo cobrem nomes de autoria, formas inversas, papéis, famílias semânticas, direção de impacto e semântica de travessia.
+:::
+
+::: {.need #EVD-009 type="evidence" status="verified" tags="pytest;query;views"}
+## Testes de consultas nomeadas e views de grafo
+
+Os testes verificam avaliação segura de consultas, seleção determinística, views materializadas e consulta ao manifesto.
+:::
+
+::: {.need #EVD-010 type="evidence" status="verified" tags="javascript;cytoscape;assets"}
+## Testes de integridade dos assets do grafo interativo
+
+Regressões estáticas dos assets verificam capacidades de exploração e impedem que tabelas de relações semânticas sejam reintroduzidas no código de apresentação.
+:::
+
+::: {.need #EVD-011 type="evidence" status="verified" tags="pytest;baseline;impact"}
+## Suíte de comparação de baseline e impacto
+
+Testes versionados de baseline, diff e impacto demonstram semântica determinística de comparação e explicações de caminhos.
+:::
+
+::: {.need #EVD-012 type="evidence" status="verified" tags="python;extension;sync"}
+## Fluxo canônico de sincronização no pre-render
+
+`tools/quarto_needs_pre_render.py` instala a extensão canônica nos exemplos preparados antes da análise e renderização.
+:::
+
+::: {.need #EVD-013 type="evidence" status="verified" tags="pytest;determinism;fingerprint"}
+## Suíte de regressão de determinismo e fingerprint
+
+Testes de análise repetida e fixtures canônicas demonstram fingerprints estáveis e saída em bytes onde exigido.
+:::
+
+## Visualizações de verificação
+
+{{< need-table types="test-case" columns="id;title;status" sort="id" >}}
+
+{{< need-table types="evidence" columns="id;title;status" sort="id" >}}
+
+{{< need-graph view="verification-assets" id="verification-assets-view" >}}
