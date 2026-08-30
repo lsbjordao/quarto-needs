@@ -1,0 +1,42 @@
+project:
+  type: book
+  output-dir: _book
+  pre-render: python3 _pre_render.py
+
+book:
+  title: "Engineering Quarto-Needs with Quarto-Needs"
+  subtitle: "A self-hosted requirements, architecture, verification and traceability case study"
+  navbar:
+    search: true
+  chapters:
+    - index.qmd
+    - drivers.qmd
+    - requirements.qmd
+    - architecture.qmd
+    - verification.qmd
+    - traceability.qmd
+
+format:
+  html:
+    theme: cosmo
+    css: language-switch.css
+    include-after-body: language-switch.html
+    mermaid-format: svg
+
+filters:
+  - quarto-needs
+
+babelquarto:
+  languagelinks: navbar
+  icon: ""
+  languagecodes:
+    - name: en
+      text: "English"
+    - name: pt-BR
+      text: "Português (Brasil)"
+  mainlanguage: en
+  languages: [pt-BR]
+
+title-pt-BR: "Engenharia do Quarto-Needs com Quarto-Needs"
+subtitle-pt-BR: "Um estudo de caso autocontido de requisitos, arquitetura, verificação e rastreabilidade"
+lang: en
