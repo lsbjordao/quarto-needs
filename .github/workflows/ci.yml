@@ -35,6 +35,28 @@ jobs:
       - name: Check Aegis showcase
         run: quarto-needs --root examples/book check
 
+  vscode:
+    name: VS Code language client
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: editors/vscode
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - name: Install language-client dependencies
+        run: npm install --no-audit --no-fund
+      - name: Type-check VS Code client
+        run: npm run check
+      - name: Compile VS Code client
+        run: npm run compile
+
   quarto:
     name: Quarto multilingual render smoke
     needs: core
