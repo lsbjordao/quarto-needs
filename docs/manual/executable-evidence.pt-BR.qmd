@@ -1,0 +1,135 @@
+# Verificação executável e evidência de máquina
+
+O Quarto-Needs distingue três afirmações que frequentemente são confundidas:
+
+1. um **requisito** declara uma obrigação de engenharia;
+2. um **caso de teste** modelado declara como essa obrigação é verificada;
+3. a **evidência de máquina** registra qual teste executável realmente rodou e se seu vínculo concorda com o modelo de engenharia.
+
+Essa distinção evita que uma suíte de testes verde seja automaticamente tratada como prova de um requisito não relacionado.
+
+## Vincule testes pytest a objetos de engenharia
+
+O plugin pytest do Quarto-Needs fornece dois markers:
+
+```python
+import pytest
+
+@pytest.mark.requirement("FUN-004")
+@pytest.mark.quarto_need_test_case("TC-010")
+def test_graph_exploration_assets():
+    ...
+```
+
+`requirement` identifica as obrigações de engenharia reivindicadas pelo teste executável. `quarto_need_test_case` vincula o nó pytest a um ou mais objetos `test-case` modelados.
+
+O modelo deve carregar o vínculo executável recíproco:
+
+```qmd
+::: {.need #TC-010 type="test-case" status="passed"
+      pytest-nodeid="tests/test_graph.py::test_graph_exploration_assets"
+      evidenced-by="EVD-010"}
+## Regressão da exploração interativa do grafo
+...
+:::
+```
+
+O node ID estável do pytest é uma referência física de execução. Ele não substitui o caso de teste modelado, que continua sendo o objeto de verificação de engenharia.
+
+## Gere evidência
+
+A escrita do artefato é opt-in. Execuções pytest comuns não possuem efeitos colaterais de arquivos do Quarto-Needs.
+
+```bash
+pytest \
+  --quarto-needs-evidence=.quarto-needs/evidence/pytest.json
+```
+
+O mesmo destino pode ser fornecido por `QUARTO_NEEDS_PYTEST_EVIDENCE`.
+
+O artefato versão 1 é validado por `schemas/evidence-pytest-v1.schema.json` e contém dados semânticos determinísticos da execução:
+
+```json
+{
+  "provider": "pytest",
+  "schemaVersion": "1",
+  "tests": [
+    {
+      "nodeid": "tests/test_graph.py::test_graph_exploration_assets",
+      "outcome": "passed",
+      "requirements": ["FUN-004"],
+      "testCases": ["TC-010"]
+    }
+  ]
+}
+```
+
+Timestamps e durações são excluídos intencionalmente deste artefato semântico para que resultados de engenharia idênticos permaneçam reproduzíveis. Uma futura camada de atestação poderá acrescentar identidade da execução, identidade do commit, assinaturas e outros metadados não semânticos separadamente.
+
+## Valide a evidência contra o modelo atual
+
+A geração é apenas metade do contrato. Valide o artefato contra o grafo canônico de engenharia:
+
+```bash
+quarto-needs evidence check .quarto-needs/evidence/pytest.json
+```
+
+Para consumidores de máquina:
+
+```bash
+quarto-needs evidence check \
+  .quarto-needs/evidence/pytest.json \
+  --format json
+```
+
+A verificação é semântica. Ela confirma que:
+
+- todo teste executável passou;
+- toda entrada de evidência está vinculada a um caso de teste modelado;
+- todo caso de teste referenciado existe;
+- seu `pytest-nodeid` modelado é igual ao node ID executável;
+- todo requisito referenciado existe;
+- o requisito está realmente conectado por uma relação da família de verificação ao caso de teste modelado vinculado;
+- todo caso de teste modelado que possui `pytest-nodeid` está presente no artefato de evidência.
+
+Um artefato bem-sucedido, portanto, sustenta a cadeia:
+
+```text
+requisito --verified-by--> caso de teste modelado
+                              │
+                              │ pytest-nodeid
+                              ▼
+                         teste pytest executável
+                              │
+                              ▼
+                      artefato de evidência de máquina
+```
+
+## Diagnósticos de evidência
+
+Os diagnósticos iniciais de evidência pytest usam códigos estáveis:
+
+| Código | Significado |
+|---|---|
+| `EVD101` | resultado executável diferente de `passed` |
+| `EVD102` | teste executável sem vínculo com caso de teste modelado |
+| `EVD103` | evidência referencia caso de teste desconhecido |
+| `EVD104` | caso de teste modelado não possui `pytest-nodeid` |
+| `EVD105` | node IDs pytest modelado e executável divergem |
+| `EVD106` | evidência referencia requisito desconhecido |
+| `EVD107` | requisito não é verificado pelo caso de teste modelado vinculado |
+| `EVD108` | caso de teste modelado vinculado ao pytest está ausente do artefato |
+
+Artefatos malformados ou com versão não suportada são erros de uso/artefato e retornam código `2`. Falhas de I/O retornam `3`. Um artefato estruturalmente legível que diverge do modelo de engenharia retorna `1`.
+
+## Exemplo autocontido
+
+O estudo de caso autocontido do Quarto-Needs exercita essa capacidade diretamente:
+
+```bash
+make evidence-self-example
+```
+
+Esse alvo executa testes reais representativos de governança de ADR, segurança do grafo público, views nomeadas e análise de impacto; grava `examples/quarto-needs/.quarto-needs/evidence/pytest.json`; e então executa `quarto-needs evidence check` contra o grafo de engenharia autocontido.
+
+`make render-self-example` depende desse alvo, portanto o exemplo não pode ser renderizado com sucesso quando seus vínculos executáveis estiverem obsoletos ou inconsistentes.
