@@ -17,6 +17,13 @@ QN_OSLC_NS = "urn:quarto-needs:oslc:v1:"
 OSLC_REQUIREMENT = f"{OSLC_RM_NS}Requirement"
 OSLC_REQUIREMENT_COLLECTION = f"{OSLC_RM_NS}RequirementCollection"
 
+_OSLC_SERVICE = f"{OSLC_CORE_NS}service"
+_OSLC_DOMAIN = f"{OSLC_CORE_NS}domain"
+_OSLC_QUERY_CAPABILITY = f"{OSLC_CORE_NS}queryCapability"
+_OSLC_QUERY_BASE = f"{OSLC_CORE_NS}queryBase"
+_OSLC_RESOURCE_SHAPE = f"{OSLC_CORE_NS}resourceShape"
+_OSLC_RESOURCE_TYPE = f"{OSLC_CORE_NS}resourceType"
+
 # Only mappings with a direct, conservative semantic correspondence are
 # promoted into the OSLC RM vocabulary. Every other canonical relation remains
 # available through Quarto-Needs extension metadata instead of being guessed.
@@ -99,10 +106,103 @@ class CachePolicy:
         return "stale-allowed" if self.allow_stale else "stale-rejected"
 
 
+@dataclass(frozen=True, slots=True)
+class OslcQueryCapability:
+    query_base_uri: str
+    resource_shape_uri: str | None = None
+    resource_types: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        _require_absolute_http_uri(self.query_base_uri, "query_base_uri")
+        if self.resource_shape_uri is not None:
+            _require_absolute_http_uri(self.resource_shape_uri, "resource_shape_uri")
+        for resource_type in self.resource_types:
+            if not urlparse(resource_type).scheme:
+                raise ValueError("resource_types entries must be absolute URIs")
+
+
+@dataclass(frozen=True, slots=True)
+class OslcRmService:
+    service_uri: str | None
+    query_capabilities: tuple[OslcQueryCapability, ...]
+
+    def __post_init__(self) -> None:
+        if self.service_uri is not None:
+            _require_absolute_http_uri(self.service_uri, "service_uri")
+        object.__setattr__(self, "query_capabilities", tuple(self.query_capabilities))
+
+
 def _require_absolute_http_uri(value: str, field: str) -> None:
     parsed = urlparse(value)
     if parsed.scheme not in {"http", "https"} or not parsed.netloc:
         raise ValueError(f"{field} must be an absolute http(s) URI")
+
+
+def _expanded_objects(value: object) -> tuple[Mapping[str, object], ...]:
+    if isinstance(value, Mapping):
+        return (value,)
+    if isinstance(value, list):
+        return tuple(item for item in value if isinstance(item, Mapping))
+    return ()
+
+
+def _expanded_ids(value: object) -> tuple[str, ...]:
+    values: list[str] = []
+    for item in _expanded_objects(value):
+        identifier = item.get("@id")
+        if isinstance(identifier, str):
+            values.append(identifier)
+    return tuple(values)
+
+
+def discover_rm_services(expanded_service_provider: Mapping[str, object]) -> tuple[OslcRmService, ...]:
+    """Extract RM services from an already-expanded JSON-LD ServiceProvider.
+
+    Expansion/transport is intentionally outside this pure function. The live
+    adapter can later support JSON-LD, Turtle, or RDF/XML while this discovery
+    contract remains stable and independently testable.
+    """
+    services: list[OslcRmService] = []
+    for service in _expanded_objects(expanded_service_provider.get(_OSLC_SERVICE)):
+        domains = set(_expanded_ids(service.get(_OSLC_DOMAIN)))
+        if OSLC_RM_NS not in domains:
+            continue
+
+        capabilities: list[OslcQueryCapability] = []
+        for query in _expanded_objects(service.get(_OSLC_QUERY_CAPABILITY)):
+            bases = _expanded_ids(query.get(_OSLC_QUERY_BASE))
+            if len(bases) != 1:
+                raise ValueError("OSLC RM QueryCapability must expose exactly one oslc:queryBase")
+            shapes = _expanded_ids(query.get(_OSLC_RESOURCE_SHAPE))
+            if len(shapes) > 1:
+                raise ValueError("OSLC RM QueryCapability must expose at most one oslc:resourceShape")
+            resource_types = tuple(sorted(set(_expanded_ids(query.get(_OSLC_RESOURCE_TYPE)))))
+            capabilities.append(
+                OslcQueryCapability(
+                    query_base_uri=bases[0],
+                    resource_shape_uri=shapes[0] if shapes else None,
+                    resource_types=resource_types,
+                )
+            )
+
+        service_uri = service.get("@id")
+        if service_uri is not None and not isinstance(service_uri, str):
+            raise ValueError("OSLC service @id must be a string when present")
+        services.append(
+            OslcRmService(
+                service_uri=service_uri,
+                query_capabilities=tuple(
+                    sorted(capabilities, key=lambda item: item.query_base_uri)
+                ),
+            )
+        )
+
+    return tuple(
+        sorted(
+            services,
+            key=lambda item: (item.service_uri or "", tuple(q.query_base_uri for q in item.query_capabilities)),
+        )
+    )
 
 
 def content_digest(payload: bytes) -> str:
