@@ -11,11 +11,15 @@ def _project(tmp_path: Path) -> LspSession:
     (tmp_path / ".quarto-needs.toml").write_text(
         '''[types.functional-requirement]
 role = "requirement"
-allowed-statuses = ["approved"]
+allowed-statuses = ["draft", "approved"]
 
 [types.test-case]
 role = "verification"
-allowed-statuses = ["passed"]
+allowed-statuses = ["draft", "passed"]
+
+[relations."verified-by"]
+allowed-source-types = ["functional-requirement"]
+allowed-target-types = ["test-case"]
 
 [queries.approved]
 all = [{ field = "status", op = "eq", value = "approved" }]
@@ -88,6 +92,49 @@ def test_hover_definition_and_references_resolve_identifier_at_position(tmp_path
     refs = session.handle("textDocument/references", _params(verification, 0, 12))
     assert refs
     assert refs[0]["uri"] == requirements.resolve().as_uri()
+
+
+def test_type_completion_returns_only_types(tmp_path: Path) -> None:
+    session = _project(tmp_path)
+    path = tmp_path / "scratch.qmd"
+    text = '::: {.need #NEW type="fun'
+    uri = path.resolve().as_uri()
+    session.open_document(uri, text)
+    items = session.handle(
+        "textDocument/completion",
+        _params(path, 0, len(text)),
+    )
+    assert [item["label"] for item in items] == ["functional-requirement"]
+
+
+def test_status_completion_respects_current_type_lifecycle(tmp_path: Path) -> None:
+    session = _project(tmp_path)
+    path = tmp_path / "scratch.qmd"
+    text = '::: {.need #NEW type="functional-requirement" status="a'
+    uri = path.resolve().as_uri()
+    session.open_document(uri, text)
+    items = session.handle(
+        "textDocument/completion",
+        _params(path, 0, len(text)),
+    )
+    assert [item["label"] for item in items] == ["approved"]
+
+
+def test_relation_target_completion_respects_allowed_target_types(tmp_path: Path) -> None:
+    session = _project(tmp_path)
+    requirements = tmp_path / "requirements.qmd"
+    original = requirements.read_text(encoding="utf-8")
+    first = original.splitlines()[0]
+    edited_first = first.replace('verified-by="TC-001"', 'verified-by="T')
+    edited = original.replace(first, edited_first)
+    uri = requirements.resolve().as_uri()
+    session.open_document(uri, edited)
+    items = session.handle(
+        "textDocument/completion",
+        _params(requirements, 0, edited_first.index('verified-by="T') + len('verified-by="T')),
+    )
+    assert [item["label"] for item in items] == ["TC-001"]
+    assert all(not item["label"].startswith("FUN-") for item in items)
 
 
 def test_publish_diagnostics_projection_uses_lsp_severity(tmp_path: Path) -> None:
