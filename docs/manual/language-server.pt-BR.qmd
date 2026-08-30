@@ -1,0 +1,143 @@
+# Servidor de linguagem e autoria no editor
+
+O Quarto-Needs inclui um servidor Language Server Protocol (LSP) que expõe a mesma semântica de engenharia usada pela CLI, CI, projeções Quarto, validação de evidências, políticas e análise do grafo.
+
+A camada de editor **não** mantém um segundo parser nem um segundo motor de regras.
+
+```text
+QMD + .quarto-needs.toml + buffers abertos no editor
+                     │
+                     ▼
+          parser / analisador canônico
+                     │
+                     ▼
+              LanguageService
+                     │
+                     ▼
+            LSP JSON-RPC / stdio
+                     │
+                     ▼
+          VS Code ou outros clientes
+```
+
+## Iniciando o servidor
+
+A CLI instalada expõe diretamente o servidor via stdio:
+
+```bash
+quarto-needs --root /caminho/do/projeto lsp
+```
+
+Normalmente uma extensão do editor inicia esse processo automaticamente. Executá-lo diretamente é mais útil ao integrar outro editor compatível com LSP ou ao depurar o tráfego do protocolo.
+
+## Capacidades
+
+O servidor atualmente anuncia:
+
+- sincronização de documento completo com ciclo de abertura/salvamento/fechamento;
+- completion;
+- hover;
+- ir para definição;
+- localizar referências;
+- prepare rename e rename;
+- símbolos do documento;
+- símbolos do workspace;
+- diagnostics por push.
+
+## Buffers não salvos
+
+Documentos abertos são analisados como **overlays em memória**. O Quarto-Needs não grava no repositório o texto ainda não salvo pelo editor.
+
+Um overlay usa o mesmo parser de declarações QMD e o mesmo analisador de projeto de um arquivo salvo. Assim, uma alteração ainda não salva pode afetar imediatamente:
+
+- títulos e metadados dos objetos;
+- topologia de relações;
+- políticas e restrições de grafo;
+- campos derivados;
+- diagnostics;
+- informações de hover;
+- símbolos;
+- referências e refactors.
+
+Se um buffer ficar estruturalmente inválido enquanto o usuário digita, o servidor registra os findings estruturais da tentativa de análise e mantém o último snapshot semântico válido para navegação entre arquivos. Assim que o buffer volta a ser válido, o grafo canônico completo é substituído pelo novo estado analisado.
+
+## Completion contextual
+
+A completion é semântica, e não uma lista indiscriminada de termos.
+
+Por exemplo:
+
+```qmd
+::: {.need #FUN-010 type="fun█"}
+```
+
+sugere tipos de objeto configurados que correspondam ao prefixo.
+
+```qmd
+::: {.need #FUN-010 type="functional-requirement" status="a█"}
+```
+
+sugere apenas os estados permitidos pelo lifecycle daquele tipo específico.
+
+Para valores de relações:
+
+```qmd
+::: {.need #FUN-010 type="functional-requirement" verified-by="TC-█"}
+```
+
+os objetos candidatos são filtrados pela política de endpoints configurada para `verified-by`. Se apenas objetos `test-case` forem alvos válidos, requisitos ou componentes de arquitetura não são sugeridos.
+
+## Hover
+
+O hover expõe metadados canônicos do objeto, incluindo:
+
+- ID e título;
+- tipo e papel semântico;
+- status e prioridade;
+- contagem de relações de entrada e saída;
+- campos derivados seguros materializados pela configuração da Phase 3.
+
+Valores derivados são mostrados separadamente dos atributos autorados porque continuam sendo projeções computadas.
+
+## Definições e referências
+
+O Quarto-Needs mantém um índice de spans exatos para posições semânticas de IDs. Definições e referências, portanto, apontam para os intervalos do identificador, e não apenas para linhas aproximadas.
+
+O índice reconhece IDs em:
+
+- declarações `.need`;
+- atributos de relações;
+- metadata escalar de relações;
+- listas em metadata de relações;
+- shortcodes `{{< need ... >}}`.
+
+Texto narrativo que apenas coincida com um ID não é considerado referência semântica.
+
+## Rename consciente das relações
+
+`prepareRename` só é aceito quando o cursor está sobre um span semântico de ID de objeto. O rename devolve um `WorkspaceEdit` padrão do LSP; o servidor não altera arquivos do projeto diretamente.
+
+O edit atualiza:
+
+- a declaração canônica;
+- todos os alvos de relações autorados;
+- shortcodes `need`;
+- irmãos de apresentação localizados, como `*.pt-BR.qmd`.
+
+Arquivos localizados continuam excluídos do grafo canônico de engenharia, mas refactors de identidade os atualizam para que a paridade de apresentação não seja quebrada.
+
+Menções narrativas são deliberadamente preservadas. O rename também rejeita um ID de destino que já pertença a outro objeto.
+
+## Diagnostics
+
+Diagnostics são projeções dos findings canônicos, incluindo validação estrutural, erros de lifecycle e relações, políticas configuradas, schemas de tipo e restrições de grafo.
+
+O LSP não cria versões específicas do editor para essas regras.
+
+## LanguageService como fronteira reutilizável
+
+O transporte de protocolo vive em `lsp_server.py`, enquanto a semântica independente do editor vive em `language_service.py`. Essa separação permite reutilizar os serviços do editor em integrações futuras sem acoplar o modelo de engenharia ao VS Code ou ao JSON-RPC.
+
+A regra continua sendo:
+
+> Python é a autoridade da semântica de engenharia; integrações de editor apenas a consomem.
