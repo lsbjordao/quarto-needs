@@ -2,6 +2,8 @@
 
 A baseline stores authored content, not only fingerprints, because `diff`
 reports semantic modifications by field and cannot name a field it never saw.
+Derived fields and named variants are stored separately from authored object
+attributes so the artifact preserves their provenance as computed projections.
 """
 from __future__ import annotations
 
@@ -54,6 +56,8 @@ def build_baseline(
     payload = _header(snapshot.reference_date, snapshot.configuration_fingerprint)
     payload["semanticGraphFingerprint"] = snapshot.semantic_graph_fingerprint
     payload["representationFingerprint"] = snapshot.representation_fingerprint
+    if snapshot.variant_fingerprint:
+        payload["variantFingerprint"] = snapshot.variant_fingerprint
     payload["valid"] = True
     payload["objects"] = [
         {
@@ -84,6 +88,12 @@ def build_baseline(
         }
         for item in snapshot.relations
     ]
+    if snapshot.derived:
+        payload["derived"] = thaw_json(snapshot.derived)
+    if snapshot.variants:
+        payload["variants"] = {
+            name: list(ids) for name, ids in snapshot.variants.items()
+        }
     payload["findings"] = [finding.to_dict() for finding in snapshot.findings]
     payload["report"] = report_from_snapshot(snapshot, config, queries=queries).to_dict()
     return payload
