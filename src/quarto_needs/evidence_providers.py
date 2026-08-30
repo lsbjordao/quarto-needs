@@ -51,6 +51,7 @@ def build_check_evidence(
             "outcome": outcome,
             "requirements": _ids(raw.get("requirements", ())),
             "testCases": _ids(raw.get("testCases", ())),
+            "evidenceObjects": _ids(raw.get("evidenceObjects", ())),
         }
         title = raw.get("title")
         if title is not None and str(title).strip():
@@ -102,8 +103,9 @@ def _junit_properties(case: ET.Element) -> dict[str, str]:
 def junit_xml_evidence(path: Path, *, provider_version: str = "junit-xml") -> dict[str, object]:
     """Normalize JUnit XML test cases into generic machine checks.
 
-    Optional testcase properties `quarto-needs.requirement` and
-    `quarto-needs.test-case` carry comma/semicolon-separated model IDs.
+    Optional testcase properties `quarto-needs.requirement`,
+    `quarto-needs.test-case`, and `quarto-needs.evidence` carry
+    comma/semicolon-separated model IDs.
     """
     try:
         root = ET.parse(path).getroot()
@@ -130,6 +132,7 @@ def junit_xml_evidence(path: Path, *, provider_version: str = "junit-xml") -> di
             "outcome": _junit_outcome(case),
             "requirements": _split_ids(props.get("quarto-needs.requirement")),
             "testCases": _split_ids(props.get("quarto-needs.test-case")),
+            "evidenceObjects": _split_ids(props.get("quarto-needs.evidence")),
             "details": {
                 "classname": classname,
                 "time": case.get("time") or "",
@@ -144,6 +147,7 @@ def coverage_json_evidence(
     minimum_percent: float,
     requirements: Sequence[str] = (),
     test_cases: Sequence[str] = (),
+    evidence_objects: Sequence[str] = (),
 ) -> dict[str, object]:
     """Normalize coverage.py JSON total coverage into one threshold check."""
     document = json.loads(path.read_text(encoding="utf-8"))
@@ -168,6 +172,7 @@ def coverage_json_evidence(
             "outcome": outcome,
             "requirements": requirements,
             "testCases": test_cases,
+            "evidenceObjects": evidence_objects,
             "details": {
                 "percentCovered": percent,
                 "minimumPercent": float(minimum_percent),
@@ -187,6 +192,7 @@ def process_evidence(
     title: str | None = None,
     requirements: Sequence[str] = (),
     test_cases: Sequence[str] = (),
+    evidence_objects: Sequence[str] = (),
     details: Mapping[str, object] | None = None,
 ) -> dict[str, object]:
     """Normalize a bounded process result such as Quarto, lint, or type-check."""
@@ -202,6 +208,7 @@ def process_evidence(
             "outcome": "passed" if exit_code == 0 else "failed",
             "requirements": requirements,
             "testCases": test_cases,
+            "evidenceObjects": evidence_objects,
             "details": merged_details,
         }],
     )
@@ -214,6 +221,7 @@ def quarto_render_evidence(
     exit_code: int,
     requirements: Sequence[str] = (),
     test_cases: Sequence[str] = (),
+    evidence_objects: Sequence[str] = (),
 ) -> dict[str, object]:
     return process_evidence(
         provider="quarto-render",
@@ -223,6 +231,7 @@ def quarto_render_evidence(
         exit_code=exit_code,
         requirements=requirements,
         test_cases=test_cases,
+        evidence_objects=evidence_objects,
         details={"target": target},
     )
 
@@ -235,9 +244,9 @@ def json_schema_evidence(
     """Normalize already-performed JSON Schema validations.
 
     Each validation must provide `id` and `valid`; it may also provide title,
-    requirements, testCases, schema, and instance metadata. Validation itself
-    stays with the caller so this adapter cannot execute arbitrary schemas or
-    external references behind the user's back.
+    requirements, testCases, evidenceObjects, schema, and instance metadata.
+    Validation itself stays with the caller so this adapter cannot execute
+    arbitrary schemas or external references behind the user's back.
     """
     checks: list[dict[str, object]] = []
     for validation in validations:
@@ -255,6 +264,7 @@ def json_schema_evidence(
             "outcome": "passed" if valid else "failed",
             "requirements": validation.get("requirements", ()),
             "testCases": validation.get("testCases", ()),
+            "evidenceObjects": validation.get("evidenceObjects", ()),
             "details": details,
         })
     return build_check_evidence("json-schema", validator_version, checks)
@@ -267,6 +277,7 @@ def lint_evidence(
     exit_code: int,
     requirements: Sequence[str] = (),
     test_cases: Sequence[str] = (),
+    evidence_objects: Sequence[str] = (),
 ) -> dict[str, object]:
     return process_evidence(
         provider=f"lint:{tool}",
@@ -276,6 +287,7 @@ def lint_evidence(
         exit_code=exit_code,
         requirements=requirements,
         test_cases=test_cases,
+        evidence_objects=evidence_objects,
     )
 
 
@@ -286,6 +298,7 @@ def type_check_evidence(
     exit_code: int,
     requirements: Sequence[str] = (),
     test_cases: Sequence[str] = (),
+    evidence_objects: Sequence[str] = (),
 ) -> dict[str, object]:
     return process_evidence(
         provider=f"type-check:{tool}",
@@ -295,4 +308,5 @@ def type_check_evidence(
         exit_code=exit_code,
         requirements=requirements,
         test_cases=test_cases,
+        evidence_objects=evidence_objects,
     )
