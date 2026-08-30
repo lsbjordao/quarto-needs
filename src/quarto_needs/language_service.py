@@ -12,7 +12,6 @@ from typing import Mapping
 
 from .analysis import analyze_project
 from .config import NeedsConfig, load_config
-from .diagnostics import Finding
 from .relations import DEFAULT_RELATION_CATALOG
 from .snapshot import AnalysisSnapshot, LocationRecord, ObjectRecord
 
@@ -77,15 +76,22 @@ class LanguageService:
         self.snapshot = snapshot
 
     @classmethod
-    def load(cls, root: Path) -> "LanguageService":
+    def load(
+        cls,
+        root: Path,
+        *,
+        overlays: Mapping[str, str] | None = None,
+    ) -> "LanguageService":
         resolved = Path(root).resolve()
         config = load_config(resolved)
-        result = analyze_project(resolved, config=config)
+        result = analyze_project(resolved, config=config, overlays=overlays)
         if result.snapshot is None:
             structural = "; ".join(
                 f"{finding.code}: {finding.message}" for finding in result.findings
             )
-            raise LanguageServiceError(structural or "project analysis is structurally invalid")
+            raise LanguageServiceError(
+                structural or "project analysis is structurally invalid"
+            )
         return cls(resolved, config, result.snapshot)
 
     def _role(self, record: ObjectRecord) -> str | None:
@@ -120,7 +126,9 @@ class LanguageService:
         for record in self.snapshot.objects:
             if not folded or record.id.casefold().startswith(folded):
                 items.append(
-                    CompletionItem(record.id, "object", f"{record.type} · {record.title}")
+                    CompletionItem(
+                        record.id, "object", f"{record.type} · {record.title}"
+                    )
                 )
         for name in sorted(
             set(self.config.required_attributes)
@@ -128,7 +136,9 @@ class LanguageService:
             | set(self.config.allowed_statuses)
         ):
             if not folded or name.casefold().startswith(folded):
-                items.append(CompletionItem(name, "type", self.config.type_roles.get(name, "")))
+                items.append(
+                    CompletionItem(name, "type", self.config.type_roles.get(name, ""))
+                )
         for relation in DEFAULT_RELATION_CATALOG.names:
             if not folded or relation.casefold().startswith(folded):
                 kind = DEFAULT_RELATION_CATALOG.resolve(relation)
