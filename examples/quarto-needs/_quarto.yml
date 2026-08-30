@@ -10,11 +10,14 @@ book:
     search: true
   chapters:
     - index.qmd
+    - context.qmd
     - drivers.qmd
     - requirements.qmd
     - architecture.qmd
+    - implementation.qmd
     - verification.qmd
     - traceability.qmd
+    - change.qmd
 
 format:
   html:
