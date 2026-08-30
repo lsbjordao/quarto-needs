@@ -1,0 +1,135 @@
+# Executable verification and machine evidence
+
+Quarto-Needs distinguishes three claims that are often collapsed into one:
+
+1. a **requirement** states an engineering obligation;
+2. a modeled **test-case** states how that obligation is verified;
+3. **machine evidence** records what executable test actually ran and whether its linkage agrees with the engineering model.
+
+This distinction prevents a green test suite from being treated automatically as proof for an unrelated requirement.
+
+## Link pytest tests to engineering objects
+
+The Quarto-Needs pytest plugin provides two markers:
+
+```python
+import pytest
+
+@pytest.mark.requirement("FUN-004")
+@pytest.mark.quarto_need_test_case("TC-010")
+def test_graph_exploration_assets():
+    ...
+```
+
+`requirement` identifies the engineering obligations claimed by the executable test. `quarto_need_test_case` binds the pytest node to one or more modeled `test-case` objects.
+
+The model should carry the reciprocal executable binding:
+
+```qmd
+::: {.need #TC-010 type="test-case" status="passed"
+      pytest-nodeid="tests/test_graph.py::test_graph_exploration_assets"
+      evidenced-by="EVD-010"}
+## Interactive graph exploration regression
+...
+:::
+```
+
+The stable pytest node ID is a physical execution reference. It does not replace the modeled test-case, which remains the engineering verification object.
+
+## Generate evidence
+
+Writing an artifact is opt-in. Ordinary pytest runs have no Quarto-Needs file side effects.
+
+```bash
+pytest \
+  --quarto-needs-evidence=.quarto-needs/evidence/pytest.json
+```
+
+The same destination can be supplied with `QUARTO_NEEDS_PYTEST_EVIDENCE`.
+
+The version-1 artifact is validated by `schemas/evidence-pytest-v1.schema.json` and contains deterministic semantic execution data:
+
+```json
+{
+  "provider": "pytest",
+  "schemaVersion": "1",
+  "tests": [
+    {
+      "nodeid": "tests/test_graph.py::test_graph_exploration_assets",
+      "outcome": "passed",
+      "requirements": ["FUN-004"],
+      "testCases": ["TC-010"]
+    }
+  ]
+}
+```
+
+Timestamps and durations are intentionally excluded from this semantic artifact so identical engineering results remain reproducible. A future attestation layer may add run identity, commit identity, signatures, and other non-semantic execution metadata separately.
+
+## Validate evidence against the current model
+
+Generation is only half of the contract. Validate the artifact against the canonical engineering graph:
+
+```bash
+quarto-needs evidence check .quarto-needs/evidence/pytest.json
+```
+
+For machine consumers:
+
+```bash
+quarto-needs evidence check \
+  .quarto-needs/evidence/pytest.json \
+  --format json
+```
+
+The check is semantic. It verifies that:
+
+- every executable test passed;
+- every evidence entry is bound to a modeled test-case;
+- every referenced test-case exists;
+- its modeled `pytest-nodeid` equals the executable node ID;
+- every referenced requirement exists;
+- the requirement is actually connected by a verification-family relation to the bound modeled test-case;
+- every modeled test-case carrying `pytest-nodeid` is present in the evidence artifact.
+
+A successful artifact therefore supports the chain:
+
+```text
+requirement --verified-by--> modeled test-case
+                              │
+                              │ pytest-nodeid
+                              ▼
+                         executable pytest test
+                              │
+                              ▼
+                      machine evidence artifact
+```
+
+## Evidence diagnostics
+
+The initial pytest evidence diagnostics are stable codes:
+
+| Code | Meaning |
+|---|---|
+| `EVD101` | executable outcome is not `passed` |
+| `EVD102` | executable test has no modeled test-case binding |
+| `EVD103` | evidence references an unknown test-case |
+| `EVD104` | referenced modeled test-case has no `pytest-nodeid` |
+| `EVD105` | modeled and executable pytest node IDs disagree |
+| `EVD106` | evidence references an unknown requirement |
+| `EVD107` | requirement is not verified by the bound modeled test-case |
+| `EVD108` | a modeled pytest-bound test-case is missing from the artifact |
+
+Malformed or unsupported evidence artifacts are usage/artifact errors and exit with code `2`. I/O failures exit `3`. A structurally readable artifact that disagrees with the engineering model exits `1`.
+
+## Self-hosted example
+
+The self-hosted Quarto-Needs case study exercises this feature directly:
+
+```bash
+make evidence-self-example
+```
+
+That target executes representative real tests for ADR governance, public graph safety, named graph views, and impact analysis; writes `examples/quarto-needs/.quarto-needs/evidence/pytest.json`; and then runs `quarto-needs evidence check` against the self-hosted engineering graph.
+
+`make render-self-example` depends on this target, so the example cannot render successfully with stale or inconsistent executable bindings.
