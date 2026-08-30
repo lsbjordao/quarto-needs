@@ -1,0 +1,5 @@
+profile = "default"
+
+[types.functional-requirement]
+role = "requirement"
+allowed-statuses = ["approved"]
