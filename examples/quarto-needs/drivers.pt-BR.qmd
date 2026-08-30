@@ -102,4 +102,4 @@ A tabela gerada torna visível a passagem da preocupação do stakeholder para a
 
 {{< need-table types="stakeholder-need;system-requirement" columns="id;title;type;status;priority" sort="id" >}}
 
-{{< need-graph id="drivers-graph" root="STK-001" depth="3" >}}
+{{< need-graph id="drivers-graph" projection="need-graph-1" root="STK-001" depth="3" >}}
