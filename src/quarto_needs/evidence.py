@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import tempfile
 from collections import Counter
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -15,6 +17,8 @@ from .snapshot import AnalysisSnapshot, thaw_json
 
 
 EVIDENCE_SCHEMA_VERSION = "1"
+EVIDENCE_ENVELOPE_SCHEMA_VERSION = "1"
+EVIDENCE_KIND = "quarto-needs-evidence"
 PYTEST_OUTCOMES = frozenset({"passed", "failed", "skipped"})
 
 
@@ -36,6 +40,20 @@ class EvidenceIssue:
 
 def _text_key(value: str) -> tuple[str, str]:
     return (value.casefold(), value)
+
+
+def canonical_json_bytes(payload: Mapping[str, Any]) -> bytes:
+    """Return the stable byte representation used for evidence digests."""
+    return json.dumps(
+        payload,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+
+
+def evidence_digest(payload: Mapping[str, Any]) -> str:
+    return "sha256:" + hashlib.sha256(canonical_json_bytes(payload)).hexdigest()
 
 
 def build_pytest_evidence(
@@ -61,6 +79,48 @@ def build_pytest_evidence(
     }
 
 
+def build_evidence_envelope(
+    payload: Mapping[str, Any],
+    *,
+    provider_name: str,
+    provider_version: str,
+    artifact_schema: str,
+    snapshot: AnalysisSnapshot,
+    generated_at: datetime | None = None,
+    source_revision: str | None = None,
+) -> dict[str, object]:
+    """Bind provider evidence to a concrete engineering state.
+
+    The provider payload remains independently deterministic. Volatile provenance
+    belongs to this envelope, so repeated provider execution can still be
+    compared byte-for-byte while an attestation records when and against which
+    graph/configuration state the evidence was accepted.
+    """
+    timestamp = generated_at or datetime.now(timezone.utc)
+    if timestamp.tzinfo is None:
+        timestamp = timestamp.replace(tzinfo=timezone.utc)
+    timestamp = timestamp.astimezone(timezone.utc)
+    subject: dict[str, str] = {
+        "configurationFingerprint": snapshot.configuration_fingerprint,
+        "semanticGraphFingerprint": snapshot.semantic_graph_fingerprint,
+        "representationFingerprint": snapshot.representation_fingerprint,
+    }
+    if source_revision:
+        subject["sourceRevision"] = source_revision
+    return {
+        "schemaVersion": EVIDENCE_ENVELOPE_SCHEMA_VERSION,
+        "kind": EVIDENCE_KIND,
+        "provider": {"name": provider_name, "version": provider_version},
+        "generatedAt": timestamp.isoformat().replace("+00:00", "Z"),
+        "subject": subject,
+        "artifact": {
+            "schema": artifact_schema,
+            "digest": evidence_digest(payload),
+            "payload": dict(payload),
+        },
+    }
+
+
 def write_json_atomic(path: Path, payload: Mapping[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     text = json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
@@ -77,41 +137,155 @@ def write_json_atomic(path: Path, payload: Mapping[str, Any]) -> None:
         raise
 
 
-def load_pytest_evidence(path: Path) -> dict[str, object]:
+def _load_json_object(path: Path) -> dict[str, object]:
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as error:
         raise ValueError(f"{path} is not valid JSON: {error}") from error
     if not isinstance(payload, dict):
         raise ValueError(f"{path} must contain a JSON object")
+    return payload
+
+
+def load_pytest_evidence(path: Path) -> dict[str, object]:
+    payload = _load_json_object(path)
+    _validate_pytest_payload_shape(payload, source=str(path))
+    return payload
+
+
+def _validate_pytest_payload_shape(payload: Mapping[str, object], *, source: str) -> None:
     if payload.get("schemaVersion") != EVIDENCE_SCHEMA_VERSION:
-        raise ValueError(f"{path} has unsupported evidence schemaVersion {payload.get('schemaVersion')!r}")
+        raise ValueError(f"{source} has unsupported evidence schemaVersion {payload.get('schemaVersion')!r}")
     if payload.get("provider") != "pytest":
-        raise ValueError(f"{path} is not a pytest evidence artifact")
+        raise ValueError(f"{source} is not a pytest evidence artifact")
     if not isinstance(payload.get("providerVersion"), str) or not payload["providerVersion"]:
-        raise ValueError(f"{path} has invalid providerVersion")
+        raise ValueError(f"{source} has invalid providerVersion")
     tests = payload.get("tests")
     if not isinstance(tests, list):
-        raise ValueError(f"{path} has invalid tests array")
+        raise ValueError(f"{source} has invalid tests array")
     seen: set[str] = set()
     for index, entry in enumerate(tests):
         if not isinstance(entry, dict):
-            raise ValueError(f"{path} tests[{index}] must be an object")
+            raise ValueError(f"{source} tests[{index}] must be an object")
         nodeid = entry.get("nodeid")
         outcome = entry.get("outcome")
         requirements = entry.get("requirements")
         test_cases = entry.get("testCases")
         if not isinstance(nodeid, str) or not nodeid:
-            raise ValueError(f"{path} tests[{index}] has invalid nodeid")
+            raise ValueError(f"{source} tests[{index}] has invalid nodeid")
         if nodeid in seen:
-            raise ValueError(f"{path} contains duplicate pytest nodeid {nodeid}")
+            raise ValueError(f"{source} contains duplicate pytest nodeid {nodeid}")
         seen.add(nodeid)
         if outcome not in PYTEST_OUTCOMES:
-            raise ValueError(f"{path} tests[{index}] has invalid outcome {outcome!r}")
+            raise ValueError(f"{source} tests[{index}] has invalid outcome {outcome!r}")
         for key, values in (("requirements", requirements), ("testCases", test_cases)):
             if not isinstance(values, list) or not all(isinstance(v, str) and v for v in values):
-                raise ValueError(f"{path} tests[{index}] has invalid {key}")
-    return payload
+                raise ValueError(f"{source} tests[{index}] has invalid {key}")
+
+
+def load_evidence(path: Path) -> tuple[dict[str, object] | None, dict[str, object]]:
+    """Load either a provider-neutral envelope or a legacy raw pytest artifact."""
+    document = _load_json_object(path)
+    if document.get("kind") != EVIDENCE_KIND:
+        _validate_pytest_payload_shape(document, source=str(path))
+        return None, document
+
+    if document.get("schemaVersion") != EVIDENCE_ENVELOPE_SCHEMA_VERSION:
+        raise ValueError(
+            f"{path} has unsupported evidence envelope schemaVersion {document.get('schemaVersion')!r}"
+        )
+    provider = document.get("provider")
+    subject = document.get("subject")
+    artifact = document.get("artifact")
+    generated_at = document.get("generatedAt")
+    if not isinstance(provider, dict) or not isinstance(provider.get("name"), str) or not provider.get("name"):
+        raise ValueError(f"{path} has invalid envelope provider")
+    if not isinstance(provider.get("version"), str) or not provider.get("version"):
+        raise ValueError(f"{path} has invalid envelope provider version")
+    if not isinstance(subject, dict):
+        raise ValueError(f"{path} has invalid envelope subject")
+    if not isinstance(generated_at, str) or parse_evidence_time(generated_at) is None:
+        raise ValueError(f"{path} has invalid generatedAt")
+    if not isinstance(artifact, dict):
+        raise ValueError(f"{path} has invalid envelope artifact")
+    raw = artifact.get("payload")
+    if not isinstance(raw, dict):
+        raise ValueError(f"{path} has invalid envelope artifact payload")
+    expected_digest = artifact.get("digest")
+    actual_digest = evidence_digest(raw)
+    if expected_digest != actual_digest:
+        raise ValueError(f"{path} evidence payload digest does not match its envelope")
+    if provider.get("name") == "pytest":
+        _validate_pytest_payload_shape(raw, source=f"{path} artifact.payload")
+    return document, raw
+
+
+def parse_evidence_time(value: str) -> datetime | None:
+    text = value.strip()
+    if text.endswith("Z"):
+        text = text[:-1] + "+00:00"
+    try:
+        parsed = datetime.fromisoformat(text)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return None
+    return parsed.astimezone(timezone.utc)
+
+
+def validate_evidence_envelope(
+    snapshot: AnalysisSnapshot,
+    envelope: Mapping[str, object],
+    *,
+    now: datetime | None = None,
+    max_age_hours: float | None = None,
+    expected_source_revision: str | None = None,
+) -> tuple[EvidenceIssue, ...]:
+    issues: list[EvidenceIssue] = []
+    subject = envelope.get("subject")
+    if not isinstance(subject, Mapping):
+        return (EvidenceIssue("EVD201", "evidence envelope has no valid subject"),)
+
+    fingerprint_checks = (
+        ("configurationFingerprint", snapshot.configuration_fingerprint, "EVD202", "configuration"),
+        ("semanticGraphFingerprint", snapshot.semantic_graph_fingerprint, "EVD203", "semantic graph"),
+        ("representationFingerprint", snapshot.representation_fingerprint, "EVD204", "representation"),
+    )
+    for key, expected, code, label in fingerprint_checks:
+        observed = subject.get(key)
+        if observed != expected:
+            issues.append(EvidenceIssue(code, f"evidence {label} fingerprint does not match the current project"))
+
+    if expected_source_revision is not None:
+        observed_revision = subject.get("sourceRevision")
+        if observed_revision is not None and observed_revision != expected_source_revision:
+            issues.append(
+                EvidenceIssue(
+                    "EVD205",
+                    f"evidence source revision {observed_revision} does not match current revision {expected_source_revision}",
+                )
+            )
+
+    if max_age_hours is not None:
+        generated = envelope.get("generatedAt")
+        parsed = parse_evidence_time(str(generated)) if isinstance(generated, str) else None
+        if parsed is None:
+            issues.append(EvidenceIssue("EVD206", "evidence generatedAt is not a valid timezone-aware timestamp"))
+        else:
+            reference = now or datetime.now(timezone.utc)
+            if reference.tzinfo is None:
+                reference = reference.replace(tzinfo=timezone.utc)
+            age_seconds = (reference.astimezone(timezone.utc) - parsed).total_seconds()
+            if age_seconds < 0:
+                issues.append(EvidenceIssue("EVD207", "evidence generatedAt is in the future"))
+            elif age_seconds > max_age_hours * 3600:
+                issues.append(
+                    EvidenceIssue(
+                        "EVD208",
+                        f"evidence is older than the allowed {max_age_hours:g} hour(s)",
+                    )
+                )
+    return tuple(issues)
 
 
 def _attribute(snapshot: AnalysisSnapshot, object_id: str, name: str) -> object | None:
