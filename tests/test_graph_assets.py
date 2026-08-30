@@ -21,6 +21,7 @@ MANIFEST = VENDOR / "ASSET_MANIFEST.json"
 CYTOSCAPE = VENDOR / "cytoscape.min.js"
 GRAPH_JS = ROOT / "_extensions" / "quarto-needs" / "graph.js"
 GRAPH_CSS = ROOT / "_extensions" / "quarto-needs" / "graph.css"
+NEEDS_JS = ROOT / "_extensions" / "quarto-needs" / "needs.js"
 
 FIXTURE = ROOT / "tests" / "fixtures" / "graph" / "adversarial.qmd"
 
@@ -73,6 +74,17 @@ def test_graph_css_ships_the_progressive_canvas() -> None:
     source = GRAPH_CSS.read_text(encoding="utf-8")
     assert ".need-graph-canvas" in source
     assert ".need-graph-controls" in source
+    assert "--qn-graph-edge" in source
+    assert "var(--bs-body-bg" in source
+
+
+def test_graph_theme_sync_uses_the_registered_cytoscape_instance() -> None:
+    source = NEEDS_JS.read_text(encoding="utf-8")
+    assert "canvas.__quartoNeedsCy" in source
+    assert "graphSurfaceIsDark" in source
+    assert 'closest(".quarto-color-scheme-toggle")' in source
+    assert 'document.addEventListener("quarto:themeChanged"' in source
+    assert 'selector("edge[pathMember = \'true\']")' in source
 
 
 def test_graph_lua_registers_the_shortcode() -> None:
