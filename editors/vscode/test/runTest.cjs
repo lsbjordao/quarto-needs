@@ -9,7 +9,7 @@ async function main() {
   await runTests({
     extensionDevelopmentPath,
     extensionTestsPath,
-    launchArgs: [testWorkspace, "--disable-extensions"],
+    launchArgs: [testWorkspace],
   });
 }
 
