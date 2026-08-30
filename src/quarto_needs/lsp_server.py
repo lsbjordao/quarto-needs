@@ -357,7 +357,14 @@ class LspSession:
 
             spans = self._index().get(object_id, ())
             if method == "textDocument/definition":
-                declaration = next((span for span in spans if span.kind == "declaration"), None)
+                declaration = next(
+                    (
+                        span
+                        for span in spans
+                        if span.kind == "declaration" and not span.presentation_only
+                    ),
+                    None,
+                )
                 if declaration is not None:
                     return _span_location(self.root, declaration)
                 definition = self.service.definition(object_id)
