@@ -1,0 +1,173 @@
+# Verification: proving the engineering claims
+
+Traceability is incomplete if requirements terminate at design. This chapter models verification as first-class engineering objects and connects successful tests to explicit evidence.
+
+The test cases below correspond to real classes of regression checks in the repository. The evidence objects identify the durable artifact or test surface that demonstrates the result.
+
+## Test cases
+
+::: {.need #TC-001 type="test-case" status="passed" tags="snapshot;graph;semantics" evidenced-by="EVD-001"}
+## Canonical graph and snapshot regression
+
+Analyze a representative project twice and verify stable objects, relations, semantic metadata, and canonical snapshot output.
+:::
+
+::: {.need #TC-002 type="test-case" status="passed" tags="quarto;render;accessibility" evidenced-by="EVD-002"}
+## Quarto progressive-render regression
+
+Render the example and verify that static graph output, accessible traceability, and progressive HTML assets are produced from the same engineering projection.
+:::
+
+::: {.need #TC-003 type="test-case" status="passed" tags="governance;rules;gates" evidenced-by="EVD-003"}
+## Strict governance regression
+
+Run the configured rule engine and quality gates against a conforming project and verify a successful deterministic verdict.
+:::
+
+::: {.need #TC-004 type="test-case" status="passed" tags="adr;decision;governance" evidenced-by="EVD-004"}
+## Architecture-decision governance regression
+
+Verify accepted-decision driver, scope, confirmation, lineage, lifecycle, and revisit-date rules.
+:::
+
+::: {.need #TC-005 type="test-case" status="passed" tags="localization;i18n;parity" evidenced-by="EVD-005"}
+## Localized-source semantic-parity regression
+
+Compare canonical and pt-BR declaration batches and reject any change to IDs, types, statuses, attributes, or relations.
+:::
+
+::: {.need #TC-006 type="test-case" status="passed" tags="graph;schema;security;limits" evidenced-by="EVD-006"}
+## Public graph contract and safety regression
+
+Validate public graph JSON against its schema, enforce graph budgets, and verify that unsafe source paths are not published as provenance.
+:::
+
+::: {.need #TC-007 type="test-case" status="passed" tags="parser;qmd;authoring" evidenced-by="EVD-007"}
+## QMD declaration parsing regression
+
+Parse representative `.need` blocks and verify stable identity, attributes, relations, rationale, and source locations.
+:::
+
+::: {.need #TC-008 type="test-case" status="passed" tags="relations;catalog;semantics" evidenced-by="EVD-008"}
+## Relation-catalog semantic regression
+
+Verify canonical relation names, semantic families, endpoint roles, impact direction, and traversal direction.
+:::
+
+::: {.need #TC-009 type="test-case" status="passed" tags="query;graph;views" evidenced-by="EVD-009"}
+## Named-query graph-view regression
+
+Evaluate a named query in the core, materialize the corresponding graph projection, and resolve it through the view manifest.
+:::
+
+::: {.need #TC-010 type="test-case" status="passed" tags="graph;cytoscape;exploration" evidenced-by="EVD-010"}
+## Interactive graph exploration asset regression
+
+Verify the shipped exploration modules, semantic traversal markers, root-path support, filters, and canonical/showcase asset parity.
+:::
+
+::: {.need #TC-011 type="test-case" status="passed" tags="baseline;diff;impact" evidenced-by="EVD-011"}
+## Baseline, diff, and impact regression
+
+Build a baseline, change the engineering model, and verify deterministic field changes, relocation, relation changes, and impact propagation.
+:::
+
+::: {.need #TC-012 type="test-case" status="passed" tags="extension;distribution;quarto" evidenced-by="EVD-012"}
+## Canonical extension synchronization regression
+
+Synchronize the canonical extension into an example project and verify that stale copied assets cannot become an independent implementation.
+:::
+
+::: {.need #TC-013 type="test-case" status="passed" tags="determinism;reproducibility;fingerprint" evidenced-by="EVD-013"}
+## Deterministic output regression
+
+Repeat analysis and rendering inputs and verify byte-stable or fingerprint-stable engineering outputs where the contract requires determinism.
+:::
+
+## Evidence
+
+::: {.need #EVD-001 type="evidence" status="verified" tags="pytest;snapshot;analysis"}
+## Analysis and export regression suite
+
+Checked-in tests covering canonical snapshots, exports, graph semantics, and stable analysis behaviour.
+:::
+
+::: {.need #EVD-002 type="evidence" status="verified" tags="quarto;render;static-equivalence"}
+## Graph render and multilingual render smoke surfaces
+
+Static graph render tests plus the Quarto/BabelQuarto rendering workflow demonstrate progressive presentation from the resolved model.
+:::
+
+::: {.need #EVD-003 type="evidence" status="verified" tags="pytest;rules;gates"}
+## Rule and quality-gate test suite
+
+Regression tests exercise structural rules, configurable governance, coverage, and gate evaluation.
+:::
+
+::: {.need #EVD-004 type="evidence" status="verified" tags="pytest;adr;decision"}
+## ADR governance test suite
+
+Decision relation, lifecycle, cycle, confirmation, and review-date tests demonstrate the first-class ADR model.
+:::
+
+::: {.need #EVD-005 type="evidence" status="verified" tags="pytest;i18n;babelquarto"}
+## Localization parity validator and multilingual examples
+
+The pre-render parity validator plus paired EN/pt-BR sources demonstrate one semantic graph with translated presentation.
+:::
+
+::: {.need #EVD-006 type="evidence" status="verified" tags="jsonschema;graph;security"}
+## Public graph schema and semantic-projection tests
+
+Schema validation and graph semantics tests exercise bounded projection metadata and safe provenance publication.
+:::
+
+::: {.need #EVD-007 type="evidence" status="verified" tags="pytest;parser;qmd"}
+## Parser regression suite
+
+Parser fixtures cover QMD declarations, relation forms, source locations, rationale, and declaration normalization.
+:::
+
+::: {.need #EVD-008 type="evidence" status="verified" tags="pytest;relations;catalog"}
+## Relation catalog regression suite
+
+Catalog tests cover authoring names, inverse forms, roles, semantic families, impact direction, and traversal semantics.
+:::
+
+::: {.need #EVD-009 type="evidence" status="verified" tags="pytest;query;views"}
+## Named-query and graph-view tests
+
+Tests verify safe query evaluation, deterministic selection, materialized graph views, and manifest lookup.
+:::
+
+::: {.need #EVD-010 type="evidence" status="verified" tags="javascript;cytoscape;assets"}
+## Interactive graph asset integrity tests
+
+Static asset regressions assert exploration capabilities and prevent semantic relation tables from being reintroduced into presentation code.
+:::
+
+::: {.need #EVD-011 type="evidence" status="verified" tags="pytest;baseline;impact"}
+## Baseline and impact comparison suite
+
+Checked-in baseline, diff, and impact tests demonstrate deterministic comparison semantics and path explanations.
+:::
+
+::: {.need #EVD-012 type="evidence" status="verified" tags="python;extension;sync"}
+## Canonical pre-render synchronization workflow
+
+`tools/quarto_needs_pre_render.py` installs the canonical extension into staged examples before analysis and rendering.
+:::
+
+::: {.need #EVD-013 type="evidence" status="verified" tags="pytest;determinism;fingerprint"}
+## Determinism and fingerprint regression suite
+
+Repeat-analysis tests and canonical fixtures demonstrate stable fingerprints and byte-level output where required.
+:::
+
+## Verification views
+
+{{< need-table types="test-case" columns="id;title;status" sort="id" >}}
+
+{{< need-table types="evidence" columns="id;title;status" sort="id" >}}
+
+{{< need-graph view="verification-assets" id="verification-assets-view" >}}
