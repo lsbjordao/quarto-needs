@@ -10,25 +10,28 @@ from quarto_needs.fingerprints import configuration_fingerprint
 from quarto_needs.relations import DEFAULT_RELATION_CATALOG
 
 
-def _write_project(tmp_path: Path, priority: str = "high") -> None:
+def _write_project(tmp_path: Path, priority: str = "high", budget: str = "250") -> None:
     (tmp_path / ".quarto-needs.toml").write_text(
         '''[types.non-functional-requirement]
 id-prefix = "NFR-"
 role = "requirement"
 allowed-statuses = ["approved"]
-attribute-schema = {
-  type = "object",
-  required = ["priority", "budget-ms"],
-  properties = {
-    priority = { enum = ["critical", "high"] },
-    budget-ms = { type = "integer", minimum = 1, maximum = 500 }
-  }
-}
+
+[types.non-functional-requirement.attribute-schema]
+type = "object"
+required = ["priority", "budget-ms"]
+
+[types.non-functional-requirement.attribute-schema.properties.priority]
+enum = ["critical", "high"]
+
+[types.non-functional-requirement.attribute-schema.properties.budget-ms]
+type = "string"
+pattern = "^[1-9][0-9]{0,2}$"
 ''',
         encoding="utf-8",
     )
     (tmp_path / "requirements.qmd").write_text(
-        f'''::: {{.need #NFR-001 type="non-functional-requirement" status="approved" priority="{priority}" budget-ms="250"}}
+        f'''::: {{.need #NFR-001 type="non-functional-requirement" status="approved" priority="{priority}" budget-ms="{budget}"}}
 ## Latency budget
 Body.
 :::
@@ -44,6 +47,7 @@ def test_attribute_schema_is_canonical_and_validates_object_attributes(tmp_path:
     schema = canonical["types"]["non-functional-requirement"]["attribute-schema"]
     assert schema["type"] == "object"
     assert schema["properties"]["priority"]["enum"] == ["critical", "high"]
+    assert schema["properties"]["budget-ms"]["type"] == "string"
 
     result = analyze_project(tmp_path, config=config)
     assert result.snapshot is not None
@@ -65,6 +69,16 @@ def test_attribute_schema_violation_is_deterministic_obj002_finding(tmp_path: Pa
     assert finding.properties["validator"] == "enum"
 
 
+def test_attribute_schema_can_validate_string_shape_without_coercion(tmp_path: Path) -> None:
+    _write_project(tmp_path, budget="1000")
+    config = load_config(tmp_path)
+    result = analyze_project(tmp_path, config=config)
+    assert result.snapshot is not None
+    finding = next(finding for finding in result.snapshot.findings if finding.code == "OBJ002")
+    assert finding.properties["instancePath"] == "/budget-ms"
+    assert finding.properties["validator"] == "pattern"
+
+
 def test_attribute_schema_severity_can_be_overridden_by_rule_setting(tmp_path: Path) -> None:
     _write_project(tmp_path, priority="medium")
     path = tmp_path / ".quarto-needs.toml"
@@ -81,8 +95,8 @@ def test_attribute_schema_severity_can_be_overridden_by_rule_setting(tmp_path: P
 
 def test_remote_schema_reference_is_rejected_at_config_load(tmp_path: Path) -> None:
     (tmp_path / ".quarto-needs.toml").write_text(
-        '''[types.functional-requirement]
-attribute-schema = { "$ref" = "https://example.invalid/schema.json" }
+        '''[types.functional-requirement.attribute-schema]
+"$ref" = "https://example.invalid/schema.json"
 ''',
         encoding="utf-8",
     )
@@ -92,16 +106,14 @@ attribute-schema = { "$ref" = "https://example.invalid/schema.json" }
 
 def test_local_schema_reference_is_allowed(tmp_path: Path) -> None:
     (tmp_path / ".quarto-needs.toml").write_text(
-        '''[types.functional-requirement]
-attribute-schema = {
-  "$ref" = "#/$defs/attrs",
-  "$defs" = {
-    attrs = {
-      type = "object",
-      properties = { priority = { type = "string" } }
-    }
-  }
-}
+        '''[types.functional-requirement.attribute-schema]
+"$ref" = "#/$defs/attrs"
+
+[types.functional-requirement.attribute-schema."$defs".attrs]
+type = "object"
+
+[types.functional-requirement.attribute-schema."$defs".attrs.properties.priority]
+type = "string"
 ''',
         encoding="utf-8",
     )
@@ -111,8 +123,8 @@ attribute-schema = {
 
 def test_invalid_json_schema_is_configuration_error(tmp_path: Path) -> None:
     (tmp_path / ".quarto-needs.toml").write_text(
-        '''[types.functional-requirement]
-attribute-schema = { type = 7 }
+        '''[types.functional-requirement.attribute-schema]
+type = 7
 ''',
         encoding="utf-8",
     )
@@ -128,7 +140,10 @@ def test_attribute_schema_change_changes_configuration_fingerprint(tmp_path: Pat
     )
     path = tmp_path / ".quarto-needs.toml"
     path.write_text(
-        path.read_text(encoding="utf-8").replace("maximum = 500", "maximum = 300"),
+        path.read_text(encoding="utf-8").replace(
+            'pattern = "^[1-9][0-9]{0,2}$"',
+            'pattern = "^[1-9][0-9]{0,1}$"',
+        ),
         encoding="utf-8",
     )
     second = load_config(tmp_path)
