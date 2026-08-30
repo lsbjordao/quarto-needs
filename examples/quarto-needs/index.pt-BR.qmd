@@ -1,0 +1,47 @@
+# Engenharia do Quarto-Needs com Quarto-Needs
+
+Este livro é um **estudo de caso de engenharia autocontido**: o Quarto-Needs é usado para especificar, explicar, governar, verificar e explorar a engenharia do próprio Quarto-Needs.
+
+O exemplo é intencionalmente diferente do showcase Aegis IAM. O Aegis demonstra que a ferramenta funciona em um domínio de aplicação externo. Este estudo de caso demonstra como os conceitos de engenharia de requisitos se conectam dentro do próprio produto que os implementa.
+
+O grafo de engenharia canônico é escrito em inglês. Cada capítulo possui um irmão em português brasileiro (`*.pt-BR.qmd`) que traduz títulos e narrativa, preservando os mesmos IDs, tipos, estados, atributos e relações. O pre-render rejeita qualquer deriva semântica entre os idiomas.
+
+## O que observar
+
+Acompanhe a cadeia de uma necessidade real de stakeholder até implementação e evidência:
+
+```text
+Necessidade do stakeholder
+      ↓ derives-from
+Requisito de sistema
+      ↓
+Requisito funcional / não funcional
+      ↓ addresses
+Decisão de arquitetura
+      ↓ applies-to
+Componente ou interface
+      ↓ verified-by
+Caso de teste
+      ↓ evidenced-by
+Evidência
+```
+
+Não se trata de uma taxonomia sintética. Os objetos descrevem capacidades e escolhas arquiteturais que existem hoje no repositório.
+
+## Percurso de aprendizagem
+
+1. **Drivers** apresenta necessidades de stakeholders e requisitos de sistema.
+2. **Requisitos** refina esses drivers em requisitos funcionais e de qualidade.
+3. **Arquitetura** registra componentes, interfaces, riscos e ADRs que moldam a implementação.
+4. **Verificação** conecta requisitos e decisões a verificações executáveis e evidências.
+5. **Rastreabilidade** usa o grafo interativo como instrumento de análise, e não como diagrama estático.
+
+## Visão geral ao vivo
+
+A tabela abaixo é gerada a partir do mesmo grafo de engenharia usado no restante do livro.
+
+{{< need-table types="system-requirement" columns="id;title;status;priority" sort="priority;id" >}}
+
+O grafo recebe aprimoramento progressivo: a representação estática permanece disponível, enquanto a visualização HTML acrescenta travessia semântica, filtros, caminhos até a raiz, inspeção de arestas, colapso/expansão e espaçamento fixo.
+
+{{< need-graph id="quarto-needs-overview" >}}
