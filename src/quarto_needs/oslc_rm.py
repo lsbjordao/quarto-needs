@@ -123,12 +123,13 @@ class OslcQueryCapability:
 
 @dataclass(frozen=True, slots=True)
 class OslcRmService:
-    service_uri: str | None
+    service_id: str | None
     query_capabilities: tuple[OslcQueryCapability, ...]
 
     def __post_init__(self) -> None:
-        if self.service_uri is not None:
-            _require_absolute_http_uri(self.service_uri, "service_uri")
+        if self.service_id is not None:
+            if not self.service_id.startswith("_:"):
+                _require_absolute_http_uri(self.service_id, "service_id")
         object.__setattr__(self, "query_capabilities", tuple(self.query_capabilities))
 
 
@@ -164,8 +165,10 @@ def discover_rm_services(expanded_service_provider: Mapping[str, object]) -> tup
     """
     services: list[OslcRmService] = []
     for service in _expanded_objects(expanded_service_provider.get(_OSLC_SERVICE)):
-        domains = set(_expanded_ids(service.get(_OSLC_DOMAIN)))
-        if OSLC_RM_NS not in domains:
+        domains = _expanded_ids(service.get(_OSLC_DOMAIN))
+        if len(domains) != 1:
+            raise ValueError("OSLC Service must expose exactly one oslc:domain")
+        if domains[0] != OSLC_RM_NS:
             continue
 
         capabilities: list[OslcQueryCapability] = []
@@ -185,12 +188,12 @@ def discover_rm_services(expanded_service_provider: Mapping[str, object]) -> tup
                 )
             )
 
-        service_uri = service.get("@id")
-        if service_uri is not None and not isinstance(service_uri, str):
+        service_id = service.get("@id")
+        if service_id is not None and not isinstance(service_id, str):
             raise ValueError("OSLC service @id must be a string when present")
         services.append(
             OslcRmService(
-                service_uri=service_uri,
+                service_id=service_id,
                 query_capabilities=tuple(
                     sorted(capabilities, key=lambda item: item.query_base_uri)
                 ),
@@ -200,7 +203,7 @@ def discover_rm_services(expanded_service_provider: Mapping[str, object]) -> tup
     return tuple(
         sorted(
             services,
-            key=lambda item: (item.service_uri or "", tuple(q.query_base_uri for q in item.query_capabilities)),
+            key=lambda item: (item.service_id or "", tuple(q.query_base_uri for q in item.query_capabilities)),
         )
     )
 
