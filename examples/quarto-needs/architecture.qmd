@@ -246,6 +246,34 @@ Selection remains deterministic and reusable across tables and graphs; presentat
 `TC-009` verifies named-query graph materialization and manifest resolution.
 :::
 
+::: {.need #ADR-007 type="architecture-decision" status="accepted" date="2026-08-30" revisit-after="2027-08-30" decision-makers="Quarto-Needs maintainers" tags="quarto;toc;sidebar;usability;progressive-enhancement" addresses="FUN-009" applies-to="COMP-EXTENSION" confirmed-by="TC-014"}
+## Treat the margin TOC control as persistent progressive enhancement
+
+### Context and Problem Statement
+
+The page margin TOC can consume useful reading width, but a collapse control positioned over the TOC undermines the navigation it is intended to improve.
+
+### Decision Drivers
+
+- preserve native Quarto navigation semantics;
+- make the feature optional and browser-only;
+- persist the reader's collapsed state;
+- reclaim content width while collapsed;
+- never obscure the expanded TOC with the control itself.
+
+### Decision Outcome
+
+Implement the control as JavaScript progressive enhancement. Persist state in local storage, use Quarto's `fullcontent` class only while the extension forces the collapsed state, and position the expanded control completely outside the margin sidebar with an explicit gap.
+
+### Consequences
+
+The static document remains usable without JavaScript, while HTML readers gain a persistent space-reclaiming control. Positioning becomes an explicit regression contract rather than incidental CSS/DOM behavior.
+
+### Confirmation
+
+`TC-014` checks persistence/full-content behavior and verifies that the expanded control is positioned by `button.offsetWidth + gap`, never by the old half-width overlap.
+:::
+
 ## Generated architecture views
 
 {{< need-table query="architecture-decisions" columns="id;title;status" sort="id" >}}
