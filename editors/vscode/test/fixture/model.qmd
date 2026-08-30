@@ -1,0 +1,5 @@
+::: {.need #FUN-001 type="functional-requirement" status="approved"}
+## Smoke requirement
+
+The Extension Host should receive hover information from the Python language server.
+:::
