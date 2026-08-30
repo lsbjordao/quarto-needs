@@ -5,11 +5,19 @@ from pathlib import Path
 
 from jsonschema import Draft202012Validator
 
-from quarto_needs.evidence import build_pytest_evidence
+from quarto_needs.analysis import analyze_project
+from quarto_needs.cli import main
+from quarto_needs.config import load_config
+from quarto_needs.evidence import (
+    build_pytest_evidence,
+    validate_pytest_evidence,
+    write_json_atomic,
+)
 from quarto_needs.pytest_plugin import _combined_outcome
 
 
 ROOT = Path(__file__).resolve().parents[1]
+EXAMPLE = ROOT / "examples" / "quarto-needs"
 SCHEMA = json.loads(
     (ROOT / "schemas" / "evidence-pytest-v1.schema.json").read_text(encoding="utf-8")
 )
@@ -117,3 +125,85 @@ def test_linked():
     )
     result.assert_outcomes(passed=1)
     assert not (pytester.path / ".quarto-needs" / "evidence").exists()
+
+
+def _self_hosted_snapshot():
+    config = load_config(EXAMPLE)
+    result = analyze_project(EXAMPLE, config=config)
+    assert result.snapshot is not None
+    return result.snapshot
+
+
+def test_machine_evidence_agrees_with_self_hosted_model() -> None:
+    payload = build_pytest_evidence(
+        [
+            {
+                "nodeid": "tests/test_architecture_decisions.py::test_accepted_decision_passes_decision_governance",
+                "outcome": "passed",
+                "requirements": ["SYS-004"],
+                "testCases": ["TC-004"],
+            },
+            {
+                "nodeid": "tests/test_graph_semantics.py::test_public_projection_publishes_catalog_semantics",
+                "outcome": "passed",
+                "requirements": ["SYS-006", "FUN-008", "NFR-002", "NFR-004"],
+                "testCases": ["TC-006"],
+            },
+        ],
+        provider_version="8.0",
+    )
+
+    assert validate_pytest_evidence(_self_hosted_snapshot(), payload) == ()
+
+
+def test_machine_evidence_reports_model_disagreement() -> None:
+    payload = build_pytest_evidence(
+        [
+            {
+                "nodeid": "tests/test_wrong.py::test_wrong",
+                "outcome": "failed",
+                "requirements": ["FUN-003", "UNKNOWN-REQ"],
+                "testCases": ["TC-009", "UNKNOWN-TC"],
+            }
+        ],
+        provider_version="8.0",
+    )
+
+    issues = validate_pytest_evidence(_self_hosted_snapshot(), payload)
+    codes = {issue.code for issue in issues}
+    assert {"EVD101", "EVD103", "EVD105", "EVD106"} <= codes
+
+
+def test_evidence_check_cli_validates_against_current_graph(tmp_path: Path, capsys) -> None:
+    artifact = tmp_path / "pytest.json"
+    payload = build_pytest_evidence(
+        [
+            {
+                "nodeid": "tests/test_impact.py::test_editing_a_requirement_impacts_its_verification",
+                "outcome": "passed",
+                "requirements": ["FUN-005"],
+                "testCases": ["TC-011"],
+            }
+        ],
+        provider_version="8.0",
+    )
+    write_json_atomic(artifact, payload)
+
+    exit_code = main(
+        [
+            "--root",
+            str(EXAMPLE),
+            "evidence",
+            "check",
+            str(artifact),
+            "--format",
+            "json",
+        ]
+    )
+    captured = capsys.readouterr()
+    report = json.loads(captured.out)
+
+    assert exit_code == 0
+    assert report["valid"] is True
+    assert report["issues"] == []
+    assert report["tests"] == 1
