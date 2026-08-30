@@ -30,6 +30,26 @@ def _snapshot(root: Path):
     return result.snapshot
 
 
+def _expanded_nodes(document: object) -> list[dict[str, object]]:
+    nodes: list[dict[str, object]] = []
+
+    def visit(value: object) -> None:
+        if isinstance(value, list):
+            for item in value:
+                visit(item)
+            return
+        if not isinstance(value, dict):
+            return
+        if "@id" in value or "@type" in value:
+            nodes.append(value)
+        graph = value.get("@graph")
+        if graph is not None:
+            visit(graph)
+
+    visit(document)
+    return nodes
+
+
 def test_jsonld_projects_graph_objects_and_relations(tmp_path: Path) -> None:
     _write_project(tmp_path)
     document = jsonld_export.build_document(_snapshot(tmp_path))
@@ -78,12 +98,13 @@ def test_jsonld_expands_with_independent_processor(tmp_path: Path) -> None:
     document = jsonld_export.build_document(_snapshot(tmp_path))
 
     expanded = jsonld.expand(document)
-    ids = {node.get("@id") for node in expanded}
+    nodes = _expanded_nodes(expanded)
+    ids = {node.get("@id") for node in nodes}
     assert f"{jsonld_export.QN_NAMESPACE}object:SYS-001" in ids
     assert f"{jsonld_export.QN_NAMESPACE}object:TC-001" in ids
     assert any(
         f"{jsonld_export.QN_NAMESPACE}Relation" in node.get("@type", [])
-        for node in expanded
+        for node in nodes
     )
 
 
