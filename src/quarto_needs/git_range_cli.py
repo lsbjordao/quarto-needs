@@ -8,6 +8,7 @@ from pathlib import Path
 
 from . import diff as diff_module
 from . import impact as impact_module
+from . import pr_report as pr_report_module
 from . import suspect as suspect_module
 from .git_range import GitRangeError, GitRangeStates, materialize_git_range
 from .quality import profile_exit_code
@@ -26,7 +27,7 @@ def _option(argv: Sequence[str], name: str) -> str | None:
 
 def _format(argv: Sequence[str]) -> str:
     value = _option(argv, "--format")
-    return value if value in {"text", "json"} else "text"
+    return value if value in {"text", "json", "markdown"} else "text"
 
 
 def _recompute(argv: Sequence[str]) -> bool:
@@ -41,7 +42,7 @@ def git_action(argv: Sequence[str]) -> tuple[str, str] | None:
         (
             index
             for index, value in enumerate(values)
-            if value in {"diff", "impact", "suspect"}
+            if value in {"diff", "impact", "suspect", "pr-report"}
         ),
         None,
     )
@@ -191,6 +192,31 @@ def _run_suspect(states: GitRangeStates, argv: Sequence[str]) -> int:
     return 0
 
 
+def _run_pr_report(states: GitRangeStates, argv: Sequence[str]) -> int:
+    try:
+        report = pr_report_module.analyze(
+            states.base_baseline,
+            states.head_snapshot,
+            states.head_config,
+            recompute=_recompute(argv),
+        )
+    except (diff_module.DiffError, impact_module.ImpactError) as error:
+        print(str(error), file=sys.stderr)
+        return 2
+    format_name = _format(argv)
+    if format_name == "json":
+        print(json.dumps(_json_report(states, report.to_dict()), indent=2, sort_keys=True))
+    else:
+        if format_name == "text":
+            _print_git_header(states)
+        print(pr_report_module.render_markdown(report), end="")
+    return profile_exit_code(
+        states.head_config.profile,
+        False,
+        len(report.gate_regressions),
+    )
+
+
 def run_git_action(project_root: Path, argv: Sequence[str], command: str, range_spec: str) -> int:
     try:
         states = materialize_git_range(project_root, range_spec)
@@ -203,4 +229,6 @@ def run_git_action(project_root: Path, argv: Sequence[str], command: str, range_
         return _run_impact(states, argv)
     if command == "suspect":
         return _run_suspect(states, argv)
+    if command == "pr-report":
+        return _run_pr_report(states, argv)
     return 2
