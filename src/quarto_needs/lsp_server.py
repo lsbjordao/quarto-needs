@@ -15,6 +15,8 @@ from pathlib import Path
 from typing import BinaryIO, Mapping
 from urllib.parse import unquote, urlparse
 
+import quarto_needs
+
 from .analysis import analyze_project
 from .config import load_config
 from .diagnostics import Finding
@@ -283,7 +285,10 @@ class LspSession:
                     "documentSymbolProvider": True,
                     "workspaceSymbolProvider": True,
                 },
-                "serverInfo": {"name": "quarto-needs", "version": "0.1"},
+                "serverInfo": {
+                    "name": "quarto-needs",
+                    "version": quarto_needs.__version__,
+                },
             }
         if method == "shutdown":
             self.shutdown_requested = True
