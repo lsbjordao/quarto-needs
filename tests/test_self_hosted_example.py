@@ -144,6 +144,37 @@ def test_self_hosted_model_exposes_pedagogical_queries() -> None:
     } <= set(config.named_query_sources)
 
 
+def test_self_hosted_pytest_bindings_point_to_real_test_functions() -> None:
+    result = analyze_project(EXAMPLE, config=load_config(EXAMPLE))
+    assert result.snapshot is not None
+
+    bound = [
+        item for item in result.snapshot.objects
+        if item.type == "test-case" and "pytest-nodeid" in item.attributes
+    ]
+    assert {item.id for item in bound} == {"TC-004", "TC-006", "TC-009", "TC-011"}
+
+    for item in bound:
+        nodeid = str(item.attributes["pytest-nodeid"])
+        path_text, separator, function_name = nodeid.partition("::")
+        assert separator == "::", f"invalid pytest-nodeid on {item.id}: {nodeid}"
+        path = ROOT / path_text
+        assert path.is_file(), f"missing pytest file for {item.id}: {path_text}"
+        source = path.read_text(encoding="utf-8")
+        assert re.search(rf"^def\s+{re.escape(function_name)}\s*\(", source, re.MULTILINE), (
+            f"missing pytest function for {item.id}: {nodeid}"
+        )
+
+    evidence = {
+        item.id: item for item in result.snapshot.objects
+        if item.id in {"EVD-004", "EVD-006", "EVD-009", "EVD-011"}
+    }
+    assert set(evidence) == {"EVD-004", "EVD-006", "EVD-009", "EVD-011"}
+    for item in evidence.values():
+        assert item.attributes["provider"] == "pytest"
+        assert item.attributes["artifact"] == ".quarto-needs/evidence/pytest.json"
+
+
 def test_custom_graph_instance_ids_do_not_implicitly_name_projection_files() -> None:
     shortcode = re.compile(r"\{\{<\s*need-graph\s+([^>]*)>\}\}")
     attr = re.compile(r'(id|projection|view)="([^"]+)"')
