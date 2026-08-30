@@ -2,7 +2,7 @@
 
 Traceability is incomplete if requirements terminate at design. This chapter models verification as first-class engineering objects and connects successful tests to explicit evidence.
 
-The test cases below correspond to real classes of regression checks in the repository. Five representative executable bindings now cover architecture decisions, multilingual semantic parity, public graph safety, named graph views, and change impact. `make evidence-self-example` executes those tests, writes deterministic provider output, attests it against the current engineering snapshot, and validates `.quarto-needs/evidence/pytest.json` before the self-hosted book is rendered.
+The test cases below correspond to real classes of regression checks in the repository. Six representative executable bindings now cover architecture decisions, multilingual semantic parity, public graph safety, named graph views, change impact, and margin-TOC usability. `make evidence-self-example` executes those tests, writes deterministic provider output, attests it against the current engineering snapshot, and validates `.quarto-needs/evidence/pytest.json` before the self-hosted book is rendered.
 
 ## Test cases
 
@@ -84,6 +84,12 @@ Synchronize the canonical extension into an example project and verify that stal
 Repeat analysis and rendering inputs and verify byte-stable or fingerprint-stable engineering outputs where the contract requires determinism.
 :::
 
+::: {.need #TC-014 type="test-case" status="passed" tags="quarto;toc;sidebar;usability;progressive-enhancement" pytest-nodeid="tests/test_graph_assets.py::test_margin_sidebar_toggle_stays_entirely_outside_page_toc" evidenced-by="EVD-014"}
+## Margin TOC toggle positioning regression
+
+Verify persistent collapse state, temporary `fullcontent` behavior, and the explicit positioning contract that keeps the expanded control entirely outside the page TOC with an 8 px gap.
+:::
+
 ## Evidence
 
 ::: {.need #EVD-001 type="evidence" status="verified" tags="pytest;snapshot;analysis"}
@@ -162,6 +168,12 @@ The modeled `TC-011` is bound to the executable impact regression that changes a
 ## Determinism and fingerprint regression suite
 
 Repeat-analysis tests and canonical fixtures demonstrate stable fingerprints and byte-level output where required.
+:::
+
+::: {.need #EVD-014 type="evidence" status="verified" tags="pytest;quarto;toc;sidebar;usability;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## Margin TOC usability machine evidence
+
+The modeled `TC-014` is bound to the regression that protects persistent collapse behavior and the no-overlap positioning contract introduced by the historical margin-sidebar fix.
 :::
 
 ## Verification views
