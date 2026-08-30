@@ -1,0 +1,122 @@
+# Declarative graph constraints
+
+Quarto-Needs graph constraints express bounded structural invariants over the canonical engineering graph. They complement per-relation endpoint/cardinality settings and the simpler required-relation policy DSL.
+
+Every constraint is configuration, not executable code. Constraint sources are included in the canonical configuration fingerprint and violations are ordinary findings named `CONSTRAINT:<NAME>`.
+
+## Required paths
+
+A `required-path` constraint requires an ordered semantic route from every object in a named-query scope.
+
+```toml
+[constraints.APPROVED_REQUIRES_EVIDENCE_PATH]
+kind = "required-path"
+scope = "approved-requirements"
+relations = ["verified-by", "evidenced-by"]
+target-role = "evidence"
+severity = "error"
+```
+
+This is stronger than requiring one verification link: the requirement must reach evidence through the exact sequence:
+
+```text
+requirement --verified-by--> test --evidenced-by--> evidence
+```
+
+Inverse-authored relations are interpreted through the canonical relation catalog. For example, a test-authored `verifies` edge satisfies a `verified-by` step.
+
+## Forbidden cycles
+
+`forbidden-cycle` rejects cycles formed by one or more selected logical relations:
+
+```toml
+[constraints.ACYCLIC_DEPENDENCIES]
+kind = "forbidden-cycle"
+scope = "architecture-components"
+relations = ["depends-on"]
+severity = "error"
+```
+
+The finding includes an explicit cycle witness such as:
+
+```text
+COMP-A → COMP-B → COMP-C → COMP-A
+```
+
+A scope is optional for cycle checks. Without one, every modeled object participates.
+
+## Scoped connectivity
+
+`connected` requires objects selected by a query to participate in the graph:
+
+```toml
+[constraints.NO_ORPHAN_COMPONENTS]
+kind = "connected"
+scope = "architecture-components"
+minimum = 1
+severity = "warning"
+```
+
+When `relations` is omitted, any incoming or outgoing engineering relation counts. An optional `relations` array narrows the allowed logical relation views.
+
+This provides a scoped, declarative alternative to the global built-in orphan rule `REQ014`.
+
+## Maximum logical relations
+
+`max-relations` limits a logical relation from each scoped object and can restrict the semantic target role:
+
+```toml
+[constraints.ONE_PRIMARY_VERIFICATION]
+kind = "max-relations"
+scope = "critical-requirements"
+relations = ["verified-by"]
+target-role = "verification"
+maximum = 1
+severity = "warning"
+```
+
+Unlike the low-level `[relations.*]` authored cardinality setting, this constraint evaluates the logical relation view and therefore recognizes inverse authoring where the catalog defines an inverse.
+
+## Why the grammar is intentionally finite
+
+The current constraint kinds are exactly:
+
+- `required-path`;
+- `forbidden-cycle`;
+- `connected`;
+- `max-relations`.
+
+Unknown kinds and unknown keys are rejected. There is no predicate expression, callback, script, template, dynamic import, or arbitrary traversal language.
+
+This keeps the semantics:
+
+- deterministic;
+- reviewable in Git;
+- compatible with offline builds;
+- explainable through explicit witnesses;
+- reusable by CLI, CI, PR reports, SARIF-like projections, and future editor tooling.
+
+## Relationship with other governance layers
+
+Use the narrowest mechanism that expresses the invariant:
+
+- `[types.*]` — identity, role, lifecycle, required attributes, JSON Schema shape;
+- `[relations.*]` — allowed endpoint **types** and simple authored cardinality;
+- `[policies.*]` — one required logical relation over a query scope;
+- `[constraints.*]` — paths, cycles, scoped connectivity, and logical-relation limits;
+- built-in rules — stable product semantics that should not be rewritten by each project.
+
+## Self-hosted example
+
+The self-hosted Quarto-Needs model dogfoods `required-path`:
+
+```toml
+[constraints.APPROVED_REQUIRES_EVIDENCE_PATH]
+kind = "required-path"
+scope = "approved-requirements"
+relations = ["verified-by", "evidenced-by"]
+target-role = "evidence"
+severity = "error"
+```
+
+This means an approved requirement is not considered structurally complete merely because a test is declared; that test must itself reach modeled evidence.
