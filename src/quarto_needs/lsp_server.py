@@ -15,6 +15,9 @@ from pathlib import Path
 from typing import BinaryIO, Mapping
 from urllib.parse import unquote, urlparse
 
+from .analysis import analyze_project
+from .config import load_config
+from .diagnostics import Finding
 from .language_service import LanguageService, LanguageServiceError
 from .parser import ATTR_RE, RELATION_KEYS
 from .snapshot import LocationRecord
@@ -91,12 +94,7 @@ def _completion_context(
     line: int,
     character: int,
 ) -> tuple[str, set[str] | None, str | None, str | None]:
-    """Return prefix, completion kinds, object type, and relation context.
-
-    The lexical rules deliberately reuse the parser's attribute/relation grammar.
-    ``None`` kinds means broad completion; an empty set means the current value
-    has no safe semantic completion source yet.
-    """
+    """Return prefix, completion kinds, object type, and relation context."""
     lines = text.splitlines()
     if line < 0 or line >= len(lines):
         return "", None, None, None
@@ -130,6 +128,7 @@ class LspSession:
     service: LanguageService
     shutdown_requested: bool = False
     documents: dict[str, str] = field(default_factory=dict)
+    transient_findings: tuple[Finding, ...] = ()
 
     @classmethod
     def load(cls, root: Path) -> "LspSession":
@@ -147,20 +146,31 @@ class LspSession:
             overlays[relative] = text
         return overlays
 
-    def reload(self) -> None:
-        self.service = LanguageService.load(self.root, overlays=self._overlays())
+    def reload(self) -> bool:
+        config = load_config(self.root)
+        result = analyze_project(
+            self.root,
+            config=config,
+            overlays=self._overlays(),
+        )
+        if result.snapshot is None:
+            self.transient_findings = result.findings
+            return False
+        self.service = LanguageService(self.root, config, result.snapshot)
+        self.transient_findings = ()
+        return True
 
-    def open_document(self, uri: str, text: str) -> None:
+    def open_document(self, uri: str, text: str) -> bool:
         self.documents[uri] = text
-        self.reload()
+        return self.reload()
 
-    def change_document(self, uri: str, text: str) -> None:
+    def change_document(self, uri: str, text: str) -> bool:
         self.documents[uri] = text
-        self.reload()
+        return self.reload()
 
-    def close_document(self, uri: str) -> None:
+    def close_document(self, uri: str) -> bool:
         self.documents.pop(uri, None)
-        self.reload()
+        return self.reload()
 
     def _document(self, params: Mapping[str, object]) -> tuple[str, Path]:
         document = params.get("textDocument")
@@ -202,7 +212,30 @@ class LspSession:
                     "message": item.message,
                 }
             )
-        return {"uri": uri, "diagnostics": diagnostics}
+        for finding in self.transient_findings:
+            if finding.location is None or finding.location.file != relative:
+                continue
+            diagnostics.append(
+                {
+                    "range": _range(finding.location.line),
+                    "severity": _severity(finding.severity),
+                    "code": finding.code,
+                    "source": "quarto-needs",
+                    "message": finding.message,
+                }
+            )
+        seen: set[tuple[object, ...]] = set()
+        unique = []
+        for diagnostic in diagnostics:
+            key = (
+                diagnostic["code"],
+                diagnostic["message"],
+                json.dumps(diagnostic["range"], sort_keys=True),
+            )
+            if key not in seen:
+                seen.add(key)
+                unique.append(diagnostic)
+        return {"uri": uri, "diagnostics": unique}
 
     def handle(self, method: str, params: Mapping[str, object] | None) -> object:
         values: Mapping[str, object] = params or {}
@@ -437,11 +470,7 @@ def run_stdio(
                         "params": diagnostic_payload,
                     },
                 )
-            except (LanguageServiceError, ValueError):
-                # Keep the last valid semantic snapshot while an editor buffer is
-                # transiently structurally invalid. A future incremental parser
-                # can expose structural parse diagnostics without sacrificing
-                # cross-file language features from the last valid graph.
+            except ValueError:
                 continue
             continue
         if not isinstance(method, str) or "id" not in message:
