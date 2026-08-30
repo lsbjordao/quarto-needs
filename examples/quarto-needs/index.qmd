@@ -1,6 +1,6 @@
 # Engineering Quarto-Needs with Quarto-Needs
 
-This book is a **self-hosted engineering case study**: Quarto-Needs is used to specify, explain, govern, implement, verify, and explore the engineering of Quarto-Needs itself.
+This book is a **self-hosted engineering case study**: Quarto-Needs is used to specify, explain, govern, verify, and explore the engineering of Quarto-Needs itself.
 
 The example is intentionally different from the Aegis IAM showcase. Aegis demonstrates that the tool works in an external application domain. This case study demonstrates how requirements engineering concepts connect inside the product that implements them.
 
@@ -8,41 +8,47 @@ The canonical engineering graph is authored in English. Every chapter has a Braz
 
 ## What to look for
 
-Follow the chain from a real stakeholder need into architecture, repository code, verification, and evidence:
+The book is read from stakeholder concern toward realization and evidence:
 
 ```text
 Stakeholder need
-      ↓ derives-from
+      ↓ motivates
 System requirement
-      ↓
+      ↓ is refined into
 Functional / non-functional requirement
-      ├────────────── addresses ──────────────┐
-      ↓ implemented-by                       ▼
-Component or interface               Architecture decision
-      │                                      │ applies-to
-      └──────── architecture scope ───────────┘
-      ↓
-Source module (real repository file)
-      ↓
+      ↓ is addressed by
+Architecture decision
+      ↓ scopes
+Component or interface
+      ↓ is realized in
+Source module
+      ↓ is verified through
 Test case
-      ↓ evidenced-by
+      ↓ produces / supports
 Evidence
 ```
 
-This is not a synthetic taxonomy. The objects describe capabilities, architectural choices, implementation files, and verification surfaces that exist in the repository today.
+That reading order is deliberately **not** the same thing as the direction of every stored relation. For example, the canonical derivation relation is authored as:
+
+```text
+Functional requirement --derives-from--> System requirement
+System requirement     --derives-from--> Stakeholder need
+```
+
+Quarto-Needs can still traverse the derivation chain pedagogically from the stakeholder need toward the derived requirements because traversal direction is semantic metadata published by the core rather than guessed from raw edge orientation.
+
+This is not a synthetic taxonomy. The objects describe capabilities and architectural choices that exist in the repository today.
 
 ## The learning path
 
-1. **System context** establishes the product boundary, actors, external tools, and information flows.
+1. **System Context** establishes the system boundary, actors, and external tools.
 2. **Drivers** introduces stakeholder needs and system requirements.
 3. **Requirements** refines those drivers into functional and quality requirements.
-4. **Architecture** records components, interfaces, risks, and ADRs that shape the implementation.
-5. **Implementation** maps logical architecture into real Python and JavaScript source modules with requirement-to-code traceability.
-6. **Verification** connects requirements and decisions to test cases and evidence.
+4. **Architecture** records the components, interfaces, risks, and ADRs that shape the implementation.
+5. **Implementation** traces approved obligations into real Python and JavaScript source modules.
+6. **Verification** connects requirements and decisions to executable checks and evidence.
 7. **Traceability** uses the interactive graph as an analysis instrument rather than a static diagram.
-8. **Change** turns baselines, structured diff, and impact paths into an engineering-review workflow.
-
-The chapters deliberately reuse four vertical slices — graph exploration, multilingual engineering, architecture decisions, and change analysis — so that the reader sees the same engineering concern from stakeholder motivation all the way to source, test, and evidence.
+8. **Change** teaches baseline, structured diff, and semantic impact analysis.
 
 ## Live overview
 
