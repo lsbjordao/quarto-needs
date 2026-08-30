@@ -199,6 +199,13 @@ any = [
 ]
 sort = ["id:asc"]
 
+[policies.APPROVED_REQUIRES_TEST]
+scope = "approved-requirements"
+assert-relation = "verified-by"
+target-role = "verification"
+minimum = 1
+severity = "error"
+
 [graph]
 max-nodes = 160
 max-edges = 500
