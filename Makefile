@@ -58,6 +58,7 @@ evidence-self-example:
 		-p quarto_needs.pytest_plugin \
 		--quarto-needs-evidence=examples/quarto-needs/.quarto-needs/evidence/pytest-provider.json \
 		tests/test_architecture_decisions.py::test_accepted_decision_passes_decision_governance \
+		tests/test_localization.py::test_localized_source_semantic_parity_rejects_model_drift \
 		tests/test_graph_semantics.py::test_public_projection_publishes_catalog_semantics \
 		tests/test_graph_semantics.py::test_named_query_is_materialized_as_reusable_graph_view \
 		tests/test_impact.py::test_editing_a_requirement_impacts_its_verification
