@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import json
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from quarto_needs.cli_entry import main
-from quarto_needs.exporters import reqif_export
+from quarto_needs.exporters import jsonld_export, reqif_export
 
 
 def _write_project(root: Path) -> None:
@@ -51,3 +52,34 @@ def test_installed_cli_exports_reqif_to_explicit_path(tmp_path: Path) -> None:
         == 0
     )
     assert (tmp_path / "exchange" / "model.reqif").is_file()
+
+
+def test_installed_cli_exports_jsonld_to_default_path(tmp_path: Path) -> None:
+    _write_project(tmp_path)
+
+    assert main(["--root", str(tmp_path), "export", "--format", "jsonld"]) == 0
+
+    output = tmp_path / ".quarto-needs" / "graph.jsonld"
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert payload["quartoNeedsJsonLdVersion"] == jsonld_export.JSONLD_CONTEXT_VERSION
+    assert payload["@context"]["qn"]["@id"] == jsonld_export.QN_NAMESPACE
+
+
+def test_installed_cli_exports_jsonld_to_explicit_path(tmp_path: Path) -> None:
+    _write_project(tmp_path)
+
+    assert (
+        main(
+            [
+                "--root",
+                str(tmp_path),
+                "export",
+                "--format",
+                "jsonld",
+                "--output",
+                "exchange/model.jsonld",
+            ]
+        )
+        == 0
+    )
+    assert (tmp_path / "exchange" / "model.jsonld").is_file()
