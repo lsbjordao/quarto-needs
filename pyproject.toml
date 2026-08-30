@@ -32,6 +32,7 @@ test = [
   "referencing",
   "PyYAML>=6",
   "reqif>=0.1,<0.2",
+  "xmlschema>=4.3,<5",
 ]
 # Release tooling only. Never a runtime dependency, and installed inside CI
 # rather than by contributors.
