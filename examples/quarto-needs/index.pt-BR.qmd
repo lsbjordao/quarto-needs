@@ -44,4 +44,4 @@ A tabela abaixo é gerada a partir do mesmo grafo de engenharia usado no restant
 
 O grafo recebe aprimoramento progressivo: a representação estática permanece disponível, enquanto a visualização HTML acrescenta travessia semântica, filtros, caminhos até a raiz, inspeção de arestas, colapso/expansão e espaçamento fixo.
 
-{{< need-graph id="quarto-needs-overview" >}}
+{{< need-graph id="quarto-needs-overview" projection="need-graph-1" >}}
