@@ -23,7 +23,9 @@ book:
 
 format:
   html:
-    theme: cosmo
+    theme: 
+      light: cosmo
+      dark: darkly
     css: language-switch.css
     include-after-body: language-switch.html
     mermaid-format: svg
