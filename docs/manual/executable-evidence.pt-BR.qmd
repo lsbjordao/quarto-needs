@@ -36,7 +36,7 @@ O modelo deve carregar o vínculo executável recíproco:
 
 O node ID estável do pytest é uma referência física de execução. Ele não substitui o caso de teste modelado, que continua sendo o objeto de verificação de engenharia.
 
-## Gere evidência
+## Gere evidência determinística do provider
 
 A escrita do artefato é opt-in. Execuções pytest comuns não possuem efeitos colaterais de arquivos do Quarto-Needs.
 
@@ -47,7 +47,7 @@ pytest \
 
 O mesmo destino pode ser fornecido por `QUARTO_NEEDS_PYTEST_EVIDENCE`.
 
-O artefato versão 1 é validado por `schemas/evidence-pytest-v1.schema.json` e contém dados semânticos determinísticos da execução:
+O artefato versão 1 do provider é validado por `schemas/evidence-pytest-v1.schema.json` e contém dados semânticos determinísticos da execução:
 
 ```json
 {
@@ -64,11 +64,54 @@ O artefato versão 1 é validado por `schemas/evidence-pytest-v1.schema.json` e 
 }
 ```
 
-Timestamps e durações são excluídos intencionalmente deste artefato semântico para que resultados de engenharia idênticos permaneçam reproduzíveis. Uma futura camada de atestação poderá acrescentar identidade da execução, identidade do commit, assinaturas e outros metadados não semânticos separadamente.
+A evidência v1 expõe intencionalmente apenas `passed`, `failed` e `skipped`. A semântica mais rica de expected failures do pytest é normalizada de forma conservadora: XFAIL permanece `skipped`, enquanto qualquer XPASS é registrado como `failed`, inclusive XPASS não estrito que o pytest possa reportar como teste aprovado. Assim, uma passagem inesperada não se transforma silenciosamente em evidência positiva de engenharia.
+
+Timestamps e durações são excluídos intencionalmente do payload do provider para que resultados de engenharia idênticos permaneçam reproduzíveis.
+
+## Envelope de atestação neutro em relação ao provider
+
+A proveniência da execução pertence a um envelope separado e neutro em relação ao provider, definido por `schemas/evidence-envelope-v1.schema.json`. Isso preserva o payload determinístico do provider enquanto o vincula a um estado concreto do modelo de engenharia.
+
+O envelope registra:
+
+- nome e versão do provider;
+- timestamp `generatedAt` e, opcionalmente, `expiresAt`;
+- revisão de origem opcional;
+- fingerprints atuais de configuração, grafo semântico e representação;
+- schema do artefato do provider;
+- digest SHA-256 canônico do payload embutido;
+- o próprio payload do provider.
+
+Conceitualmente:
+
+```json
+{
+  "schemaVersion": "1",
+  "kind": "quarto-needs-evidence",
+  "provider": {"name": "pytest", "version": "8.0"},
+  "generatedAt": "2026-08-30T12:00:00Z",
+  "expiresAt": "2026-08-31T12:00:00Z",
+  "subject": {
+    "sourceRevision": "abc123",
+    "configurationFingerprint": "...",
+    "semanticGraphFingerprint": "...",
+    "representationFingerprint": "..."
+  },
+  "artifact": {
+    "schema": "evidence-pytest-v1",
+    "digest": "sha256:...",
+    "payload": {"provider": "pytest", "schemaVersion": "1", "tests": []}
+  }
+}
+```
+
+O envelope é intencionalmente provider-neutral. O pytest é o primeiro provider executável, mas o mesmo contrato de atestação foi desenhado para envolver normalização de JUnit XML, resultados de coverage, verificações de renderização do Quarto, validação por JSON Schema e providers de lint/type-check sem alterar o grafo canônico de engenharia.
+
+O digest do payload é validado antes da verificação semântica. Portanto, um payload modificado não pode continuar reutilizando silenciosamente uma atestação antiga.
 
 ## Valide a evidência contra o modelo atual
 
-A geração é apenas metade do contrato. Valide o artefato contra o grafo canônico de engenharia:
+A geração é apenas metade do contrato. O mesmo comando valida tanto o JSON pytest cru quanto um envelope pytest atestado:
 
 ```bash
 quarto-needs evidence check .quarto-needs/evidence/pytest.json
@@ -82,32 +125,47 @@ quarto-needs evidence check \
   --format json
 ```
 
-A verificação é semântica. Ela confirma que:
+O comando permanece retrocompatível com `evidence-pytest-v1`. Quando recebe um envelope de atestação, ele também valida a proveniência contra o snapshot atual.
+
+A verificação semântica confirma que:
 
 - todo teste executável passou;
 - toda entrada de evidência está vinculada a um caso de teste modelado;
 - todo caso de teste referenciado existe;
 - seu `pytest-nodeid` modelado é igual ao node ID executável;
 - todo requisito referenciado existe;
-- o requisito está realmente conectado por uma relação da família de verificação ao caso de teste modelado vinculado;
-- todo caso de teste modelado que possui `pytest-nodeid` está presente no artefato de evidência.
+- todo requisito reivindicado pelo teste executável está realmente conectado por relação da família de verificação a um caso de teste modelado vinculado;
+- reciprocamente, todo requisito que o modelo declara como verificado por um caso de teste vinculado é reivindicado pelo teste executável;
+- todo caso de teste modelado que possui `pytest-nodeid` está presente no artefato.
 
-Um artefato bem-sucedido, portanto, sustenta a cadeia:
+Para evidência atestada, também são verificados:
+
+- fingerprint de configuração;
+- fingerprint do grafo semântico;
+- fingerprint da representação;
+- `generatedAt` válido e não futuro;
+- `expiresAt`, quando presente, ainda válido e posterior a `generatedAt`;
+- revisão de origem, quando um chamador fornece a revisão esperada.
+
+Assim, a cadeia passa a incluir também o estado exato do grafo que a execução pretende provar:
 
 ```text
 requisito --verified-by--> caso de teste modelado
                               │
                               │ pytest-nodeid
                               ▼
-                         teste pytest executável
+                         provider executável
                               │
                               ▼
-                      artefato de evidência de máquina
+                    payload determinístico
+                              │ SHA-256 + fingerprints do grafo
+                              ▼
+                   atestação provider-neutral
 ```
 
 ## Diagnósticos de evidência
 
-Os diagnósticos iniciais de evidência pytest usam códigos estáveis:
+Os diagnósticos específicos do pytest usam códigos `EVD1xx`:
 
 | Código | Significado |
 |---|---|
@@ -117,14 +175,33 @@ Os diagnósticos iniciais de evidência pytest usam códigos estáveis:
 | `EVD104` | caso de teste modelado não possui `pytest-nodeid` |
 | `EVD105` | node IDs pytest modelado e executável divergem |
 | `EVD106` | evidência referencia requisito desconhecido |
-| `EVD107` | requisito não é verificado pelo caso de teste modelado vinculado |
+| `EVD107` | teste executável reivindica requisito não verificado pelo caso de teste vinculado |
 | `EVD108` | caso de teste modelado vinculado ao pytest está ausente do artefato |
+| `EVD109` | caso de teste modelado verifica requisito que o teste executável não reivindica |
 
-Artefatos malformados ou com versão não suportada são erros de uso/artefato e retornam código `2`. Falhas de I/O retornam `3`. Um artefato estruturalmente legível que diverge do modelo de engenharia retorna `1`.
+Os diagnósticos neutros de atestação usam `EVD2xx`:
+
+| Código | Significado |
+|---|---|
+| `EVD201` | atestação sem subject válido |
+| `EVD202` | fingerprint de configuração obsoleto |
+| `EVD203` | fingerprint do grafo semântico obsoleto |
+| `EVD204` | fingerprint de representação obsoleto |
+| `EVD205` | revisão de origem difere da revisão esperada |
+| `EVD206` | `generatedAt` inválido |
+| `EVD207` | evidência declara ter sido gerada no futuro |
+| `EVD208` | evidência excede idade máxima fornecida por um chamador |
+| `EVD209` | `expiresAt` inválido |
+| `EVD210` | evidência expirada |
+| `EVD211` | `expiresAt` anterior a `generatedAt` |
+
+`EVD107` e `EVD109` formam a barreira recíproca de rastreabilidade: juntos exigem concordância entre os markers executáveis e as relações de verificação do modelo, em vez de aceitar qualquer uma das fontes isoladamente como autoridade suficiente.
+
+Artefatos malformados, não suportados ou com digest inválido são erros de uso/artefato e retornam código `2`. Falhas de I/O retornam `3`. Um artefato estruturalmente legível que diverge do modelo de engenharia, ou cuja atestação esteja obsoleta, retorna `1`.
 
 ## Exemplo autocontido
 
-O estudo de caso autocontido do Quarto-Needs exercita essa capacidade diretamente:
+O estudo de caso autocontido do Quarto-Needs exercita a evidência executável diretamente:
 
 ```bash
 make evidence-self-example
@@ -132,4 +209,6 @@ make evidence-self-example
 
 Esse alvo executa testes reais representativos de governança de ADR, segurança do grafo público, views nomeadas e análise de impacto; grava `examples/quarto-needs/.quarto-needs/evidence/pytest.json`; e então executa `quarto-needs evidence check` contra o grafo de engenharia autocontido.
 
-`make render-self-example` depende desse alvo, portanto o exemplo não pode ser renderizado com sucesso quando seus vínculos executáveis estiverem obsoletos ou inconsistentes.
+O payload pytest cru permanece suportado durante a transição para evidência autocontida atestada. O envelope provider-neutral é o contrato-alvo para novos providers de evidência de máquina e para uso de CI sensível a frescor/proveniência.
+
+`make render-self-example` depende do alvo de evidência, portanto o exemplo não pode ser renderizado com sucesso quando seus vínculos executáveis estiverem inconsistentes.
