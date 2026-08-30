@@ -7,6 +7,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 
 from . import diff as diff_module
+from . import github_projection as github_projection_module
 from . import impact as impact_module
 from . import pr_report as pr_report_module
 from . import suspect as suspect_module
@@ -27,7 +28,7 @@ def _option(argv: Sequence[str], name: str) -> str | None:
 
 def _format(argv: Sequence[str]) -> str:
     value = _option(argv, "--format")
-    return value if value in {"text", "json", "markdown"} else "text"
+    return value if value in {"text", "json", "markdown", "annotations"} else "text"
 
 
 def _recompute(argv: Sequence[str]) -> bool:
@@ -42,7 +43,7 @@ def git_action(argv: Sequence[str]) -> tuple[str, str] | None:
         (
             index
             for index, value in enumerate(values)
-            if value in {"diff", "impact", "suspect", "pr-report"}
+            if value in {"diff", "impact", "suspect", "pr-report", "github-report"}
         ),
         None,
     )
@@ -217,6 +218,34 @@ def _run_pr_report(states: GitRangeStates, argv: Sequence[str]) -> int:
     )
 
 
+def _run_github_report(states: GitRangeStates, argv: Sequence[str]) -> int:
+    try:
+        report = pr_report_module.analyze(
+            states.base_baseline,
+            states.head_snapshot,
+            states.head_config,
+            recompute=_recompute(argv),
+        )
+    except (diff_module.DiffError, impact_module.ImpactError) as error:
+        print(str(error), file=sys.stderr)
+        return 2
+    projection = github_projection_module.build(
+        report,
+        states.head_snapshot,
+        model_url=_option(argv, "--model-url"),
+    )
+    format_name = _format(argv)
+    if format_name == "json":
+        print(json.dumps(_json_report(states, projection.to_dict()), indent=2, sort_keys=True))
+    elif format_name == "annotations":
+        print(github_projection_module.render_workflow_commands(projection), end="")
+    else:
+        if format_name == "text":
+            _print_git_header(states)
+        print(projection.summary_markdown, end="")
+    return 1 if projection.check.get("conclusion") == "failure" else 0
+
+
 def run_git_action(project_root: Path, argv: Sequence[str], command: str, range_spec: str) -> int:
     try:
         states = materialize_git_range(project_root, range_spec)
@@ -231,4 +260,6 @@ def run_git_action(project_root: Path, argv: Sequence[str], command: str, range_
         return _run_suspect(states, argv)
     if command == "pr-report":
         return _run_pr_report(states, argv)
+    if command == "github-report":
+        return _run_github_report(states, argv)
     return 2
