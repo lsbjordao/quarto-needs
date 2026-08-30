@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Iterable, cast
+from typing import Iterable, Mapping, cast
 
 from .diagnostics import Finding
 from .model import EngineeringObject, Relation, SourceLocation
@@ -91,15 +91,11 @@ def _relation_targets(value: object) -> list[str]:
     return targets
 
 
-def parse_qmd_declarations(
-    path: Path,
-    root: Path | None = None,
-) -> DeclarationBatch:
-    text = path.read_text(encoding="utf-8")
+def parse_qmd_text_declarations(text: str, source_file: str) -> DeclarationBatch:
+    """Parse one QMD source buffer using the canonical .need grammar."""
     lines = text.splitlines()
     declarations: list[ObjectDeclaration] = []
     findings: list[Finding] = []
-    source_file = _source_file(path, root)
     i = 0
     while i < len(lines):
         match = OPEN_RE.match(lines[i])
@@ -194,6 +190,15 @@ def parse_qmd_declarations(
     return DeclarationBatch(tuple(declarations), tuple(findings))
 
 
+def parse_qmd_declarations(
+    path: Path,
+    root: Path | None = None,
+) -> DeclarationBatch:
+    return parse_qmd_text_declarations(
+        path.read_text(encoding="utf-8"), _source_file(path, root)
+    )
+
+
 def _resolved_project_path(root: Path, path: Path) -> Path:
     if path.is_absolute():
         return path.resolve()
@@ -204,13 +209,7 @@ def _resolved_project_path(root: Path, path: Path) -> Path:
 
 
 def _is_localized_qmd(path: Path) -> bool:
-    """Return whether *path* is a BabelQuarto-style localized sibling.
-
-    A locale-looking suffix alone is not enough: ``foo.pt-BR.qmd`` is treated as
-    a translation only when the canonical ``foo.qmd`` exists beside it. This
-    keeps automatic project discovery language-neutral without preventing an
-    explicitly supplied localized file from being parsed on its own.
-    """
+    """Return whether *path* is a BabelQuarto-style localized sibling."""
     match = LOCALIZED_QMD_RE.match(path.name)
     if match is None:
         return False
@@ -218,13 +217,30 @@ def _is_localized_qmd(path: Path) -> bool:
     return canonical.is_file()
 
 
+def _overlay_paths(
+    root: Path, overlays: Mapping[str, str] | None
+) -> dict[Path, str]:
+    resolved: dict[Path, str] = {}
+    for name, text in (overlays or {}).items():
+        path = Path(name)
+        absolute = path.resolve() if path.is_absolute() else (root / path).resolve()
+        if not absolute.is_relative_to(root):
+            raise ValueError(f"overlay path escapes project root: {name}")
+        if absolute.suffix == ".qmd":
+            resolved[absolute] = text
+    return resolved
+
+
 def parse_project_declarations(
     root: Path,
     files: Iterable[Path] | None = None,
+    *,
+    overlays: Mapping[str, str] | None = None,
 ) -> DeclarationBatch:
     resolved_root = root.resolve()
+    overlay_by_path = _overlay_paths(resolved_root, overlays)
     if files is None:
-        files = (
+        discovered = {
             path
             for path in resolved_root.rglob("*.qmd")
             if not any(
@@ -232,8 +248,11 @@ def parse_project_declarations(
                 for part in path.relative_to(resolved_root).parts[:-1]
             )
             and not _is_localized_qmd(path)
-        )
+        }
+        discovered.update(overlay_by_path)
+        files = discovered
     paths = [_resolved_project_path(resolved_root, Path(path)) for path in files]
+    paths = list(dict.fromkeys(paths))
     paths.sort(
         key=lambda path: (
             path.relative_to(resolved_root).as_posix().casefold(),
@@ -244,7 +263,12 @@ def parse_project_declarations(
     declarations: list[ObjectDeclaration] = []
     findings: list[Finding] = []
     for path in paths:
-        batch = parse_qmd_declarations(path, resolved_root)
+        if path in overlay_by_path:
+            batch = parse_qmd_text_declarations(
+                overlay_by_path[path], path.relative_to(resolved_root).as_posix()
+            )
+        else:
+            batch = parse_qmd_declarations(path, resolved_root)
         declarations.extend(batch.declarations)
         findings.extend(batch.findings)
     declarations.sort(key=lambda item: (
@@ -300,10 +324,14 @@ def parse_qmd(path: Path, root: Path | None = None) -> list[EngineeringObject]:
 def parse_project(
     root: Path,
     files: Iterable[Path] | None = None,
+    *,
+    overlays: Mapping[str, str] | None = None,
 ) -> list[EngineeringObject]:
     objects = [
         _legacy_object(declaration)
-        for declaration in parse_project_declarations(root, files).declarations
+        for declaration in parse_project_declarations(
+            root, files, overlays=overlays
+        ).declarations
     ]
     objects.sort(key=lambda item: (
         item.id.casefold(),
