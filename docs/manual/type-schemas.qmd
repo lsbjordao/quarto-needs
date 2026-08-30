@@ -1,0 +1,113 @@
+# Per-type attribute schemas
+
+Quarto-Needs can constrain the attributes of a configured engineering type with Draft 2020-12 JSON Schema. This complements — rather than replaces — existing type semantics such as ID prefixes, lifecycle statuses, semantic roles, and `required-attributes`.
+
+## Attribute schemas validate attributes only
+
+An `attribute-schema` is evaluated against the canonical `attributes` mapping of each matching object. It does **not** redefine the built-in fields `id`, `type`, `title`, `status`, `body`, `rationale`, or relations.
+
+```toml
+[types.non-functional-requirement]
+id-prefix = "NFR-"
+role = "requirement"
+allowed-statuses = ["approved", "deprecated"]
+
+[types.non-functional-requirement.attribute-schema]
+type = "object"
+required = ["priority", "budget-ms"]
+
+[types.non-functional-requirement.attribute-schema.properties.priority]
+enum = ["critical", "high"]
+
+[types.non-functional-requirement.attribute-schema.properties.budget-ms]
+type = "string"
+pattern = "^[1-9][0-9]{0,2}$"
+```
+
+An object whose `priority` is `medium`, or whose `budget-ms` does not match the pattern, produces an `OBJ002` finding.
+
+## Authored values are not silently coerced
+
+Quarto-Needs intentionally validates the canonical authored representation. Inline QMD attributes are strings unless another authoring mechanism already produces a structured value. The schema engine does not convert `"250"` into integer `250`, reinterpret booleans, or guess dates.
+
+For example:
+
+```qmd
+::: {.need #NFR-001 type="non-functional-requirement" status="approved" budget-ms="250"}
+## Latency budget
+...
+:::
+```
+
+Here `budget-ms` is the string `"250"`. A schema should validate that representation explicitly, for example with `type = "string"` and a `pattern`.
+
+This avoids a hidden second interpretation of authored metadata and keeps snapshots, fingerprints, queries, and schemas aligned.
+
+## Deterministic findings
+
+Schema violations use the built-in rule code `OBJ002`. Findings include:
+
+- engineering object ID;
+- object type;
+- JSON Pointer-like instance path;
+- schema path;
+- validator keyword;
+- the validation message.
+
+Multiple schema errors are sorted deterministically before being emitted.
+
+The default severity is `error`, and it can be governed like another built-in rule:
+
+```toml
+[rules.OBJ002]
+severity = "warning"
+```
+
+## Safe references
+
+Schemas may use local references within the same schema:
+
+```toml
+[types.functional-requirement.attribute-schema]
+"$ref" = "#/$defs/attrs"
+```
+
+External references are rejected at configuration load time:
+
+```toml
+# Rejected
+"$ref" = "https://example.com/schema.json"
+```
+
+The same restriction applies to `$dynamicRef`. This prevents configuration from causing network access, importing mutable remote semantics, or making offline/reproducible builds depend on external schema availability.
+
+## Fingerprints and change intelligence
+
+Per-type schemas are part of `NeedsConfig.canonical_document()`. Any schema change therefore changes the configuration fingerprint and participates in:
+
+- baseline compatibility;
+- Git-range change analysis;
+- evidence attestation compatibility;
+- reproducibility checks.
+
+A tightening of governance cannot silently reuse an attestation made under the previous schema.
+
+## Self-hosted example
+
+The self-hosted model uses an attribute schema for `source-module` objects:
+
+```toml
+[types.source-module.attribute-schema]
+type = "object"
+required = ["path", "language", "layer", "tags"]
+
+[types.source-module.attribute-schema.properties.path]
+type = "string"
+minLength = 1
+```
+
+The schema deliberately remains conservative: it guarantees that implementation traceability contains usable physical-source metadata without imposing an artificial closed list of programming languages or architectural layers.
+
+## Relationship with declarative policies
+
+Type schemas answer questions about the **shape of one object's attributes**. Declarative policies answer questions about **relationships among selected engineering objects**. Keeping those responsibilities separate makes failures easier to explain and avoids turning one DSL into a general-purpose expression language.
