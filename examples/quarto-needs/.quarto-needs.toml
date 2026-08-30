@@ -1,0 +1,170 @@
+# Engineering policy for the self-hosted Quarto-Needs case study.
+# English files are canonical; *.pt-BR.qmd siblings translate presentation only.
+
+profile = "strict"
+
+[types.stakeholder-need]
+id-prefix = "STK-"
+role = "need"
+allowed-statuses = ["draft", "in-review", "approved", "deprecated"]
+required-attributes = ["tags"]
+
+[types.system-requirement]
+id-prefix = "SYS-"
+role = "requirement"
+allowed-statuses = ["draft", "in-review", "approved", "disapproved", "deprecated"]
+required-attributes = ["priority", "tags"]
+
+[types.functional-requirement]
+id-prefix = "FUN-"
+role = "requirement"
+allowed-statuses = ["draft", "in-review", "approved", "disapproved", "deprecated"]
+required-attributes = ["priority", "tags"]
+
+[types.non-functional-requirement]
+id-prefix = "NFR-"
+role = "requirement"
+allowed-statuses = ["draft", "in-review", "approved", "disapproved", "deprecated"]
+required-attributes = ["priority", "tags"]
+
+[types.architecture-decision]
+id-prefix = "ADR-"
+role = "decision"
+allowed-statuses = ["proposed", "accepted", "rejected", "deprecated", "superseded"]
+required-attributes = ["date", "decision-makers", "tags"]
+
+[types.component]
+id-prefix = "COMP-"
+role = "architecture-element"
+allowed-statuses = ["planned", "implemented", "deprecated"]
+required-attributes = ["tags"]
+
+[types.interface]
+id-prefix = "IF-"
+role = "architecture-element"
+allowed-statuses = ["planned", "implemented", "deprecated"]
+required-attributes = ["tags"]
+
+[types.risk]
+id-prefix = "RISK-"
+role = "risk"
+allowed-statuses = ["draft", "in-review", "approved", "deprecated"]
+required-attributes = ["priority", "tags"]
+
+[types.test-case]
+id-prefix = "TC-"
+role = "verification"
+allowed-statuses = ["draft", "passed", "failed", "deprecated"]
+required-attributes = ["tags"]
+
+[types.evidence]
+id-prefix = "EVD-"
+role = "evidence"
+allowed-statuses = ["draft", "verified", "expired", "deprecated"]
+required-attributes = ["tags"]
+
+[relations."derives-from"]
+allowed-source-types = ["system-requirement", "functional-requirement", "non-functional-requirement"]
+allowed-target-types = ["stakeholder-need", "system-requirement"]
+
+[relations."implemented-by"]
+allowed-source-types = ["system-requirement", "functional-requirement", "non-functional-requirement"]
+allowed-target-types = ["component", "interface"]
+
+[relations."verified-by"]
+allowed-source-types = ["system-requirement", "functional-requirement", "non-functional-requirement"]
+allowed-target-types = ["test-case"]
+
+[relations."evidenced-by"]
+allowed-source-types = ["test-case"]
+allowed-target-types = ["evidence"]
+maximum-per-source = 1
+
+[relations."mitigates"]
+allowed-source-types = ["functional-requirement", "non-functional-requirement"]
+allowed-target-types = ["risk"]
+
+[relations."addresses"]
+allowed-source-types = ["architecture-decision"]
+allowed-target-types = ["stakeholder-need", "system-requirement", "functional-requirement", "non-functional-requirement", "risk"]
+minimum-per-source = 1
+
+[relations."applies-to"]
+allowed-source-types = ["architecture-decision"]
+allowed-target-types = ["component", "interface"]
+minimum-per-source = 1
+
+[relations."confirmed-by"]
+allowed-source-types = ["architecture-decision"]
+allowed-target-types = ["test-case", "evidence"]
+minimum-per-source = 1
+
+[relations."supersedes"]
+allowed-source-types = ["architecture-decision"]
+allowed-target-types = ["architecture-decision"]
+maximum-per-source = 1
+
+[governance]
+test-types = ["test-case"]
+risk-types = ["risk"]
+successful-test-statuses = ["passed"]
+ineffective-endpoint-statuses = ["disapproved", "rejected", "failed", "deprecated", "superseded"]
+expiry-attribute = "expires"
+
+[rules.REQ011]
+enabled = true
+[rules.REQ012]
+enabled = true
+[rules.REQ013]
+enabled = true
+[rules.REQ015]
+enabled = true
+[rules.DEC001]
+enabled = true
+[rules.DEC002]
+enabled = true
+[rules.DEC003]
+enabled = true
+[rules.DEC004]
+enabled = true
+[rules.DEC005]
+enabled = true
+[rules.DEC006]
+enabled = true
+
+[queries.graph-exploration]
+all = [
+  { field = "tags", op = "contains", value = "graph" },
+]
+sort = ["id:asc"]
+
+[queries.architecture-decisions]
+all = [
+  { field = "type", op = "eq", value = "architecture-decision" },
+  { field = "status", op = "eq", value = "accepted" },
+]
+sort = ["id:asc"]
+
+[queries.verification-assets]
+any = [
+  { field = "type", op = "eq", value = "test-case" },
+  { field = "type", op = "eq", value = "evidence" },
+]
+sort = ["id:asc"]
+
+[graph]
+max-nodes = 140
+max-edges = 420
+depth = 3
+layout = "hierarchical"
+seed = 17
+
+[gates]
+scope = "approved-requirements"
+max-errors = 0
+min-implementation-trace = 100.0
+min-implementation-effective = 100.0
+min-verification-trace = 100.0
+min-verification-successful = 100.0
+min-evidence = 100.0
+require-risk-mitigation = true
