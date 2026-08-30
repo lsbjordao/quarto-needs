@@ -36,7 +36,7 @@ The model should carry the reciprocal executable binding:
 
 The stable pytest node ID is a physical execution reference. It does not replace the modeled test-case, which remains the engineering verification object.
 
-## Generate evidence
+## Generate deterministic provider evidence
 
 Writing an artifact is opt-in. Ordinary pytest runs have no Quarto-Needs file side effects.
 
@@ -47,7 +47,7 @@ pytest \
 
 The same destination can be supplied with `QUARTO_NEEDS_PYTEST_EVIDENCE`.
 
-The version-1 artifact is validated by `schemas/evidence-pytest-v1.schema.json` and contains deterministic semantic execution data:
+The version-1 provider artifact is validated by `schemas/evidence-pytest-v1.schema.json` and contains deterministic semantic execution data:
 
 ```json
 {
@@ -66,11 +66,52 @@ The version-1 artifact is validated by `schemas/evidence-pytest-v1.schema.json` 
 
 Evidence v1 intentionally exposes only `passed`, `failed`, and `skipped`. Pytest's richer expected-failure semantics are normalized conservatively: an expected XFAIL is recorded as `skipped`, while any XPASS is recorded as `failed`, including a non-strict XPASS that pytest itself may report as a passing test. An unexpected pass therefore cannot become positive engineering evidence silently.
 
-Timestamps and durations are intentionally excluded from this semantic artifact so identical engineering results remain reproducible. A future attestation layer may add run identity, commit identity, signatures, and other non-semantic execution metadata separately.
+Timestamps and durations are intentionally excluded from the provider payload so identical engineering results remain reproducible.
+
+## Provider-neutral attestation envelope
+
+Execution provenance belongs to a separate provider-neutral envelope defined by `schemas/evidence-envelope-v1.schema.json`. This preserves deterministic provider output while binding that output to a concrete engineering state.
+
+An envelope records:
+
+- provider name and version;
+- `generatedAt` and optional `expiresAt` timestamps;
+- optional source revision;
+- the current configuration, semantic-graph, and representation fingerprints;
+- the provider artifact schema;
+- a canonical SHA-256 digest of the embedded provider payload;
+- the provider payload itself.
+
+Conceptually:
+
+```json
+{
+  "schemaVersion": "1",
+  "kind": "quarto-needs-evidence",
+  "provider": {"name": "pytest", "version": "8.0"},
+  "generatedAt": "2026-08-30T12:00:00Z",
+  "expiresAt": "2026-08-31T12:00:00Z",
+  "subject": {
+    "sourceRevision": "abc123",
+    "configurationFingerprint": "...",
+    "semanticGraphFingerprint": "...",
+    "representationFingerprint": "..."
+  },
+  "artifact": {
+    "schema": "evidence-pytest-v1",
+    "digest": "sha256:...",
+    "payload": {"provider": "pytest", "schemaVersion": "1", "tests": []}
+  }
+}
+```
+
+The envelope is intentionally provider-neutral. Pytest is the first executable provider, but the same attestation contract is designed to wrap JUnit XML normalization, coverage results, Quarto render checks, JSON Schema validation, and lint/type-check providers without changing the canonical engineering graph.
+
+The payload digest is checked before semantic validation. A modified payload therefore cannot keep using an old attestation silently.
 
 ## Validate evidence against the current model
 
-Generation is only half of the contract. Validate the artifact against the canonical engineering graph:
+Generation is only half of the contract. Validate either a raw pytest artifact or an attested pytest envelope against the canonical engineering graph:
 
 ```bash
 quarto-needs evidence check .quarto-needs/evidence/pytest.json
@@ -84,7 +125,9 @@ quarto-needs evidence check \
   --format json
 ```
 
-The check is semantic. It verifies that:
+The existing command remains backward compatible with raw `evidence-pytest-v1`. When the artifact is an attestation envelope, the same command additionally checks its provenance against the current snapshot.
+
+The semantic check verifies that:
 
 - every executable test passed;
 - every evidence entry is bound to a modeled test-case;
@@ -95,22 +138,34 @@ The check is semantic. It verifies that:
 - reciprocally, every requirement that the model says is verified by a bound modeled test-case is claimed by the executable test;
 - every modeled test-case carrying `pytest-nodeid` is present in the evidence artifact.
 
-A successful artifact therefore supports the chain in both directions: the executable test cannot invent a requirement-to-test relation, and it cannot silently omit one that the engineering model declares.
+For attested evidence it also verifies that:
+
+- the configuration fingerprint still matches;
+- the semantic graph fingerprint still matches;
+- the representation fingerprint still matches;
+- `generatedAt` is a valid, non-future timestamp;
+- an explicit `expiresAt`, when present, has not expired and does not precede `generatedAt`;
+- an expected source revision, when supplied by a caller, agrees with the attested revision.
+
+A successful artifact therefore supports the chain in both directions and ties the executable result to the graph state it was meant to prove:
 
 ```text
 requirement --verified-by--> modeled test-case
                               │
                               │ pytest-nodeid
                               ▼
-                         executable pytest test
+                         executable provider
                               │
                               ▼
-                      machine evidence artifact
+                    deterministic provider payload
+                              │ SHA-256 + graph fingerprints
+                              ▼
+                   provider-neutral attestation
 ```
 
 ## Evidence diagnostics
 
-The initial pytest evidence diagnostics are stable codes:
+Provider-specific pytest diagnostics use stable `EVD1xx` codes:
 
 | Code | Meaning |
 |---|---|
@@ -124,13 +179,29 @@ The initial pytest evidence diagnostics are stable codes:
 | `EVD108` | a modeled pytest-bound test-case is missing from the artifact |
 | `EVD109` | a bound modeled test-case verifies a requirement that the executable test does not claim |
 
-`EVD107` and `EVD109` form the reciprocal traceability gate: together they require agreement between pytest markers and the model's verification relations rather than accepting either source as authoritative on its own.
+Provider-neutral attestation diagnostics use `EVD2xx`:
 
-Malformed or unsupported evidence artifacts are usage/artifact errors and exit with code `2`. I/O failures exit `3`. A structurally readable artifact that disagrees with the engineering model exits `1`.
+| Code | Meaning |
+|---|---|
+| `EVD201` | attestation has no valid subject |
+| `EVD202` | configuration fingerprint is stale |
+| `EVD203` | semantic graph fingerprint is stale |
+| `EVD204` | representation fingerprint is stale |
+| `EVD205` | attested source revision differs from the expected revision |
+| `EVD206` | `generatedAt` is invalid |
+| `EVD207` | evidence claims to have been generated in the future |
+| `EVD208` | evidence exceeds a caller-supplied maximum age |
+| `EVD209` | `expiresAt` is invalid |
+| `EVD210` | evidence has expired |
+| `EVD211` | `expiresAt` precedes `generatedAt` |
+
+`EVD107` and `EVD109` form the reciprocal traceability gate: together they require agreement between executable markers and the model's verification relations rather than accepting either source as authoritative on its own.
+
+Malformed, unsupported, or digest-invalid evidence artifacts are usage/artifact errors and exit with code `2`. I/O failures exit `3`. A structurally readable artifact that disagrees with the engineering model or whose attestation is stale exits `1`.
 
 ## Self-hosted example
 
-The self-hosted Quarto-Needs case study exercises this feature directly:
+The self-hosted Quarto-Needs case study exercises executable evidence directly:
 
 ```bash
 make evidence-self-example
@@ -138,4 +209,6 @@ make evidence-self-example
 
 That target executes representative real tests for ADR governance, public graph safety, named graph views, and impact analysis; writes `examples/quarto-needs/.quarto-needs/evidence/pytest.json`; and then runs `quarto-needs evidence check` against the self-hosted engineering graph.
 
-`make render-self-example` depends on this target, so the example cannot render successfully with stale or inconsistent executable bindings.
+The raw pytest payload remains supported during the transition to attested self-hosted evidence. The provider-neutral envelope is the target contract for new machine-evidence providers and for freshness-sensitive CI usage.
+
+`make render-self-example` depends on the evidence target, so the example cannot render successfully with inconsistent executable bindings.
