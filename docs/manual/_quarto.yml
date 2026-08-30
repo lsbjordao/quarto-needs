@@ -19,6 +19,7 @@ book:
     - declarative-policies.qmd
     - type-schemas.qmd
     - graph-constraints.qmd
+    - derived-variants.qmd
     - reference.qmd
 
 format:
