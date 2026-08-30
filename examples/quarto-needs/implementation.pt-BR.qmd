@@ -68,6 +68,14 @@ Consome a direção de travessia publicada para implementar pais/filhos recursiv
 Fornece filtros de tipo/status/família, perfis de travessia, análise de caminho até a raiz e inspeção semântica de arestas sem redefinir o significado das relações.
 :::
 
+## Ergonomia de apresentação
+
+::: {.need #SRC-MARGIN-SIDEBAR type="source-module" status="implemented" path="_extensions/quarto-needs/margin-sidebar.js" language="JavaScript" layer="presentation" tags="quarto;toc;sidebar;usability;progressive-enhancement" implements="FUN-009"}
+## Módulo do controle do índice lateral
+
+Adiciona o controle opcional e persistente de recolher/restaurar o índice da página, coordena o estado temporário `fullcontent` e posiciona o controle expandido inteiramente fora da barra lateral.
+:::
+
 ## Análise de mudanças
 
 ::: {.need #SRC-BASELINE type="source-module" status="implemented" path="src/quarto_needs/baseline.py" language="Python" layer="comparison" tags="baseline;reproducibility;change" implements="FUN-005;NFR-001"}
@@ -104,9 +112,9 @@ A tabela é útil quando os caminhos exatos importam; o grafo é útil quando o 
 
 {{< need-graph view="requirement-to-code" id="requirement-to-code-view" >}}
 
-## Quatro cortes verticais
+## Cinco cortes verticais
 
-Os quatro cortes seguintes são reutilizados intencionalmente ao longo do restante do estudo de caso.
+Os cortes seguintes são reutilizados intencionalmente ao longo do restante do estudo de caso.
 
 **Exploração interativa do grafo:** `STK-001 → SYS-006 → FUN-004 → ADR-004 → COMP-GRAPH → SRC-GRAPH-OUTPUT / SRC-GRAPH-CONTEXT / SRC-GRAPH-EXPLORE → TC-006 / TC-010 → EVD-006 / EVD-010`.
 
@@ -115,3 +123,5 @@ Os quatro cortes seguintes são reutilizados intencionalmente ao longo do restan
 **Gestão de decisões de arquitetura:** `STK-004 → SYS-004 → ADR-001…ADR-006 → SRC-RULES → TC-004 → EVD-004`.
 
 **Análise de mudanças de engenharia:** `STK-003 → SYS-003 → FUN-005 → COMP-BASELINE → SRC-BASELINE / SRC-DIFF / SRC-IMPACT → TC-011 → EVD-011`.
+
+**Usabilidade do índice lateral:** `SYS-002 → FUN-009 → ADR-007 → COMP-EXTENSION → SRC-MARGIN-SIDEBAR → TC-014 → EVD-014`.
