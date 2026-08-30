@@ -1,0 +1,105 @@
+# Drivers: por que o Quarto-Needs existe
+
+A engenharia de requisitos começa antes dos requisitos de sistema. A primeira camada registra as preocupações que justificam o produto; a segunda as traduz em obrigações para o sistema.
+
+## Necessidades dos stakeholders
+
+::: {.need #STK-001 type="stakeholder-need" status="approved" tags="traceability;requirements-as-code"}
+## Equipes de engenharia precisam de rastreabilidade ao longo de todo o ciclo de vida
+
+As equipes precisam que requisitos, decisões de arquitetura, implementação, testes, riscos e evidências permaneçam conectados à medida que o sistema evolui.
+:::
+
+::: {.need #STK-002 type="stakeholder-need" status="approved" tags="documentation;quarto;usability"}
+## Engenheiros precisam que o modelo de engenharia continue sendo documentação legível
+
+A rastreabilidade formal não deve obrigar as equipes a abandonar prosa explicativa, documentação navegável ou fluxos normais de revisão.
+:::
+
+::: {.need #STK-003 type="stakeholder-need" status="approved" tags="governance;git;ci;reproducibility"}
+## Equipes precisam de governança reproduzível em Git e CI
+
+Validação, baselines, quality gates e análise de impacto precisam ter comportamento determinístico e participar dos fluxos normais de controle de versão.
+:::
+
+::: {.need #STK-004 type="stakeholder-need" status="approved" tags="architecture;adr;rationale"}
+## Escolhas arquiteturais precisam de justificativa durável e rastreável
+
+Os engenheiros precisam saber não apenas o que foi requerido, mas por que escolhas arquiteturais foram feitas, onde se aplicam e como são confirmadas.
+:::
+
+::: {.need #STK-005 type="stakeholder-need" status="approved" tags="localization;i18n;collaboration"}
+## Equipes multilíngues precisam de um único grafo de engenharia
+
+Traduções devem melhorar a comunicação sem criar modelos semânticos concorrentes nem duplicar a verdade de engenharia.
+:::
+
+## Requisitos de sistema
+
+::: {.need #SYS-001 type="system-requirement" status="approved" priority="critical" tags="graph;semantics;traceability" derives-from="STK-001" implemented-by="COMP-ANALYSIS" verified-by="TC-001"}
+## Manter um grafo canônico e tipado de engenharia
+
+O Quarto-Needs deve resolver objetos de engenharia e relações tipadas em um único grafo canônico que suporte travessia e validação determinísticas.
+
+### Justificativa
+
+Um único grafo fornece a base semântica para consultas, governança, baselines, análise de impacto e visualizações geradas.
+:::
+
+::: {.need #SYS-002 type="system-requirement" status="approved" priority="high" tags="documentation;quarto;progressive-enhancement" derives-from="STK-002" implemented-by="COMP-EXTENSION" verified-by="TC-002"}
+## Usar o Quarto como interface de documentação executável
+
+O Quarto-Needs deve tornar o modelo de engenharia navegável e publicável por meio de documentos Quarto comuns, preservando estrutura legível por máquina.
+
+### Justificativa
+
+A documentação continua útil para pessoas enquanto a mesma fonte carrega semântica formal de engenharia.
+:::
+
+::: {.need #SYS-003 type="system-requirement" status="approved" priority="critical" tags="governance;determinism;ci" derives-from="STK-003" implemented-by="COMP-RULES;COMP-CLI" verified-by="TC-003"}
+## Fornecer validação determinística e quality gates
+
+O Quarto-Needs deve avaliar regras de governança configuradas e quality gates de forma reproduzível, permitindo aplicar políticas de engenharia em fluxos locais e de CI.
+
+### Justificativa
+
+Requirements-as-code só se torna operacional quando o mesmo estado do projeto produz o mesmo veredito de engenharia.
+:::
+
+::: {.need #SYS-004 type="system-requirement" status="approved" priority="high" tags="architecture;adr;decision" derives-from="STK-004" implemented-by="COMP-ANALYSIS" verified-by="TC-004"}
+## Tratar decisões de arquitetura como objetos de engenharia de primeira classe
+
+O Quarto-Needs deve modelar decisões de arquitetura com identidade, ciclo de vida, relações tipadas, governança, justificativa, escopo, confirmação e linhagem.
+
+### Justificativa
+
+Uma decisão não é requisito nem artefato de implementação; preservá-la explicitamente torna o raciocínio arquitetural rastreável.
+:::
+
+::: {.need #SYS-005 type="system-requirement" status="approved" priority="high" tags="localization;i18n;semantics" derives-from="STK-005" implemented-by="COMP-I18N" verified-by="TC-005"}
+## Localizar a apresentação sem duplicar a semântica de engenharia
+
+O Quarto-Needs deve permitir narrativa e títulos traduzidos enquanto impõe IDs, tipos, estados, atributos e relações invariantes entre idiomas.
+
+### Justificativa
+
+O grafo de engenharia precisa continuar sendo uma única fonte de verdade mesmo quando a documentação atende equipes multilíngues.
+:::
+
+::: {.need #SYS-006 type="system-requirement" status="approved" priority="high" tags="graph;projection;security;exploration" derives-from="STK-001;STK-002" implemented-by="COMP-GRAPH" verified-by="TC-006"}
+## Publicar projeções semânticas e limitadas do grafo para exploração
+
+O Quarto-Needs deve publicar projeções de grafo seguras para apresentação e limitadas em tamanho, contendo a semântica necessária às visualizações estáticas e interativas.
+
+### Justificativa
+
+A exploração deve ser poderosa sem expor dados arbitrários da fonte nem transferir o significado de engenharia para o navegador.
+:::
+
+## Lendo a primeira camada de derivação
+
+A tabela gerada torna visível a passagem da preocupação do stakeholder para a obrigação do sistema sem duplicar os dados-fonte.
+
+{{< need-table types="stakeholder-need;system-requirement" columns="id;title;type;status;priority" sort="id" >}}
+
+{{< need-graph id="drivers-graph" root="STK-001" depth="3" >}}
