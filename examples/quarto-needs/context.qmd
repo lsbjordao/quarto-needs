@@ -1,0 +1,46 @@
+# System context: where requirements come from
+
+A requirements model becomes easier to understand when the reader first knows the system boundary, its actors, and the external surfaces through which engineering work enters and leaves the product.
+
+## System boundary
+
+Quarto-Needs is not the documentation itself and it is not the browser graph. It is the semantic engine between authored engineering sources and the views, checks, and automation that consume them.
+
+```text
+Requirements engineer / Architect / Developer / Reviewer
+                         │
+                         ▼
+                 QMD + configuration
+                         │
+                         ▼
+               Quarto-Needs Python core
+        parser → analysis → rules/query → snapshot
+             │             │              │
+             │             │              ├── CLI / CI
+             │             │              ├── baseline / diff / impact
+             │             │              └── machine-readable exports
+             │             ▼
+             └────── public projections
+                            │
+                            ▼
+                    Quarto extension
+                            │
+              ┌─────────────┴─────────────┐
+              ▼                           ▼
+      static documentation         interactive HTML
+      tables / cards / SVG             Cytoscape
+```
+
+## Primary actors
+
+**Requirements engineers** author needs, requirements, relations, rationale, and governance policy. **Architects** record architecture decisions and scope. **Developers** implement the obligations and keep source modules traceable. **Reviewers** inspect coverage, decisions, impact, and evidence. **CI automation** executes the same deterministic analysis without becoming a separate semantic authority.
+
+The external tools also have deliberately narrow roles. **Git** versions text and generated evidence; **Quarto** renders documents; **BabelQuarto** projects localized presentation; the **browser** explores an already resolved graph.
+
+## Why this matters for the model
+
+The stakeholder needs in the next chapter are therefore not abstract personas. They arise from concrete tensions at this boundary: humans need readable documents while automation needs formal semantics; multilingual readers need translated presentation while the engineering graph must remain singular; interactive exploration needs rich metadata while public projections must remain bounded and safe.
+
+The first derivation layer can be explored directly below.
+
+{{< need-graph root="STK-001" depth="3" id="system-context-derivation" >}}
