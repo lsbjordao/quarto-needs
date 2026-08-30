@@ -33,6 +33,7 @@ test = [
   "PyYAML>=6",
   "reqif>=0.1,<0.2",
   "xmlschema>=4.3,<5",
+  "PyLD>=3.2,<4",
 ]
 # Release tooling only. Never a runtime dependency, and installed inside CI
 # rather than by contributors.
