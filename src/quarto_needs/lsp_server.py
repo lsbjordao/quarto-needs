@@ -2,13 +2,15 @@
 
 The transport translates Language Server Protocol JSON-RPC messages only. All
 engineering semantics remain in ``LanguageService`` and the canonical analyzer.
+Open editor buffers are passed to that same analyzer as in-memory source
+overlays; the server never writes unsaved client text to the project tree.
 """
 from __future__ import annotations
 
 import json
 import re
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import BinaryIO, Mapping
 from urllib.parse import unquote, urlparse
@@ -49,19 +51,24 @@ def _severity(value: str) -> int:
     return {"error": 1, "warning": 2, "info": 3}.get(value, 3)
 
 
-def _identifier_at(path: Path, line: int, character: int) -> str | None:
-    try:
-        lines = path.read_text(encoding="utf-8").splitlines()
-    except OSError:
-        return None
+def _identifier_in_text(text: str, line: int, character: int) -> str | None:
+    lines = text.splitlines()
     if line < 0 or line >= len(lines):
         return None
-    text = lines[line]
-    cursor = min(max(character, 0), len(text))
-    for match in IDENTIFIER_RE.finditer(text):
+    source = lines[line]
+    cursor = min(max(character, 0), len(source))
+    for match in IDENTIFIER_RE.finditer(source):
         if match.start() <= cursor <= match.end():
             return match.group(0)
     return None
+
+
+def _identifier_at(path: Path, line: int, character: int) -> str | None:
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError:
+        return None
+    return _identifier_in_text(text, line, character)
 
 
 @dataclass
@@ -69,14 +76,38 @@ class LspSession:
     root: Path
     service: LanguageService
     shutdown_requested: bool = False
+    documents: dict[str, str] = field(default_factory=dict)
 
     @classmethod
     def load(cls, root: Path) -> "LspSession":
         resolved = Path(root).resolve()
         return cls(resolved, LanguageService.load(resolved))
 
+    def _overlays(self) -> dict[str, str]:
+        overlays: dict[str, str] = {}
+        for uri, text in self.documents.items():
+            path = _path_from_uri(uri)
+            try:
+                relative = path.relative_to(self.root).as_posix()
+            except ValueError:
+                continue
+            overlays[relative] = text
+        return overlays
+
     def reload(self) -> None:
-        self.service = LanguageService.load(self.root)
+        self.service = LanguageService.load(self.root, overlays=self._overlays())
+
+    def open_document(self, uri: str, text: str) -> None:
+        self.documents[uri] = text
+        self.reload()
+
+    def change_document(self, uri: str, text: str) -> None:
+        self.documents[uri] = text
+        self.reload()
+
+    def close_document(self, uri: str) -> None:
+        self.documents.pop(uri, None)
+        self.reload()
 
     def _document(self, params: Mapping[str, object]) -> tuple[str, Path]:
         document = params.get("textDocument")
@@ -84,6 +115,12 @@ class LspSession:
             raise ValueError("textDocument.uri is required")
         uri = str(document["uri"])
         return uri, _path_from_uri(uri)
+
+    def _identifier(self, uri: str, path: Path, line: int, character: int) -> str | None:
+        text = self.documents.get(uri)
+        if text is not None:
+            return _identifier_in_text(text, line, character)
+        return _identifier_at(path, line, character)
 
     def diagnostics_for_uri(self, uri: str) -> dict[str, object]:
         path = _path_from_uri(uri)
@@ -111,7 +148,11 @@ class LspSession:
         if method == "initialize":
             return {
                 "capabilities": {
-                    "textDocumentSync": 1,
+                    "textDocumentSync": {
+                        "openClose": True,
+                        "change": 1,
+                        "save": {"includeText": False},
+                    },
                     "completionProvider": {"triggerCharacters": ["#", "=", ":"]},
                     "hoverProvider": True,
                     "definitionProvider": True,
@@ -125,11 +166,12 @@ class LspSession:
             self.shutdown_requested = True
             return None
         if method == "textDocument/completion":
-            _, path = self._document(values)
+            uri, path = self._document(values)
             position = values.get("position")
             prefix = ""
             if isinstance(position, Mapping):
-                identifier = _identifier_at(
+                identifier = self._identifier(
+                    uri,
                     path,
                     int(position.get("line", 0)),
                     int(position.get("character", 0)),
@@ -145,11 +187,12 @@ class LspSession:
                 for item in self.service.completions(prefix)
             ]
         if method in {"textDocument/hover", "textDocument/definition", "textDocument/references"}:
-            _, path = self._document(values)
+            uri, path = self._document(values)
             position = values.get("position")
             if not isinstance(position, Mapping):
                 return None if method != "textDocument/references" else []
-            object_id = _identifier_at(
+            object_id = self._identifier(
+                uri,
                 path,
                 int(position.get("line", 0)),
                 int(position.get("character", 0)),
@@ -175,7 +218,9 @@ class LspSession:
                     for name, value in hover.derived.items():
                         lines.append(f"- `{name}`: `{value}`")
                 lines.append("")
-                lines.append(f"Relations: {hover.outgoing} outgoing, {hover.incoming} incoming")
+                lines.append(
+                    f"Relations: {hover.outgoing} outgoing, {hover.incoming} incoming"
+                )
                 return {"contents": {"kind": "markdown", "value": "\n".join(lines)}}
             if method == "textDocument/definition":
                 definition = self.service.definition(object_id)
@@ -206,7 +251,11 @@ class LspSession:
             needle = str(query).casefold() if query is not None else ""
             result = []
             for symbol in self.service.symbols():
-                if needle and needle not in symbol.object_id.casefold() and needle not in symbol.title.casefold():
+                if (
+                    needle
+                    and needle not in symbol.object_id.casefold()
+                    and needle not in symbol.title.casefold()
+                ):
                     continue
                 if symbol.location is None:
                     continue
@@ -247,7 +296,20 @@ def _write_message(stream: BinaryIO, payload: Mapping[str, object]) -> None:
     stream.flush()
 
 
-def run_stdio(root: Path, instream: BinaryIO | None = None, outstream: BinaryIO | None = None) -> int:
+def _document_uri(params: object) -> str | None:
+    if not isinstance(params, Mapping):
+        return None
+    document = params.get("textDocument")
+    if not isinstance(document, Mapping) or not isinstance(document.get("uri"), str):
+        return None
+    return str(document["uri"])
+
+
+def run_stdio(
+    root: Path,
+    instream: BinaryIO | None = None,
+    outstream: BinaryIO | None = None,
+) -> int:
     input_stream = instream or sys.stdin.buffer
     output_stream = outstream or sys.stdout.buffer
     try:
@@ -264,22 +326,56 @@ def run_stdio(root: Path, instream: BinaryIO | None = None, outstream: BinaryIO 
         params = message.get("params")
         if method == "exit":
             return 0 if session.shutdown_requested else 1
-        if method in {"textDocument/didOpen", "textDocument/didSave"}:
+        if method in {
+            "textDocument/didOpen",
+            "textDocument/didChange",
+            "textDocument/didSave",
+            "textDocument/didClose",
+        }:
+            uri = _document_uri(params)
+            if uri is None:
+                continue
             try:
-                session.reload()
-                if isinstance(params, Mapping):
-                    document = params.get("textDocument")
-                    if isinstance(document, Mapping) and isinstance(document.get("uri"), str):
-                        _write_message(
-                            output_stream,
-                            {
-                                "jsonrpc": "2.0",
-                                "method": "textDocument/publishDiagnostics",
-                                "params": session.diagnostics_for_uri(str(document["uri"])),
-                            },
-                        )
+                if method == "textDocument/didOpen":
+                    document = params.get("textDocument") if isinstance(params, Mapping) else None
+                    if isinstance(document, Mapping) and isinstance(document.get("text"), str):
+                        session.open_document(uri, str(document["text"]))
+                    else:
+                        session.reload()
+                elif method == "textDocument/didChange":
+                    changes = params.get("contentChanges") if isinstance(params, Mapping) else None
+                    if (
+                        isinstance(changes, list)
+                        and changes
+                        and isinstance(changes[-1], Mapping)
+                        and isinstance(changes[-1].get("text"), str)
+                    ):
+                        session.change_document(uri, str(changes[-1]["text"]))
+                    else:
+                        continue
+                elif method == "textDocument/didClose":
+                    session.close_document(uri)
+                else:
+                    session.reload()
+                diagnostic_payload = (
+                    {"uri": uri, "diagnostics": []}
+                    if method == "textDocument/didClose"
+                    else session.diagnostics_for_uri(uri)
+                )
+                _write_message(
+                    output_stream,
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "textDocument/publishDiagnostics",
+                        "params": diagnostic_payload,
+                    },
+                )
             except (LanguageServiceError, ValueError):
-                pass
+                # Keep the last valid semantic snapshot while an editor buffer is
+                # transiently structurally invalid. A future incremental parser
+                # can expose structural parse diagnostics without sacrificing
+                # cross-file language features from the last valid graph.
+                continue
             continue
         if not isinstance(method, str) or "id" not in message:
             continue
