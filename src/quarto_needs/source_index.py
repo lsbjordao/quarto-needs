@@ -3,6 +3,10 @@
 The index recognizes only syntactic positions where object IDs are meaningful:
 need declarations, configured relation targets in .need attributes/metadata,
 and ``need`` shortcodes. It deliberately does not replace arbitrary body text.
+
+Unlike canonical project analysis, the refactor index intentionally includes
+localized ``*.pt-BR.qmd``-style siblings. Localization remains presentation-only,
+but an ID rename must update every presentation of that canonical identity.
 """
 from __future__ import annotations
 
@@ -11,14 +15,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Mapping
 
-from .parser import (
-    ATTR_RE,
-    LIST_RE,
-    LOCALIZED_QMD_RE,
-    META_RE,
-    OPEN_RE,
-    RELATION_KEYS,
-)
+from .parser import ATTR_RE, LIST_RE, META_RE, OPEN_RE, RELATION_KEYS
 
 SHORTCODE_RE = re.compile(
     r"\{\{<\s*need\s+(?P<id>[A-Za-z0-9_.:-]+)(?:\s+[^>]*)?>\}\}"
@@ -35,21 +32,12 @@ class SourceSpan:
     kind: str  # declaration | relation | shortcode
 
 
-def _localized(path: Path) -> bool:
-    match = LOCALIZED_QMD_RE.match(path.name)
-    if match is None:
-        return False
-    return path.with_name(f"{match.group('stem')}.qmd").is_file()
-
-
 def _sources(root: Path, overlays: Mapping[str, str] | None) -> dict[str, str]:
     resolved = root.resolve()
     sources: dict[str, str] = {}
     for path in resolved.rglob("*.qmd"):
         relative = path.relative_to(resolved)
         if any(part.startswith(".") or part.startswith("_") for part in relative.parts[:-1]):
-            continue
-        if _localized(path):
             continue
         sources[relative.as_posix()] = path.read_text(encoding="utf-8")
     for name, text in (overlays or {}).items():
