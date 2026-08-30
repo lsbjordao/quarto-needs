@@ -59,6 +59,10 @@ Narrativa TC-001 também deve continuar como prosa.
 ::: {.need #FUN-002 type="functional-requirement" status="approved"}
 ## Requisito dois
 :::
+
+::: {.need #TC-001 type="test-case" status="passed"}
+## Teste localizado
+:::
 ''',
         encoding="utf-8",
     )
@@ -252,7 +256,7 @@ def test_rename_edits_canonical_localized_and_semantic_references_only(tmp_path:
         (tmp_path / "requirements.pt-BR.qmd").resolve().as_uri(),
         verification.resolve().as_uri(),
     }
-    assert sum(len(items) for items in changes.values()) == 5
+    assert sum(len(items) for items in changes.values()) == 6
     assert all(item["newText"] == "TC-RENAMED" for items in changes.values() for item in items)
 
 
