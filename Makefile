@@ -61,11 +61,12 @@ evidence-self-example:
 		tests/test_localization.py::test_localized_source_semantic_parity_rejects_model_drift \
 		tests/test_graph_semantics.py::test_public_projection_publishes_catalog_semantics \
 		tests/test_graph_semantics.py::test_named_query_is_materialized_as_reusable_graph_view \
-		tests/test_impact.py::test_editing_a_requirement_impacts_its_verification
-	PYTHONPATH=src $(VENV_PYTHON) -m quarto_needs.cli_dispatch --root examples/quarto-needs evidence attest \
+		tests/test_impact.py::test_editing_a_requirement_impacts_its_verification \
+		tests/test_graph_assets.py::test_margin_sidebar_toggle_stays_entirely_outside_page_toc
+	PYTHONPATH=src $(VENV_PYTHON) -m quarto_needs.cli_entry --root examples/quarto-needs evidence attest \
 		.quarto-needs/evidence/pytest-provider.json \
 		--output .quarto-needs/evidence/pytest.json --expires-hours 24
-	PYTHONPATH=src $(VENV_PYTHON) -m quarto_needs.cli_dispatch --root examples/quarto-needs evidence check \
+	PYTHONPATH=src $(VENV_PYTHON) -m quarto_needs.cli_entry --root examples/quarto-needs evidence check \
 		.quarto-needs/evidence/pytest.json
 
 render-self-example: evidence-self-example
