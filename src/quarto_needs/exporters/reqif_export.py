@@ -9,6 +9,8 @@ from pathlib import Path
 from ..export import _write_atomic_text
 from ..snapshot import AnalysisSnapshot, thaw_json
 
+REQIF_SPECIFICATION_VERSION = "1.2"
+REQIF_HEADER_VERSION = "1.0"
 REQIF_NS = "http://www.omg.org/spec/ReqIF/20110401/reqif.xsd"
 XSI_NS = "http://www.w3.org/2001/XMLSchema-instance"
 SCHEMA_LOCATION = f"{REQIF_NS} {REQIF_NS}"
@@ -136,7 +138,10 @@ def render(snapshot: AnalysisSnapshot) -> str:
     )
     tool = f"{snapshot.generator_name} {snapshot.generator_version}".strip()
     _add_text(header, "REQ-IF-TOOL-ID", tool or "Quarto-Needs")
-    _add_text(header, "REQ-IF-VERSION", "1.2")
+    # The ReqIF 1.2 normative XSD fixes this *document header field* to 1.0.
+    # This value is therefore intentionally distinct from the OMG specification
+    # revision implemented by this exporter (REQIF_SPECIFICATION_VERSION == 1.2).
+    _add_text(header, "REQ-IF-VERSION", REQIF_HEADER_VERSION)
     _add_text(header, "SOURCE-TOOL-ID", tool or "Quarto-Needs")
     _add_text(header, "TITLE", "Quarto-Needs engineering graph")
 
