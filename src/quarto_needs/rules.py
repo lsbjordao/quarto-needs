@@ -75,6 +75,24 @@ def _family_in(ctx: RuleContext, object_id: str, family: str) -> tuple:
     )
 
 
+def _relation_out(ctx: RuleContext, object_id: str, relation_name: str) -> tuple:
+    """Return valid authored relations leaving *object_id* with exact semantic direction."""
+    return tuple(
+        edge
+        for edge in ctx.snapshot.outgoing.get(object_id, ())
+        if edge.v1_name == relation_name and _exists(ctx, edge.target)
+    )
+
+
+def _relation_in(ctx: RuleContext, object_id: str, relation_name: str) -> tuple:
+    """Return valid authored relations entering *object_id* with exact semantic direction."""
+    return tuple(
+        edge
+        for edge in ctx.snapshot.incoming.get(object_id, ())
+        if edge.v1_name == relation_name and _exists(ctx, edge.source)
+    )
+
+
 def _required_attributes(ctx: RuleContext) -> Iterable[Finding]:
     for obj in ctx.snapshot.objects:
         for attr in ctx.config.required_attributes.get(obj.type, ()):
@@ -238,7 +256,11 @@ def _allowed_status(ctx: RuleContext) -> Iterable[Finding]:
 
 def _decision_driver(ctx: RuleContext) -> Iterable[Finding]:
     for obj in _decs(ctx):
-        if obj.status == "accepted" and not _family_out(ctx, obj.id, "decision-addressing"):
+        has_driver = (
+            _relation_out(ctx, obj.id, "addresses")
+            or _relation_in(ctx, obj.id, "addressed-by")
+        )
+        if obj.status == "accepted" and not has_driver:
             yield Finding(
                 "DEC001", RULES["DEC001"].default_severity,
                 f"{obj.id} is accepted but addresses no engineering driver", obj.id, _loc(obj)
@@ -256,7 +278,11 @@ def _decision_scope(ctx: RuleContext) -> Iterable[Finding]:
 
 def _decision_confirmation(ctx: RuleContext) -> Iterable[Finding]:
     for obj in _decs(ctx):
-        if obj.status == "accepted" and not _family_out(ctx, obj.id, "decision-confirmation"):
+        has_confirmation = (
+            _relation_out(ctx, obj.id, "confirmed-by")
+            or _relation_in(ctx, obj.id, "confirms")
+        )
+        if obj.status == "accepted" and not has_confirmation:
             yield Finding(
                 "DEC003", RULES["DEC003"].default_severity,
                 f"{obj.id} is accepted but has no confirmation relation", obj.id, _loc(obj)
@@ -265,12 +291,14 @@ def _decision_confirmation(ctx: RuleContext) -> Iterable[Finding]:
 
 def _decision_successor(ctx: RuleContext) -> Iterable[Finding]:
     for obj in _decs(ctx):
-        if obj.status == "superseded" and not (
-            _family_out(ctx, obj.id, "decision-lineage") or _family_in(ctx, obj.id, "decision-lineage")
-        ):
+        has_successor = (
+            _relation_out(ctx, obj.id, "superseded-by")
+            or _relation_in(ctx, obj.id, "supersedes")
+        )
+        if obj.status == "superseded" and not has_successor:
             yield Finding(
                 "DEC004", RULES["DEC004"].default_severity,
-                f"{obj.id} is superseded but has no decision-lineage relation", obj.id, _loc(obj)
+                f"{obj.id} is superseded but identifies no successor decision", obj.id, _loc(obj)
             )
 
 
