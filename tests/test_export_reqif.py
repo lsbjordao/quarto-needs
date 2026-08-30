@@ -42,8 +42,9 @@ def test_reqif_renders_namespace_objects_relations_and_specification(tmp_path: P
     rendered = reqif_export.render(build(tmp_path))
     root = ET.fromstring(rendered)
 
+    assert reqif_export.REQIF_SPECIFICATION_VERSION == "1.2"
     assert root.tag == f"{{{reqif_export.REQIF_NS}}}REQ-IF"
-    assert root.find(".//r:REQ-IF-VERSION", NS).text == "1.2"
+    assert root.find(".//r:REQ-IF-VERSION", NS).text == reqif_export.REQIF_HEADER_VERSION == "1.0"
     assert len(root.findall(".//r:SPEC-OBJECT", NS)) == 2
     assert len(root.findall(".//r:SPEC-RELATION", NS)) == 1
     assert len(root.findall(".//r:SPECIFICATION", NS)) == 1
