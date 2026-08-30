@@ -2,7 +2,7 @@
 
 Traceability is incomplete if requirements terminate at design. This chapter models verification as first-class engineering objects and connects successful tests to explicit evidence.
 
-The test cases below correspond to real classes of regression checks in the repository. Four representative vertical slices now carry stable `pytest-nodeid` bindings. `make evidence-self-example` executes those tests and writes a versioned machine-evidence artifact to `.quarto-needs/evidence/pytest.json` before the self-hosted book is rendered.
+The test cases below correspond to real classes of regression checks in the repository. Five representative executable bindings now cover architecture decisions, multilingual semantic parity, public graph safety, named graph views, and change impact. `make evidence-self-example` executes those tests, writes deterministic provider output, attests it against the current engineering snapshot, and validates `.quarto-needs/evidence/pytest.json` before the self-hosted book is rendered.
 
 ## Test cases
 
@@ -30,10 +30,10 @@ Run the configured rule engine and quality gates against a conforming project an
 Verify accepted-decision driver, scope, confirmation, lineage, lifecycle, and revisit-date rules.
 :::
 
-::: {.need #TC-005 type="test-case" status="passed" tags="localization;i18n;parity" evidenced-by="EVD-005"}
+::: {.need #TC-005 type="test-case" status="passed" tags="localization;i18n;parity" pytest-nodeid="tests/test_localization.py::test_localized_source_semantic_parity_rejects_model_drift" evidenced-by="EVD-005"}
 ## Localized-source semantic-parity regression
 
-Compare canonical and pt-BR declaration batches and reject any change to IDs, types, statuses, attributes, or relations.
+Compare canonical and pt-BR declaration batches and reject any change to IDs, types, statuses, attributes, or relations while allowing translated presentation text.
 :::
 
 ::: {.need #TC-006 type="test-case" status="passed" tags="graph;schema;security;limits" pytest-nodeid="tests/test_graph_semantics.py::test_public_projection_publishes_catalog_semantics" evidenced-by="EVD-006"}
@@ -107,13 +107,13 @@ Regression tests exercise structural rules, configurable governance, coverage, a
 ::: {.need #EVD-004 type="evidence" status="verified" tags="pytest;adr;decision;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
 ## ADR governance machine evidence
 
-The modeled `TC-004` is bound to a real pytest node. The self-hosted evidence target records its execution result in the versioned pytest evidence artifact.
+The modeled `TC-004` is bound to a real pytest node. The self-hosted evidence target records its execution result in the attested pytest evidence artifact.
 :::
 
-::: {.need #EVD-005 type="evidence" status="verified" tags="pytest;i18n;babelquarto"}
-## Localization parity validator and multilingual examples
+::: {.need #EVD-005 type="evidence" status="verified" tags="pytest;i18n;babelquarto;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## Localization parity machine evidence
 
-The pre-render parity validator plus paired EN/pt-BR sources demonstrate one semantic graph with translated presentation.
+The modeled `TC-005` is bound to the core localization-parity regression. It proves translated presentation text is accepted while semantic drift in IDs, types, statuses, attributes, or relations is rejected.
 :::
 
 ::: {.need #EVD-006 type="evidence" status="verified" tags="jsonschema;graph;security;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
