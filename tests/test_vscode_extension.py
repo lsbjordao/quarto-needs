@@ -42,5 +42,29 @@ def test_vscode_client_supports_multi_root_and_does_not_embed_environment_paths(
     assert "new Map<string, LanguageClient>()" in source
     assert "workspaceFolders" in source
     assert "folder.uri.fsPath" in source
+    assert "folder.index" not in source
+    assert "clientId(folder)" in source
     assert ".venv" not in source
     assert "/usr/bin" not in source
+
+
+def test_vscode_client_tracks_project_marker_creation_and_removal() -> None:
+    source = (EXTENSION / "src" / "extension.ts").read_text(encoding="utf-8")
+    assert 'createFileSystemWatcher(\n    "**/.quarto-needs.toml"' in source
+    assert "markerWatcher.onDidCreate(syncWorkspaceClients)" in source
+    assert "markerWatcher.onDidDelete(syncWorkspaceClients)" in source
+    assert "desiredProjectFolders" in source
+    assert "activeKeys" in source
+
+
+def test_vscode_client_keeps_language_intelligence_on_server_side() -> None:
+    source = (EXTENSION / "src" / "extension.ts").read_text(encoding="utf-8")
+    forbidden_implementations = (
+        "registerCompletionItemProvider",
+        "createDiagnosticCollection",
+        "registerDefinitionProvider",
+        "registerReferenceProvider",
+        "registerRenameProvider",
+        "registerHoverProvider",
+    )
+    assert all(token not in source for token in forbidden_implementations)
