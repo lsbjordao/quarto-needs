@@ -100,6 +100,17 @@ def _public_traversal_profiles() -> dict[str, list[str]]:
     }
 
 
+def _safe_public_source(raw: str) -> str | None:
+    """Return one normalized project-relative source path or deny publication."""
+    value = str(raw).replace("\\", "/").strip()
+    if not value or value.startswith("/") or re.match(r"^[A-Za-z]:/", value):
+        return None
+    parts = [part for part in value.split("/") if part not in ("", ".")]
+    if not parts or ".." in parts:
+        return None
+    return "/".join(parts)
+
+
 def _public_edge_provenance(snapshot: AnalysisSnapshot) -> dict[tuple[str, str, str], list[dict[str, object]]]:
     """Collect only safe, relative source metadata for authored relations."""
     result: dict[tuple[str, str, str], list[dict[str, object]]] = {}
@@ -107,8 +118,11 @@ def _public_edge_provenance(snapshot: AnalysisSnapshot) -> dict[tuple[str, str, 
         key = (relation.source, relation.target, relation.v1_name)
         bucket = result.setdefault(key, [])
         for location in relation.provenance:
+            source = _safe_public_source(location.file)
+            if source is None:
+                continue
             item: dict[str, object] = {
-                "file": location.file,
+                "file": source,
                 "line": location.line,
             }
             if location.anchor:
