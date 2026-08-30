@@ -170,6 +170,136 @@ def test_dispatch_delegates_raw_pytest_evidence_to_legacy_cli(tmp_path: Path, ca
     assert report["valid"] is True
 
 
+def test_attest_wraps_pytest_payload_and_result_is_checkable(tmp_path: Path, capsys) -> None:
+    source = tmp_path / "pytest-provider.json"
+    output = tmp_path / "pytest.json"
+    write_json_atomic(source, _complete_pytest_payload())
+
+    exit_code = main([
+        "--root",
+        str(EXAMPLE),
+        "evidence",
+        "attest",
+        str(source),
+        "--output",
+        str(output),
+        "--expires-hours",
+        "24",
+        "--source-revision",
+        "abc123",
+        "--format",
+        "json",
+    ])
+    report = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert report["artifactSchema"] == "evidence-pytest-v1"
+    assert report["provider"] == "pytest"
+    assert report["sourceRevision"] == "abc123"
+
+    envelope = json.loads(output.read_text(encoding="utf-8"))
+    assert envelope["kind"] == "quarto-needs-evidence"
+    assert envelope["artifact"]["schema"] == "evidence-pytest-v1"
+    assert envelope["subject"]["sourceRevision"] == "abc123"
+    assert envelope["expiresAt"]
+
+    exit_code = main([
+        "--root",
+        str(EXAMPLE),
+        "evidence",
+        "check",
+        str(output),
+        "--format",
+        "json",
+    ])
+    checked = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert checked["valid"] is True
+    assert checked["tests"] == 4
+
+
+def test_attest_wraps_generic_check_payload(tmp_path: Path, capsys) -> None:
+    source = tmp_path / "checks-provider.json"
+    output = tmp_path / "checks.json"
+    write_json_atomic(source, _generic_payload())
+
+    exit_code = main([
+        "--root",
+        str(EXAMPLE),
+        "evidence",
+        "attest",
+        str(source),
+        "--output",
+        str(output),
+        "--expires-hours",
+        "1",
+        "--format",
+        "json",
+    ])
+    report = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert report["artifactSchema"] == "evidence-checks-v1"
+
+    envelope = json.loads(output.read_text(encoding="utf-8"))
+    assert envelope["artifact"]["schema"] == "evidence-checks-v1"
+    assert envelope["artifact"]["payload"]["checks"][0]["evidenceObjects"] == ["EVD-004"]
+
+    exit_code = main([
+        "--root",
+        str(EXAMPLE),
+        "evidence",
+        "check",
+        str(output),
+        "--format",
+        "json",
+    ])
+    checked = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert checked["valid"] is True
+    assert checked["attested"] is True
+
+
+def test_attest_uses_github_sha_when_revision_is_not_explicit(tmp_path: Path, capsys, monkeypatch) -> None:
+    source = tmp_path / "checks-provider.json"
+    output = tmp_path / "checks.json"
+    write_json_atomic(source, _generic_payload())
+    monkeypatch.setenv("GITHUB_SHA", "github-sha")
+
+    assert main([
+        "--root",
+        str(EXAMPLE),
+        "evidence",
+        "attest",
+        str(source),
+        "--output",
+        str(output),
+    ]) == 0
+    capsys.readouterr()
+    envelope = json.loads(output.read_text(encoding="utf-8"))
+    assert envelope["subject"]["sourceRevision"] == "github-sha"
+
+
+def test_attest_rejects_nonpositive_expiry(tmp_path: Path, capsys) -> None:
+    source = tmp_path / "checks-provider.json"
+    output = tmp_path / "checks.json"
+    write_json_atomic(source, _generic_payload())
+
+    exit_code = main([
+        "--root",
+        str(EXAMPLE),
+        "evidence",
+        "attest",
+        str(source),
+        "--output",
+        str(output),
+        "--expires-hours",
+        "0",
+    ])
+    captured = capsys.readouterr()
+    assert exit_code == 2
+    assert "greater than zero" in captured.err
+    assert not output.exists()
+
+
 def test_dispatch_delegates_non_evidence_command(monkeypatch) -> None:
     observed: list[list[str]] = []
 
@@ -212,3 +342,11 @@ def test_dispatch_rejects_malformed_generic_shape(tmp_path: Path, capsys) -> Non
     captured = capsys.readouterr()
     assert exit_code == 2
     assert "invalid evidenceObjects" in captured.err
+
+
+def test_self_hosted_make_target_attests_provider_payload_before_check() -> None:
+    makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+    assert "pytest-provider.json" in makefile
+    assert "-m quarto_needs.cli_dispatch --root examples/quarto-needs evidence attest" in makefile
+    assert "--output .quarto-needs/evidence/pytest.json --expires-hours 24" in makefile
+    assert "-m quarto_needs.cli_dispatch --root examples/quarto-needs evidence check" in makefile
