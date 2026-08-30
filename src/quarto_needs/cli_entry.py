@@ -13,6 +13,7 @@ from pathlib import Path
 
 from .cli_dispatch import main as dispatch_main
 from .git_range_cli import git_action, run_git_action
+from .interchange_cli import interchange_action, run_interchange_export
 from .variant_cli import run_variant_action, variant_action
 
 
@@ -51,6 +52,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     if variant is not None:
         action, name = variant
         return run_variant_action(_root(values), values, action, name)
+    interchange = interchange_action(values)
+    if interchange is not None:
+        return run_interchange_export(_root(values), values, interchange)
     if _top_level_command(values) == "lsp":
         from .lsp_server import run_stdio
 
