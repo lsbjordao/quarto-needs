@@ -62,6 +62,11 @@ def test_initialize_advertises_shared_semantic_capabilities(tmp_path: Path) -> N
     session = _project(tmp_path)
     result = session.handle("initialize", {})
     capabilities = result["capabilities"]
+    assert capabilities["textDocumentSync"] == {
+        "openClose": True,
+        "change": 1,
+        "save": {"includeText": False},
+    }
     assert capabilities["completionProvider"]
     assert capabilities["hoverProvider"] is True
     assert capabilities["definitionProvider"] is True
@@ -110,6 +115,42 @@ def test_document_and_workspace_symbols(tmp_path: Path) -> None:
     workspace = session.handle("workspace/symbol", {"query": "Requirement two"})
     assert len(workspace) == 1
     assert workspace[0]["name"].startswith("FUN-002")
+
+
+def test_unsaved_change_reloads_canonical_graph_from_memory(tmp_path: Path) -> None:
+    session = _project(tmp_path)
+    requirements = tmp_path / "requirements.qmd"
+    uri = requirements.resolve().as_uri()
+    disk_text = requirements.read_text(encoding="utf-8")
+    edited = disk_text.replace("Requirement two", "Edited unsaved title").replace(
+        'status="approved"}\n## Edited unsaved title',
+        'status="approved" verified-by="TC-001"}\n## Edited unsaved title',
+    )
+    session.open_document(uri, disk_text)
+    session.change_document(uri, edited)
+
+    hover = session.service.hover("FUN-002")
+    assert hover is not None
+    assert hover.title == "Edited unsaved title"
+    assert not [
+        item
+        for item in session.service.diagnostics(file="requirements.qmd")
+        if item.code == "POLICY:APPROVED_REQUIRES_TEST" and item.object_id == "FUN-002"
+    ]
+    assert "Requirement two" in requirements.read_text(encoding="utf-8")
+
+
+def test_close_document_returns_to_saved_graph(tmp_path: Path) -> None:
+    session = _project(tmp_path)
+    requirements = tmp_path / "requirements.qmd"
+    uri = requirements.resolve().as_uri()
+    edited = requirements.read_text(encoding="utf-8").replace(
+        "Requirement two", "Unsaved title"
+    )
+    session.open_document(uri, edited)
+    assert session.service.hover("FUN-002").title == "Unsaved title"
+    session.close_document(uri)
+    assert session.service.hover("FUN-002").title == "Requirement two"
 
 
 def test_json_rpc_content_length_round_trip() -> None:
