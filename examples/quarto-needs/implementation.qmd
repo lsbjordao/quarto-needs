@@ -1,0 +1,117 @@
+# Implementation: tracing architecture into the repository
+
+Architecture components describe logical responsibility. Source modules show where that responsibility is actually implemented. Keeping those layers separate prevents a common traceability mistake: treating a Python or JavaScript file as if it were an architectural component.
+
+The `source-module` objects below point to real files in this repository. Their `implements` relations connect code back to approved engineering obligations while the existing `implemented-by` relations continue to connect requirements to logical components and interfaces.
+
+## Python semantic core
+
+::: {.need #SRC-PARSER type="source-module" status="implemented" path="src/quarto_needs/parser.py" language="Python" layer="semantic-core" tags="parser;authoring;qmd" implements="FUN-001"}
+## QMD declaration parser module
+
+Parses authored engineering declarations, source locations, attributes, rationale, and relation tokens from Quarto Markdown.
+:::
+
+::: {.need #SRC-RELATIONS type="source-module" status="implemented" path="src/quarto_needs/relations.py" language="Python" layer="semantic-core" tags="relations;semantics;graph" implements="FUN-002;NFR-005"}
+## Canonical relation catalog module
+
+Defines relation families, labels, endpoint roles, impact direction, traversal direction, and canonical traversal profiles.
+:::
+
+::: {.need #SRC-ANALYSIS type="source-module" status="implemented" path="src/quarto_needs/analysis.py" language="Python" layer="semantic-core" tags="analysis;snapshot;graph;semantics" implements="SYS-001;FUN-002;NFR-001;NFR-005"}
+## Canonical analysis module
+
+Turns declarations into the immutable engineering snapshot used by validation, queries, coverage, exports, and graph projections.
+:::
+
+::: {.need #SRC-RULES type="source-module" status="implemented" path="src/quarto_needs/rules.py" language="Python" layer="governance" tags="rules;governance;adr;risk" implements="SYS-003;SYS-004"}
+## Governance rule module
+
+Evaluates requirement, decision, risk, evidence, lifecycle, and review-date governance against the canonical snapshot.
+:::
+
+::: {.need #SRC-QUALITY type="source-module" status="implemented" path="src/quarto_needs/quality.py" language="Python" layer="governance" tags="quality;gates;coverage;ci" implements="SYS-003"}
+## Quality-gate module
+
+Builds deterministic quality reports and evaluates configured engineering gates over resolved project scopes.
+:::
+
+::: {.need #SRC-QUERIES type="source-module" status="implemented" path="src/quarto_needs/queries.py" language="Python" layer="semantic-core" tags="query;views;graph" implements="FUN-003;NFR-005"}
+## Named-query module
+
+Compiles and evaluates the bounded query language in the semantic core rather than in rendering clients.
+:::
+
+## Graph projection and exploration
+
+::: {.need #SRC-GRAPH-OUTPUT type="source-module" status="implemented" path="src/quarto_needs/graph_output.py" language="Python" layer="projection" tags="graph;projection;provenance;security" implements="SYS-006;FUN-003;FUN-008;NFR-002;NFR-004"}
+## Public graph output module
+
+Publishes bounded graph JSON, semantic relation metadata, traversal profiles, named-query views, type roles, and safe declaration provenance.
+:::
+
+::: {.need #SRC-GRAPH-PROJECTION type="source-module" status="implemented" path="src/quarto_needs/graph_projection.py" language="Python" layer="projection" tags="graph;selection;projection" implements="SYS-006;FUN-004;NFR-004"}
+## Graph selection and projection module
+
+Selects bounded graph neighborhoods and builds deterministic projections consumed by static and interactive renderers.
+:::
+
+::: {.need #SRC-GRAPH-CONTEXT type="source-module" status="implemented" path="_extensions/quarto-needs/graph-context.js" language="JavaScript" layer="presentation" tags="graph;cytoscape;traversal" implements="FUN-004"}
+## Cytoscape semantic context module
+
+Consumes published traversal direction to implement recursive parents/children, collapse state, forced root paths, and hierarchy refresh.
+:::
+
+::: {.need #SRC-GRAPH-EXPLORE type="source-module" status="implemented" path="_extensions/quarto-needs/graph-explore.js" language="JavaScript" layer="presentation" tags="graph;cytoscape;exploration;filters" implements="FUN-004"}
+## Cytoscape exploration module
+
+Provides type/status/family filters, traversal profiles, path-to-root analysis, and semantic edge inspection without redefining relation meaning.
+:::
+
+## Change analysis
+
+::: {.need #SRC-BASELINE type="source-module" status="implemented" path="src/quarto_needs/baseline.py" language="Python" layer="comparison" tags="baseline;reproducibility;change" implements="FUN-005;NFR-001"}
+## Baseline module
+
+Captures reproducible authored state, configuration fingerprint, ruleset version, and reference date for later comparison.
+:::
+
+::: {.need #SRC-DIFF type="source-module" status="implemented" path="src/quarto_needs/diff.py" language="Python" layer="comparison" tags="diff;baseline;change" implements="FUN-005"}
+## Engineering diff module
+
+Compares baseline and current states and reports field, relation, relocation, addition, and removal changes deterministically.
+:::
+
+::: {.need #SRC-IMPACT type="source-module" status="implemented" path="src/quarto_needs/impact.py" language="Python" layer="comparison" tags="impact;baseline;change;graph" implements="FUN-005"}
+## Impact traversal module
+
+Traverses the union of baseline and current graphs and returns explicit auditable impact paths rather than an opaque risk score.
+:::
+
+## Localization and staged rendering
+
+::: {.need #SRC-PRE-RENDER type="source-module" status="implemented" path="tools/quarto_needs_pre_render.py" language="Python" layer="integration" tags="localization;i18n;extension;render" implements="FUN-006;FUN-007;SYS-005"}
+## Canonical pre-render integration module
+
+Synchronizes extension assets, builds the engineering graph, checks localized semantic parity, and emits presentation-only title projections.
+:::
+
+## A requirement-to-code view
+
+The table is useful when exact paths matter; the graph is useful when the reader wants to investigate how source modules sit beside requirements, decisions, tests, and evidence.
+
+{{< need-table query="implementation-surface" columns="id;title;path;language;layer" sort="id" >}}
+
+{{< need-graph view="requirement-to-code" id="requirement-to-code-view" >}}
+
+## Four vertical slices
+
+The following four slices are intentionally reused throughout the rest of the case study.
+
+**Interactive graph exploration:** `STK-001 → SYS-006 → FUN-004 → ADR-004 → COMP-GRAPH → SRC-GRAPH-OUTPUT / SRC-GRAPH-CONTEXT / SRC-GRAPH-EXPLORE → TC-006 / TC-010 → EVD-006 / EVD-010`.
+
+**Multilingual engineering:** `STK-005 → SYS-005 → FUN-006 → ADR-005 → COMP-I18N → SRC-PRE-RENDER → TC-005 → EVD-005`.
+
+**Architecture decision management:** `STK-004 → SYS-004 → ADR-001…ADR-006 → SRC-RULES → TC-004 → EVD-004`.
+
+**Engineering change analysis:** `STK-003 → SYS-003 → FUN-005 → COMP-BASELINE → SRC-BASELINE / SRC-DIFF / SRC-IMPACT → TC-011 → EVD-011`.
