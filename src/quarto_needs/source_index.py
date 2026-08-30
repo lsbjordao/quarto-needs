@@ -15,7 +15,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Mapping
 
-from .parser import ATTR_RE, LIST_RE, META_RE, OPEN_RE, RELATION_KEYS
+from .parser import (
+    ATTR_RE,
+    LIST_RE,
+    LOCALIZED_QMD_RE,
+    META_RE,
+    OPEN_RE,
+    RELATION_KEYS,
+)
 
 SHORTCODE_RE = re.compile(
     r"\{\{<\s*need\s+(?P<id>[A-Za-z0-9_.:-]+)(?:\s+[^>]*)?>\}\}"
@@ -30,6 +37,7 @@ class SourceSpan:
     start: int
     end: int
     kind: str  # declaration | relation | shortcode
+    presentation_only: bool = False
 
 
 def _sources(root: Path, overlays: Mapping[str, str] | None) -> dict[str, str]:
@@ -47,6 +55,15 @@ def _sources(root: Path, overlays: Mapping[str, str] | None) -> dict[str, str]:
             continue
         sources[absolute.relative_to(resolved).as_posix()] = text
     return sources
+
+
+def _presentation_only(root: Path, file: str) -> bool:
+    path = root.resolve() / file
+    match = LOCALIZED_QMD_RE.match(path.name)
+    if match is None:
+        return False
+    canonical = path.with_name(f"{match.group('stem')}.qmd")
+    return canonical.is_file()
 
 
 def _value_group(match: re.Match[str]) -> tuple[str, int] | None:
@@ -71,6 +88,7 @@ def build_source_index(
 ) -> Mapping[str, tuple[SourceSpan, ...]]:
     by_id: dict[str, list[SourceSpan]] = {}
     for file, text in sorted(_sources(root, overlays).items()):
+        presentation_only = _presentation_only(root, file)
         lines = text.splitlines()
         in_need = False
         active_list_relation: str | None = None
@@ -82,7 +100,14 @@ def build_source_index(
                 object_id = opening.group("id")
                 start = line.index(f"#{object_id}") + 1
                 by_id.setdefault(object_id, []).append(
-                    SourceSpan(file, line_no, start, start + len(object_id), "declaration")
+                    SourceSpan(
+                        file,
+                        line_no,
+                        start,
+                        start + len(object_id),
+                        "declaration",
+                        presentation_only,
+                    )
                 )
                 attrs = opening.group("attrs")
                 attrs_start = opening.start("attrs")
@@ -98,7 +123,14 @@ def build_source_index(
                         value, attrs_start + local_base
                     ):
                         by_id.setdefault(target, []).append(
-                            SourceSpan(file, line_no, start_rel, end_rel, "relation")
+                            SourceSpan(
+                                file,
+                                line_no,
+                                start_rel,
+                                end_rel,
+                                "relation",
+                                presentation_only,
+                            )
                         )
             elif in_need and line.strip() == ":::":
                 in_need = False
@@ -113,7 +145,14 @@ def build_source_index(
                         base = metadata.start("value")
                         for target, start, end in _relation_tokens(value, base):
                             by_id.setdefault(target, []).append(
-                                SourceSpan(file, line_no, start, end, "relation")
+                                SourceSpan(
+                                    file,
+                                    line_no,
+                                    start,
+                                    end,
+                                    "relation",
+                                    presentation_only,
+                                )
                             )
                 elif active_list_relation is not None:
                     list_item = LIST_RE.match(line)
@@ -122,7 +161,14 @@ def build_source_index(
                         base = list_item.start("value")
                         for target, start, end in _relation_tokens(value, base):
                             by_id.setdefault(target, []).append(
-                                SourceSpan(file, line_no, start, end, "relation")
+                                SourceSpan(
+                                    file,
+                                    line_no,
+                                    start,
+                                    end,
+                                    "relation",
+                                    presentation_only,
+                                )
                             )
                     elif line.strip():
                         active_list_relation = None
@@ -136,6 +182,7 @@ def build_source_index(
                         shortcode.start("id"),
                         shortcode.end("id"),
                         "shortcode",
+                        presentation_only,
                     )
                 )
 
@@ -143,7 +190,13 @@ def build_source_index(
         object_id: tuple(
             sorted(
                 spans,
-                key=lambda item: (item.file.casefold(), item.file, item.line, item.start),
+                key=lambda item: (
+                    item.presentation_only,
+                    item.file.casefold(),
+                    item.file,
+                    item.line,
+                    item.start,
+                ),
             )
         )
         for object_id, spans in sorted(by_id.items())
