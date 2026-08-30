@@ -1,0 +1,155 @@
+from __future__ import annotations
+
+import json
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+
+import pytest
+from jsonschema import Draft202012Validator
+
+from quarto_needs.analysis import analyze_project
+from quarto_needs.config import load_config
+from quarto_needs.evidence import (
+    build_evidence_envelope,
+    build_pytest_evidence,
+    load_evidence,
+    validate_evidence_envelope,
+    write_json_atomic,
+)
+
+
+ROOT = Path(__file__).resolve().parents[1]
+EXAMPLE = ROOT / "examples" / "quarto-needs"
+SCHEMA = json.loads(
+    (ROOT / "schemas" / "evidence-envelope-v1.schema.json").read_text(encoding="utf-8")
+)
+
+
+def _snapshot():
+    config = load_config(EXAMPLE)
+    result = analyze_project(EXAMPLE, config=config)
+    assert result.snapshot is not None
+    return result.snapshot
+
+
+def _provider_payload() -> dict[str, object]:
+    return build_pytest_evidence(
+        [
+            {
+                "nodeid": "tests/test_architecture_decisions.py::test_accepted_decision_passes_decision_governance",
+                "outcome": "passed",
+                "requirements": ["SYS-004"],
+                "testCases": ["TC-004"],
+            }
+        ],
+        provider_version="8.0",
+    )
+
+
+def test_provider_neutral_envelope_is_schema_valid_and_binds_current_graph() -> None:
+    snapshot = _snapshot()
+    generated_at = datetime(2026, 8, 30, 12, 0, tzinfo=timezone.utc)
+    envelope = build_evidence_envelope(
+        _provider_payload(),
+        provider_name="pytest",
+        provider_version="8.0",
+        artifact_schema="evidence-pytest-v1",
+        snapshot=snapshot,
+        generated_at=generated_at,
+        source_revision="abc123",
+    )
+
+    Draft202012Validator(SCHEMA).validate(envelope)
+    assert envelope["generatedAt"] == "2026-08-30T12:00:00Z"
+    assert envelope["subject"] == {
+        "configurationFingerprint": snapshot.configuration_fingerprint,
+        "semanticGraphFingerprint": snapshot.semantic_graph_fingerprint,
+        "representationFingerprint": snapshot.representation_fingerprint,
+        "sourceRevision": "abc123",
+    }
+    assert validate_evidence_envelope(
+        snapshot,
+        envelope,
+        now=generated_at + timedelta(hours=2),
+        max_age_hours=4,
+        expected_source_revision="abc123",
+    ) == ()
+
+
+def test_envelope_loader_rejects_tampered_provider_payload(tmp_path: Path) -> None:
+    envelope = build_evidence_envelope(
+        _provider_payload(),
+        provider_name="pytest",
+        provider_version="8.0",
+        artifact_schema="evidence-pytest-v1",
+        snapshot=_snapshot(),
+        generated_at=datetime(2026, 8, 30, 12, 0, tzinfo=timezone.utc),
+    )
+    envelope["artifact"]["payload"]["summary"]["passed"] = 999  # type: ignore[index]
+    artifact = tmp_path / "evidence.json"
+    write_json_atomic(artifact, envelope)
+
+    with pytest.raises(ValueError, match="digest does not match"):
+        load_evidence(artifact)
+
+
+def test_envelope_validation_reports_graph_and_revision_drift() -> None:
+    snapshot = _snapshot()
+    envelope = build_evidence_envelope(
+        _provider_payload(),
+        provider_name="pytest",
+        provider_version="8.0",
+        artifact_schema="evidence-pytest-v1",
+        snapshot=snapshot,
+        generated_at=datetime(2026, 8, 30, 12, 0, tzinfo=timezone.utc),
+        source_revision="old-revision",
+    )
+    envelope["subject"]["configurationFingerprint"] = "different-config"  # type: ignore[index]
+    envelope["subject"]["semanticGraphFingerprint"] = "different-graph"  # type: ignore[index]
+    envelope["subject"]["representationFingerprint"] = "different-representation"  # type: ignore[index]
+
+    issues = validate_evidence_envelope(
+        snapshot,
+        envelope,
+        expected_source_revision="current-revision",
+    )
+    assert {issue.code for issue in issues} == {"EVD202", "EVD203", "EVD204", "EVD205"}
+
+
+def test_envelope_freshness_policy_rejects_expired_and_future_evidence() -> None:
+    snapshot = _snapshot()
+    generated_at = datetime(2026, 8, 30, 12, 0, tzinfo=timezone.utc)
+    envelope = build_evidence_envelope(
+        _provider_payload(),
+        provider_name="pytest",
+        provider_version="8.0",
+        artifact_schema="evidence-pytest-v1",
+        snapshot=snapshot,
+        generated_at=generated_at,
+    )
+
+    expired = validate_evidence_envelope(
+        snapshot,
+        envelope,
+        now=generated_at + timedelta(hours=25),
+        max_age_hours=24,
+    )
+    assert [issue.code for issue in expired] == ["EVD208"]
+
+    future = validate_evidence_envelope(
+        snapshot,
+        envelope,
+        now=generated_at - timedelta(minutes=1),
+        max_age_hours=24,
+    )
+    assert [issue.code for issue in future] == ["EVD207"]
+
+
+def test_load_evidence_remains_backward_compatible_with_raw_pytest(tmp_path: Path) -> None:
+    artifact = tmp_path / "pytest.json"
+    payload = _provider_payload()
+    write_json_atomic(artifact, payload)
+
+    envelope, loaded = load_evidence(artifact)
+    assert envelope is None
+    assert loaded == payload
