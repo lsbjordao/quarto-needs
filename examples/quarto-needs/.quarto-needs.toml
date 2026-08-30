@@ -229,6 +229,23 @@ relations = ["verified-by", "evidenced-by"]
 target-role = "evidence"
 severity = "error"
 
+[derived.verification-count]
+scope = "approved-requirements"
+operation = "relation-count"
+relation = "verified-by"
+target-role = "verification"
+
+[derived.has-evidence-path]
+scope = "approved-requirements"
+operation = "path-exists"
+relations = ["verified-by", "evidenced-by"]
+target-role = "evidence"
+
+[variants.assurance-slice]
+scope = "approved-requirements"
+relations = ["verified-by", "evidenced-by"]
+depth = 2
+
 [graph]
 max-nodes = 160
 max-edges = 500
