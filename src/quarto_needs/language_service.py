@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Mapping
+from typing import Iterable, Mapping
 
 from .analysis import analyze_project
 from .config import NeedsConfig, load_config
@@ -120,41 +120,64 @@ class LanguageService:
             )
         return tuple(values)
 
-    def completions(self, prefix: str = "") -> tuple[CompletionItem, ...]:
+    def completions(
+        self,
+        prefix: str = "",
+        *,
+        kinds: Iterable[str] | None = None,
+        object_type: str | None = None,
+    ) -> tuple[CompletionItem, ...]:
+        """Return canonical completion candidates, optionally context-filtered."""
         folded = prefix.casefold()
+        accepted = set(kinds) if kinds is not None else None
         items: list[CompletionItem] = []
-        for record in self.snapshot.objects:
-            if not folded or record.id.casefold().startswith(folded):
-                items.append(
-                    CompletionItem(
-                        record.id, "object", f"{record.type} · {record.title}"
+        if accepted is None or "object" in accepted:
+            for record in self.snapshot.objects:
+                if not folded or record.id.casefold().startswith(folded):
+                    items.append(
+                        CompletionItem(
+                            record.id, "object", f"{record.type} · {record.title}"
+                        )
+                    )
+        if accepted is None or "type" in accepted:
+            for name in sorted(
+                set(self.config.required_attributes)
+                | set(self.config.type_roles)
+                | set(self.config.allowed_statuses)
+            ):
+                if not folded or name.casefold().startswith(folded):
+                    items.append(
+                        CompletionItem(
+                            name, "type", self.config.type_roles.get(name, "")
+                        )
+                    )
+        if accepted is None or "relation" in accepted:
+            for relation in DEFAULT_RELATION_CATALOG.names:
+                if not folded or relation.casefold().startswith(folded):
+                    kind = DEFAULT_RELATION_CATALOG.resolve(relation)
+                    items.append(
+                        CompletionItem(
+                            relation,
+                            "relation",
+                            f"{kind.semantic_family}: {kind.source_role} → {kind.target_role}",
+                        )
+                    )
+        if accepted is None or "status" in accepted:
+            if object_type is not None and object_type in self.config.allowed_statuses:
+                statuses = self.config.allowed_statuses[object_type]
+            else:
+                statuses = tuple(
+                    sorted(
+                        {
+                            status
+                            for values in self.config.allowed_statuses.values()
+                            for status in values
+                        }
                     )
                 )
-        for name in sorted(
-            set(self.config.required_attributes)
-            | set(self.config.type_roles)
-            | set(self.config.allowed_statuses)
-        ):
-            if not folded or name.casefold().startswith(folded):
-                items.append(
-                    CompletionItem(name, "type", self.config.type_roles.get(name, ""))
-                )
-        for relation in DEFAULT_RELATION_CATALOG.names:
-            if not folded or relation.casefold().startswith(folded):
-                kind = DEFAULT_RELATION_CATALOG.resolve(relation)
-                items.append(
-                    CompletionItem(
-                        relation,
-                        "relation",
-                        f"{kind.semantic_family}: {kind.source_role} → {kind.target_role}",
-                    )
-                )
-        statuses = sorted(
-            {status for values in self.config.allowed_statuses.values() for status in values}
-        )
-        for status in statuses:
-            if not folded or status.casefold().startswith(folded):
-                items.append(CompletionItem(status, "status"))
+            for status in statuses:
+                if not folded or status.casefold().startswith(folded):
+                    items.append(CompletionItem(status, "status"))
         items.sort(key=lambda item: (item.label.casefold(), item.label, item.kind))
         return tuple(items)
 
