@@ -9,7 +9,13 @@ from typing import cast
 import quarto_needs
 
 from . import fingerprints
-from .config import NeedsConfig, embedded_defaults, load_config, reference_date
+from .config import (
+    ConfigurationError,
+    NeedsConfig,
+    embedded_defaults,
+    load_config,
+    reference_date,
+)
 from .diagnostics import Finding
 from .model import EngineeringObject, Relation, SourceLocation
 from .parser import parse_project_declarations
@@ -266,6 +272,47 @@ def _records(
     return objects, tuple(sorted(relations, key=relation_key))
 
 
+def _materialize_safe_projections(
+    draft: AnalysisSnapshot,
+    config: NeedsConfig,
+) -> AnalysisSnapshot:
+    if not config.derived_sources and not config.variant_sources:
+        return draft
+
+    from .derived import (
+        DerivedError,
+        compile_derived_fields,
+        compile_variants,
+        materialize_derived,
+        materialize_variants,
+    )
+
+    try:
+        derived_specs = compile_derived_fields(config.derived_sources)
+        variant_specs = compile_variants(config.variant_sources)
+        derived = materialize_derived(derived_specs, draft, config)
+        variants = materialize_variants(variant_specs, draft, config)
+    except DerivedError as error:
+        raise ConfigurationError(str(error)) from error
+
+    semantic = fingerprints.semantic_graph_fingerprint(
+        draft.objects,
+        draft.relations,
+        draft.configuration_fingerprint,
+        derived,
+    )
+    variant_fp = (
+        fingerprints.variant_fingerprint(variants, semantic) if variants else ""
+    )
+    return replace(
+        draft,
+        derived=derived,
+        variants=variants,
+        semantic_graph_fingerprint=semantic,
+        variant_fingerprint=variant_fp,
+    )
+
+
 def _analyze_batch(
     batch: DeclarationBatch,
     reported_findings: Iterable[Finding] | None = None,
@@ -325,6 +372,7 @@ def _analyze_batch(
         ),
         representation_fingerprint=fingerprints.representation_fingerprint(relations),
     )
+    draft = _materialize_safe_projections(draft, effective_config)
     rule_findings = run_rules(draft, effective_config)
     snapshot = (
         replace(draft, findings=_merge_findings(findings, rule_findings))
