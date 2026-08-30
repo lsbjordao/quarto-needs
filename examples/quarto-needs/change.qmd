@@ -1,0 +1,99 @@
+# Change: from version history to engineering impact
+
+Requirements engineering does not end when the first coherent graph is approved. The difficult question is what a change means for the rest of the system. Quarto-Needs therefore treats comparison as an engineering workflow rather than a textual Git diff.
+
+## The change-analysis slice
+
+This capability already has a complete traceability chain in the self-hosted model:
+
+```text
+STK-003  Teams need reproducible governance in Git and CI
+   ↓ derives-from
+SYS-003  Provide deterministic validation and quality gates
+   ↓
+FUN-005  Compare engineering states through baseline, diff, and impact
+   ↓ implemented-by
+COMP-BASELINE
+   ↓ implementation surface
+SRC-BASELINE   src/quarto_needs/baseline.py
+SRC-DIFF       src/quarto_needs/diff.py
+SRC-IMPACT     src/quarto_needs/impact.py
+   ↓ verification
+TC-011  Baseline, diff, and impact regression
+   ↓ evidenced-by
+EVD-011 Baseline and impact comparison suite
+```
+
+{{< need-graph view="change-analysis" id="change-analysis-view" >}}
+
+## Step 1 — establish a baseline
+
+A baseline is more than a copy of `needs.json`. It carries the authored engineering state together with the comparison axes needed for reproducibility, including configuration fingerprint, ruleset version, and reference date.
+
+For this example, a reader can create a baseline from the repository root with:
+
+```bash
+PYTHONPATH=src .venv/bin/python -m quarto_needs.cli \
+  --root examples/quarto-needs baseline create --force
+```
+
+The resulting artifact records the state against which later changes can be interpreted.
+
+## Step 2 — make an engineering change
+
+Consider a plausible evolution: graph exploration must preserve a shareable exploration state. That change would not begin in JavaScript. It would first alter or introduce an engineering obligation related to `FUN-004`, then potentially affect `ADR-004`, the graph projection contract, browser modules, tests, and evidence.
+
+The important distinction is:
+
+```text
+Git asks:          Which lines changed?
+Quarto-Needs asks: Which engineering objects changed, and what do those
+                   changes reach through typed semantic relations?
+```
+
+## Step 3 — inspect the structured diff
+
+After changing the model, run:
+
+```bash
+PYTHONPATH=src .venv/bin/python -m quarto_needs.cli \
+  --root examples/quarto-needs diff examples/quarto-needs/baselines/quarto-needs.json
+```
+
+The comparison can distinguish additions, removals, relocation, authored field changes, and relation changes. Those categories are more useful for engineering review than an undifferentiated text patch.
+
+## Step 4 — inspect impact paths
+
+Impact analysis then traverses the **union of the baseline and current graphs**. This matters because a removed node or relation must remain explainable during review.
+
+```bash
+PYTHONPATH=src .venv/bin/python -m quarto_needs.cli \
+  --root examples/quarto-needs impact examples/quarto-needs/baselines/quarto-needs.json
+```
+
+The result is deliberately expressed as paths rather than a synthetic risk score. A reviewer can therefore see *why* an object is considered affected.
+
+For example, a change around interactive graph exploration could conceptually produce a path such as:
+
+```text
+FUN-004
+  → ADR-004
+  → COMP-GRAPH
+  → TC-010
+  → EVD-010
+```
+
+The exact path is resolved from the graph rather than hard-coded into this document.
+
+## Review questions
+
+A useful change review should be able to answer:
+
+- Which stakeholder concern still motivates the changed requirement?
+- Which ADRs are now candidates for reconsideration?
+- Which logical components and source modules implement the affected obligation?
+- Which verification cases need to be rerun or changed?
+- Which evidence is now stale or must be regenerated?
+- Does the change cross a safety, localization, or governance boundary?
+
+This is the point at which requirements-as-code becomes more than storing requirements in Git: the versioned graph itself participates in engineering reasoning.
