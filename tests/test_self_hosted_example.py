@@ -12,11 +12,14 @@ ROOT = Path(__file__).resolve().parents[1]
 EXAMPLE = ROOT / "examples" / "quarto-needs"
 CHAPTERS = (
     "index",
+    "context",
     "drivers",
     "requirements",
     "architecture",
+    "implementation",
     "verification",
     "traceability",
+    "change",
 )
 
 
@@ -42,7 +45,7 @@ def test_self_hosted_example_is_a_valid_engineering_graph() -> None:
 
     assert result.snapshot is not None
     assert result.findings == ()
-    assert len(result.snapshot.objects) == 72
+    assert len(result.snapshot.objects) == 86
 
     ids = {item.id for item in result.snapshot.objects}
     assert {
@@ -53,6 +56,9 @@ def test_self_hosted_example_is_a_valid_engineering_graph() -> None:
         "ADR-001",
         "COMP-GRAPH",
         "IF-003",
+        "SRC-GRAPH-OUTPUT",
+        "SRC-GRAPH-EXPLORE",
+        "SRC-IMPACT",
         "RISK-001",
         "TC-010",
         "EVD-010",
@@ -106,3 +112,32 @@ def test_self_hosted_model_contains_complete_requirement_to_evidence_chains() ->
         for edge in verification:
             test_outgoing = snapshot.outgoing.get(edge.target, ())
             assert any(item.semantic_family == "evidence" for item in test_outgoing), edge.target
+
+
+def test_self_hosted_source_modules_point_to_real_repository_files() -> None:
+    result = analyze_project(EXAMPLE, config=load_config(EXAMPLE))
+    assert result.snapshot is not None
+    snapshot = result.snapshot
+
+    modules = [item for item in snapshot.objects if item.type == "source-module"]
+    assert len(modules) == 14
+
+    for module in modules:
+        path = str(module.attributes["path"])
+        assert (ROOT / path).is_file(), f"missing source path for {module.id}: {path}"
+        outgoing = snapshot.outgoing.get(module.id, ())
+        assert any(edge.semantic_family == "implementation" for edge in outgoing), module.id
+
+
+def test_self_hosted_model_exposes_pedagogical_queries() -> None:
+    config = load_config(EXAMPLE)
+    assert {
+        "graph-exploration",
+        "architecture-decisions",
+        "verification-assets",
+        "implementation-surface",
+        "requirement-to-code",
+        "localization-path",
+        "adr-path",
+        "change-analysis",
+    } <= set(config.named_query_sources)
