@@ -2,7 +2,7 @@
 
 A rastreabilidade fica incompleta quando os requisitos terminam no design. Este capítulo modela verificação como objetos de engenharia de primeira classe e conecta testes bem-sucedidos a evidências explícitas.
 
-Os casos de teste abaixo correspondem a classes reais de verificações de regressão do repositório. Cinco vínculos executáveis representativos agora cobrem decisões de arquitetura, paridade semântica multilíngue, segurança do grafo público, views nomeadas e impacto de mudanças. `make evidence-self-example` executa esses testes, grava a saída determinística do provider, atesta essa saída contra o snapshot de engenharia atual e valida `.quarto-needs/evidence/pytest.json` antes da renderização do livro autocontido.
+Os casos de teste abaixo correspondem a classes reais de verificações de regressão do repositório. Seis vínculos executáveis representativos agora cobrem decisões de arquitetura, paridade semântica multilíngue, segurança do grafo público, views nomeadas, impacto de mudanças e usabilidade do índice lateral. `make evidence-self-example` executa esses testes, grava a saída determinística do provider, atesta essa saída contra o snapshot de engenharia atual e valida `.quarto-needs/evidence/pytest.json` antes da renderização do livro autocontido.
 
 ## Casos de teste
 
@@ -84,6 +84,12 @@ Sincronizar a extensão canônica em um projeto de exemplo e verificar que asset
 Repetir entradas de análise e renderização e verificar saídas de engenharia estáveis em bytes ou fingerprints onde o contrato exige determinismo.
 :::
 
+::: {.need #TC-014 type="test-case" status="passed" tags="quarto;toc;sidebar;usability;progressive-enhancement" pytest-nodeid="tests/test_graph_assets.py::test_margin_sidebar_toggle_stays_entirely_outside_page_toc" evidenced-by="EVD-014"}
+## Regressão de posicionamento do controle do índice lateral
+
+Verificar persistência do estado recolhido, comportamento temporário de `fullcontent` e o contrato explícito de posicionamento que mantém o controle expandido inteiramente fora do índice da página, com espaçamento de 8 px.
+:::
+
 ## Evidências
 
 ::: {.need #EVD-001 type="evidence" status="verified" tags="pytest;snapshot;analysis"}
@@ -162,6 +168,12 @@ O `TC-011` modelado está vinculado à regressão executável de impacto que mod
 ## Suíte de regressão de determinismo e fingerprint
 
 Testes de análise repetida e fixtures canônicas demonstram fingerprints estáveis e saída em bytes onde exigido.
+:::
+
+::: {.need #EVD-014 type="evidence" status="verified" tags="pytest;quarto;toc;sidebar;usability;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## Evidência de máquina da usabilidade do índice lateral
+
+O `TC-014` modelado está vinculado à regressão que protege o comportamento persistente de recolhimento e o contrato de posicionamento sem sobreposição introduzido pela correção histórica de `margin-sidebar.js`.
 :::
 
 ## Visualizações de verificação
