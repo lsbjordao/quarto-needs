@@ -8,12 +8,15 @@ import pytest
 from jsonschema import Draft202012Validator
 
 from quarto_needs.analysis import analyze_project
+from quarto_needs.cli import main
 from quarto_needs.config import load_config
 from quarto_needs.evidence import (
     build_evidence_envelope,
     build_pytest_evidence,
     load_evidence,
+    load_pytest_evidence,
     validate_evidence_envelope,
+    validate_pytest_evidence,
     write_json_atomic,
 )
 
@@ -41,6 +44,38 @@ def _provider_payload() -> dict[str, object]:
                 "requirements": ["SYS-004"],
                 "testCases": ["TC-004"],
             }
+        ],
+        provider_version="8.0",
+    )
+
+
+def _complete_provider_payload() -> dict[str, object]:
+    return build_pytest_evidence(
+        [
+            {
+                "nodeid": "tests/test_architecture_decisions.py::test_accepted_decision_passes_decision_governance",
+                "outcome": "passed",
+                "requirements": ["SYS-004"],
+                "testCases": ["TC-004"],
+            },
+            {
+                "nodeid": "tests/test_graph_semantics.py::test_public_projection_publishes_catalog_semantics",
+                "outcome": "passed",
+                "requirements": ["SYS-006", "FUN-008", "NFR-002", "NFR-004"],
+                "testCases": ["TC-006"],
+            },
+            {
+                "nodeid": "tests/test_graph_semantics.py::test_named_query_is_materialized_as_reusable_graph_view",
+                "outcome": "passed",
+                "requirements": ["FUN-003"],
+                "testCases": ["TC-009"],
+            },
+            {
+                "nodeid": "tests/test_impact.py::test_editing_a_requirement_impacts_its_verification",
+                "outcome": "passed",
+                "requirements": ["FUN-005"],
+                "testCases": ["TC-011"],
+            },
         ],
         provider_version="8.0",
     )
@@ -145,6 +180,26 @@ def test_envelope_freshness_policy_rejects_expired_and_future_evidence() -> None
     assert [issue.code for issue in future] == ["EVD207"]
 
 
+def test_explicit_expiry_is_enforced_without_cli_policy() -> None:
+    snapshot = _snapshot()
+    generated_at = datetime(2020, 1, 1, 12, 0, tzinfo=timezone.utc)
+    envelope = build_evidence_envelope(
+        _provider_payload(),
+        provider_name="pytest",
+        provider_version="8.0",
+        artifact_schema="evidence-pytest-v1",
+        snapshot=snapshot,
+        generated_at=generated_at,
+        expires_at=generated_at + timedelta(hours=1),
+    )
+    issues = validate_evidence_envelope(
+        snapshot,
+        envelope,
+        now=generated_at + timedelta(hours=2),
+    )
+    assert [issue.code for issue in issues] == ["EVD210"]
+
+
 def test_load_evidence_remains_backward_compatible_with_raw_pytest(tmp_path: Path) -> None:
     artifact = tmp_path / "pytest.json"
     payload = _provider_payload()
@@ -153,3 +208,50 @@ def test_load_evidence_remains_backward_compatible_with_raw_pytest(tmp_path: Pat
     envelope, loaded = load_evidence(artifact)
     assert envelope is None
     assert loaded == payload
+
+
+def test_existing_pytest_loader_and_validator_accept_attested_payload(tmp_path: Path) -> None:
+    snapshot = _snapshot()
+    envelope = build_evidence_envelope(
+        _complete_provider_payload(),
+        provider_name="pytest",
+        provider_version="8.0",
+        artifact_schema="evidence-pytest-v1",
+        snapshot=snapshot,
+        generated_at=datetime.now(timezone.utc) - timedelta(minutes=1),
+        expires_at=datetime.now(timezone.utc) + timedelta(hours=1),
+    )
+    artifact = tmp_path / "attested-pytest.json"
+    write_json_atomic(artifact, envelope)
+
+    loaded = load_pytest_evidence(artifact)
+    assert validate_pytest_evidence(snapshot, loaded) == ()
+
+
+def test_existing_evidence_check_reports_expired_attestation(tmp_path: Path, capsys) -> None:
+    generated_at = datetime(2020, 1, 1, 12, 0, tzinfo=timezone.utc)
+    envelope = build_evidence_envelope(
+        _complete_provider_payload(),
+        provider_name="pytest",
+        provider_version="8.0",
+        artifact_schema="evidence-pytest-v1",
+        snapshot=_snapshot(),
+        generated_at=generated_at,
+        expires_at=generated_at + timedelta(hours=1),
+    )
+    artifact = tmp_path / "expired.json"
+    write_json_atomic(artifact, envelope)
+
+    exit_code = main([
+        "--root",
+        str(EXAMPLE),
+        "evidence",
+        "check",
+        str(artifact),
+        "--format",
+        "json",
+    ])
+    report = json.loads(capsys.readouterr().out)
+    assert exit_code == 1
+    assert report["valid"] is False
+    assert any(issue["code"] == "EVD210" for issue in report["issues"])
