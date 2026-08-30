@@ -11,7 +11,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Mapping
 
-from .parser import ATTR_RE, LOCALIZED_QMD_RE, META_RE, OPEN_RE, RELATION_KEYS
+from .parser import (
+    ATTR_RE,
+    LIST_RE,
+    LOCALIZED_QMD_RE,
+    META_RE,
+    OPEN_RE,
+    RELATION_KEYS,
+)
 
 SHORTCODE_RE = re.compile(
     r"\{\{<\s*need\s+(?P<id>[A-Za-z0-9_.:-]+)(?:\s+[^>]*)?>\}\}"
@@ -78,10 +85,12 @@ def build_source_index(
     for file, text in sorted(_sources(root, overlays).items()):
         lines = text.splitlines()
         in_need = False
+        active_list_relation: str | None = None
         for line_no, line in enumerate(lines):
             opening = OPEN_RE.match(line)
             if opening is not None:
                 in_need = True
+                active_list_relation = None
                 object_id = opening.group("id")
                 start = line.index(f"#{object_id}") + 1
                 by_id.setdefault(object_id, []).append(
@@ -105,20 +114,30 @@ def build_source_index(
                         )
             elif in_need and line.strip() == ":::":
                 in_need = False
+                active_list_relation = None
             elif in_need:
                 metadata = META_RE.match(line)
-                if metadata is not None and metadata.group("key") in RELATION_KEYS:
+                if metadata is not None:
+                    key = metadata.group("key")
                     value = metadata.group("value")
-                    base = metadata.start("value")
-                    for target, start, end in _relation_tokens(value, base):
-                        by_id.setdefault(target, []).append(
-                            SourceSpan(file, line_no, start, end, "relation")
-                        )
-                elif line.lstrip().startswith("-"):
-                    # List relation targets are indexed only when the preceding
-                    # metadata relation is explicit. Handling that state is kept
-                    # conservative here; scalar/list-on-one-line is always exact.
-                    pass
+                    active_list_relation = key if key in RELATION_KEYS and not value.strip() else None
+                    if key in RELATION_KEYS and value.strip():
+                        base = metadata.start("value")
+                        for target, start, end in _relation_tokens(value, base):
+                            by_id.setdefault(target, []).append(
+                                SourceSpan(file, line_no, start, end, "relation")
+                            )
+                elif active_list_relation is not None:
+                    list_item = LIST_RE.match(line)
+                    if list_item is not None:
+                        value = list_item.group("value")
+                        base = list_item.start("value")
+                        for target, start, end in _relation_tokens(value, base):
+                            by_id.setdefault(target, []).append(
+                                SourceSpan(file, line_no, start, end, "relation")
+                            )
+                    elif line.strip():
+                        active_list_relation = None
 
             for shortcode in SHORTCODE_RE.finditer(line):
                 object_id = shortcode.group("id")
