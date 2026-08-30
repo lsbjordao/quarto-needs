@@ -1,4 +1,4 @@
-"""CLI projection for deterministic Git-range diff and impact analysis."""
+"""CLI projection for deterministic Git-range change intelligence."""
 from __future__ import annotations
 
 import json
@@ -8,6 +8,7 @@ from pathlib import Path
 
 from . import diff as diff_module
 from . import impact as impact_module
+from . import suspect as suspect_module
 from .git_range import GitRangeError, GitRangeStates, materialize_git_range
 from .quality import profile_exit_code
 
@@ -34,10 +35,14 @@ def _recompute(argv: Sequence[str]) -> bool:
 
 
 def git_action(argv: Sequence[str]) -> tuple[str, str] | None:
-    """Return (diff|impact, range) only for the new ``--git`` form."""
+    """Return a Git-native change command and its two-dot range."""
     values = list(argv)
     command_index = next(
-        (index for index, value in enumerate(values) if value in {"diff", "impact"}),
+        (
+            index
+            for index, value in enumerate(values)
+            if value in {"diff", "impact", "suspect"}
+        ),
         None,
     )
     if command_index is None:
@@ -73,8 +78,6 @@ def _print_git_header(states: GitRangeStates) -> None:
 
 
 def _print_diff_text(report) -> None:
-    # Kept in this projection rather than reaching into cli.py's private helper;
-    # both functions present the same canonical DiffReport.
     for notice in report.notices:
         print(
             f"[notice] {notice}: derived deltas suppressed; both sides must share "
@@ -161,6 +164,33 @@ def _run_impact(states: GitRangeStates, argv: Sequence[str]) -> int:
     return 0
 
 
+def _run_suspect(states: GitRangeStates, argv: Sequence[str]) -> int:
+    try:
+        report = suspect_module.analyze(
+            states.base_baseline,
+            states.head_snapshot,
+            states.head_config,
+            recompute=_recompute(argv),
+        )
+    except impact_module.ImpactError as error:
+        print(str(error), file=sys.stderr)
+        return 2
+    if _format(argv) == "json":
+        print(json.dumps(_json_report(states, report.to_dict()), indent=2, sort_keys=True))
+        return 0
+    _print_git_header(states)
+    if not report.claims:
+        print("No suspect traceability claims.")
+        return 0
+    for claim in report.claims:
+        role = f" role={claim['role']}" if claim.get("role") else ""
+        print(
+            f"suspect {claim['id']}{role} from {claim['origin']} "
+            f"d={claim['distance']} via {claim['witness']}"
+        )
+    return 0
+
+
 def run_git_action(project_root: Path, argv: Sequence[str], command: str, range_spec: str) -> int:
     try:
         states = materialize_git_range(project_root, range_spec)
@@ -171,4 +201,6 @@ def run_git_action(project_root: Path, argv: Sequence[str], command: str, range_
         return _run_diff(states, argv)
     if command == "impact":
         return _run_impact(states, argv)
+    if command == "suspect":
+        return _run_suspect(states, argv)
     return 2
