@@ -3,6 +3,8 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+from reqif.parser import ReqIFParser
+
 from quarto_needs.analysis import analyze_project
 from quarto_needs.config import load_config
 from quarto_needs.exporters import reqif_export
@@ -85,3 +87,17 @@ def test_reqif_write_uses_atomic_export_path(tmp_path: Path) -> None:
 
     assert written == destination
     assert destination.read_text(encoding="utf-8").startswith("<?xml version=")
+
+
+def test_reqif_is_accepted_by_independent_parser(tmp_path: Path) -> None:
+    """Cross the first interoperability boundary without making that parser runtime authority."""
+    write_project(tmp_path)
+    destination = tmp_path / "requirements.reqif"
+    reqif_export.write(destination, build(tmp_path))
+
+    bundle = ReqIFParser.parse(str(destination))
+    specifications = bundle.core_content.req_if_content.specifications
+
+    assert len(specifications) == 1
+    assert specifications[0].long_name == "Quarto-Needs Engineering Graph"
+    assert list(bundle.iterate_specification_hierarchy(specifications[0]))
