@@ -1,4 +1,4 @@
-.PHONY: setup setup-babelquarto test scan check coverage example preview-example sync-example check-example render-example render-example-all render-example-multilingual render-manual-multilingual baseline-example diff-example impact-example check-install
+.PHONY: setup setup-babelquarto test scan check coverage example preview-example sync-example check-example render-example render-example-all render-example-multilingual render-manual-multilingual preview-self-example sync-self-example check-self-example render-self-example baseline-example diff-example impact-example check-install
 .DEFAULT_GOAL := test
 
 VENV_PYTHON := .venv/bin/python
@@ -43,6 +43,19 @@ render-example:
 render-example-multilingual:
 	Rscript tools/render_multilingual.R examples/book
 	$(VENV_PYTHON) tools/normalize_multilingual_output.py examples/book/_book --locale pt-BR
+
+preview-self-example: render-self-example
+	cd examples/quarto-needs/_book && python3 -m http.server 8001
+
+sync-self-example:
+	cd examples/quarto-needs && ../../$(VENV_PYTHON) ../../tools/quarto_needs_pre_render.py
+
+check-self-example:
+	PYTHONPATH=src $(VENV_PYTHON) -m quarto_needs.cli --root examples/quarto-needs check
+
+render-self-example:
+	Rscript tools/render_multilingual.R examples/quarto-needs
+	$(VENV_PYTHON) tools/normalize_multilingual_output.py examples/quarto-needs/_book --locale pt-BR
 
 render-manual-multilingual:
 	Rscript tools/render_multilingual.R docs/manual
