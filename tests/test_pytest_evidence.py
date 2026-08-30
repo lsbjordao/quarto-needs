@@ -124,6 +124,7 @@ def _self_hosted_records() -> list[dict[str, object]]:
         {"nodeid": "tests/test_graph_semantics.py::test_public_projection_publishes_catalog_semantics", "outcome": "passed", "requirements": ["SYS-006", "FUN-008", "NFR-002", "NFR-004"], "testCases": ["TC-006"]},
         {"nodeid": "tests/test_graph_semantics.py::test_named_query_is_materialized_as_reusable_graph_view", "outcome": "passed", "requirements": ["FUN-003"], "testCases": ["TC-009"]},
         {"nodeid": "tests/test_impact.py::test_editing_a_requirement_impacts_its_verification", "outcome": "passed", "requirements": ["FUN-005"], "testCases": ["TC-011"]},
+        {"nodeid": "tests/test_localization.py::test_localized_source_semantic_parity_rejects_model_drift", "outcome": "passed", "requirements": ["FUN-006"], "testCases": ["TC-005"]},
     ]
 
 
@@ -142,7 +143,8 @@ def test_machine_evidence_reports_model_disagreement() -> None:
 
 
 def test_machine_evidence_reports_missing_modeled_binding() -> None:
-    payload = build_pytest_evidence(_self_hosted_records()[:-1], provider_version="8.0")
+    records = [record for record in _self_hosted_records() if record["testCases"] != ["TC-011"]]
+    payload = build_pytest_evidence(records, provider_version="8.0")
     issues = validate_pytest_evidence(_self_hosted_snapshot(), payload)
     missing = [issue for issue in issues if issue.code == "EVD108"]
     assert [(issue.object_id, issue.nodeid) for issue in missing] == [
@@ -177,4 +179,4 @@ def test_evidence_check_cli_validates_against_current_graph(tmp_path: Path, caps
     assert exit_code == 0
     assert report["valid"] is True
     assert report["issues"] == []
-    assert report["tests"] == 4
+    assert report["tests"] == 5
