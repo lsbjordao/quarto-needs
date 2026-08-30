@@ -12,7 +12,7 @@ from typing import Mapping
 from .diagnostics import Finding
 from .queries import query_ids
 from .relations import DEFAULT_RELATION_CATALOG
-from .snapshot import AnalysisSnapshot
+from .snapshot import AnalysisSnapshot, RelationRecord
 
 
 class PolicyError(ValueError):
@@ -123,7 +123,48 @@ def _target_role(config: object, snapshot: AnalysisSnapshot, target: str) -> str
     if record is None:
         return None
     roles: Mapping[str, str] = getattr(config, "type_roles", {}) or {}
-    return roles.get(record.type)
+    configured = roles.get(record.type)
+    if configured is not None:
+        return configured
+    if record.type.endswith("requirement"):
+        return "requirement"
+    if record.type == "test-case":
+        return "verification"
+    if record.type == "evidence":
+        return "evidence"
+    if record.type == "architecture-decision":
+        return "decision"
+    if record.type in {"component", "interface"}:
+        return "architecture-element"
+    if record.type == "source-module":
+        return "implementation-artifact"
+    return None
+
+
+def _relation_view(
+    snapshot: AnalysisSnapshot,
+    object_id: str,
+    relation_name: str,
+) -> tuple[tuple[RelationRecord, str], ...]:
+    """Return semantic targets as seen from *object_id* for a relation view.
+
+    The requested authoring name is interpreted through the canonical relation
+    catalog. If its inverse exists, inverse-authored edges are projected into
+    the same logical source→target view. No relation map is maintained here.
+    """
+    try:
+        inverse = DEFAULT_RELATION_CATALOG.inverse_v1_name(relation_name)
+    except ValueError as error:
+        raise PolicyError(str(error)) from error
+    matches: list[tuple[RelationRecord, str]] = []
+    for relation in snapshot.outgoing.get(object_id, ()):
+        if relation.v1_name == relation_name and relation.target in snapshot.objects_by_id:
+            matches.append((relation, relation.target))
+    if inverse is not None:
+        for relation in snapshot.incoming.get(object_id, ()):
+            if relation.v1_name == inverse and relation.source in snapshot.objects_by_id:
+                matches.append((relation, relation.source))
+    return tuple(matches)
 
 
 def evaluate_policy(
@@ -141,15 +182,12 @@ def evaluate_policy(
         source = snapshot.objects_by_id.get(object_id)
         if source is None:
             continue
-        matches = []
-        for relation in snapshot.outgoing.get(object_id, ()):
-            if relation.v1_name != spec.assert_relation:
-                continue
-            if relation.target not in snapshot.objects_by_id:
-                continue
-            if spec.target_role is not None and _target_role(config, snapshot, relation.target) != spec.target_role:
-                continue
-            matches.append(relation)
+        matches = [
+            (relation, target)
+            for relation, target in _relation_view(snapshot, object_id, spec.assert_relation)
+            if spec.target_role is None
+            or _target_role(config, snapshot, target) == spec.target_role
+        ]
         if len(matches) >= spec.minimum:
             continue
         role_text = f" to role {spec.target_role}" if spec.target_role else ""
