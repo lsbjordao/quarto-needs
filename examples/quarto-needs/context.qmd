@@ -41,6 +41,6 @@ The external tools also have deliberately narrow roles. **Git** versions text an
 
 The stakeholder needs in the next chapter are therefore not abstract personas. They arise from concrete tensions at this boundary: humans need readable documents while automation needs formal semantics; multilingual readers need translated presentation while the engineering graph must remain singular; interactive exploration needs rich metadata while public projections must remain bounded and safe.
 
-The first derivation layer can be explored directly below.
+The first derivation layer can be explored directly below. The view starts at the stakeholder need and follows the catalog's semantic traversal direction toward requirements; the stored `derives-from` relation itself points in the opposite direction, from the derived requirement to its source need.
 
-{{< need-graph root="STK-001" depth="3" id="system-context-derivation" >}}
+{{< need-graph root="STK-001" depth="3" id="system-context-derivation" projection="need-graph-1" >}}
