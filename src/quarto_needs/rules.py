@@ -388,7 +388,7 @@ RULES = {spec.code: spec for spec in (
     RuleSpec("DEC005", "Decision supersession cycle", "Supersession lineage must remain acyclic.", "error", supported_severities=("error",), evaluator=_decision_cycle),
     RuleSpec("DEC006", "Accepted decision overdue for review", "Accepted decisions with revisit-after dates should be reviewed when due.", "warning", evaluator=_decision_revisit),
 )}
-RULE_SET_VERSION = "3"
+RULE_SET_VERSION = "4"
 
 for _spec in RULES.values():
     if _spec.evaluator is None and _spec.code not in LEGACY_CODES:
@@ -431,6 +431,15 @@ def run_rules(snapshot: AnalysisSnapshot, config: NeedsConfig) -> tuple[Finding,
             continue
         assert spec.evaluator is not None
         findings.extend(replace(finding, severity=severity) for finding in spec.evaluator(ctx))
+
+    if config.policy_sources:
+        from .policy import PolicyError, compile_policies, evaluate_policies
+
+        try:
+            policies = compile_policies(config.policy_sources)
+            findings.extend(evaluate_policies(policies, snapshot, config))
+        except PolicyError as error:
+            raise ConfigurationError(str(error)) from error
     return tuple(findings)
 
 
