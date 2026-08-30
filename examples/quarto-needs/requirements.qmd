@@ -91,7 +91,7 @@ The HTML extension shall provide an optional persistent control that collapses a
 
 ### Rationale
 
-A collapsible margin TOC is only useful if the control itself does not interfere with the navigation surface it manages.
+A collapsible margin TOC is only useful if the control itself does not interfere with the navigation surface it manages. Its positioning is therefore treated as engineering behavior with an executable regression contract, not as incidental decorative styling.
 :::
 
 ## Non-functional requirements
