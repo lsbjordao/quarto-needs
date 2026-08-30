@@ -44,4 +44,4 @@ The table below is generated from the same engineering graph used by the rest of
 
 The graph is progressively enhanced: the static representation remains available, while the HTML view adds semantic traversal, filtering, root paths, edge inspection, collapse/expand, and fixed spacing.
 
-{{< need-graph id="quarto-needs-overview" >}}
+{{< need-graph id="quarto-needs-overview" projection="need-graph-1" >}}
