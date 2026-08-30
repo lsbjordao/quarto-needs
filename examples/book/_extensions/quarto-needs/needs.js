@@ -85,5 +85,92 @@
     });
   }
 
-  document.addEventListener("DOMContentLoaded", () => document.querySelectorAll("[data-need-table]").forEach(enhance));
+  function rgb(value) {
+    const match = String(value || "").match(/rgba?\(\s*([\d.]+)[, ]+\s*([\d.]+)[, ]+\s*([\d.]+)/i);
+    return match ? [Number(match[1]), Number(match[2]), Number(match[3])] : null;
+  }
+
+  function graphSurfaceIsDark(canvas) {
+    const sample = rgb(getComputedStyle(canvas).backgroundColor);
+    if (!sample) return document.documentElement.getAttribute("data-bs-theme") === "dark";
+    const linear = (value) => {
+      const channel = value / 255;
+      return channel <= 0.04045 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4);
+    };
+    const luminance = 0.2126 * linear(sample[0]) + 0.7152 * linear(sample[1]) + 0.0722 * linear(sample[2]);
+    return luminance < 0.35;
+  }
+
+  function applyGraphTheme(canvas) {
+    const cy = canvas.__quartoNeedsCy;
+    if (!cy || typeof cy.style !== "function") return false;
+    const dark = graphSurfaceIsDark(canvas);
+    const edge = dark ? "#b8c2cc" : "#64748b";
+    const label = dark ? "#f1f5f9" : "#1f2937";
+    const labelBackground = dark ? "#212529" : "#ffffff";
+    cy.style()
+      .selector("node")
+      .style({ color: label })
+      .selector("edge")
+      .style({
+        "line-color": edge,
+        "target-arrow-color": edge,
+        color: label,
+        "text-background-color": labelBackground,
+        "text-background-opacity": dark ? 0.88 : 0.72,
+      })
+      .selector("edge[pathMember = 'true']")
+      .style({
+        "line-color": dark ? "#f59e0b" : "#b45309",
+        "target-arrow-color": dark ? "#f59e0b" : "#b45309",
+        width: 3,
+      })
+      .update();
+    return true;
+  }
+
+  function refreshGraphThemes(attempt = 0) {
+    let pending = false;
+    document.querySelectorAll("[data-need-graph-canvas]").forEach((canvas) => {
+      if (!applyGraphTheme(canvas)) pending = true;
+    });
+    if (pending && attempt < 12) {
+      setTimeout(() => refreshGraphThemes(attempt + 1), 50 * (attempt + 1));
+    }
+  }
+
+  function scheduleGraphThemeRefresh() {
+    requestAnimationFrame(() => requestAnimationFrame(() => refreshGraphThemes()));
+  }
+
+  function installGraphThemeSync() {
+    refreshGraphThemes();
+    const observer = new MutationObserver(scheduleGraphThemeRefresh);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class", "style", "data-bs-theme"],
+    });
+    if (document.body) {
+      observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ["class", "style", "data-bs-theme"],
+      });
+    }
+    document.addEventListener("click", (event) => {
+      if (event.target && event.target.closest && event.target.closest(".quarto-color-scheme-toggle")) {
+        setTimeout(scheduleGraphThemeRefresh, 0);
+        setTimeout(scheduleGraphThemeRefresh, 120);
+      }
+    }, true);
+    document.addEventListener("quarto:themeChanged", scheduleGraphThemeRefresh);
+    const media = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)");
+    if (media && typeof media.addEventListener === "function") {
+      media.addEventListener("change", scheduleGraphThemeRefresh);
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll("[data-need-table]").forEach(enhance);
+    installGraphThemeSync();
+  });
 })();
