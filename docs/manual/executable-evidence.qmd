@@ -42,7 +42,7 @@ Writing an artifact is opt-in. Ordinary pytest runs have no Quarto-Needs file si
 
 ```bash
 pytest \
-  --quarto-needs-evidence=.quarto-needs/evidence/pytest.json
+  --quarto-needs-evidence=.quarto-needs/evidence/pytest-provider.json
 ```
 
 The same destination can be supplied with `QUARTO_NEEDS_PYTEST_EVIDENCE`.
@@ -71,6 +71,17 @@ Timestamps and durations are intentionally excluded from the provider payload so
 ## Provider-neutral attestation envelope
 
 Execution provenance belongs to a separate provider-neutral envelope defined by `schemas/evidence-envelope-v1.schema.json`. This preserves deterministic provider output while binding that output to a concrete engineering state.
+
+Create an attestation from a provider payload with:
+
+```bash
+quarto-needs --root . evidence attest \
+  .quarto-needs/evidence/pytest-provider.json \
+  --output .quarto-needs/evidence/pytest.json \
+  --expires-hours 24
+```
+
+`--source-revision` may be supplied explicitly. In GitHub Actions, `GITHUB_SHA` is captured automatically when no explicit revision is provided.
 
 An envelope records:
 
@@ -105,13 +116,13 @@ Conceptually:
 }
 ```
 
-The envelope is intentionally provider-neutral. Pytest is the first executable provider, but the same attestation contract is designed to wrap JUnit XML normalization, coverage results, Quarto render checks, JSON Schema validation, and lint/type-check providers without changing the canonical engineering graph.
+The envelope is intentionally provider-neutral. Pytest is the first executable provider, while `evidence-checks-v1` provides a common deterministic payload for JUnit XML, coverage.py, Quarto render, JSON Schema validation, lint, and type-check adapters.
 
 The payload digest is checked before semantic validation. A modified payload therefore cannot keep using an old attestation silently.
 
 ## Validate evidence against the current model
 
-Generation is only half of the contract. Validate either a raw pytest artifact or an attested pytest envelope against the canonical engineering graph:
+Generation is only half of the contract. Validate either a raw provider artifact or an attested envelope against the canonical engineering graph:
 
 ```bash
 quarto-needs evidence check .quarto-needs/evidence/pytest.json
@@ -125,9 +136,9 @@ quarto-needs evidence check \
   --format json
 ```
 
-The existing command remains backward compatible with raw `evidence-pytest-v1`. When the artifact is an attestation envelope, the same command additionally checks its provenance against the current snapshot.
+The command remains backward compatible with raw `evidence-pytest-v1`. It also understands raw/attested `evidence-checks-v1`. When an attestation is supplied, provenance is validated against the current snapshot.
 
-The semantic check verifies that:
+The pytest semantic check verifies that:
 
 - every executable test passed;
 - every evidence entry is bound to a modeled test-case;
@@ -145,14 +156,14 @@ For attested evidence it also verifies that:
 - the representation fingerprint still matches;
 - `generatedAt` is a valid, non-future timestamp;
 - an explicit `expiresAt`, when present, has not expired and does not precede `generatedAt`;
-- an expected source revision, when supplied by a caller, agrees with the attested revision.
+- when `GITHUB_SHA` is available, an attested `sourceRevision` agrees with the current CI revision.
 
 A successful artifact therefore supports the chain in both directions and ties the executable result to the graph state it was meant to prove:
 
 ```text
 requirement --verified-by--> modeled test-case
                               │
-                              │ pytest-nodeid
+                              │ execution binding
                               ▼
                          executable provider
                               │
@@ -195,20 +206,25 @@ Provider-neutral attestation diagnostics use `EVD2xx`:
 | `EVD210` | evidence has expired |
 | `EVD211` | `expiresAt` precedes `generatedAt` |
 
+Generic machine-check validation uses `EVD3xx`; see [Machine evidence providers](evidence-providers.qmd).
+
 `EVD107` and `EVD109` form the reciprocal traceability gate: together they require agreement between executable markers and the model's verification relations rather than accepting either source as authoritative on its own.
 
 Malformed, unsupported, or digest-invalid evidence artifacts are usage/artifact errors and exit with code `2`. I/O failures exit `3`. A structurally readable artifact that disagrees with the engineering model or whose attestation is stale exits `1`.
 
 ## Self-hosted example
 
-The self-hosted Quarto-Needs case study exercises executable evidence directly:
+The self-hosted Quarto-Needs case study exercises the complete flow directly:
 
 ```bash
 make evidence-self-example
 ```
 
-That target executes representative real tests for ADR governance, public graph safety, named graph views, and impact analysis; writes `examples/quarto-needs/.quarto-needs/evidence/pytest.json`; and then runs `quarto-needs evidence check` against the self-hosted engineering graph.
+That target:
 
-The raw pytest payload remains supported during the transition to attested self-hosted evidence. The provider-neutral envelope is the target contract for new machine-evidence providers and for freshness-sensitive CI usage.
+1. executes representative real tests for ADR governance, public graph safety, named graph views, and impact analysis;
+2. writes the deterministic provider artifact to `examples/quarto-needs/.quarto-needs/evidence/pytest-provider.json`;
+3. creates a 24-hour attestation at `examples/quarto-needs/.quarto-needs/evidence/pytest.json`, including `GITHUB_SHA` automatically in CI;
+4. validates the attestation against the current self-hosted engineering graph.
 
-`make render-self-example` depends on the evidence target, so the example cannot render successfully with inconsistent executable bindings.
+`make render-self-example` depends on this target, so the example cannot render successfully with stale fingerprints, an expired attestation, a mismatched CI revision, or inconsistent executable bindings.
