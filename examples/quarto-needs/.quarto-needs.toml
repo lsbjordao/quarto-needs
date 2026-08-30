@@ -51,6 +51,22 @@ role = "implementation-artifact"
 allowed-statuses = ["implemented", "deprecated"]
 required-attributes = ["path", "language", "layer", "tags"]
 
+[types.source-module.attribute-schema]
+type = "object"
+required = ["path", "language", "layer", "tags"]
+
+[types.source-module.attribute-schema.properties.path]
+type = "string"
+minLength = 1
+
+[types.source-module.attribute-schema.properties.language]
+type = "string"
+minLength = 1
+
+[types.source-module.attribute-schema.properties.layer]
+type = "string"
+minLength = 1
+
 [types.risk]
 id-prefix = "RISK-"
 role = "risk"
