@@ -70,6 +70,8 @@ def test_no_change_produces_no_impact(tmp_path: Path) -> None:
     assert report.impacted == ()
 
 
+@pytest.mark.requirement("FUN-005")
+@pytest.mark.quarto_need_test_case("TC-011")
 def test_editing_a_requirement_impacts_its_verification(tmp_path: Path) -> None:
     write(tmp_path)
     before = baseline_of(tmp_path)
