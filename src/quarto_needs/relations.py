@@ -52,6 +52,29 @@ class RelationCatalog:
         except KeyError as error:
             raise ValueError(f"Unknown relation type: {authored_name}") from error
 
+    def inverse_v1_name(self, authored_name: str) -> str | None:
+        """Return the canonical inverse authoring relation when one exists.
+
+        Inverse lookup is derived from the catalog's published direct/inverse
+        labels rather than from a second hand-maintained relation table. Aliases
+        that collapse to the same v1 name are deduplicated.
+        """
+        kind = self.resolve(authored_name)
+        candidates = {
+            entry.v1_name
+            for entry in self.entries.values()
+            if entry.direct_label == kind.inverse_label
+            and entry.inverse_label == kind.direct_label
+        }
+        if not candidates:
+            return None
+        if len(candidates) > 1:
+            raise ValueError(
+                f"Ambiguous inverse relation for {authored_name}: "
+                f"{', '.join(sorted(candidates))}"
+            )
+        return next(iter(candidates))
+
 
 DEFAULT_RELATION_CATALOG = RelationCatalog.create(
     "3",
