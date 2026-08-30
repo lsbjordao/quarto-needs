@@ -1,0 +1,253 @@
+# Arquitetura: onde requisitos se tornam design
+
+Requisitos descrevem obrigações; a arquitetura explica como o produto é organizado para satisfazê-las. O Quarto-Needs mantém essas preocupações distintas e as conecta explicitamente.
+
+## Componentes
+
+::: {.need #COMP-PARSER type="component" status="implemented" tags="python;parser;authoring"}
+## Parser de declarações
+
+Lê declarações em QMD e produz lotes estruturados de declarações com localização de origem.
+:::
+
+::: {.need #COMP-ANALYSIS type="component" status="implemented" tags="python;semantics;graph"}
+## Núcleo de análise semântica
+
+Constrói o grafo canônico de engenharia, resolve a semântica das relações e produz snapshots imutáveis de análise.
+:::
+
+::: {.need #COMP-RULES type="component" status="implemented" tags="python;governance;validation"}
+## Motor de regras de governança
+
+Avalia governança estrutural, de requisitos, decisões, riscos e evidências contra o snapshot canônico.
+:::
+
+::: {.need #COMP-CLI type="component" status="implemented" tags="python;cli;ci"}
+## Interface de linha de comando
+
+Expõe scan, check, coverage, baseline, diff, impact e outros fluxos de engenharia para execução local e em CI.
+:::
+
+::: {.need #COMP-EXTENSION type="component" status="implemented" tags="quarto;lua;documentation"}
+## Extensão de apresentação Quarto
+
+Transforma o modelo de engenharia resolvido em cartões, tabelas, matrizes, dashboards, inspetores, diagramas e visualizações HTML progressivas.
+:::
+
+::: {.need #COMP-GRAPH type="component" status="implemented" tags="graph;cytoscape;projection"}
+## Subsistema de projeção e exploração do grafo
+
+Publica projeções públicas e limitadas do grafo e as aprimora com exploração semântica baseada em Cytoscape.
+:::
+
+::: {.need #COMP-BASELINE type="component" status="implemented" tags="baseline;diff;impact"}
+## Subsistema de baseline e comparação
+
+Captura estados reproduzíveis de engenharia e calcula mudanças estruturadas e caminhos de impacto entre estados.
+:::
+
+::: {.need #COMP-I18N type="component" status="implemented" tags="localization;i18n;babelquarto"}
+## Subsistema de projeção de localização
+
+Valida fontes traduzidas contra o grafo canônico de engenharia e emite projeções localizadas apenas para apresentação.
+:::
+
+## Interfaces
+
+::: {.need #IF-001 type="interface" status="implemented" tags="qmd;authoring;source"}
+## Interface de declaração de engenharia em QMD
+
+O contrato voltado ao autor para declarar objetos e relações de engenharia tipados em Quarto Markdown comum.
+:::
+
+::: {.need #IF-002 type="interface" status="implemented" tags="json;snapshot;machine-readable"}
+## Snapshot canônico de engenharia
+
+A representação legível por máquina consumida por governança, visualizações geradas, fluxos de comparação e integrações.
+:::
+
+::: {.need #IF-003 type="interface" status="implemented" tags="json;graph;projection"}
+## Contrato de projeção pública do grafo
+
+Um contrato JSON limitado contendo campos aprovados de nós/arestas, semântica de relações, perfis de travessia, papéis de tipos e proveniência segura.
+:::
+
+::: {.need #IF-004 type="interface" status="implemented" tags="cli;automation;ci"}
+## Interface de automação via CLI
+
+A superfície estável de comandos usada por desenvolvedores e automações para invocar análise de engenharia.
+:::
+
+## Riscos de engenharia
+
+::: {.need #RISK-001 type="risk" status="approved" priority="critical" tags="semantics;drift;architecture"}
+## O significado semântico diverge entre núcleo e camadas de apresentação
+
+Semântica de relações duplicada pode fazer Python, Lua e JavaScript discordarem sobre o mesmo grafo de engenharia.
+:::
+
+::: {.need #RISK-002 type="risk" status="approved" priority="critical" tags="privacy;security;projection"}
+## Documentação pública vaza informações internas de origem
+
+Projeções de grafo ou diagnósticos podem expor acidentalmente caminhos absolutos, atributos arbitrários ou conteúdo interno das fontes.
+:::
+
+::: {.need #RISK-003 type="risk" status="approved" priority="medium" tags="graph;performance;usability"}
+## Projeções grandes demais sobrecarregam a documentação interativa
+
+Projeções sem limite podem ficar lentas, visualmente ilegíveis e inadequadas à revisão.
+:::
+
+::: {.need #RISK-004 type="risk" status="approved" priority="high" tags="localization;semantics;drift"}
+## Traduções criam um modelo de engenharia concorrente
+
+Arquivos localizados podem divergir silenciosamente de IDs, metadados e relações canônicos se a paridade semântica não for imposta.
+:::
+
+## Decisões de arquitetura
+
+::: {.need #ADR-001 type="architecture-decision" status="accepted" date="2026-08-29" revisit-after="2027-08-29" decision-makers="Quarto-Needs maintainers" tags="python;semantics;architecture" addresses="SYS-001;SYS-003;NFR-005;RISK-001" applies-to="COMP-ANALYSIS;IF-002" confirmed-by="TC-001;TC-008"}
+## Manter Python como autoridade semântica
+
+### Contexto e Problema
+
+O produto possui um núcleo de análise em Python, filtros de renderização em Lua e interação em JavaScript. Se cada camada definir significado de engenharia de forma independente, visualizações equivalentes podem divergir.
+
+### Drivers da Decisão
+
+- uma única fonte de semântica de engenharia;
+- análise determinística;
+- testabilidade fora do navegador;
+- camadas de apresentação substituíveis.
+
+### Opções Consideradas
+
+- duplicar mapas de relações em cada cliente;
+- resolver semântica em Lua durante a renderização;
+- resolver a semântica uma vez em Python e publicar projeções semânticas.
+
+### Resultado da Decisão
+
+Python é dono da semântica de engenharia. Lua e JavaScript consomem metadados de relações e outras projeções semânticas emitidas pelo núcleo.
+
+### Consequências
+
+Os contratos de projeção pública se tornam mais importantes, mas clientes de apresentação ficam mais simples e não podem redefinir silenciosamente o significado de engenharia.
+
+### Confirmação
+
+`TC-001` confirma o snapshot canônico e `TC-008` confirma a semântica do catálogo de relações.
+:::
+
+::: {.need #ADR-002 type="architecture-decision" status="accepted" date="2026-08-29" revisit-after="2027-08-29" decision-makers="Quarto-Needs maintainers" tags="quarto;documentation;architecture" addresses="SYS-002;NFR-003" applies-to="COMP-EXTENSION;IF-001" confirmed-by="TC-002"}
+## Usar Quarto como interface de documentação executável
+
+### Contexto e Problema
+
+O modelo de engenharia precisa combinar estrutura formal e explicação humana de alta qualidade.
+
+### Drivers da Decisão
+
+- fluxos baseados em texto e Git;
+- documentação publicável;
+- narrativa em Markdown;
+- visualizações geradas por extensão.
+
+### Resultado da Decisão
+
+Usar documentos Quarto como interface de autoria e publicação, mantendo a semântica de engenharia no núcleo Python.
+
+### Consequências
+
+O produto permanece compatível com fluxos comuns de documentação e pode aprimorar HTML progressivamente sem transformar HTML em fonte da verdade.
+
+### Confirmação
+
+`TC-002` renderiza o livro e verifica o caminho de apresentação estática/progressiva.
+:::
+
+::: {.need #ADR-003 type="architecture-decision" status="accepted" date="2026-08-29" revisit-after="2027-08-29" decision-makers="Quarto-Needs maintainers" tags="graph;model;traceability" addresses="SYS-001;FUN-002" applies-to="COMP-ANALYSIS;IF-002" confirmed-by="TC-008"}
+## Modelar rastreabilidade como um grafo de propriedades tipado
+
+### Contexto e Problema
+
+Requisitos, decisões, riscos, implementação, testes e evidências precisam de um modelo comum de relações sem perder seus significados distintos.
+
+### Resultado da Decisão
+
+Representar objetos de engenharia como nós tipados e relações de engenharia como arestas tipadas com famílias semânticas e direções canônicas.
+
+### Consequências
+
+Rastreabilidade, análise de impacto, consultas e visualizações geradas podem operar sobre um único modelo enquanto os papéis dos objetos continuam explícitos.
+
+### Confirmação
+
+`TC-008` verifica o catálogo de relações e a projeção semântica canônica.
+:::
+
+::: {.need #ADR-004 type="architecture-decision" status="accepted" date="2026-08-29" revisit-after="2027-08-29" decision-makers="Quarto-Needs maintainers" tags="graph;progressive-enhancement;accessibility" addresses="SYS-006;NFR-003;FUN-004" applies-to="COMP-GRAPH;COMP-EXTENSION;IF-003" confirmed-by="TC-006;TC-010"}
+## Derivar grafos estáticos e interativos da mesma projeção
+
+### Contexto e Problema
+
+Caminhos separados de geração do grafo podem fazer a representação estática acessível e a visualização interativa em Cytoscape discordarem.
+
+### Resultado da Decisão
+
+Gerar uma única projeção pública e limitada e derivar dela o diagrama/tabela estáticos e a exploração interativa.
+
+### Consequências
+
+O schema público do grafo se torna um contrato estável e recursos interativos devem funcionar como aprimoramento progressivo sobre ele.
+
+### Confirmação
+
+`TC-006` valida o contrato da projeção pública e `TC-010` verifica os assets de exploração.
+:::
+
+::: {.need #ADR-005 type="architecture-decision" status="accepted" date="2026-08-29" revisit-after="2027-08-29" decision-makers="Quarto-Needs maintainers" tags="localization;i18n;semantics" addresses="SYS-005;FUN-006;RISK-004" applies-to="COMP-I18N" confirmed-by="TC-005"}
+## Manter inglês como canônico e localização apenas como apresentação
+
+### Contexto e Problema
+
+Um livro multilíngue não deve criar dois grafos de engenharia capazes de evoluir independentemente.
+
+### Resultado da Decisão
+
+Arquivos QMD em inglês são fontes canônicas de engenharia; irmãos `*.pt-BR.qmd` podem traduzir apenas texto de apresentação. A validação de pre-render rejeita diferenças semânticas.
+
+### Consequências
+
+Traduções continuam úteis aos leitores enquanto governança, baselines, análise de impacto e exports legíveis por máquina permanecem neutros ao idioma.
+
+### Confirmação
+
+`TC-005` verifica a paridade semântica e a geração da projeção localizada de títulos.
+:::
+
+::: {.need #ADR-006 type="architecture-decision" status="accepted" date="2026-08-29" revisit-after="2027-08-29" decision-makers="Quarto-Needs maintainers" tags="query;graph;views" addresses="FUN-003" applies-to="COMP-ANALYSIS;COMP-GRAPH" confirmed-by="TC-009"}
+## Avaliar consultas nomeadas no núcleo e materializar visões reutilizáveis
+
+### Contexto e Problema
+
+Reimplementar a semântica de consultas em Lua criaria outra autoridade semântica e dificultaria a reprodução das visualizações de grafo.
+
+### Resultado da Decisão
+
+Consultas nomeadas são avaliadas pelo núcleo Python. Seus conjuntos de resultados podem ser materializados como visões de grafo limitadas e consumidos por shortcodes por meio de um manifesto de views.
+
+### Consequências
+
+A seleção permanece determinística e reutilizável entre tabelas e grafos; camadas de apresentação apenas solicitam uma visão já resolvida.
+
+### Confirmação
+
+`TC-009` verifica a materialização de grafos por consultas nomeadas e a resolução pelo manifesto.
+:::
+
+## Visualizações geradas de arquitetura
+
+{{< need-table query="architecture-decisions" columns="id;title;status" sort="id" >}}
+
+{{< need-graph view="architecture-decisions" id="decision-view" >}}
