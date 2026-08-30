@@ -14,7 +14,9 @@ local function graph_view_projection(name)
   if name=="" then return nil,nil end
   local path=pandoc.path.join({project_dir(),".quarto-needs","graphs","views.json"}); local file=io.open(path,"rb"); if not file then return nil,L("Graph view manifest not found: ","Manifesto de visões do grafo não encontrado: ")..path end
   local raw=file:read("*a"); file:close(); local ok,payload=pcall(pandoc.json.decode,raw); if not ok or type(payload)~="table" or type(payload.queries)~="table" then return nil,L("Graph view manifest is invalid.","O manifesto de visões do grafo é inválido.") end
-  local projection=payload.queries[name]; if not projection then return nil,L("Unknown graph view/query: ","Visão/consulta de grafo desconhecida: ")..name end; return pandoc.utils.stringify(projection),nil
+  local projection=payload.queries[name]; if projection then return pandoc.utils.stringify(projection),nil end
+  local unavailable=type(payload.unavailable)=="table" and payload.unavailable[name] or nil; if unavailable then return nil,L("Graph view unavailable: ","Visão de grafo indisponível: ")..pandoc.utils.stringify(unavailable) end
+  return nil,L("Unknown graph view/query: ","Visão/consulta de grafo desconhecida: ")..name
 end
 local function render_need_graph(args,kwargs)
   local query=views.kwarg(kwargs,"query"); local named_view=views.kwarg(kwargs,"view"); if query~="" and named_view~="" and query~=named_view then return views.warning(L("need-graph query and view disagree.","query e view de need-graph são diferentes.")) end

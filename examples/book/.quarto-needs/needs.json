@@ -795,7 +795,7 @@
           "targetRole": "test"
         }
       },
-      "relationCatalogVersion": "2",
+      "relationCatalogVersion": "3",
       "report": {
         "configurationPresent": true,
         "findings": {
@@ -870,7 +870,7 @@
           "version": "0.1.0"
         },
         "profile": "strict",
-        "referenceDate": "2026-08-28",
+        "referenceDate": "2026-08-29",
         "schemaVersion": "1",
         "scopes": {
           "accepted-decisions": {

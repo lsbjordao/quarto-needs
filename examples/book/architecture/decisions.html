@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.26">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>6&nbsp; Architecture decisions – Aegis IAM — traceable requirements</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../architecture/components.html" rel="next">
+<link href="../requirements/non-functional.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-70a47bd5681a7291082a5b9f83d58762.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="../site_libs/quarto-contrib/quarto-needs-0.1.5/needs.js"></script>
+<script src="../site_libs/quarto-contrib/quarto-needs-0.1.5/cytoscape.min.js"></script>
+<script src="../site_libs/quarto-contrib/quarto-needs-0.1.5/graph-context.js"></script>
+<script src="../site_libs/quarto-contrib/quarto-needs-0.1.5/graph.js"></script>
+<script src="../site_libs/quarto-contrib/quarto-needs-0.1.5/graph-explore.js"></script>
+<link href="../site_libs/quarto-contrib/quarto-needs-0.1.5/needs.css" rel="stylesheet">
+<link href="../site_libs/quarto-contrib/quarto-needs-0.1.5/graph.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../language-switch.css">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Aegis IAM — traceable requirements</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../architecture/decisions.html">Architecture</a></li><li class="breadcrumb-item"><a href="../architecture/decisions.html"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Architecture decisions</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Aegis IAM</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../context/stakeholders.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Stakeholders and needs</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Requirements</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../requirements/system.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">System requirements</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../requirements/functional.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Functional requirements</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../requirements/non-functional.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Non-functional requirements</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Architecture</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../architecture/decisions.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Architecture decisions</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../architecture/components.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Components and interfaces</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../risks/security.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Risks and threats</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../verification/test-cases.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Test cases</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../verification/evidence.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Verification evidence</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../traceability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Traceability flow</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../matrices.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Verification matrix</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../governance.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Governance</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../diagrams.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Architecture diagrams</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../shortcodes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Shortcode gallery</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#lifecycle-and-lineage" id="toc-lifecycle-and-lineage" class="nav-link active" data-scroll-target="#lifecycle-and-lineage"><span class="header-section-number">6.4</span> Lifecycle and lineage</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../architecture/decisions.html">Architecture</a></li><li class="breadcrumb-item"><a href="../architecture/decisions.html"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Architecture decisions</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Architecture decisions</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Architecture decisions are first-class engineering objects. They record <strong>why</strong> a choice was made, which drivers motivated it, where it applies, and how its conformance continues to be confirmed. This treatment follows established architecture practice in which decisions, rationale, and consequences are maintained as explicit engineering knowledge <span class="citation" data-cites="bass2021software">(<a href="#ref-bass2021software" role="doc-biblioref">Bass, Clements, and Kazman 2021</a>)</span>, while the document structure remains compatible with lightweight ADR conventions such as MADR <span class="citation" data-cites="madr2025">(<a href="#ref-madr2025" role="doc-biblioref">MADR Project 2025</a>)</span>.</p>
+<p>The canonical type is <code>architecture-decision</code>; <code>ADR</code> is only the identification convention. A decision does not implement a requirement: it <code>addresses</code> it and <code>applies-to</code> architecture elements.</p>
+<div id="ADR-001" class="need-card need-type-architecture-decision">
+<section class="level2 need-heading need-header" data-number="6.1">
+<h2 class="need-heading anchored" data-number="6.1" data-anchor-id=""><span class="header-section-number">6.1</span> <span class="need-id">ADR-001</span> · <span class="need-title">Adopt open protocols for federation and provisioning</span></h2>
+<div class="need-header-badges">
+<span class="need-badge need-type need-type-architecture-decision">architecture-decision</span> <span class="need-badge need-status need-status-accepted">accepted</span> <span class="need-badge need-date need-date-2026-08-28">2026-08-28</span>
+</div>
+</section>
+<section id="ADR-001-context-and-problem-statement" class="level3" data-number="6.1.1">
+<h3 data-number="6.1.1" class="anchored" data-anchor-id="ADR-001-context-and-problem-statement"><span class="header-section-number">6.1.1</span> Context and Problem Statement</h3>
+<p>Consuming applications need to integrate authentication and provisioning without depending on proprietary APIs.</p>
+</section>
+<section id="ADR-001-decision-drivers" class="level3" data-number="6.1.2">
+<h3 data-number="6.1.2" class="anchored" data-anchor-id="ADR-001-decision-drivers"><span class="header-section-number">6.1.2</span> Decision Drivers</h3>
+<ul>
+<li>interoperability across applications;</li>
+<li>reduced coupling;</li>
+<li>support from mature libraries;</li>
+<li>easier auditing and vendor replacement.</li>
+</ul>
+</section>
+<section id="ADR-001-considered-options" class="level3" data-number="6.1.3">
+<h3 data-number="6.1.3" class="anchored" data-anchor-id="ADR-001-considered-options"><span class="header-section-number">6.1.3</span> Considered Options</h3>
+<ul>
+<li>proprietary APIs;</li>
+<li>direct integration with the identity database;</li>
+<li>OpenID Connect for federation and SCIM for provisioning.</li>
+</ul>
+</section>
+<section id="ADR-001-decision-outcome" class="level3" data-number="6.1.4">
+<h3 data-number="6.1.4" class="anchored" data-anchor-id="ADR-001-decision-outcome"><span class="header-section-number">6.1.4</span> Decision Outcome</h3>
+<p>Adopt OpenID Connect for federation and SCIM for provisioning.</p>
+</section>
+<section id="ADR-001-consequences" class="level3" data-number="6.1.5">
+<h3 data-number="6.1.5" class="anchored" data-anchor-id="ADR-001-consequences"><span class="header-section-number">6.1.5</span> Consequences</h3>
+<p>The architecture now depends on public, versioned protocol contracts, while reducing coupling between IAM and consuming applications.</p>
+</section>
+<section id="ADR-001-confirmation" class="level3" data-number="6.1.6">
+<h3 data-number="6.1.6" class="anchored" data-anchor-id="ADR-001-confirmation"><span class="header-section-number">6.1.6</span> Confirmation</h3>
+<p>OIDC interoperability is confirmed by <code>TC-017</code>; interface contracts are maintained in <code>IF-001</code> and <code>IF-002</code>.</p>
+<div class="need-relations">
+<div class="need-relations-title">
+<strong>Need relations</strong>
+</div>
+<div class="need-relation-groups">
+<dl>
+<dt>Addresses</dt>
+<dd>
+<a href="../requirements/system.html#SYS-006">SYS-006</a> — Expose standardized identity integration
+</dd>
+<dt>Applies to</dt>
+<dd>
+<a href="components.html#IF-001">IF-001</a> — OpenID Connect API
+</dd>
+<dd>
+<a href="components.html#IF-002">IF-002</a> — SCIM provisioning API
+</dd>
+<dt>Confirmed by</dt>
+<dd>
+<a href="../verification/test-cases.html#TC-017">TC-017</a> — OpenID Connect federation
+</dd>
+</dl>
+</div>
+</div>
+</section>
+</div>
+<div id="ADR-002" class="need-card need-type-architecture-decision">
+<section class="level2 need-heading need-header" data-number="6.2">
+<h2 class="need-heading anchored" data-number="6.2" data-anchor-id=""><span class="header-section-number">6.2</span> <span class="need-id">ADR-002</span> · <span class="need-title">Centralize authorization in a policy engine</span></h2>
+<div class="need-header-badges">
+<span class="need-badge need-type need-type-architecture-decision">architecture-decision</span> <span class="need-badge need-status need-status-accepted">accepted</span> <span class="need-badge need-date need-date-2026-08-28">2026-08-28</span>
+</div>
+</section>
+<section id="ADR-002-context-and-problem-statement-1" class="level3" data-number="6.2.1">
+<h3 data-number="6.2.1" class="anchored" data-anchor-id="ADR-002-context-and-problem-statement-1"><span class="header-section-number">6.2.1</span> Context and Problem Statement</h3>
+<p>Policies implemented separately by each application diverge, hinder auditing, and increase the risk of excessive privilege.</p>
+</section>
+<section id="ADR-002-decision-drivers-1" class="level3" data-number="6.2.2">
+<h3 data-number="6.2.2" class="anchored" data-anchor-id="ADR-002-decision-drivers-1"><span class="header-section-number">6.2.2</span> Decision Drivers</h3>
+<ul>
+<li>consistency of access decisions;</li>
+<li>least privilege by default;</li>
+<li>explainability;</li>
+<li>verifiable performance.</li>
+</ul>
+</section>
+<section id="ADR-002-considered-options-1" class="level3" data-number="6.2.3">
+<h3 data-number="6.2.3" class="anchored" data-anchor-id="ADR-002-considered-options-1"><span class="header-section-number">6.2.3</span> Considered Options</h3>
+<ul>
+<li>authorization embedded in each application;</li>
+<li>distributed rules in shared libraries;</li>
+<li>a central policy engine with attribute-based evaluation.</li>
+</ul>
+</section>
+<section id="ADR-002-decision-outcome-1" class="level3" data-number="6.2.4">
+<h3 data-number="6.2.4" class="anchored" data-anchor-id="ADR-002-decision-outcome-1"><span class="header-section-number">6.2.4</span> Decision Outcome</h3>
+<p>Centralize the authorization decision in <code>COMP-002</code>, keeping attributes and policies as explicit inputs.</p>
+</section>
+<section id="ADR-002-consequences-1" class="level3" data-number="6.2.5">
+<h3 data-number="6.2.5" class="anchored" data-anchor-id="ADR-002-consequences-1"><span class="header-section-number">6.2.5</span> Consequences</h3>
+<p>The engine becomes a critical component and requires availability and performance targets, but centralizes governance and reduces semantic divergence.</p>
+</section>
+<section id="ADR-002-confirmation-1" class="level3" data-number="6.2.6">
+<h3 data-number="6.2.6" class="anchored" data-anchor-id="ADR-002-confirmation-1"><span class="header-section-number">6.2.6</span> Confirmation</h3>
+<p><code>TC-004</code>, <code>TC-005</code>, and <code>TC-006</code> confirm contextual evaluation, default denial, and performance, respectively.</p>
+<div class="need-relations">
+<div class="need-relations-title">
+<strong>Need relations</strong>
+</div>
+<div class="need-relation-groups">
+<dl>
+<dt>Addresses</dt>
+<dd>
+<a href="../requirements/functional.html#FUN-004">FUN-004</a> — Evaluate attribute-based policies
+</dd>
+<dd>
+<a href="../requirements/functional.html#FUN-005">FUN-005</a> — Enforce least privilege by default
+</dd>
+<dd>
+<a href="../requirements/non-functional.html#NFR-004">NFR-004</a> — Respond to access decisions within 200 ms
+</dd>
+<dd>
+<a href="../requirements/system.html#SYS-002">SYS-002</a> — Decide access through central policy
+</dd>
+<dt>Applies to</dt>
+<dd>
+<a href="components.html#COMP-002">COMP-002</a> — Policy engine
+</dd>
+<dt>Confirmed by</dt>
+<dd>
+<a href="../verification/test-cases.html#TC-004">TC-004</a> — Attribute-based decision
+</dd>
+<dd>
+<a href="../verification/test-cases.html#TC-005">TC-005</a> — Denial without a permissive rule
+</dd>
+<dd>
+<a href="../verification/test-cases.html#TC-006">TC-006</a> — Access-decision latency
+</dd>
+</dl>
+</div>
+</div>
+</section>
+</div>
+<div id="ADR-003" class="need-card need-type-architecture-decision">
+<section class="level2 need-heading need-header" data-number="6.3">
+<h2 class="need-heading anchored" data-number="6.3" data-anchor-id=""><span class="header-section-number">6.3</span> <span class="need-id">ADR-003</span> · <span class="need-title">Separate the audit trail from transactional processing</span></h2>
+<div class="need-header-badges">
+<span class="need-badge need-type need-type-architecture-decision">architecture-decision</span> <span class="need-badge need-status need-status-accepted">accepted</span> <span class="need-badge need-date need-date-2026-08-28">2026-08-28</span>
+</div>
+</section>
+<section id="ADR-003-context-and-problem-statement-2" class="level3" data-number="6.3.1">
+<h3 data-number="6.3.1" class="anchored" data-anchor-id="ADR-003-context-and-problem-statement-2"><span class="header-section-number">6.3.1</span> Context and Problem Statement</h3>
+<p>Identity events need to remain intact, queryable, and minimized even when transactional services evolve or fail.</p>
+</section>
+<section id="ADR-003-decision-drivers-2" class="level3" data-number="6.3.2">
+<h3 data-number="6.3.2" class="anchored" data-anchor-id="ADR-003-decision-drivers-2"><span class="header-section-number">6.3.2</span> Decision Drivers</h3>
+<ul>
+<li>audit integrity;</li>
+<li>regulatory retention;</li>
+<li>personal-data minimization;</li>
+<li>investigation independent of operational service state.</li>
+</ul>
+</section>
+<section id="ADR-003-considered-options-2" class="level3" data-number="6.3.3">
+<h3 data-number="6.3.3" class="anchored" data-anchor-id="ADR-003-considered-options-2"><span class="header-section-number">6.3.3</span> Considered Options</h3>
+<ul>
+<li>local logs per application;</li>
+<li>storage together with transactional data;</li>
+<li>a dedicated event stream to an audit vault.</li>
+</ul>
+</section>
+<section id="ADR-003-decision-outcome-2" class="level3" data-number="6.3.4">
+<h3 data-number="6.3.4" class="anchored" data-anchor-id="ADR-003-decision-outcome-2"><span class="header-section-number">6.3.4</span> Decision Outcome</h3>
+<p>Publish events through <code>IF-003</code> and store them in <code>COMP-004</code>, with verifiable integrity and a minimization policy.</p>
+</section>
+<section id="ADR-003-consequences-2" class="level3" data-number="6.3.5">
+<h3 data-number="6.3.5" class="anchored" data-anchor-id="ADR-003-consequences-2"><span class="header-section-number">6.3.5</span> Consequences</h3>
+<p>The solution adds an event stream and a specialized persistent component in exchange for greater audit and compliance independence.</p>
+</section>
+<section id="ADR-003-confirmation-2" class="level3" data-number="6.3.6">
+<h3 data-number="6.3.6" class="anchored" data-anchor-id="ADR-003-confirmation-2"><span class="header-section-number">6.3.6</span> Confirmation</h3>
+<p><code>TC-010</code>, <code>TC-011</code>, and <code>TC-015</code> verify integrity, retention, and minimization.</p>
+<div class="need-relations">
+<div class="need-relations-title">
+<strong>Need relations</strong>
+</div>
+<div class="need-relation-groups">
+<dl>
+<dt>Addresses</dt>
+<dd>
+<a href="../requirements/non-functional.html#NFR-003">NFR-003</a> — Minimize personal data in events
+</dd>
+<dd>
+<a href="../requirements/non-functional.html#NFR-005">NFR-005</a> — Preserve audit integrity
+</dd>
+<dd>
+<a href="../requirements/non-functional.html#NFR-007">NFR-007</a> — Retain evidence for the regulatory period
+</dd>
+<dd>
+<a href="../requirements/system.html#SYS-004">SYS-004</a> — Record immutable identity events
+</dd>
+<dt>Applies to</dt>
+<dd>
+<a href="components.html#COMP-004">COMP-004</a> — Audit vault
+</dd>
+<dd>
+<a href="components.html#IF-003">IF-003</a> — Audit event stream
+</dd>
+<dt>Confirmed by</dt>
+<dd>
+<a href="../verification/test-cases.html#TC-010">TC-010</a> — Authorization-decision record
+</dd>
+<dd>
+<a href="../verification/test-cases.html#TC-011">TC-011</a> — Trail query and retention
+</dd>
+<dd>
+<a href="../verification/test-cases.html#TC-015">TC-015</a> — Personal-event minimization
+</dd>
+</dl>
+</div>
+</div>
+</section>
+</div>
+<section id="lifecycle-and-lineage" class="level2" data-number="6.4">
+<h2 data-number="6.4" class="anchored" data-anchor-id="lifecycle-and-lineage"><span class="header-section-number">6.4</span> Lifecycle and lineage</h2>
+<p>The recommended <code>architecture-decision</code> lifecycle is <code>proposed → accepted</code>, with exits to <code>rejected</code>, <code>deprecated</code>, or <code>superseded</code>. A <code>superseded</code> decision must keep explicit lineage to its replacement through <code>supersedes</code>/<code>superseded-by</code>.</p>
+
+
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-bass2021software" class="csl-entry" role="listitem">
+Bass, Len, Paul Clements, and Rick Kazman. 2021. <em>Software Architecture in Practice</em>. 4th ed. Addison-Wesley Professional.
+</div>
+<div id="ref-madr2025" class="csl-entry" role="listitem">
+MADR Project. 2025. <span>“Markdown Architectural Decision Records.”</span> Project documentation. <a href="https://adr.github.io/madr/">https://adr.github.io/madr/</a>.
+</div>
+</div>
+</section>
+
+</main> <!-- /main -->
+<script>
+(() => {
+  const locale = document.documentElement.lang || "en";
+  const isPt = locale.toLowerCase().startsWith("pt");
+
+  const asDir = (url) => new URL("./", url);
+
+  const relativeHref = (from, to) => {
+    const fromParts = asDir(from).pathname.split("/").filter(Boolean);
+    const toParts = to.pathname.split("/").filter(Boolean);
+    let common = 0;
+    while (common < fromParts.length && common < toParts.length && fromParts[common] === toParts[common]) common += 1;
+    const up = Array(fromParts.length - common).fill("..");
+    const down = toParts.slice(common);
+    return `${[...up, ...down].join("/") || "./"}${to.search}${to.hash}`;
+  };
+
+  const homeLink = document.querySelector(
+    ".sidebar-title a, a.sidebar-title, .navbar-brand, .quarto-secondary-nav a[href]"
+  );
+  const fallbackHome = "index.html";
+  const localizedHome = new URL(homeLink?.getAttribute("href") || fallbackHome, window.location.href);
+
+  let bookRoot;
+  if (isPt && /\/pt-BR\//i.test(localizedHome.pathname)) {
+    bookRoot = new URL("../", asDir(localizedHome));
+  } else {
+    bookRoot = asDir(localizedHome);
+  }
+
+  const current = new URL(window.location.href);
+  let logicalPath;
+  if (isPt) {
+    const marker = "/pt-BR/";
+    const index = current.pathname.toLowerCase().indexOf(marker.toLowerCase());
+    logicalPath = index >= 0 ? current.pathname.slice(index + marker.length) : current.pathname.split("/").pop();
+    logicalPath = logicalPath || "index.html";
+  } else {
+    const rootPath = bookRoot.pathname.endsWith("/") ? bookRoot.pathname : `${bookRoot.pathname}/`;
+    logicalPath = current.pathname.startsWith(rootPath)
+      ? current.pathname.slice(rootPath.length)
+      : current.pathname.split("/").pop();
+    logicalPath = logicalPath || "index.html";
+  }
+
+  const target = isPt
+    ? new URL(logicalPath, bookRoot)
+    : new URL(`pt-BR/${logicalPath}`, bookRoot);
+  target.search = current.search;
+  target.hash = current.hash;
+
+  const targetLabel = isPt ? "English" : "Português (Brasil)";
+  const currentLabel = isPt ? "PT-BR" : "EN";
+
+  document.querySelectorAll("#languages-links-parent, .babelquarto-languages-button").forEach((node) => {
+    const oldWrapper = node.closest("#languages-links-parent, .nav-item.dropdown, .dropdown") || node;
+    if (!oldWrapper.classList.contains("quarto-needs-language-switch")) oldWrapper.remove();
+  });
+
+  const wrapper = document.createElement("div");
+  wrapper.id = "quarto-needs-language-switch";
+  wrapper.className = "dropdown quarto-needs-language-switch";
+  wrapper.innerHTML = `
+    <a id="languages-button"
+       class="nav-link dropdown-toggle"
+       href="#"
+       role="button"
+       data-bs-toggle="dropdown"
+       aria-expanded="false"
+       aria-label="${isPt ? "Idioma" : "Language"}">
+      <span class="quarto-needs-language-globe" aria-hidden="true">🌐</span>
+      <span class="quarto-needs-current-language">${currentLabel}</span>
+    </a>
+    <ul id="languages-links"
+        class="dropdown-menu dropdown-menu-end"
+        aria-labelledby="languages-button">
+      <li><a class="dropdown-item" href="${relativeHref(current, target)}">${targetLabel}</a></li>
+    </ul>`;
+
+  const page = getComputedStyle(document.body);
+  const root = getComputedStyle(document.documentElement);
+  const transparent = new Set(["transparent", "rgba(0, 0, 0, 0)"]);
+  let pageBg = page.backgroundColor;
+  if (!pageBg || transparent.has(pageBg)) pageBg = root.getPropertyValue("--bs-body-bg").trim() || "#fff";
+  const pageFg = page.color || root.getPropertyValue("--bs-body-color").trim() || "#212529";
+  const pageBorder = root.getPropertyValue("--bs-border-color").trim() || "#dee2e6";
+  const pageHover = root.getPropertyValue("--bs-tertiary-bg").trim() || "#f8f9fa";
+
+  wrapper.style.setProperty("--qn-language-bg", pageBg);
+  wrapper.style.setProperty("--qn-language-fg", pageFg);
+  wrapper.style.setProperty("--qn-language-border", pageBorder);
+  wrapper.style.setProperty("--qn-language-hover", pageHover);
+
+  const place = () => {
+    const secondarySearch = document.querySelector(
+      "#quarto-header .quarto-secondary-nav .quarto-search-button"
+    );
+    if (secondarySearch && secondarySearch.parentElement) {
+      const host = secondarySearch.parentElement;
+      if (wrapper.parentElement !== host || secondarySearch.nextElementSibling !== wrapper) {
+        host.insertBefore(wrapper, secondarySearch.nextSibling);
+      }
+      return true;
+    }
+
+    const primarySearch = document.querySelector("#quarto-header .navbar #quarto-search");
+    if (primarySearch && primarySearch.parentElement) {
+      const host = primarySearch.parentElement;
+      if (wrapper.parentElement !== host || primarySearch.nextElementSibling !== wrapper) {
+        host.insertBefore(wrapper, primarySearch.nextSibling);
+      }
+      return true;
+    }
+
+    const tools = document.querySelector("#quarto-header .quarto-navbar-tools");
+    if (tools) {
+      tools.appendChild(wrapper);
+      return true;
+    }
+    return false;
+  };
+
+  place();
+  requestAnimationFrame(place);
+  setTimeout(place, 100);
+  setTimeout(place, 500);
+  setTimeout(place, 1200);
+})();
+</script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../requirements/non-functional.html" class="pagination-link" aria-label="Non-functional requirements">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Non-functional requirements</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../architecture/components.html" class="pagination-link" aria-label="Components and interfaces">
+        <span class="nav-page-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Components and interfaces</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
