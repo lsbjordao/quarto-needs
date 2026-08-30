@@ -1,5 +1,10 @@
 /* Interactive need-graph styling: canvas, controls, and status. */
-.need-graph-container { margin: 1.2rem 0; }
+.need-graph-container {
+  --qn-graph-edge: color-mix(in srgb, var(--bs-body-color, #212529) 62%, transparent);
+  --qn-graph-label: var(--bs-body-color, #212529);
+  --qn-graph-label-bg: var(--bs-body-bg, #fff);
+  margin: 1.2rem 0;
+}
 .need-graph-controls {
   display: flex;
   gap: .5rem;
@@ -28,6 +33,7 @@
   border: 1px solid var(--bs-border-color, #d7dce2);
   border-radius: .35rem;
   background: var(--bs-body-bg, white);
+  color: var(--bs-body-color, inherit);
   cursor: pointer;
 }
 .need-graph-controls button:hover { background: rgba(127, 127, 127, .08); }
@@ -38,6 +44,7 @@
   border: 1px solid var(--bs-border-color, #d7dce2);
   border-radius: .5rem;
   background: var(--bs-body-bg, white);
+  color: var(--bs-body-color, inherit);
   overflow: hidden;
 }
 .need-graph-loading {
@@ -57,6 +64,7 @@
   border-radius: .5rem;
   border: 1px solid var(--bs-border-color, #d7dce2);
   background: var(--bs-body-bg, white);
+  color: var(--bs-body-color, inherit);
   box-shadow: 0 4px 16px rgba(0, 0, 0, .18);
   font-size: .8rem;
   line-height: 1.45;
@@ -102,6 +110,7 @@
 .need-graph-popup-value {
   font-family: var(--bs-font-monospace, monospace);
   font-size: .8em;
+  color: inherit;
   background: rgba(127, 127, 127, .1);
   border-radius: .25rem;
   padding: .05rem .3rem;
@@ -115,7 +124,7 @@
 }
 .need-graph-popup-foot a {
   display: inline-block;
-  color: #2563eb;
+  color: var(--bs-link-color, #2563eb);
   text-decoration: none;
   font-weight: 600;
 }
