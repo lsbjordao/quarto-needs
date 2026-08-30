@@ -56,12 +56,15 @@ check-self-example:
 evidence-self-example:
 	PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=src $(VENV_PYTHON) -m pytest -q \
 		-p quarto_needs.pytest_plugin \
-		--quarto-needs-evidence=examples/quarto-needs/.quarto-needs/evidence/pytest.json \
+		--quarto-needs-evidence=examples/quarto-needs/.quarto-needs/evidence/pytest-provider.json \
 		tests/test_architecture_decisions.py::test_accepted_decision_passes_decision_governance \
 		tests/test_graph_semantics.py::test_public_projection_publishes_catalog_semantics \
 		tests/test_graph_semantics.py::test_named_query_is_materialized_as_reusable_graph_view \
 		tests/test_impact.py::test_editing_a_requirement_impacts_its_verification
-	PYTHONPATH=src $(VENV_PYTHON) -m quarto_needs.cli --root examples/quarto-needs evidence check \
+	PYTHONPATH=src $(VENV_PYTHON) -m quarto_needs.cli_dispatch --root examples/quarto-needs evidence attest \
+		.quarto-needs/evidence/pytest-provider.json \
+		--output .quarto-needs/evidence/pytest.json --expires-hours 24
+	PYTHONPATH=src $(VENV_PYTHON) -m quarto_needs.cli_dispatch --root examples/quarto-needs evidence check \
 		.quarto-needs/evidence/pytest.json
 
 render-self-example: evidence-self-example
