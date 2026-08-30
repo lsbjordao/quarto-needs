@@ -7,7 +7,7 @@ import pytest
 from quarto_needs.localization import validate_localized_pair
 
 
-@pytest.mark.requirement("FUN-006")
+@pytest.mark.requirement("FUN-006", "SYS-005")
 @pytest.mark.quarto_need_test_case("TC-005")
 def test_localized_source_semantic_parity_rejects_model_drift(tmp_path: Path) -> None:
     canonical = tmp_path / "requirements.qmd"
