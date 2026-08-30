@@ -2,7 +2,7 @@
 
 A rastreabilidade fica incompleta quando os requisitos terminam no design. Este capítulo modela verificação como objetos de engenharia de primeira classe e conecta testes bem-sucedidos a evidências explícitas.
 
-Os casos de teste abaixo correspondem a classes reais de verificações de regressão do repositório. Quatro cortes verticais representativos agora possuem vínculos estáveis por `pytest-nodeid`. `make evidence-self-example` executa esses testes e grava um artefato versionado de evidência de máquina em `.quarto-needs/evidence/pytest.json` antes da renderização do livro autocontido.
+Os casos de teste abaixo correspondem a classes reais de verificações de regressão do repositório. Cinco vínculos executáveis representativos agora cobrem decisões de arquitetura, paridade semântica multilíngue, segurança do grafo público, views nomeadas e impacto de mudanças. `make evidence-self-example` executa esses testes, grava a saída determinística do provider, atesta essa saída contra o snapshot de engenharia atual e valida `.quarto-needs/evidence/pytest.json` antes da renderização do livro autocontido.
 
 ## Casos de teste
 
@@ -30,10 +30,10 @@ Executar o motor de regras configurado e os quality gates sobre um projeto confo
 Verificar regras de driver, escopo, confirmação, linhagem, ciclo de vida e data de revisão para decisões aceitas.
 :::
 
-::: {.need #TC-005 type="test-case" status="passed" tags="localization;i18n;parity" evidenced-by="EVD-005"}
+::: {.need #TC-005 type="test-case" status="passed" tags="localization;i18n;parity" pytest-nodeid="tests/test_localization.py::test_localized_source_semantic_parity_rejects_model_drift" evidenced-by="EVD-005"}
 ## Regressão de paridade semântica das fontes localizadas
 
-Comparar lotes de declarações canônicos e pt-BR e rejeitar qualquer mudança de IDs, tipos, estados, atributos ou relações.
+Comparar declarações canônicas e pt-BR e rejeitar mudanças de IDs, tipos, estados, atributos ou relações, permitindo a tradução do texto de apresentação.
 :::
 
 ::: {.need #TC-006 type="test-case" status="passed" tags="graph;schema;security;limits" pytest-nodeid="tests/test_graph_semantics.py::test_public_projection_publishes_catalog_semantics" evidenced-by="EVD-006"}
@@ -107,13 +107,13 @@ Testes de regressão exercitam regras estruturais, governança configurável, co
 ::: {.need #EVD-004 type="evidence" status="verified" tags="pytest;adr;decision;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
 ## Evidência de máquina da governança de ADR
 
-O `TC-004` modelado está vinculado a um nó pytest real. O alvo de evidência do exemplo autocontido registra o resultado de sua execução no artefato versionado de evidência pytest.
+O `TC-004` modelado está vinculado a um nó pytest real. O alvo de evidência do exemplo autocontido registra seu resultado no artefato pytest atestado.
 :::
 
-::: {.need #EVD-005 type="evidence" status="verified" tags="pytest;i18n;babelquarto"}
-## Validador de paridade de localização e exemplos multilíngues
+::: {.need #EVD-005 type="evidence" status="verified" tags="pytest;i18n;babelquarto;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## Evidência de máquina da paridade de localização
 
-O validador de paridade no pre-render e as fontes pareadas EN/pt-BR demonstram um único grafo semântico com apresentação traduzida.
+O `TC-005` modelado está vinculado à regressão de paridade de localização do core. Ela comprova que texto de apresentação traduzido é aceito enquanto desvios semânticos de IDs, tipos, estados, atributos ou relações são rejeitados.
 :::
 
 ::: {.need #EVD-006 type="evidence" status="verified" tags="jsonschema;graph;security;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
