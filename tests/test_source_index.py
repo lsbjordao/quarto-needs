@@ -27,6 +27,7 @@ Narrative TC-001 should not be renamed blindly.
     spans = index["TC-001"]
     assert [span.kind for span in spans] == ["relation", "shortcode", "declaration"]
     assert len(spans) == 3
+    assert all(not span.presentation_only for span in spans)
 
 
 def test_source_index_tracks_metadata_relation_lists(tmp_path: Path) -> None:
@@ -97,7 +98,11 @@ Narrativa TC-001 também deve permanecer texto comum.
     )
 
     index = build_source_index(tmp_path)
-    files = [span.file for span in index["TC-001"]]
-    assert files.count("requirements.qmd") == 3
-    assert files.count("requirements.pt-BR.qmd") == 3
-    assert all(span.kind in {"relation", "shortcode", "declaration"} for span in index["TC-001"])
+    spans = index["TC-001"]
+    canonical_spans = [span for span in spans if not span.presentation_only]
+    localized_spans = [span for span in spans if span.presentation_only]
+    assert len(canonical_spans) == 3
+    assert len(localized_spans) == 3
+    assert {span.file for span in canonical_spans} == {"requirements.qmd"}
+    assert {span.file for span in localized_spans} == {"requirements.pt-BR.qmd"}
+    assert all(span.kind in {"relation", "shortcode", "declaration"} for span in spans)
