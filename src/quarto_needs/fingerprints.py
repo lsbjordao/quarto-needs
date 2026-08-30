@@ -86,21 +86,20 @@ def semantic_graph_fingerprint(
     configuration: str,
     derived: Mapping[str, Mapping[str, object]] | None = None,
 ) -> str:
-    canonical_derived = {
-        object_id: {
-            name: thaw_json(value)
-            for name, value in sorted(fields.items())
-        }
-        for object_id, fields in sorted((derived or {}).items())
+    payload: dict[str, object] = {
+        "objects": sorted(object_content_fingerprint(item) for item in objects),
+        "relations": sorted(relation_semantic_fingerprint(item) for item in relations),
+        "configuration": configuration,
     }
-    return _digest(
-        {
-            "objects": sorted(object_content_fingerprint(item) for item in objects),
-            "relations": sorted(relation_semantic_fingerprint(item) for item in relations),
-            "configuration": configuration,
-            "derived": canonical_derived,
+    if derived:
+        payload["derived"] = {
+            object_id: {
+                name: thaw_json(value)
+                for name, value in sorted(fields.items())
+            }
+            for object_id, fields in sorted(derived.items())
         }
-    )
+    return _digest(payload)
 
 
 def representation_fingerprint(relations: Iterable[RelationRecord]) -> str:
