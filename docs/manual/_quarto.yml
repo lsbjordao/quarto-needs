@@ -17,6 +17,7 @@ book:
     - evidence-providers.qmd
     - governance.qmd
     - declarative-policies.qmd
+    - type-schemas.qmd
     - reference.qmd
 
 format:
