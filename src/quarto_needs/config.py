@@ -18,17 +18,20 @@ from .snapshot import freeze_json, thaw_json
 
 CONFIG_FILENAME = ".quarto-needs.toml"
 KNOWN_TOP_LEVEL_KEYS = (
-    "profile", "types", "relations", "governance", "rules", "queries", "gates", "graph",
+    "profile",
+    "types",
+    "relations",
+    "governance",
+    "rules",
+    "queries",
+    "policies",
+    "gates",
+    "graph",
 )
 PROFILES = ("advisory", "default", "strict")
 SEVERITIES = ("error", "warning", "info")
 GRAPH_MODES = ("catalog", "diff", "impact")
 MAX_GRAPH_DEPTH = 10
-KNOWN_RULE_CODES = (
-    "REQ002", "REQ004", "REQ005", "REQ006", "REQ008", "REQ009", "REQ010",
-    "REQ011", "REQ012", "REQ013", "REQ014", "REQ015",
-    "DEC001", "DEC002", "DEC003", "DEC004", "DEC005", "ID001", "OBJ001",
-)
 GATE_PERCENT_KEYS = {
     "min-implementation-trace": "min_implementation_trace",
     "min-implementation-effective": "min_implementation_effective",
@@ -97,6 +100,7 @@ class NeedsConfig:
     id_prefixes: Mapping[str, str] = MappingProxyType({})
     type_roles: Mapping[str, str] = MappingProxyType({})
     allowed_statuses: Mapping[str, tuple[str, ...]] = MappingProxyType({})
+    policy_sources: Mapping[str, Mapping[str, Any]] = MappingProxyType({})
 
     def canonical_document(self) -> dict[str, object]:
         try:
@@ -104,8 +108,15 @@ class NeedsConfig:
                 name: thaw_json(freeze_json(dict(source)))
                 for name, source in sorted(self.named_query_sources.items())
             }
+            policies = {
+                name: thaw_json(freeze_json(dict(source)))
+                for name, source in sorted(self.policy_sources.items())
+            }
         except TypeError as error:
-            raise _fail(f"[queries] contains a value that is not valid JSON: {error}") from error
+            raise _fail(
+                "[queries]/[policies] contains a value that is not valid JSON: "
+                f"{error}"
+            ) from error
 
         type_names = sorted(
             set(self.required_attributes)
@@ -150,6 +161,7 @@ class NeedsConfig:
                 for code, setting in sorted(self.rule_settings.items())
             },
             "queries": queries,
+            "policies": policies,
             "gates": {
                 "scope": self.gates.scope,
                 "max-errors": self.gates.max_errors,
@@ -233,11 +245,16 @@ def _parse_types(raw: object) -> tuple[
             raise _fail("[types.*] keys must be non-empty strings")
         if not isinstance(section, dict):
             raise _fail(f"[types.{name}] must be a table")
-        unknown = set(section) - {"required-attributes", "id-prefix", "role", "allowed-statuses"}
+        unknown = set(section) - {
+            "required-attributes", "id-prefix", "role", "allowed-statuses"
+        }
         if unknown:
-            raise _fail(f"[types.{name}] has unknown keys: {', '.join(sorted(unknown))}")
+            raise _fail(
+                f"[types.{name}] has unknown keys: {', '.join(sorted(unknown))}"
+            )
         required[name] = _string_list(
-            section.get("required-attributes", []), f"[types.{name}] required-attributes"
+            section.get("required-attributes", []),
+            f"[types.{name}] required-attributes",
         )
         if "id-prefix" in section:
             prefix = section["id-prefix"]
@@ -250,7 +267,9 @@ def _parse_types(raw: object) -> tuple[
                 raise _fail(f"[types.{name}] role must be a non-empty string")
             roles[name] = role.strip()
         if "allowed-statuses" in section:
-            values = _string_list(section["allowed-statuses"], f"[types.{name}] allowed-statuses")
+            values = _string_list(
+                section["allowed-statuses"], f"[types.{name}] allowed-statuses"
+            )
             if not values:
                 raise _fail(f"[types.{name}] allowed-statuses must not be empty")
             statuses[name] = values
@@ -273,17 +292,37 @@ def _parse_relations(raw: object) -> dict[str, RelationPolicy]:
         except ValueError as error:
             raise _fail(str(error)) from error
         unknown = set(section) - {
-            "allowed-source-types", "allowed-target-types", "minimum-per-source", "maximum-per-source"
+            "allowed-source-types",
+            "allowed-target-types",
+            "minimum-per-source",
+            "maximum-per-source",
         }
         if unknown:
-            raise _fail(f'[relations."{name}"] has unknown keys: {", ".join(sorted(unknown))}')
-        minimum = _optional_int(section.get("minimum-per-source"), f'[relations."{name}"] minimum-per-source')
-        maximum = _optional_int(section.get("maximum-per-source"), f'[relations."{name}"] maximum-per-source')
+            raise _fail(
+                f'[relations."{name}"] has unknown keys: '
+                f"{', '.join(sorted(unknown))}"
+            )
+        minimum = _optional_int(
+            section.get("minimum-per-source"),
+            f'[relations."{name}"] minimum-per-source',
+        )
+        maximum = _optional_int(
+            section.get("maximum-per-source"),
+            f'[relations."{name}"] maximum-per-source',
+        )
         if minimum is not None and maximum is not None and minimum > maximum:
-            raise _fail(f'[relations."{name}"] minimum-per-source exceeds maximum-per-source')
+            raise _fail(
+                f'[relations."{name}"] minimum-per-source exceeds maximum-per-source'
+            )
         policies[canonical_name] = RelationPolicy(
-            allowed_source_types=_string_list(section.get("allowed-source-types", []), f'[relations."{name}"] allowed-source-types'),
-            allowed_target_types=_string_list(section.get("allowed-target-types", []), f'[relations."{name}"] allowed-target-types'),
+            allowed_source_types=_string_list(
+                section.get("allowed-source-types", []),
+                f'[relations."{name}"] allowed-source-types',
+            ),
+            allowed_target_types=_string_list(
+                section.get("allowed-target-types", []),
+                f'[relations."{name}"] allowed-target-types',
+            ),
             minimum_per_source=minimum,
             maximum_per_source=maximum,
         )
@@ -296,8 +335,11 @@ def _parse_governance(raw: object) -> dict[str, object]:
     if not isinstance(raw, dict):
         raise _fail("[governance] must be a table")
     unknown = set(raw) - {
-        "test-types", "risk-types", "successful-test-statuses",
-        "ineffective-endpoint-statuses", "expiry-attribute",
+        "test-types",
+        "risk-types",
+        "successful-test-statuses",
+        "ineffective-endpoint-statuses",
+        "expiry-attribute",
     }
     if unknown:
         raise _fail(f"[governance] has unknown keys: {', '.join(sorted(unknown))}")
@@ -307,9 +349,14 @@ def _parse_governance(raw: object) -> dict[str, object]:
     if "risk-types" in raw:
         parsed["risk_types"] = _string_list(raw["risk-types"], "[governance] risk-types")
     if "successful-test-statuses" in raw:
-        parsed["successful_test_statuses"] = _string_list(raw["successful-test-statuses"], "[governance] successful-test-statuses")
+        parsed["successful_test_statuses"] = _string_list(
+            raw["successful-test-statuses"], "[governance] successful-test-statuses"
+        )
     if "ineffective-endpoint-statuses" in raw:
-        parsed["ineffective_endpoint_statuses"] = _string_list(raw["ineffective-endpoint-statuses"], "[governance] ineffective-endpoint-statuses")
+        parsed["ineffective_endpoint_statuses"] = _string_list(
+            raw["ineffective-endpoint-statuses"],
+            "[governance] ineffective-endpoint-statuses",
+        )
     if "expiry-attribute" in raw:
         value = raw["expiry-attribute"]
         if not isinstance(value, str):
@@ -325,28 +372,46 @@ def _parse_rules(raw: object) -> dict[str, RuleSetting]:
         raise _fail("[rules] must be a table")
     settings: dict[str, RuleSetting] = {}
     from .rules import RULES
+
     for code, section in raw.items():
         if not isinstance(code, str) or code not in RULES:
-            raise _fail(f"[rules.{code}] is not a known rule code (known: {', '.join(sorted(RULES))})")
+            raise _fail(
+                f"[rules.{code}] is not a known rule code "
+                f"(known: {', '.join(sorted(RULES))})"
+            )
         if not isinstance(section, dict):
             raise _fail(f"[rules.{code}] must be a table")
         unknown = set(section) - {"enabled", "severity"}
         if unknown:
-            raise _fail(f"[rules.{code}] has unknown keys: {', '.join(sorted(unknown))}")
+            raise _fail(
+                f"[rules.{code}] has unknown keys: {', '.join(sorted(unknown))}"
+            )
         enabled = section.get("enabled", True)
         if not isinstance(enabled, bool):
             raise _fail(f"[rules.{code}] enabled must be a boolean")
         severity = section.get("severity")
-        if severity is not None and (not isinstance(severity, str) or severity not in SEVERITIES):
-            raise _fail(f"[rules.{code}] severity must be one of: {', '.join(SEVERITIES)}")
+        if severity is not None and (
+            not isinstance(severity, str) or severity not in SEVERITIES
+        ):
+            raise _fail(
+                f"[rules.{code}] severity must be one of: {', '.join(SEVERITIES)}"
+            )
         setting = RuleSetting(enabled=enabled, severity=severity)
         spec = RULES[code]
         if spec.structural and not setting.enabled:
             raise _fail(f"rule {code} is structural and cannot be disabled")
         if spec.structural and setting.severity is not None:
-            raise _fail(f"rule {code} is structural; its severity cannot be overridden")
-        if setting.severity is not None and setting.severity not in spec.supported_severities:
-            raise _fail(f"rule {code} does not support severity {setting.severity} (supported: {', '.join(spec.supported_severities)})")
+            raise _fail(
+                f"rule {code} is structural; its severity cannot be overridden"
+            )
+        if (
+            setting.severity is not None
+            and setting.severity not in spec.supported_severities
+        ):
+            raise _fail(
+                f"rule {code} does not support severity {setting.severity} "
+                f"(supported: {', '.join(spec.supported_severities)})"
+            )
         settings[code] = setting
     return settings
 
@@ -356,7 +421,9 @@ def _parse_gates(raw: object) -> Gates:
         return Gates()
     if not isinstance(raw, dict):
         raise _fail("[gates] must be a table")
-    unknown = set(raw) - set(GATE_PERCENT_KEYS) - {"max-errors", "require-risk-mitigation", "scope"}
+    unknown = set(raw) - set(GATE_PERCENT_KEYS) - {
+        "max-errors", "require-risk-mitigation", "scope"
+    }
     if unknown:
         raise _fail(f"[gates] has unknown keys: {', '.join(sorted(unknown))}")
     values: dict[str, object] = {
@@ -380,7 +447,9 @@ def _parse_graph(raw: object) -> GraphSettings:
         return GraphSettings()
     if not isinstance(raw, dict):
         raise _fail("[graph] must be a table")
-    unknown = set(raw) - {"max-nodes", "max-edges", "depth", "mode", "layout", "seed", "relations"}
+    unknown = set(raw) - {
+        "max-nodes", "max-edges", "depth", "mode", "layout", "seed", "relations"
+    }
     if unknown:
         raise _fail(f"[graph] has unknown keys: {', '.join(sorted(unknown))}")
 
@@ -391,8 +460,14 @@ def _parse_graph(raw: object) -> GraphSettings:
         return value
 
     depth = raw.get("depth", 1)
-    if isinstance(depth, bool) or not isinstance(depth, int) or not 1 <= depth <= MAX_GRAPH_DEPTH:
-        raise _fail(f"[graph] depth must be an integer between 1 and {MAX_GRAPH_DEPTH}")
+    if (
+        isinstance(depth, bool)
+        or not isinstance(depth, int)
+        or not 1 <= depth <= MAX_GRAPH_DEPTH
+    ):
+        raise _fail(
+            f"[graph] depth must be an integer between 1 and {MAX_GRAPH_DEPTH}"
+        )
     mode = raw.get("mode", "catalog")
     if not isinstance(mode, str) or mode not in GRAPH_MODES:
         raise _fail(f"[graph] mode must be one of: {', '.join(GRAPH_MODES)}")
@@ -407,7 +482,9 @@ def _parse_graph(raw: object) -> GraphSettings:
     if relations_raw is not None:
         names = _string_list(relations_raw, "[graph] relations")
         if not names:
-            raise _fail("[graph] relations must not be empty; omit the key to publish every relation")
+            raise _fail(
+                "[graph] relations must not be empty; omit the key to publish every relation"
+            )
         resolved = []
         for name in names:
             try:
@@ -428,6 +505,25 @@ def _parse_graph(raw: object) -> GraphSettings:
     )
 
 
+def _parse_policies(raw: object) -> dict[str, Mapping[str, Any]]:
+    if raw is None:
+        return {}
+    if not isinstance(raw, dict):
+        raise _fail("[policies] must be a table")
+
+    # Import lazily to avoid config -> policy -> queries -> config at module load.
+    from .policy import PolicyError, compile_policies
+
+    try:
+        compiled = compile_policies(raw)
+    except PolicyError as error:
+        raise _fail(str(error)) from error
+    return {
+        name: MappingProxyType(dict(spec.to_dict()))
+        for name, spec in compiled.items()
+    }
+
+
 def embedded_defaults() -> NeedsConfig:
     return NeedsConfig(
         profile="default",
@@ -435,7 +531,9 @@ def embedded_defaults() -> NeedsConfig:
         relation_policies=MappingProxyType({}),
         test_types=("test-case",),
         risk_types=("risk",),
-        ineffective_endpoint_statuses=("disapproved", "rejected", "failed", "deprecated"),
+        ineffective_endpoint_statuses=(
+            "disapproved", "rejected", "failed", "deprecated"
+        ),
         successful_test_statuses=("passed",),
         expiry_attribute="expires",
         rule_settings=MappingProxyType({}),
@@ -446,6 +544,7 @@ def embedded_defaults() -> NeedsConfig:
         id_prefixes=MappingProxyType({}),
         type_roles=MappingProxyType({}),
         allowed_statuses=MappingProxyType({}),
+        policy_sources=MappingProxyType({}),
     )
 
 
@@ -475,17 +574,23 @@ def load_config(root: Path) -> NeedsConfig:
     if queries is not None and not isinstance(queries, dict):
         raise _fail("[queries] must be a table of named queries")
     required, prefixes, roles, statuses = _parse_types(document.get("types"))
+    policies = _parse_policies(document.get("policies"))
 
     return NeedsConfig(
         profile=profile,
         required_attributes=MappingProxyType(required),
-        relation_policies=MappingProxyType(_parse_relations(document.get("relations"))),
+        relation_policies=MappingProxyType(
+            _parse_relations(document.get("relations"))
+        ),
         test_types=governance.get("test_types", ("test-case",)),
         risk_types=governance.get("risk_types", ("risk",)),
         ineffective_endpoint_statuses=governance.get(
-            "ineffective_endpoint_statuses", ("disapproved", "rejected", "failed", "deprecated")
+            "ineffective_endpoint_statuses",
+            ("disapproved", "rejected", "failed", "deprecated"),
         ),
-        successful_test_statuses=governance.get("successful_test_statuses", ("passed",)),
+        successful_test_statuses=governance.get(
+            "successful_test_statuses", ("passed",)
+        ),
         expiry_attribute=governance.get("expiry_attribute", "expires"),
         rule_settings=MappingProxyType(_parse_rules(document.get("rules"))),
         named_query_sources=MappingProxyType(dict(queries or {})),
@@ -495,4 +600,5 @@ def load_config(root: Path) -> NeedsConfig:
         id_prefixes=MappingProxyType(prefixes),
         type_roles=MappingProxyType(roles),
         allowed_statuses=MappingProxyType(statuses),
+        policy_sources=MappingProxyType(policies),
     )
