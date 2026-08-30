@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import os
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+import pytest
+import xmlschema
 from reqif.parser import ReqIFParser
 
 from quarto_needs.analysis import analyze_project
@@ -101,3 +104,17 @@ def test_reqif_is_accepted_by_independent_parser(tmp_path: Path) -> None:
     assert len(specifications) == 1
     assert specifications[0].long_name == "Quarto-Needs Engineering Graph"
     assert list(bundle.iterate_specification_hierarchy(specifications[0]))
+
+
+def test_reqif_validates_against_normative_xsd_when_supplied(tmp_path: Path) -> None:
+    """Validate against OMG's normative schema without vendoring or downloading it implicitly."""
+    schema_path = os.environ.get("REQIF_12_XSD")
+    if not schema_path:
+        pytest.skip("set REQIF_12_XSD to the normative OMG ReqIF 1.2 reqif.xsd")
+
+    write_project(tmp_path)
+    destination = tmp_path / "requirements.reqif"
+    reqif_export.write(destination, build(tmp_path))
+
+    schema = xmlschema.XMLSchema(schema_path)
+    schema.validate(str(destination))
