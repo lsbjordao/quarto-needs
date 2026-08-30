@@ -31,6 +31,7 @@ test = [
   "pytest>=8",
   "referencing",
   "PyYAML>=6",
+  "reqif>=0.1,<0.2",
 ]
 # Release tooling only. Never a runtime dependency, and installed inside CI
 # rather than by contributors.
