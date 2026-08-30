@@ -65,15 +65,6 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
     config._quarto_needs_links = links  # type: ignore[attr-defined]
 
 
-def pytest_runtest_logreport(report: pytest.TestReport) -> None:
-    config = getattr(report, "config", None)
-    # Pytest reports do not normally carry Config. The canonical collector is
-    # therefore populated through pytest_runtest_makereport below. This hook is
-    # intentionally a no-op and exists only to document that logreport is not
-    # used as a semantic source.
-    del config
-
-
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]):
     outcome = yield
