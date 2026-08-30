@@ -1,0 +1,145 @@
+# Requirements: refining the product obligations
+
+The system requirements establish broad obligations. This chapter refines them into capabilities that can be implemented and quality constraints that shape how those capabilities must behave.
+
+## Functional requirements
+
+::: {.need #FUN-001 type="functional-requirement" status="approved" priority="critical" tags="parser;authoring;graph" derives-from="SYS-001" implemented-by="COMP-PARSER;IF-001" verified-by="TC-007"}
+## Parse engineering declarations from Quarto source
+
+Quarto-Needs shall parse `.need` declarations from QMD sources into structured engineering object declarations with stable identity and source locations.
+
+### Rationale
+
+Text-first authoring is only useful if the semantic core can recover structured objects deterministically from ordinary documentation sources.
+:::
+
+::: {.need #FUN-002 type="functional-requirement" status="approved" priority="critical" tags="relations;semantics;graph" derives-from="SYS-001" implemented-by="COMP-ANALYSIS" verified-by="TC-008"}
+## Resolve authored relations through a canonical relation catalog
+
+Quarto-Needs shall resolve authored relation names into canonical semantic families, endpoint roles, impact direction, and traversal direction.
+
+### Rationale
+
+Presentation layers and downstream analysis must consume one authoritative meaning for every engineering relation.
+:::
+
+::: {.need #FUN-003 type="functional-requirement" status="approved" priority="high" tags="query;graph;views" derives-from="SYS-001;SYS-006" implemented-by="COMP-ANALYSIS;COMP-GRAPH" verified-by="TC-009"}
+## Materialize named queries as reusable graph views
+
+Quarto-Needs shall evaluate named queries in the Python core and materialize bounded graph projections that can be reused by documentation views.
+
+### Rationale
+
+Complex selection belongs in the semantic core rather than being reimplemented independently in Lua or JavaScript.
+:::
+
+::: {.need #FUN-004 type="functional-requirement" status="approved" priority="high" tags="graph;cytoscape;exploration" derives-from="SYS-002;SYS-006" implemented-by="COMP-GRAPH" verified-by="TC-010"}
+## Explore traceability interactively using semantic graph controls
+
+The HTML graph shall support semantic parent/child exploration, traversal profiles, type/status/family filtering, path-to-root analysis, edge inspection, collapse/expand, and adjustable spacing.
+
+### Rationale
+
+A traceability graph becomes significantly more useful when engineers can investigate relationships rather than only view a static topology.
+:::
+
+::: {.need #FUN-005 type="functional-requirement" status="approved" priority="high" tags="baseline;diff;impact;governance" derives-from="SYS-003" implemented-by="COMP-BASELINE" verified-by="TC-011"}
+## Compare engineering states through baseline, diff, and impact analysis
+
+Quarto-Needs shall persist engineering baselines and compare them with current snapshots to identify content, relocation, relation, and impact changes.
+
+### Rationale
+
+Version history becomes engineering information when changes can be interpreted in terms of the typed traceability graph.
+:::
+
+::: {.need #FUN-006 type="functional-requirement" status="approved" priority="high" tags="localization;i18n;validation" derives-from="SYS-005" implemented-by="COMP-I18N" verified-by="TC-005" mitigates="RISK-004"}
+## Validate semantic parity of localized sources
+
+Quarto-Needs shall reject localized QMD siblings that alter engineering IDs, types, statuses, attributes, or relations relative to the canonical source.
+
+### Rationale
+
+Translation should change presentation, not create a second engineering model.
+:::
+
+::: {.need #FUN-007 type="functional-requirement" status="approved" priority="medium" tags="quarto;extension;distribution" derives-from="SYS-002" implemented-by="COMP-EXTENSION" verified-by="TC-012"}
+## Synchronize canonical extension assets into rendered examples
+
+The example pre-render workflow shall copy the canonical Quarto extension assets into the staged project before analysis and rendering.
+
+### Rationale
+
+Examples should exercise the extension that is actually under development rather than drift through hand-maintained copies.
+:::
+
+::: {.need #FUN-008 type="functional-requirement" status="approved" priority="high" tags="graph;provenance;security" derives-from="SYS-006" implemented-by="COMP-GRAPH;IF-003" verified-by="TC-006"}
+## Publish safe declaration provenance for graph inspection
+
+Public graph projections shall expose only presentation-safe relative source provenance needed to explain where an engineering relation was declared.
+
+### Rationale
+
+Explainability benefits from `file:line` provenance, but public projections must not leak absolute paths or arbitrary source content.
+:::
+
+## Non-functional requirements
+
+::: {.need #NFR-001 type="non-functional-requirement" status="approved" priority="critical" tags="determinism;reproducibility;governance" derives-from="SYS-003" implemented-by="COMP-ANALYSIS;COMP-BASELINE" verified-by="TC-013"}
+## Produce deterministic engineering outputs
+
+Equivalent project states shall produce stable snapshots, fingerprints, projections, and comparison results independent of incidental traversal order.
+
+### Rationale
+
+Determinism is required for trustworthy CI, baseline comparison, and code review.
+:::
+
+::: {.need #NFR-002 type="non-functional-requirement" status="approved" priority="critical" tags="security;privacy;graph" derives-from="SYS-006" implemented-by="COMP-GRAPH" verified-by="TC-006" mitigates="RISK-002"}
+## Keep public projections deny-by-default
+
+Public graph output shall expose only explicitly approved fields and safe provenance metadata.
+
+### Rationale
+
+Interactive documentation must not become an accidental export channel for internal engineering data.
+:::
+
+::: {.need #NFR-003 type="non-functional-requirement" status="approved" priority="high" tags="accessibility;progressive-enhancement;quarto" derives-from="SYS-002" implemented-by="COMP-EXTENSION" verified-by="TC-002"}
+## Preserve a static equivalent for interactive views
+
+Every interactive graph shall be backed by a static representation and accessible tabular traceability derived from the same projection.
+
+### Rationale
+
+Interactivity must enhance the document rather than become the only way to access engineering information.
+:::
+
+::: {.need #NFR-004 type="non-functional-requirement" status="approved" priority="high" tags="graph;performance;limits" derives-from="SYS-006" implemented-by="COMP-GRAPH" verified-by="TC-006" mitigates="RISK-003"}
+## Bound graph publication by explicit budgets
+
+Graph views shall enforce configurable maximum node and edge counts rather than silently publishing or truncating unbounded results.
+
+### Rationale
+
+Large graphs can harm rendering, usability, and reviewability; failure should be explicit and reproducible.
+:::
+
+::: {.need #NFR-005 type="non-functional-requirement" status="approved" priority="critical" tags="semantics;architecture;graph" derives-from="SYS-001;SYS-003" implemented-by="COMP-ANALYSIS" verified-by="TC-001" mitigates="RISK-001"}
+## Resolve engineering semantics in the core only
+
+Engineering meaning shall be resolved by the Python core; Lua and browser clients shall consume semantic projections and shall not redefine relation meaning.
+
+### Rationale
+
+Duplicated semantic maps create drift and make equivalent views disagree about the same engineering graph.
+:::
+
+## Generated requirement views
+
+{{< need-table types="functional-requirement;non-functional-requirement" columns="id;title;type;status;priority" sort="priority;id" >}}
+
+The graph-focused query is reusable across the book and is evaluated by the core before the renderer sees it.
+
+{{< need-graph view="graph-exploration" id="graph-requirements-view" >}}
