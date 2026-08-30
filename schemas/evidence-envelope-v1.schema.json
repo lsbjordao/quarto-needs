@@ -25,6 +25,7 @@
       }
     },
     "generatedAt": {"type": "string", "format": "date-time"},
+    "expiresAt": {"type": "string", "format": "date-time"},
     "subject": {
       "type": "object",
       "additionalProperties": false,
