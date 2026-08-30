@@ -48,12 +48,13 @@ The canonical model is a property graph of typed engineering objects and typed r
 - structural validation, configurable rules, named queries, coverage metrics, and quality gates;
 - baselines, semantic diff, relocation detection, and explainable union-graph impact analysis;
 - JSON, CSV, SARIF, JUnit, and Markdown exporters;
+- an opt-in pytest integration with requirement/test-case markers, deterministic machine evidence, and semantic `evidence check` validation against the current engineering graph;
 - Quarto cards, cross-references, tables, lists, matrices, dashboards, inspectors, Mermaid flows, and graph views;
 - bounded public graph projections with deny-by-default provenance;
 - progressive interactive Cytoscape exploration with semantic traversal, filters, root paths, collapse/expand, and edge inspection;
 - optional collapsible Quarto margin TOC through the extension;
 - bilingual English / Brazilian Portuguese presentation with semantic-parity validation;
-- a self-hosted engineering case study in `examples/quarto-needs/`.
+- a self-hosted executable engineering case study in `examples/quarto-needs/`.
 
 ## Repository layout
 
@@ -100,10 +101,18 @@ quarto-needs diff baselines/quarto-needs.json
 quarto-needs impact baselines/quarto-needs.json
 ```
 
+Generate and validate pytest machine evidence:
+
+```bash
+pytest --quarto-needs-evidence=.quarto-needs/evidence/pytest.json
+quarto-needs evidence check .quarto-needs/evidence/pytest.json
+```
+
 Preview the self-hosted case study:
 
 ```bash
 make check-self-example
+make evidence-self-example
 make render-self-example
 make preview-self-example
 ```
@@ -131,6 +140,29 @@ Cross-reference an object with:
 {{< need SYS-REQ-042 >}}
 {{< need SYS-REQ-042 title=true >}}
 ```
+
+## Executable verification and machine evidence
+
+Quarto-Needs separates verification intent from executable proof. A modeled `test-case` may bind to a stable pytest node ID while the executable test carries reciprocal markers:
+
+```python
+@pytest.mark.requirement("FUN-004")
+@pytest.mark.quarto_need_test_case("TC-010")
+def test_graph_exploration_assets():
+    ...
+```
+
+Evidence generation is opt-in and deterministic:
+
+```bash
+pytest --quarto-needs-evidence=.quarto-needs/evidence/pytest.json
+```
+
+The generated `evidence-pytest-v1` artifact records linked pytest node IDs, outcomes, requirement IDs, and modeled test-case IDs. It deliberately excludes timestamps and durations from the semantic payload.
+
+`quarto-needs evidence check` then verifies the artifact against the current canonical graph. It detects failed/skipped executable tests, unknown requirements/test-cases, mismatched `pytest-nodeid` bindings, requirement→test claims that are absent from the model, and modeled pytest bindings missing from the artifact.
+
+See [`docs/manual/executable-evidence.qmd`](docs/manual/executable-evidence.qmd).
 
 ## Generated views
 
@@ -203,15 +235,17 @@ Current exporters include:
 | JUnit | Quality gates represented as test cases |
 | Markdown | Human-readable CI / pull-request summary |
 
-ReqIF, JSON-LD, OSLC federation, Git-native PR intelligence, LSP/editor tooling, C4-derived architecture views, executable evidence providers, and deeper graph-workbench capabilities are part of the accepted roadmap.
+ReqIF, JSON-LD, OSLC federation, Git-native PR intelligence, LSP/editor tooling, C4-derived architecture views, additional evidence providers, and deeper graph-workbench capabilities are part of the accepted roadmap.
 
 See [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 ## Self-hosted engineering model
 
-`examples/quarto-needs/` uses Quarto-Needs to model Quarto-Needs itself. It currently connects stakeholder needs, system and functional/non-functional requirements, ADRs, components/interfaces, risks, real source modules, tests, and evidence. English is canonical and Brazilian Portuguese is presentation-only localization over the same semantic model.
+`examples/quarto-needs/` uses Quarto-Needs to model Quarto-Needs itself. It connects stakeholder needs, system and functional/non-functional requirements, ADRs, components/interfaces, risks, real source modules, modeled tests, executable pytest tests, and evidence. English is canonical and Brazilian Portuguese is presentation-only localization over the same semantic model.
 
-The target is increasingly executable traceability:
+Four representative modeled test cases already bind to real pytest functions and are executed by `make evidence-self-example`. Their machine evidence is validated against the engineering graph before `render-self-example` may continue.
+
+The target is increasingly complete executable traceability:
 
 ```text
 stakeholder need
@@ -223,6 +257,8 @@ architecture decision
 architecture element
        ↓
 real source module
+       ↓
+modeled test-case
        ↓
 executable test
        ↓
@@ -266,7 +302,7 @@ These projects and standards are references, not compatibility claims. Quarto-Ne
 
 ## Roadmap
 
-The full accepted roadmap is maintained in [`docs/ROADMAP.md`](docs/ROADMAP.md). The next implementation priority is executable test linkage and machine-generated evidence, followed by Git-native change/PR intelligence and declarative policy.
+The full accepted roadmap is maintained in [`docs/ROADMAP.md`](docs/ROADMAP.md). Phase 1 has begun with pytest linkage, deterministic machine evidence, and semantic evidence validation. The remaining Phase 1 work expands evidence providers/freshness and the self-hosted executable coverage; Phase 2 then moves into Git-native change and pull-request intelligence.
 
 ## License
 
