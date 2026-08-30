@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from pyld import jsonld
+
 from quarto_needs.analysis import analyze_project
 from quarto_needs.config import load_config
 from quarto_needs.exporters import jsonld_export
@@ -69,3 +71,31 @@ def test_jsonld_write_is_parseable_json(tmp_path: Path) -> None:
     jsonld_export.write(destination, _snapshot(tmp_path))
     payload = json.loads(destination.read_text(encoding="utf-8"))
     assert payload["quartoNeedsJsonLdVersion"] == "1"
+
+
+def test_jsonld_expands_with_independent_processor(tmp_path: Path) -> None:
+    _write_project(tmp_path)
+    document = jsonld_export.build_document(_snapshot(tmp_path))
+
+    expanded = jsonld.expand(document)
+    ids = {node.get("@id") for node in expanded}
+    assert f"{jsonld_export.QN_NAMESPACE}object:SYS-001" in ids
+    assert f"{jsonld_export.QN_NAMESPACE}object:TC-001" in ids
+    assert any(
+        f"{jsonld_export.QN_NAMESPACE}Relation" in node.get("@type", [])
+        for node in expanded
+    )
+
+
+def test_jsonld_rdf_projection_preserves_relation_endpoints(tmp_path: Path) -> None:
+    _write_project(tmp_path)
+    document = jsonld_export.build_document(_snapshot(tmp_path))
+
+    nquads = jsonld.to_rdf(document, {"format": "application/n-quads"})
+    source_predicate = f"<{jsonld_export.QN_NAMESPACE}source>"
+    target_predicate = f"<{jsonld_export.QN_NAMESPACE}target>"
+    source_object = f"<{jsonld_export.QN_NAMESPACE}object:SYS-001>"
+    target_object = f"<{jsonld_export.QN_NAMESPACE}object:TC-001>"
+
+    assert source_predicate in nquads and source_object in nquads
+    assert target_predicate in nquads and target_object in nquads
