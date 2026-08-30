@@ -1,6 +1,6 @@
 # Phase 5.2 — JSON-LD projection
 
-Status: **active implementation**.
+Status: **functionally implemented; independent processor execution pending local validation**.
 
 JSON-LD is a machine-readable semantic projection of the canonical Quarto-Needs engineering graph. It is not an alternate authoring model and does not introduce a second relation catalog, query engine, or rule engine.
 
@@ -12,7 +12,7 @@ JSON-LD is a machine-readable semantic projection of the canonical Quarto-Needs 
 - one `qn:EngineeringObject` node for every canonical engineering object;
 - one `qn:Relation` node for every resolved canonical relation.
 
-Object IRIs use `urn:quarto-needs:object:<percent-encoded-canonical-id>`. Relation IRIs are deterministic SHA-256-derived URNs over source ID, canonical relation name, target ID, and ordinal. The engineering-graph IRI is bound to the semantic graph fingerprint.
+Object IRIs use the versioned namespace `urn:quarto-needs:v1:object:<percent-encoded-canonical-id>`. Relation IRIs are deterministic SHA-256-derived URNs over source ID, canonical relation name, target ID, and ordinal. The engineering-graph IRI is bound to the semantic graph fingerprint.
 
 The projection preserves:
 
@@ -25,6 +25,14 @@ The projection preserves:
 - source and target roles;
 - impact direction;
 - explicit source and target object IRIs.
+
+## Public namespace and versioning policy
+
+The JSON-LD vocabulary uses `urn:quarto-needs:v1:` rather than a dereferenceable Web URL. Quarto-Needs therefore does not create a runtime dependency on an external context server.
+
+`v1` is the public semantic-major version of the vocabulary. Within `v1`, additive terms may be introduced provided existing term meanings, object identity rules, relation endpoint semantics, and datatype contracts remain compatible. A breaking semantic change requires a new namespace such as `urn:quarto-needs:v2:` and a corresponding increment of `quartoNeedsJsonLdVersion`.
+
+The context is embedded in each projection. Remote context resolution is neither required nor used by the exporter or its tests.
 
 ## CLI
 
@@ -46,14 +54,34 @@ The exporter consumes only `AnalysisSnapshot`. It does not parse source files, r
 
 Output ordering is deterministic for equivalent snapshots, and the writer uses the repository's atomic text-write primitive.
 
-## Acceptance gates before Phase 5.2 is complete
+## Independent processor and RDF contract
+
+`PyLD` is a test-only dependency. The test suite now performs two independent semantic checks:
+
+- `jsonld.expand()` must expand the embedded JSON-LD 1.1 context without remote resolution and preserve the canonical object IRIs and relation type;
+- `jsonld.to_rdf(..., {"format": "application/n-quads"})` must preserve source and target object IRIs as RDF statements.
+
+This is intentionally stronger than checking that the JSON document merely parses: the RDF projection must retain the engineering relationship endpoints produced by the canonical graph.
+
+## Acceptance status
 
 1. **implemented** — deterministic JSON-LD document and stable object/relation IRIs;
 2. **implemented** — preservation of canonical relation semantics and authored attributes;
 3. **implemented** — installed CLI integration through `export --format jsonld`;
 4. **implemented** — regression tests for graph shape, attributes, relation endpoints, and byte determinism;
-5. **pending** — validate expansion/compaction with an independent JSON-LD 1.1 processor;
-6. **pending** — document the public vocabulary/namespace stability policy and versioning contract;
-7. **pending** — add a semantic round-trip test proving that expanded RDF statements preserve the intended canonical object/relation identity.
+5. **encoded; local execution pending** — expansion through independent JSON-LD 1.1 processor (`PyLD`);
+6. **implemented and documented** — versioned public namespace and compatibility policy;
+7. **encoded; local execution pending** — RDF/N-Quads projection preserves canonical relation endpoints.
 
-No RDF-store, SPARQL, or remote-context dependency is introduced in this phase. Those may be evaluated later as consumers of the projection rather than semantic authorities inside Quarto-Needs.
+No RDF store, SPARQL engine, or remote-context dependency is introduced in this phase. Those may be evaluated later as consumers of the projection rather than semantic authorities inside Quarto-Needs.
+
+## Local acceptance command
+
+After pulling the branch and refreshing test dependencies:
+
+```bash
+python -m pip install -e ".[test]"
+pytest -q tests/test_export_jsonld.py tests/test_interchange_cli.py
+```
+
+If those tests pass, Phase 5.2 can be marked complete independently of the still-broken repository runner infrastructure.
