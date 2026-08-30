@@ -37,7 +37,7 @@ QMD / configuration / code / tests / evidence
                               HTML/PDF/DOCX
 ```
 
-The canonical model is a property graph of typed engineering objects and typed relations. Python owns relation semantics, validation, queries, coverage, fingerprints, baseline/diff/impact, and public projections. Lua and JavaScript consume those projections and do not redefine engineering meaning.
+The canonical model is a property graph of typed engineering objects and typed relations. Python owns relation semantics, validation, queries, coverage, fingerprints, baseline/diff/impact, evidence validation, and public projections. Lua and JavaScript consume those projections and do not redefine engineering meaning.
 
 ## Current capabilities
 
@@ -48,7 +48,10 @@ The canonical model is a property graph of typed engineering objects and typed r
 - structural validation, configurable rules, named queries, coverage metrics, and quality gates;
 - baselines, semantic diff, relocation detection, and explainable union-graph impact analysis;
 - JSON, CSV, SARIF, JUnit, and Markdown exporters;
-- an opt-in pytest integration with requirement/test-case markers, deterministic machine evidence, and semantic `evidence check` validation against the current engineering graph;
+- an opt-in pytest integration with reciprocal requirement/test-case markers and deterministic `evidence-pytest-v1` output;
+- a provider-neutral `evidence-checks-v1` contract with adapters for JUnit XML, coverage.py JSON, Quarto render results, JSON Schema validations, lint, and type-check results;
+- provider-neutral evidence attestations with SHA-256 payload digests, graph/configuration fingerprints, optional Git revision, generation time, explicit expiry, and `quarto-needs evidence attest` / `evidence check` workflows;
+- semantic evidence validation against modeled requirements, test cases, and evidence objects, including provider compatibility and reciprocal verification/evidence relations;
 - Quarto cards, cross-references, tables, lists, matrices, dashboards, inspectors, Mermaid flows, and graph views;
 - bounded public graph projections with deny-by-default provenance;
 - progressive interactive Cytoscape exploration with semantic traversal, filters, root paths, collapse/expand, and edge inspection;
@@ -101,12 +104,18 @@ quarto-needs diff baselines/quarto-needs.json
 quarto-needs impact baselines/quarto-needs.json
 ```
 
-Generate and validate pytest machine evidence:
+Generate deterministic pytest evidence, attest it against the current engineering state, and validate the attestation:
 
 ```bash
-pytest --quarto-needs-evidence=.quarto-needs/evidence/pytest.json
+pytest --quarto-needs-evidence=.quarto-needs/evidence/pytest-provider.json
+quarto-needs evidence attest \
+  .quarto-needs/evidence/pytest-provider.json \
+  --output .quarto-needs/evidence/pytest.json \
+  --expires-hours 24
 quarto-needs evidence check .quarto-needs/evidence/pytest.json
 ```
+
+Raw provider payloads remain directly checkable for backward-compatible or local workflows, but attestations are the preferred CI/review artifact when freshness and provenance matter.
 
 Preview the self-hosted case study:
 
@@ -143,7 +152,7 @@ Cross-reference an object with:
 
 ## Executable verification and machine evidence
 
-Quarto-Needs separates verification intent from executable proof. A modeled `test-case` may bind to a stable pytest node ID while the executable test carries reciprocal markers:
+Quarto-Needs separates verification intent, provider output, and attested proof. A modeled `test-case` may bind to a stable pytest node ID while the executable test carries reciprocal markers:
 
 ```python
 @pytest.mark.requirement("FUN-004")
@@ -152,17 +161,20 @@ def test_graph_exploration_assets():
     ...
 ```
 
-Evidence generation is opt-in and deterministic:
+The pytest plugin emits deterministic `evidence-pytest-v1` output. A second provider-neutral contract, `evidence-checks-v1`, normalizes machine checks from JUnit XML, coverage.py, Quarto render, JSON Schema, lint, and type-check tooling. Generic checks can explicitly reference modeled `requirements`, `testCases`, and `evidenceObjects`.
 
-```bash
-pytest --quarto-needs-evidence=.quarto-needs/evidence/pytest.json
-```
+Volatile provenance is deliberately kept out of deterministic provider payloads. `quarto-needs evidence attest` wraps either supported payload in `evidence-envelope-v1`, recording:
 
-The generated `evidence-pytest-v1` artifact records linked pytest node IDs, outcomes, requirement IDs, and modeled test-case IDs. It deliberately excludes timestamps and durations from the semantic payload.
+- the provider and provider version;
+- a SHA-256 digest of the embedded provider payload;
+- the current configuration, semantic-graph, and representation fingerprints;
+- generation time;
+- optional source/Git revision;
+- optional explicit expiry.
 
-`quarto-needs evidence check` then verifies the artifact against the current canonical graph. It detects failed/skipped executable tests, unknown requirements/test-cases, mismatched `pytest-nodeid` bindings, requirement→test claims that are absent from the model, and modeled pytest bindings missing from the artifact.
+`quarto-needs evidence check` dispatches by artifact schema and validates both the envelope and provider semantics. For pytest it verifies executable outcome, modeled test-case identity, `pytest-nodeid`, reciprocal requirement↔test claims, and completeness of modeled executable bindings. For generic checks it verifies outcomes, referenced requirements/test cases/evidence objects, verification/evidence relations, and provider compatibility declared by modeled evidence objects. Attested artifacts additionally fail on digest tampering, graph/configuration drift, revision mismatch when a current revision is available, future timestamps, or expiry.
 
-See [`docs/manual/executable-evidence.qmd`](docs/manual/executable-evidence.qmd).
+See [`docs/manual/executable-evidence.qmd`](docs/manual/executable-evidence.qmd) and [`docs/manual/evidence-providers.qmd`](docs/manual/evidence-providers.qmd).
 
 ## Generated views
 
@@ -235,7 +247,7 @@ Current exporters include:
 | JUnit | Quality gates represented as test cases |
 | Markdown | Human-readable CI / pull-request summary |
 
-ReqIF, JSON-LD, OSLC federation, Git-native PR intelligence, LSP/editor tooling, C4-derived architecture views, additional evidence providers, and deeper graph-workbench capabilities are part of the accepted roadmap.
+Machine evidence additionally uses versioned pytest, generic-check, and attestation schemas. ReqIF, JSON-LD, OSLC federation, Git-native PR intelligence, LSP/editor tooling, C4-derived architecture views, and deeper graph-workbench capabilities remain on the accepted roadmap.
 
 See [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
@@ -243,7 +255,7 @@ See [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 `examples/quarto-needs/` uses Quarto-Needs to model Quarto-Needs itself. It connects stakeholder needs, system and functional/non-functional requirements, ADRs, components/interfaces, risks, real source modules, modeled tests, executable pytest tests, and evidence. English is canonical and Brazilian Portuguese is presentation-only localization over the same semantic model.
 
-Four representative modeled test cases already bind to real pytest functions and are executed by `make evidence-self-example`. Their machine evidence is validated against the engineering graph before `render-self-example` may continue.
+Five representative modeled test cases bind to real pytest functions and are executed by `make evidence-self-example`: architecture-decision governance, multilingual semantic parity, public graph safety, named graph views, and baseline/diff/impact. The target first writes deterministic provider output, then creates a 24-hour attestation bound to the current engineering snapshot, and finally validates that attestation. `render-self-example` depends on this complete flow.
 
 The target is increasingly complete executable traceability:
 
@@ -260,9 +272,11 @@ real source module
        ↓
 modeled test-case
        ↓
-executable test
+executable test / machine check
        ↓
-machine evidence
+deterministic provider evidence
+       ↓
+attestation + provenance/freshness
        ↓
 Git change / review state
 ```
@@ -280,7 +294,7 @@ Quarto-Needs has its own Quarto/Pandoc-native architecture, but it is informed b
 - **ReqIF** — inspiration and future interchange boundary for structured requirements exchange.
 - **OSLC Requirements Management** — future direction for standards-based federation once identity, provenance, caching, authentication, and conflict semantics are explicit.
 - **StrictDoc, Doorstop, and OpenFastTrace** — useful reference points for requirements-as-code, source traceability, review state, and transitive traceability capabilities.
-- **SARIF and JUnit** — established machine-consumable formats that inform current CI/export integration.
+- **SARIF and JUnit** — established machine-consumable formats that inform current CI/export and evidence integration.
 
 These projects and standards are references, not compatibility claims. Quarto-Needs' defining constraint is that all capabilities remain projections of one deterministic semantic engineering graph.
 
@@ -292,6 +306,7 @@ These projects and standards are references, not compatibility claims. Quarto-Ne
 - Single semantic source of truth
 - Architecture decisions as first-class objects
 - Verification distinct from evidence
+- Deterministic provider output distinct from provenance-bearing attestation
 - Explainable change intelligence
 - Deterministic artifacts and reproducible analysis
 - Progressive enhancement for interactive views
@@ -302,7 +317,7 @@ These projects and standards are references, not compatibility claims. Quarto-Ne
 
 ## Roadmap
 
-The full accepted roadmap is maintained in [`docs/ROADMAP.md`](docs/ROADMAP.md). Phase 1 has begun with pytest linkage, deterministic machine evidence, and semantic evidence validation. The remaining Phase 1 work expands evidence providers/freshness and the self-hosted executable coverage; Phase 2 then moves into Git-native change and pull-request intelligence.
+The full accepted roadmap is maintained in [`docs/ROADMAP.md`](docs/ROADMAP.md). **Phase 1 — executable verification and machine evidence — is now implemented end to end**: pytest linkage, modeled test-case binding, provider-neutral machine checks, provider adapters, semantic evidence-object validation, attestation, provenance/fingerprint binding, freshness/expiry, and a self-hosted executable flow are all present. The next major product block is **Phase 2: Git-native change intelligence and pull-request governance**.
 
 ## License
 
