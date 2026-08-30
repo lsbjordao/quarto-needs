@@ -2,98 +2,174 @@
 
 Requirements engineering does not end when the first coherent graph is approved. The difficult question is what a change means for the rest of the system. Quarto-Needs therefore treats comparison as an engineering workflow rather than a textual Git diff.
 
-## The change-analysis slice
+This chapter uses a **real Quarto-Needs change** rather than a hypothetical one: the margin table-of-contents control that was corrected after its expanded-state button overlapped the page TOC.
 
-This capability already has a complete traceability chain in the self-hosted model:
+## The historical product change
+
+The original UI correction is commit `ba4655d72d3b0e9fc926a2d31c77c7705efd00b2` (`fix: improve graph dark theme and TOC toggle`), whose parent is `77eaaf91d0127fffe974b449e5ee9718861da552`.
+
+That commit changed `_extensions/quarto-needs/margin-sidebar.js`: the expanded-state button had been positioned by subtracting only half of its width from the TOC boundary. The fix introduced an explicit 8 px gap and subtracts the complete button width, keeping the control entirely outside the TOC.
 
 ```text
-STK-003  Teams need reproducible governance in Git and CI
+before: rect.left - button.offsetWidth / 2
+ after: rect.left - button.offsetWidth - gap
+                            where gap = 8
+```
+
+That is the **code-history trigger** for this case. At the time of that historical commit, however, the newer self-hosted engineering model did not yet contain the complete `FUN-009 → ADR-007 → SRC-MARGIN-SIDEBAR → TC-014 → EVD-014` chain. A professional tutorial should not pretend otherwise.
+
+## The modeled vertical slice
+
+The product behavior is now explicitly modeled:
+
+```text
+SYS-002  Publish the engineering model as Quarto documentation
    ↓ derives-from
-SYS-003  Provide deterministic validation and quality gates
-   ↓
-FUN-005  Compare engineering states through baseline, diff, and impact
-   ↓ implemented-by
-COMP-BASELINE
+FUN-009  Collapse the page margin TOC without obscuring navigation
+   ↓ addressed by
+ADR-007  Persistent progressive-enhancement margin TOC control
+   ↓ applies to
+COMP-EXTENSION
    ↓ implementation surface
-SRC-BASELINE   src/quarto_needs/baseline.py
-SRC-DIFF       src/quarto_needs/diff.py
-SRC-IMPACT     src/quarto_needs/impact.py
+SRC-MARGIN-SIDEBAR  _extensions/quarto-needs/margin-sidebar.js
    ↓ verification
-TC-011  Baseline, diff, and impact regression
+TC-014  Margin TOC toggle positioning regression
    ↓ evidenced-by
-EVD-011 Baseline and impact comparison suite
+EVD-014 Margin TOC usability machine evidence
 ```
 
-{{< need-graph view="change-analysis" id="change-analysis-view" >}}
+`TC-014` is bound to the real pytest node `tests/test_graph_assets.py::test_margin_sidebar_toggle_stays_entirely_outside_page_toc`. It checks the explicit 8 px gap, complete button-width offset, persistence, and temporary `fullcontent` behavior.
 
-## Step 1 — establish a baseline
+## A reproducible semantic Git range
 
-A baseline is more than a copy of `needs.json`. It carries the authored engineering state together with the comparison axes needed for reproducibility, including configuration fingerprint, ruleset version, and reference date.
-
-For this example, a reader can create a baseline from the repository root with:
-
-```bash
-PYTHONPATH=src .venv/bin/python -m quarto_needs.cli \
-  --root examples/quarto-needs baseline create --force
-```
-
-The resulting artifact records the state against which later changes can be interpreted.
-
-## Step 2 — make an engineering change
-
-Consider a plausible evolution: graph exploration must preserve a shareable exploration state. That change would not begin in JavaScript. It would first alter or introduce an engineering obligation related to `FUN-004`, then potentially affect `ADR-004`, the graph projection contract, browser modules, tests, and evidence.
-
-The important distinction is:
+To demonstrate Git-native engineering analysis with **valid models on both sides**, this repository contains a later canonical clarification of `FUN-009`:
 
 ```text
-Git asks:          Which lines changed?
-Quarto-Needs asks: Which engineering objects changed, and what do those
-                   changes reach through typed semantic relations?
+base  ba69e62cf9ba4a0fb186a28e6e87649c1462f2dd
+head  53dc04bf6bdd98a2f8143964684d20464d6264f6
 ```
 
-## Step 3 — inspect the structured diff
+The head clarifies in the requirement rationale that positioning is engineering behavior protected by an executable regression contract, not incidental decorative styling. All object identities and traceability links already exist in both states, so this range can be materialized and analyzed deterministically.
 
-After changing the model, run:
+Set it once in a shell:
 
 ```bash
-PYTHONPATH=src .venv/bin/python -m quarto_needs.cli \
-  --root examples/quarto-needs diff examples/quarto-needs/baselines/quarto-needs.json
+RANGE=ba69e62cf9ba4a0fb186a28e6e87649c1462f2dd..53dc04bf6bdd98a2f8143964684d20464d6264f6
 ```
 
-The comparison can distinguish additions, removals, relocation, authored field changes, and relation changes. Those categories are more useful for engineering review than an undifferentiated text patch.
-
-## Step 4 — inspect impact paths
-
-Impact analysis then traverses the **union of the baseline and current graphs**. This matters because a removed node or relation must remain explainable during review.
+## Step 1 — inspect the engineering diff
 
 ```bash
-PYTHONPATH=src .venv/bin/python -m quarto_needs.cli \
-  --root examples/quarto-needs impact examples/quarto-needs/baselines/quarto-needs.json
+quarto-needs --root examples/quarto-needs \
+  diff --git "$RANGE"
 ```
 
-The result is deliberately expressed as paths rather than a synthetic risk score. A reviewer can therefore see *why* an object is considered affected.
+For machine consumers:
 
-For example, a change around interactive graph exploration could conceptually produce a path such as:
+```bash
+quarto-needs --root examples/quarto-needs \
+  diff --git "$RANGE" --format json
+```
+
+Unlike a text patch, the result identifies the changed engineering object (`FUN-009`) and the authored fields that changed. Both refs are extracted with `git archive` and analyzed independently; the working tree is not checked out or mutated.
+
+Quarto-Needs uses the head commit timestamp as the common reference epoch for both materialized states. This prevents the same Git range from producing different date-sensitive results merely because it is analyzed on another day.
+
+## Step 2 — inspect explicit impact paths
+
+```bash
+quarto-needs --root examples/quarto-needs \
+  impact --git "$RANGE"
+```
+
+Impact traverses the union of the two engineering graphs, following the catalog's canonical impact directions. The result is a set of explicit paths, not a synthetic risk score.
+
+For this case, downstream review attention includes the verification/evidence side of the chain. The exact result is computed from the graph rather than hard-coded as a policy rule.
+
+## Step 3 — derive suspect traceability
+
+```bash
+quarto-needs --root examples/quarto-needs \
+  suspect --git "$RANGE" --format json
+```
+
+A suspect claim is **derived state**, not a persisted `suspect=true` flag. Each claim carries a witness:
 
 ```text
-FUN-004
-  → ADR-004
-  → COMP-GRAPH
-  → TC-010
-  → EVD-010
+origin + change
+    ↓
+explicit relation path
+    ↓
+affected object + semantic role
 ```
 
-The exact path is resolved from the graph rather than hard-coded into this document.
+A reviewer therefore sees not only that a test or evidence object needs renewed attention, but *why* it became suspect and through which relations.
+
+## Step 4 — generate the pull-request engineering report
+
+```bash
+quarto-needs --root examples/quarto-needs \
+  pr-report --git "$RANGE" --format markdown
+```
+
+The report groups changed and affected objects by semantic role and includes:
+
+- changed requirements and ADRs;
+- affected architecture elements and source modules;
+- downstream tests and evidence;
+- suspect/stale evidence;
+- added/removed findings;
+- gate regressions;
+- explicit impact paths.
+
+The JSON projection is available with `--format json`.
+
+## Step 5 — project the same analysis into GitHub CI
+
+The GitHub projection does not call GitHub APIs and does not own engineering semantics. It converts the canonical PR report into CI-friendly surfaces.
+
+Step-summary Markdown:
+
+```bash
+quarto-needs --root examples/quarto-needs \
+  github-report --git "$RANGE" --format markdown
+```
+
+Workflow annotations:
+
+```bash
+quarto-needs --root examples/quarto-needs \
+  github-report --git "$RANGE" --format annotations
+```
+
+Structured check projection:
+
+```bash
+quarto-needs --root examples/quarto-needs \
+  github-report --git "$RANGE" --format json
+```
+
+The repository CI uses the same surfaces on pull requests: full Git history is fetched, base/head SHAs are supplied by the PR event, the engineering summary is appended to `GITHUB_STEP_SUMMARY`, and escaped annotations are emitted into the workflow log.
+
+## Why two historical references are useful
+
+This example deliberately preserves two truthful histories:
+
+1. **Product implementation history** — `77eaaf91…ba4655d7`, where the JavaScript overlap bug was actually fixed.
+2. **Executable engineering-model history** — `ba69e62c…53dc04bf`, where a complete, valid self-hosted graph can be compared on both sides and the change can be propagated through requirements, decisions, implementation, tests, and evidence.
+
+Conflating those histories would make the documentation look simpler but less accurate. Quarto-Needs instead keeps provenance explicit.
 
 ## Review questions
 
 A useful change review should be able to answer:
 
-- Which stakeholder concern still motivates the changed requirement?
-- Which ADRs are now candidates for reconsideration?
+- Which stakeholder/system concern still motivates the changed requirement?
+- Which ADRs are candidates for reconsideration?
 - Which logical components and source modules implement the affected obligation?
 - Which verification cases need to be rerun or changed?
-- Which evidence is now stale or must be regenerated?
-- Does the change cross a safety, localization, or governance boundary?
+- Which evidence is now suspect, stale, or must be regenerated?
+- Which quality gates or findings changed?
+- What exact graph path justifies every downstream review claim?
 
 This is the point at which requirements-as-code becomes more than storing requirements in Git: the versioned graph itself participates in engineering reasoning.
