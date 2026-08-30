@@ -1,6 +1,6 @@
 # Traceability: investigate the product as an engineering graph
 
-This chapter is where the example becomes self-referential in a useful way. The graph below describes the system that generated the graph, and its exploration controls are themselves requirements, decisions, implementation, tests, and evidence inside that model.
+This chapter is where the example becomes self-referential in a useful way. The graph below describes the system that generated the graph, and its exploration controls are themselves requirements, decisions, source modules, tests, and evidence inside that model.
 
 ## Start with the complete engineering view
 
@@ -11,8 +11,6 @@ Instead of reading this as a single diagram, use the graph as a sequence of engi
 ## 1. Where did a requirement come from?
 
 Select a requirement such as `FUN-004`, choose the **derivation** traversal profile, and inspect its parents. The path explains how interactive graph exploration traces back through `SYS-002` / `SYS-006` to stakeholder needs.
-
-A useful reading pattern is:
 
 ```text
 stakeholder concern
@@ -30,14 +28,35 @@ Choose the **decision** profile and focus on `ADR-004`. The decision does not pr
 
 {{< need-graph view="architecture-decisions" >}}
 
-This lets an architecture review ask:
+An architecture review can ask which requirements or risks motivated a decision, which component or interface is inside its scope, which test confirms continued conformance, and whether the decision has an explicit review date.
 
-- Which requirements or risks motivated this decision?
-- Which component or interface is inside its scope?
-- Which test confirms continued conformance?
-- Does the decision have an explicit review date?
+## 3. Where is the obligation implemented in code?
 
-## 3. What proves that a requirement is satisfied?
+The self-hosted model now distinguishes logical architecture from physical source modules. Use the implementation view to follow requirements toward real files such as `src/quarto_needs/graph_output.py`, `src/quarto_needs/relations.py`, or `_extensions/quarto-needs/graph-explore.js`.
+
+{{< need-graph view="requirement-to-code" >}}
+
+For example, the graph-exploration slice crosses several layers:
+
+```text
+STK-001
+  ↓
+SYS-006
+  ↓
+FUN-004
+  ↓
+ADR-004
+  ↓
+COMP-GRAPH
+  ↓
+SRC-GRAPH-PROJECTION
+SRC-GRAPH-CONTEXT
+SRC-GRAPH-EXPLORE
+```
+
+This is a useful distinction during review: `COMP-GRAPH` expresses architectural responsibility; the `SRC-*` objects identify the concrete repository surface that realizes it.
+
+## 4. What proves that a requirement is satisfied?
 
 Choose the **verification** traversal profile and focus on a requirement such as `NFR-002` or `FUN-003`. The engineering chain should lead to a test case and then to evidence.
 
@@ -51,15 +70,37 @@ Evidence
 
 {{< need-graph view="verification-assets" >}}
 
-The distinction matters: a test describes the verification activity; evidence records the durable basis for claiming that the activity succeeded.
+A test describes the verification activity; evidence records the durable basis for claiming that the activity succeeded.
 
-## 4. What happens if this object changes?
+## 5. Follow four complete engineering stories
 
-The same typed relations used for documentation also support baseline comparison and impact propagation. A future version of this case study can therefore show an actual historical change in Quarto-Needs and ask the graph which requirements, decisions, components, tests, and evidence are downstream of it.
+The model contains four intentionally strong vertical slices. They are useful as guided exercises because each crosses several engineering layers.
 
-That is the deeper purpose of requirements-as-code: version history is interpreted through engineering semantics rather than treated only as textual diff.
+### Graph exploration
 
-## 5. Why is this node visible?
+Start with `FUN-004`, then inspect `ADR-004`, `COMP-GRAPH`, `SRC-GRAPH-OUTPUT`, `SRC-GRAPH-CONTEXT`, `SRC-GRAPH-EXPLORE`, `TC-006`, `TC-010`, `EVD-006`, and `EVD-010`.
+
+{{< need-graph view="graph-exploration" >}}
+
+### Multilingual engineering
+
+Start with `STK-005` and follow `SYS-005 → FUN-006 → ADR-005 → COMP-I18N → SRC-PRE-RENDER → TC-005 → EVD-005`.
+
+{{< need-graph view="localization-path" >}}
+
+### Architecture decision management
+
+Start with `STK-004` / `SYS-004`. Inspect the accepted ADRs, then follow governance into `SRC-RULES`, `TC-004`, and `EVD-004`.
+
+{{< need-graph view="adr-path" >}}
+
+### Change analysis
+
+Start with `FUN-005` and follow `COMP-BASELINE → SRC-BASELINE / SRC-DIFF / SRC-IMPACT → TC-011 → EVD-011`.
+
+{{< need-graph view="change-analysis" >}}
+
+## 6. Why is this node visible?
 
 Use **Path to root** after focusing a node. The browser follows the traversal direction published by the Python relation catalog. It does not guess parent/child meaning from Cytoscape edge orientation.
 
@@ -75,28 +116,34 @@ Click an edge to inspect:
 
 The inspector is therefore an explanation of the graph, not merely a tooltip.
 
-## 6. Explore one concern at a time
+## 7. Use traversal profiles as engineering lenses
 
-The `graph-exploration` named view demonstrates a reusable semantic selection evaluated by the core:
+Traversal profiles are not cosmetic presets. They expose different questions over the same canonical graph:
 
-{{< need-graph view="graph-exploration" >}}
+- **derivation** — where did this obligation come from?
+- **decision** — which engineering drivers, scope, lineage, and confirmation explain this choice?
+- **architecture** — which architecture elements and implementation relations participate?
+- **verification** — which tests and evidence support the claim?
+- **risk** — which constraints and mitigations shape the engineering response?
+- **traceability** — show the broad semantic chain.
 
-Try combining:
+Try combining a profile with Type, Status, and Family filters rather than treating every graph as one all-purpose picture.
 
-- **Traversal = architecture** with `COMP-GRAPH`;
-- **Traversal = verification** with `TC-010`;
-- **Family = decision-scope** with `ADR-004`;
-- **Type = non-functional-requirement** to isolate quality constraints;
-- **Status = accepted** to isolate active ADRs.
+## 8. What happens if this object changes?
+
+The same typed relations used for documentation support baseline comparison and impact propagation. The next chapter uses `FUN-005`, the three comparison modules, `TC-011`, and `EVD-011` to turn a version change into an auditable engineering-impact question.
+
+That is the deeper purpose of requirements-as-code: version history is interpreted through engineering semantics rather than treated only as textual diff.
 
 ## What this example is intended to become
 
-The case study is not meant to freeze the current implementation. As Quarto-Needs evolves, its own engineering graph should evolve with it. A significant feature can add or change the relevant need, requirement, ADR, component, test, and evidence in the same pull request as the implementation.
+The case study is not meant to freeze the current implementation. As Quarto-Needs evolves, its own engineering graph should evolve with it. A significant feature can add or change the relevant need, requirement, ADR, component, source module, test, and evidence in the same pull request as the implementation.
 
 That makes this example simultaneously:
 
 1. a tutorial on requirements engineering;
 2. a living architecture description;
-3. an integration fixture;
-4. a demonstration of Quarto-Needs;
-5. the engineering model of Quarto-Needs itself.
+3. a requirement-to-code map;
+4. an integration fixture;
+5. a demonstration of Quarto-Needs;
+6. the engineering model of Quarto-Needs itself.
