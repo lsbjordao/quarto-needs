@@ -16,6 +16,7 @@ book:
     - executable-evidence.qmd
     - evidence-providers.qmd
     - governance.qmd
+    - declarative-policies.qmd
     - reference.qmd
 
 format:
