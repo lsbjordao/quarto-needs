@@ -13,6 +13,7 @@ from pathlib import Path
 
 from .cli_dispatch import main as dispatch_main
 from .git_range_cli import git_action, run_git_action
+from .variant_cli import run_variant_action, variant_action
 
 
 def _root(argv: Sequence[str]) -> Path:
@@ -24,10 +25,14 @@ def _root(argv: Sequence[str]) -> Path:
 
 def main(argv: Sequence[str] | None = None) -> int:
     values = list(sys.argv[1:] if argv is None else argv)
-    action = git_action(values)
-    if action is not None:
-        command, range_spec = action
+    git = git_action(values)
+    if git is not None:
+        command, range_spec = git
         return run_git_action(_root(values), values, command, range_spec)
+    variant = variant_action(values)
+    if variant is not None:
+        action, name = variant
+        return run_variant_action(_root(values), values, action, name)
     return dispatch_main(values)
 
 
