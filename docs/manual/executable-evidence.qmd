@@ -64,6 +64,8 @@ The version-1 artifact is validated by `schemas/evidence-pytest-v1.schema.json` 
 }
 ```
 
+Evidence v1 intentionally exposes only `passed`, `failed`, and `skipped`. Pytest's richer expected-failure semantics are normalized conservatively: an expected XFAIL is recorded as `skipped`, while any XPASS is recorded as `failed`, including a non-strict XPASS that pytest itself may report as a passing test. An unexpected pass therefore cannot become positive engineering evidence silently.
+
 Timestamps and durations are intentionally excluded from this semantic artifact so identical engineering results remain reproducible. A future attestation layer may add run identity, commit identity, signatures, and other non-semantic execution metadata separately.
 
 ## Validate evidence against the current model
@@ -89,10 +91,11 @@ The check is semantic. It verifies that:
 - every referenced test-case exists;
 - its modeled `pytest-nodeid` equals the executable node ID;
 - every referenced requirement exists;
-- the requirement is actually connected by a verification-family relation to the bound modeled test-case;
+- every requirement claimed by the executable test is actually connected by a verification-family relation to a bound modeled test-case;
+- reciprocally, every requirement that the model says is verified by a bound modeled test-case is claimed by the executable test;
 - every modeled test-case carrying `pytest-nodeid` is present in the evidence artifact.
 
-A successful artifact therefore supports the chain:
+A successful artifact therefore supports the chain in both directions: the executable test cannot invent a requirement-to-test relation, and it cannot silently omit one that the engineering model declares.
 
 ```text
 requirement --verified-by--> modeled test-case
@@ -117,8 +120,11 @@ The initial pytest evidence diagnostics are stable codes:
 | `EVD104` | referenced modeled test-case has no `pytest-nodeid` |
 | `EVD105` | modeled and executable pytest node IDs disagree |
 | `EVD106` | evidence references an unknown requirement |
-| `EVD107` | requirement is not verified by the bound modeled test-case |
+| `EVD107` | executable test claims a requirement not verified by a bound modeled test-case |
 | `EVD108` | a modeled pytest-bound test-case is missing from the artifact |
+| `EVD109` | a bound modeled test-case verifies a requirement that the executable test does not claim |
+
+`EVD107` and `EVD109` form the reciprocal traceability gate: together they require agreement between pytest markers and the model's verification relations rather than accepting either source as authoritative on its own.
 
 Malformed or unsupported evidence artifacts are usage/artifact errors and exit with code `2`. I/O failures exit `3`. A structurally readable artifact that disagrees with the engineering model exits `1`.
 
