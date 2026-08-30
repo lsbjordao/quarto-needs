@@ -57,6 +57,7 @@
   "scripts": {
     "compile": "tsc -p .",
     "check": "tsc -p . --noEmit",
+    "test:extension": "node ./test/runTest.cjs",
     "package": "vsce package --out quarto-needs-vscode.vsix",
     "vscode:prepublish": "npm run compile"
   },
@@ -66,6 +67,7 @@
   "devDependencies": {
     "@types/node": "^22.10.0",
     "@types/vscode": "^1.95.0",
+    "@vscode/test-electron": "^3.1.0",
     "@vscode/vsce": "^3.2.1",
     "typescript": "^5.7.2"
   }
