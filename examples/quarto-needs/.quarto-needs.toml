@@ -222,6 +222,13 @@ target-role = "verification"
 minimum = 1
 severity = "error"
 
+[constraints.APPROVED_REQUIRES_EVIDENCE_PATH]
+kind = "required-path"
+scope = "approved-requirements"
+relations = ["verified-by", "evidenced-by"]
+target-role = "evidence"
+severity = "error"
+
 [graph]
 max-nodes = 160
 max-edges = 500
