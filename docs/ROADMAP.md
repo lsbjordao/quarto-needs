@@ -28,7 +28,7 @@ These are roadmap constraints, not optional polish.
 1. **Python remains the semantic authority.** Lua and JavaScript consume projections; they do not redefine relation, query, rule, impact, or coverage semantics.
 2. **One model, many projections.** CLI, Quarto, exporters, graph views, CI reports, ReqIF, JSON-LD, and editor tooling must derive from the same analysis result.
 3. **Requirements as code.** Human-authored engineering intent remains text-first, versionable, diffable, and reviewable in Git.
-4. **Evidence is distinct from assertion.** A test declaration describes verification intent; a machine-produced evidence artifact records what actually executed.
+4. **Evidence is distinct from assertion.** A test declaration describes verification intent; a deterministic provider artifact records what executed; a provenance-bearing attestation binds that provider result to a concrete engineering state.
 5. **Change intelligence is explainable.** Impact always carries explicit paths and policies. No opaque score replaces the graph explanation.
 6. **Interactive UI is progressive enhancement.** Static HTML, PDF, DOCX, and non-JavaScript users retain equivalent engineering information.
 7. **External data is provenance-preserving.** Imports are read-only by default, versioned, digestible, and explicit about trust and origin.
@@ -56,27 +56,26 @@ The current architecture already provides the substrate for the roadmap:
 
 ---
 
-# Phase 1 — Executable verification and machine evidence
+# Phase 1 — Executable verification and machine evidence ✅
 
-This is the highest-priority next capability because it closes the gap between authored traceability and executable proof.
+**Status: implemented end to end on the current development branch.** Phase 1 now closes the gap between authored traceability and executable proof while preserving deterministic provider output separately from volatile provenance/freshness metadata.
 
-## 1.1 pytest requirement linkage
+## 1.1 pytest requirement linkage ✅
 
-Provide a Quarto-Needs pytest integration with markers such as:
+Implemented through the packaged pytest plugin and reciprocal markers:
 
 ```python
 @pytest.mark.requirement("FUN-004")
+@pytest.mark.quarto_need_test_case("TC-010")
 def test_graph_exploration_assets():
     ...
 ```
 
-The integration should record stable pytest node IDs, linked requirement IDs, outcomes, and source provenance without requiring requirement semantics to live inside pytest.
+The plugin records stable pytest node IDs, linked requirement IDs, modeled test-case IDs, and normalized outcomes in deterministic `evidence-pytest-v1` artifacts. Ordinary pytest runs remain side-effect free unless evidence output is explicitly requested.
 
-## 1.2 Test-case binding
+## 1.2 Test-case binding ✅
 
-Allow modeled `test-case` objects to bind to executable tests through a stable attribute such as `pytest-nodeid` or a provider-neutral execution reference.
-
-The verifier must be able to prove that:
+Modeled `test-case` objects bind to executable tests through stable `pytest-nodeid` attributes. The verifier proves agreement across both directions:
 
 ```text
 requirement --verified-by--> TC-xxx
@@ -84,44 +83,59 @@ TC-xxx      --binds-to-----> pytest nodeid
 pytest marker -------------> same requirement
 ```
 
-and report disagreement rather than silently choosing one side.
+It reports disagreement instead of silently trusting either the authored graph or the executable marker set.
 
-## 1.3 Evidence-provider protocol
+## 1.3 Evidence-provider protocol ✅
 
-Introduce a provider-neutral protocol for machine evidence. Initial providers:
+A provider-neutral `evidence-checks-v1` contract is implemented alongside the pytest-specific payload. Initial adapters cover:
 
 - pytest execution results;
 - JUnit XML;
-- coverage.py JSON/XML;
+- coverage.py JSON;
 - Quarto render results;
-- JSON Schema validation;
-- lint/type-check results.
+- JSON Schema validation results;
+- lint results;
+- type-check results.
 
-Evidence providers emit versioned artifacts under `.quarto-needs/evidence/` and never mutate the canonical authored source.
+The generic contract carries deterministic checks with optional `requirements`, `testCases`, and `evidenceObjects` references. Provider adapters normalize results already produced by tools; they do not execute arbitrary external commands or schemas as a hidden side effect.
 
-## 1.4 Evidence verification and freshness
+## 1.4 Evidence verification and freshness ✅
 
-Machine evidence should be matched to modeled `evidence` objects and checked for:
+Machine evidence can be matched to modeled `evidence` objects and checked for:
 
-- provider identity;
-- referenced test(s);
-- outcome;
-- source/commit identity when available;
-- configuration/semantic fingerprint when appropriate;
-- expiry/freshness policy.
+- provider identity and provider compatibility;
+- referenced requirement/test/evidence identities;
+- executable/check outcome;
+- verification and evidence-family graph relations;
+- source/Git revision when available;
+- configuration, semantic-graph, and representation fingerprints;
+- payload digest integrity;
+- generation timestamp;
+- explicit expiry/freshness.
 
-## 1.5 Self-hosted executable evidence
+`evidence-envelope-v1` separates volatile attestation metadata from deterministic provider payloads. `quarto-needs evidence attest` creates the envelope and `quarto-needs evidence check` dispatches by embedded artifact schema. Raw provider payloads remain checkable for backward compatibility.
 
-The self-hosted example must replace generic evidence descriptions with real executable bindings for the four principal vertical slices:
+## 1.5 Self-hosted executable evidence ✅
 
-1. interactive graph exploration;
-2. multilingual engineering;
-3. architecture-decision governance;
-4. baseline/diff/impact analysis.
+The self-hosted example now has five real executable bindings covering the principal vertical slices and one additional concrete graph-contract slice:
+
+1. multilingual semantic parity;
+2. architecture-decision governance;
+3. public graph contract/safety;
+4. named graph views;
+5. baseline/diff/impact analysis.
+
+`make evidence-self-example` executes the real pytest nodes, writes deterministic provider output, creates a 24-hour attestation bound to the current engineering snapshot, and validates that attestation. `render-self-example` depends on this flow, so stale, incomplete, tampered, expired, or semantically inconsistent evidence blocks the executable case study.
+
+### Phase 1 hardening that remains compatible with the completed architecture
+
+Phase 1 is functionally complete. Later work may still add more provider adapters, signatures/SLSA-style provenance, stronger repository revision discovery outside CI, provider-specific richer details, and additional self-hosted evidence bindings without changing the established payload/envelope separation.
 
 ---
 
 # Phase 2 — Git-native change intelligence and pull-request governance
+
+**Status: next major implementation phase.** The existing baseline/diff/impact engine is the semantic substrate; Phase 2 makes Git ranges and pull requests first-class consumers of it.
 
 ## 2.1 Git-range analysis
 
@@ -380,9 +394,11 @@ architecture element
     ↓ implemented in
 source module
     ↓ verified by
-executable test
+executable test / machine check
     ↓ demonstrated by
-machine evidence
+deterministic provider evidence
+    ↓ attested against
+engineering snapshot + source revision + freshness
     ↓ associated with
 Git change / review state
 ```
@@ -431,9 +447,9 @@ Each scenario should explain the defect, diagnostic, graph consequence, and corr
 The phases are deliberately ordered because later capabilities depend on earlier contracts:
 
 ```text
-Executable tests + evidence
+Executable tests + evidence ✅
           ↓
-Git / PR change intelligence
+Git / PR change intelligence ← next
           ↓
 Declarative policy over real evidence/change
           ↓
