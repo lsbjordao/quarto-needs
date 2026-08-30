@@ -1,0 +1,143 @@
+# Language server and editor authoring
+
+Quarto-Needs includes a Language Server Protocol (LSP) server that exposes the same engineering semantics used by the CLI, CI, Quarto projections, evidence validation, policies, and graph analysis.
+
+The editor layer does **not** maintain a second parser or rule engine.
+
+```text
+QMD + .quarto-needs.toml + open editor buffers
+                    │
+                    ▼
+        canonical parser / analyzer
+                    │
+                    ▼
+             LanguageService
+                    │
+                    ▼
+           LSP JSON-RPC / stdio
+                    │
+                    ▼
+          VS Code or other clients
+```
+
+## Starting the server
+
+The installed CLI exposes the stdio server directly:
+
+```bash
+quarto-needs --root /path/to/project lsp
+```
+
+Normally an editor extension starts this process automatically. Running it directly is primarily useful when integrating another LSP-capable editor or debugging protocol traffic.
+
+## Capabilities
+
+The server currently advertises:
+
+- full-document text synchronization with open/save/close lifecycle;
+- completion;
+- hover;
+- go to definition;
+- find references;
+- prepare rename and rename;
+- document symbols;
+- workspace symbols;
+- push diagnostics.
+
+## Unsaved buffers
+
+Open documents are analyzed as **in-memory overlays**. Quarto-Needs does not write unsaved editor text to the repository.
+
+An overlay uses the same QMD declaration parser and the same project analyzer as a saved file. This means an unsaved change can immediately affect:
+
+- object titles and metadata;
+- relation topology;
+- policies and graph constraints;
+- derived fields;
+- diagnostics;
+- hover information;
+- symbols;
+- references and refactors.
+
+If a buffer becomes structurally invalid while the user is typing, the server records the structural findings from that attempted analysis while retaining the last valid semantic snapshot for cross-file navigation. Once the buffer becomes valid again, the complete canonical graph is replaced by the newly analyzed state.
+
+## Context-aware completion
+
+Completion is semantic rather than a flat vocabulary dump.
+
+For example:
+
+```qmd
+::: {.need #FUN-010 type="fun█"}
+```
+
+suggests configured object types matching the prefix.
+
+```qmd
+::: {.need #FUN-010 type="functional-requirement" status="a█"}
+```
+
+suggests statuses allowed by that specific type lifecycle.
+
+For relation values:
+
+```qmd
+::: {.need #FUN-010 type="functional-requirement" verified-by="TC-█"}
+```
+
+object candidates are filtered by the configured endpoint policy for `verified-by`. If only `test-case` objects are valid targets, requirements or architecture components are not offered.
+
+## Hover
+
+Hover exposes canonical object metadata, including:
+
+- ID and title;
+- type and semantic role;
+- status and priority;
+- incoming/outgoing relation counts;
+- safe derived fields materialized by Phase 3 configuration.
+
+Derived values are displayed separately from authored attributes because they remain computed projections.
+
+## Definitions and references
+
+Quarto-Needs maintains an exact source-span index for semantic ID positions. Definitions and references therefore point to identifier ranges rather than only approximate source lines.
+
+The index recognizes IDs in:
+
+- `.need` declarations;
+- relation attributes;
+- scalar relation metadata;
+- relation metadata lists;
+- `{{< need ... >}}` shortcodes.
+
+Arbitrary prose that happens to contain the same text as an object ID is not considered a semantic reference.
+
+## Relation-aware rename
+
+`prepareRename` succeeds only when the cursor is on a semantic object-ID span. A rename returns a standard LSP `WorkspaceEdit`; the server does not mutate project files itself.
+
+The edit updates:
+
+- the canonical declaration;
+- all authored relation targets;
+- `need` shortcodes;
+- localized presentation siblings such as `*.pt-BR.qmd`.
+
+Localized files remain excluded from the canonical engineering graph, but identity refactors update them so presentation parity is not broken.
+
+Narrative mentions are deliberately left untouched. Renaming also rejects a target ID that already belongs to another object.
+
+## Diagnostics
+
+Diagnostics are projections of the canonical findings, including structural validation, lifecycle and relation errors, configured policies, type schemas, and graph constraints.
+
+The LSP does not invent editor-specific versions of those rules.
+
+## LanguageService as the reusable boundary
+
+Protocol transport lives in `lsp_server.py`, while editor-independent semantics live in `language_service.py`. This separation makes it possible to reuse editor services from future integrations without coupling the engineering model to VS Code or JSON-RPC.
+
+The intended rule remains:
+
+> Python owns engineering semantics; editor integrations consume them.
