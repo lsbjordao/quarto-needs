@@ -1,6 +1,6 @@
 # Rastreabilidade: investigue o produto como um grafo de engenharia
 
-Este capítulo é onde o exemplo se torna autorreferente de forma útil. O grafo abaixo descreve o sistema que gerou o próprio grafo, e seus controles de exploração são, eles mesmos, requisitos, decisões, implementação, testes e evidências dentro desse modelo.
+Este capítulo é onde o exemplo se torna autorreferente de forma útil. O grafo abaixo descreve o sistema que gerou o próprio grafo, e seus controles de exploração são, eles mesmos, requisitos, decisões, módulos-fonte, testes e evidências dentro desse modelo.
 
 ## Comece pela visão completa de engenharia
 
@@ -11,8 +11,6 @@ Em vez de ler isso como um único diagrama, use o grafo como uma sequência de p
 ## 1. De onde veio um requisito?
 
 Selecione um requisito como `FUN-004`, escolha o perfil de travessia **derivation** e examine seus pais. O caminho explica como a exploração interativa do grafo remonta por `SYS-002` / `SYS-006` até necessidades de stakeholders.
-
-Um padrão útil de leitura é:
 
 ```text
 preocupação do stakeholder
@@ -30,14 +28,35 @@ Escolha o perfil **decision** e foque em `ADR-004`. A decisão não finge implem
 
 {{< need-graph view="architecture-decisions" >}}
 
-Isso permite que uma revisão de arquitetura pergunte:
+Uma revisão de arquitetura pode perguntar quais requisitos ou riscos motivaram a decisão, qual componente ou interface está em seu escopo, qual teste confirma a conformidade contínua e se a decisão possui data explícita de revisão.
 
-- Quais requisitos ou riscos motivaram esta decisão?
-- Qual componente ou interface está dentro de seu escopo?
-- Qual teste confirma a conformidade contínua?
-- A decisão possui data explícita de revisão?
+## 3. Onde a obrigação é implementada no código?
 
-## 3. O que comprova que um requisito foi satisfeito?
+O modelo autocontido agora distingue arquitetura lógica de módulos-fonte físicos. Use a view de implementação para seguir requisitos até arquivos reais como `src/quarto_needs/graph_output.py`, `src/quarto_needs/relations.py` ou `_extensions/quarto-needs/graph-explore.js`.
+
+{{< need-graph view="requirement-to-code" >}}
+
+Por exemplo, o corte de exploração do grafo atravessa várias camadas:
+
+```text
+STK-001
+  ↓
+SYS-006
+  ↓
+FUN-004
+  ↓
+ADR-004
+  ↓
+COMP-GRAPH
+  ↓
+SRC-GRAPH-PROJECTION
+SRC-GRAPH-CONTEXT
+SRC-GRAPH-EXPLORE
+```
+
+Essa distinção é útil durante revisão: `COMP-GRAPH` expressa responsabilidade arquitetural; os objetos `SRC-*` identificam a superfície concreta do repositório que a realiza.
+
+## 4. O que comprova que um requisito foi satisfeito?
 
 Escolha o perfil **verification** e foque em um requisito como `NFR-002` ou `FUN-003`. A cadeia de engenharia deve conduzir a um caso de teste e depois a uma evidência.
 
@@ -51,15 +70,37 @@ Evidência
 
 {{< need-graph view="verification-assets" >}}
 
-A distinção importa: um teste descreve a atividade de verificação; a evidência registra a base durável para afirmar que a atividade foi bem-sucedida.
+Um teste descreve a atividade de verificação; a evidência registra a base durável para afirmar que a atividade foi bem-sucedida.
 
-## 4. O que acontece se este objeto mudar?
+## 5. Siga quatro histórias completas de engenharia
 
-As mesmas relações tipadas usadas na documentação também sustentam comparação de baselines e propagação de impacto. Uma versão futura deste estudo de caso poderá, portanto, mostrar uma mudança histórica real no Quarto-Needs e perguntar ao grafo quais requisitos, decisões, componentes, testes e evidências estão a jusante dela.
+O modelo contém quatro cortes verticais intencionalmente fortes. Eles funcionam como exercícios guiados porque cada um atravessa várias camadas de engenharia.
 
-Esse é o propósito mais profundo de requirements-as-code: o histórico de versões é interpretado por meio de semântica de engenharia, e não tratado apenas como diff textual.
+### Exploração do grafo
 
-## 5. Por que este nó está visível?
+Comece em `FUN-004` e depois inspecione `ADR-004`, `COMP-GRAPH`, `SRC-GRAPH-OUTPUT`, `SRC-GRAPH-CONTEXT`, `SRC-GRAPH-EXPLORE`, `TC-006`, `TC-010`, `EVD-006` e `EVD-010`.
+
+{{< need-graph view="graph-exploration" >}}
+
+### Engenharia multilíngue
+
+Comece em `STK-005` e siga `SYS-005 → FUN-006 → ADR-005 → COMP-I18N → SRC-PRE-RENDER → TC-005 → EVD-005`.
+
+{{< need-graph view="localization-path" >}}
+
+### Gestão de decisões de arquitetura
+
+Comece em `STK-004` / `SYS-004`. Inspecione as ADRs aceitas e depois siga a governança até `SRC-RULES`, `TC-004` e `EVD-004`.
+
+{{< need-graph view="adr-path" >}}
+
+### Análise de mudanças
+
+Comece em `FUN-005` e siga `COMP-BASELINE → SRC-BASELINE / SRC-DIFF / SRC-IMPACT → TC-011 → EVD-011`.
+
+{{< need-graph view="change-analysis" >}}
+
+## 6. Por que este nó está visível?
 
 Use **Caminho até a raiz** depois de focar um nó. O navegador segue a direção de travessia publicada pelo catálogo de relações do Python. Ele não deduz o significado pai/filho pela orientação da aresta no Cytoscape.
 
@@ -75,28 +116,34 @@ Clique em uma aresta para inspecionar:
 
 O inspetor é, portanto, uma explicação do grafo, e não apenas um tooltip.
 
-## 6. Explore uma preocupação por vez
+## 7. Use perfis de travessia como lentes de engenharia
 
-A view nomeada `graph-exploration` demonstra uma seleção semântica reutilizável avaliada pelo núcleo:
+Perfis de travessia não são presets cosméticos. Eles expõem perguntas diferentes sobre o mesmo grafo canônico:
 
-{{< need-graph view="graph-exploration" >}}
+- **derivation** — de onde veio esta obrigação?
+- **decision** — quais drivers, escopo, linhagem e confirmação explicam esta escolha?
+- **architecture** — quais elementos arquiteturais e relações de implementação participam?
+- **verification** — quais testes e evidências sustentam a afirmação?
+- **risk** — quais restrições e mitigações moldam a resposta de engenharia?
+- **traceability** — mostra a cadeia semântica ampla.
 
-Experimente combinar:
+Experimente combinar um perfil com filtros de Tipo, Status e Família em vez de tratar todo grafo como uma imagem única para todos os propósitos.
 
-- **Travessia = architecture** com `COMP-GRAPH`;
-- **Travessia = verification** com `TC-010`;
-- **Família = decision-scope** com `ADR-004`;
-- **Tipo = non-functional-requirement** para isolar restrições de qualidade;
-- **Status = accepted** para isolar ADRs ativas.
+## 8. O que acontece se este objeto mudar?
+
+As mesmas relações tipadas usadas na documentação sustentam comparação de baselines e propagação de impacto. O próximo capítulo usa `FUN-005`, os três módulos de comparação, `TC-011` e `EVD-011` para transformar uma mudança de versão em uma pergunta auditável de impacto de engenharia.
+
+Esse é o propósito mais profundo de requirements-as-code: o histórico de versões é interpretado por meio da semântica de engenharia, e não tratado apenas como diff textual.
 
 ## O que este exemplo pretende se tornar
 
-O estudo de caso não pretende congelar a implementação atual. À medida que o Quarto-Needs evoluir, seu próprio grafo de engenharia deve evoluir junto. Uma funcionalidade significativa pode adicionar ou alterar a necessidade, o requisito, a ADR, o componente, o teste e a evidência relevantes no mesmo pull request da implementação.
+O estudo de caso não pretende congelar a implementação atual. À medida que o Quarto-Needs evoluir, seu próprio grafo de engenharia deve evoluir junto. Uma funcionalidade significativa pode adicionar ou alterar a necessidade, o requisito, a ADR, o componente, o módulo-fonte, o teste e a evidência relevantes no mesmo pull request da implementação.
 
 Isso faz deste exemplo, simultaneamente:
 
 1. um tutorial de engenharia de requisitos;
 2. uma descrição viva de arquitetura;
-3. uma fixture de integração;
-4. uma demonstração do Quarto-Needs;
-5. o próprio modelo de engenharia do Quarto-Needs.
+3. um mapa de requisito até código;
+4. uma fixture de integração;
+5. uma demonstração do Quarto-Needs;
+6. o próprio modelo de engenharia do Quarto-Needs.
