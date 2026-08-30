@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from quarto_needs.analysis import analyze_project
 from quarto_needs.config import load_config
 
@@ -97,6 +99,8 @@ Outcome.
     )
 
 
+@pytest.mark.requirement("SYS-004")
+@pytest.mark.quarto_need_test_case("TC-004")
 def test_accepted_decision_passes_decision_governance(tmp_path: Path) -> None:
     write_project(tmp_path)
     config = load_config(tmp_path)
