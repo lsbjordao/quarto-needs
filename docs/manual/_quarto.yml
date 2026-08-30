@@ -13,6 +13,7 @@ book:
     - engineering-model.qmd
     - authoring.qmd
     - architecture-decisions.qmd
+    - executable-evidence.qmd
     - governance.qmd
     - reference.qmd
 
