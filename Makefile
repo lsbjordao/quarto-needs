@@ -1,4 +1,4 @@
-.PHONY: setup setup-babelquarto test scan check coverage example preview-example sync-example check-example render-example render-example-all render-example-multilingual render-manual-multilingual preview-self-example sync-self-example check-self-example render-self-example baseline-example diff-example impact-example check-install
+.PHONY: setup setup-babelquarto test scan check coverage example preview-example sync-example check-example render-example render-example-all render-example-multilingual render-manual-multilingual preview-self-example sync-self-example check-self-example evidence-self-example render-self-example baseline-example diff-example impact-example check-install
 .DEFAULT_GOAL := test
 
 VENV_PYTHON := .venv/bin/python
@@ -53,7 +53,16 @@ sync-self-example:
 check-self-example:
 	PYTHONPATH=src $(VENV_PYTHON) -m quarto_needs.cli --root examples/quarto-needs check
 
-render-self-example:
+evidence-self-example:
+	PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=src $(VENV_PYTHON) -m pytest -q \
+		-p quarto_needs.pytest_plugin \
+		--quarto-needs-evidence=examples/quarto-needs/.quarto-needs/evidence/pytest.json \
+		tests/test_architecture_decisions.py::test_accepted_decision_passes_decision_governance \
+		tests/test_graph_semantics.py::test_public_projection_publishes_catalog_semantics \
+		tests/test_graph_semantics.py::test_named_query_is_materialized_as_reusable_graph_view \
+		tests/test_impact.py::test_editing_a_requirement_impacts_its_verification
+
+render-self-example: evidence-self-example
 	Rscript tools/render_multilingual.R examples/quarto-needs
 	$(VENV_PYTHON) tools/normalize_multilingual_output.py examples/quarto-needs/_book --locale pt-BR
 
