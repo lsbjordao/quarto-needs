@@ -59,6 +59,12 @@ def _complete_provider_payload() -> dict[str, object]:
                 "testCases": ["TC-004"],
             },
             {
+                "nodeid": "tests/test_localization.py::test_localized_source_semantic_parity_rejects_model_drift",
+                "outcome": "passed",
+                "requirements": ["FUN-006"],
+                "testCases": ["TC-005"],
+            },
+            {
                 "nodeid": "tests/test_graph_semantics.py::test_public_projection_publishes_catalog_semantics",
                 "outcome": "passed",
                 "requirements": ["SYS-006", "FUN-008", "NFR-002", "NFR-004"],
