@@ -1,0 +1,61 @@
+# Derived fields and build variants
+
+Quarto-Needs keeps authored engineering data separate from computed engineering projections. A value derived from the graph is therefore **not** injected into an object's `attributes`; it is materialized in the snapshot's `derived` projection.
+
+This distinction matters for auditability. Reviewers can tell whether a value was written by an author or calculated reproducibly from the current graph and configuration.
+
+## Bounded derived operations
+
+The first derived-field grammar deliberately supports only two operations:
+
+- `relation-count`: count logical targets of one canonical relation;
+- `path-exists`: evaluate whether a fixed ordered relation path reaches a target, optionally constrained by semantic role.
+
+For example:
+
+```toml
+[derived.verification-count]
+scope = "approved-requirements"
+operation = "relation-count"
+relation = "verified-by"
+target-role = "verification"
+
+[derived.has-evidence-path]
+scope = "approved-requirements"
+operation = "path-exists"
+relations = ["verified-by", "evidenced-by"]
+target-role = "evidence"
+```
+
+The engine uses the canonical relation catalog, including inverse-authoring semantics. It never evaluates Python, Lua, JavaScript, shell commands, templates, or arbitrary expressions.
+
+Derived definitions are part of the canonical configuration fingerprint. Materialized derived values also participate in the semantic graph fingerprint when any derived fields are configured.
+
+## Named build variants
+
+A variant is a deterministic named selection over the same canonical snapshot. It begins with a safe named query and can optionally expand over an explicit relation set for a bounded depth.
+
+```toml
+[variants.assurance-slice]
+scope = "approved-requirements"
+relations = ["verified-by", "evidenced-by"]
+depth = 2
+```
+
+This does not create a second graph. The variant stores only the stable IDs selected from the canonical graph.
+
+Inspect configured variants from the CLI:
+
+```bash
+quarto-needs variant list
+quarto-needs variant show assurance-slice
+quarto-needs variant show assurance-slice --format json
+```
+
+Variants receive a `variantFingerprint` bound to the final semantic graph fingerprint and the ordered variant membership. This prevents a variant projection from being reused as though it belonged to another engineering state.
+
+## Self-hosted example
+
+The Quarto-Needs self-hosted book computes two assurance fields for approved requirements: `verification-count` and `has-evidence-path`. It also defines `assurance-slice`, which expands from approved requirements through verification and evidence relations.
+
+This means Phase 3 is exercised by the project it governs: policy, schemas, graph constraints, derived values, and variants all run against the Quarto-Needs engineering model itself.
