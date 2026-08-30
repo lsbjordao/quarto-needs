@@ -2,98 +2,174 @@
 
 A engenharia de requisitos não termina quando o primeiro grafo coerente é aprovado. A pergunta difícil é o que uma mudança significa para o restante do sistema. Por isso, o Quarto-Needs trata comparação como um fluxo de engenharia, e não como um simples diff textual do Git.
 
-## O corte de análise de mudanças
+Este capítulo usa uma **mudança real do Quarto-Needs**, em vez de um exemplo hipotético: o controle do índice lateral da página que foi corrigido depois que o botão no estado expandido passou a se sobrepor ao próprio índice.
 
-Essa capacidade já possui uma cadeia completa de rastreabilidade no modelo autocontido:
+## A mudança histórica do produto
+
+A correção original de UI é o commit `ba4655d72d3b0e9fc926a2d31c77c7705efd00b2` (`fix: improve graph dark theme and TOC toggle`), cujo parent é `77eaaf91d0127fffe974b449e5ee9718861da552`.
+
+Esse commit alterou `_extensions/quarto-needs/margin-sidebar.js`: o botão expandido era posicionado subtraindo apenas metade de sua largura do limite do índice. A correção introduziu um espaçamento explícito de 8 px e passou a subtrair a largura completa do botão, mantendo o controle inteiramente fora do índice.
 
 ```text
-STK-003  Equipes precisam de governança reproduzível em Git e CI
+antes: rect.left - button.offsetWidth / 2
+ depois: rect.left - button.offsetWidth - gap
+                              onde gap = 8
+```
+
+Esse é o **gatilho no histórico do código** deste caso. Naquele commit histórico, porém, o modelo de engenharia autocontido mais recente ainda não continha a cadeia completa `FUN-009 → ADR-007 → SRC-MARGIN-SIDEBAR → TC-014 → EVD-014`. Um tutorial profissional não deve fingir o contrário.
+
+## O corte vertical modelado
+
+O comportamento do produto agora está explicitamente modelado:
+
+```text
+SYS-002  Publicar o modelo de engenharia como documentação Quarto
    ↓ derives-from
-SYS-003  Fornecer validação determinística e quality gates
-   ↓
-FUN-005  Comparar estados de engenharia por baseline, diff e impacto
-   ↓ implemented-by
-COMP-BASELINE
+FUN-009  Recolher o índice lateral sem ocultar a navegação
+   ↓ addressed by
+ADR-007  Controle persistente como aprimoramento progressivo
+   ↓ applies to
+COMP-EXTENSION
    ↓ superfície de implementação
-SRC-BASELINE   src/quarto_needs/baseline.py
-SRC-DIFF       src/quarto_needs/diff.py
-SRC-IMPACT     src/quarto_needs/impact.py
+SRC-MARGIN-SIDEBAR  _extensions/quarto-needs/margin-sidebar.js
    ↓ verificação
-TC-011  Regressão de baseline, diff e impacto
+TC-014  Regressão de posicionamento do controle do índice lateral
    ↓ evidenced-by
-EVD-011 Suíte de comparação de baseline e impacto
+EVD-014 Evidência de máquina da usabilidade do índice lateral
 ```
 
-{{< need-graph view="change-analysis" id="change-analysis-view" >}}
+`TC-014` está vinculado ao nó pytest real `tests/test_graph_assets.py::test_margin_sidebar_toggle_stays_entirely_outside_page_toc`. Ele verifica o espaçamento explícito de 8 px, o deslocamento pela largura completa do botão, a persistência e o comportamento temporário de `fullcontent`.
 
-## Etapa 1 — estabelecer um baseline
+## Um intervalo Git semântico reproduzível
 
-Um baseline é mais do que uma cópia de `needs.json`. Ele carrega o estado autoral de engenharia junto com os eixos de comparação necessários à reprodutibilidade, incluindo fingerprint de configuração, versão do conjunto de regras e data de referência.
-
-Para este exemplo, o leitor pode criar um baseline a partir da raiz do repositório com:
-
-```bash
-PYTHONPATH=src .venv/bin/python -m quarto_needs.cli \
-  --root examples/quarto-needs baseline create --force
-```
-
-O artefato resultante registra o estado contra o qual mudanças posteriores podem ser interpretadas.
-
-## Etapa 2 — realizar uma mudança de engenharia
-
-Considere uma evolução plausível: a exploração do grafo deve preservar um estado de exploração compartilhável. Essa mudança não começaria no JavaScript. Primeiro ela alteraria ou introduziria uma obrigação de engenharia relacionada a `FUN-004`, podendo então afetar `ADR-004`, o contrato de projeção do grafo, módulos do navegador, testes e evidências.
-
-A distinção importante é:
+Para demonstrar análise de engenharia Git-native com **modelos válidos dos dois lados**, este repositório contém uma clarificação canônica posterior de `FUN-009`:
 
 ```text
-Git pergunta:         Quais linhas mudaram?
-Quarto-Needs pergunta: Quais objetos de engenharia mudaram e o que essas
-                       mudanças alcançam por relações semânticas tipadas?
+base  ba69e62cf9ba4a0fb186a28e6e87649c1462f2dd
+head  53dc04bf6bdd98a2f8143964684d20464d6264f6
 ```
 
-## Etapa 3 — inspecionar o diff estruturado
+O head esclarece na justificativa do requisito que o posicionamento é comportamento de engenharia protegido por um contrato executável de regressão, e não estilização decorativa incidental. Identidades e vínculos de rastreabilidade já existem nos dois estados, portanto esse intervalo pode ser materializado e analisado de forma determinística.
 
-Depois de alterar o modelo, execute:
+Defina-o uma vez no shell:
 
 ```bash
-PYTHONPATH=src .venv/bin/python -m quarto_needs.cli \
-  --root examples/quarto-needs diff examples/quarto-needs/baselines/quarto-needs.json
+RANGE=ba69e62cf9ba4a0fb186a28e6e87649c1462f2dd..53dc04bf6bdd98a2f8143964684d20464d6264f6
 ```
 
-A comparação distingue adições, remoções, relocação, mudanças de campos autorais e mudanças de relações. Essas categorias são mais úteis para revisão de engenharia do que um patch textual indiferenciado.
-
-## Etapa 4 — inspecionar caminhos de impacto
-
-A análise de impacto percorre então a **união dos grafos do baseline e do estado atual**. Isso importa porque um nó ou relação removido ainda precisa permanecer explicável durante a revisão.
+## Etapa 1 — inspecionar o diff de engenharia
 
 ```bash
-PYTHONPATH=src .venv/bin/python -m quarto_needs.cli \
-  --root examples/quarto-needs impact examples/quarto-needs/baselines/quarto-needs.json
+quarto-needs --root examples/quarto-needs \
+  diff --git "$RANGE"
 ```
 
-O resultado é deliberadamente expresso como caminhos, e não como uma pontuação sintética de risco. Assim, um revisor consegue ver *por que* determinado objeto é considerado afetado.
+Para consumidores de máquina:
 
-Por exemplo, uma mudança em torno da exploração interativa do grafo poderia conceitualmente produzir um caminho como:
+```bash
+quarto-needs --root examples/quarto-needs \
+  diff --git "$RANGE" --format json
+```
+
+Diferentemente de um patch textual, o resultado identifica o objeto de engenharia alterado (`FUN-009`) e os campos autorais que mudaram. Ambos os refs são extraídos com `git archive` e analisados de forma independente; o working tree não é trocado nem modificado.
+
+O Quarto-Needs usa o timestamp do commit head como `reference epoch` comum aos dois estados materializados. Isso evita que o mesmo intervalo Git produza resultados sensíveis a data diferentes apenas porque foi analisado em outro dia.
+
+## Etapa 2 — inspecionar caminhos explícitos de impacto
+
+```bash
+quarto-needs --root examples/quarto-needs \
+  impact --git "$RANGE"
+```
+
+A análise de impacto percorre a união dos dois grafos de engenharia seguindo as direções canônicas de impacto do catálogo. O resultado é um conjunto de caminhos explícitos, não uma pontuação sintética de risco.
+
+Neste caso, a atenção de revisão a jusante alcança o lado de verificação/evidência da cadeia. O resultado exato é calculado a partir do grafo, e não codificado como regra específica deste exemplo.
+
+## Etapa 3 — derivar rastreabilidade suspeita
+
+```bash
+quarto-needs --root examples/quarto-needs \
+  suspect --git "$RANGE" --format json
+```
+
+Uma claim suspeita é **estado derivado**, e não um flag persistido `suspect=true`. Cada claim carrega uma testemunha:
 
 ```text
-FUN-004
-  → ADR-004
-  → COMP-GRAPH
-  → TC-010
-  → EVD-010
+origem + mudança
+    ↓
+caminho explícito de relações
+    ↓
+objeto afetado + papel semântico
 ```
 
-O caminho exato é resolvido a partir do grafo, e não codificado neste documento.
+Assim, o revisor vê não apenas que um teste ou evidência precisa de nova atenção, mas *por que* se tornou suspeito e por quais relações.
+
+## Etapa 4 — gerar o relatório de engenharia da pull request
+
+```bash
+quarto-needs --root examples/quarto-needs \
+  pr-report --git "$RANGE" --format markdown
+```
+
+O relatório agrupa objetos alterados e afetados por papel semântico e inclui:
+
+- requisitos e ADRs alterados;
+- elementos de arquitetura e módulos-fonte afetados;
+- testes e evidências a jusante;
+- evidência suspeita/obsoleta;
+- findings adicionados/removidos;
+- regressões de gates;
+- caminhos explícitos de impacto.
+
+A projeção JSON está disponível com `--format json`.
+
+## Etapa 5 — projetar a mesma análise no CI do GitHub
+
+A projeção GitHub não chama APIs do GitHub e não é dona da semântica de engenharia. Ela converte o relatório canônico da PR em superfícies apropriadas para CI.
+
+Markdown para step summary:
+
+```bash
+quarto-needs --root examples/quarto-needs \
+  github-report --git "$RANGE" --format markdown
+```
+
+Annotations de workflow:
+
+```bash
+quarto-needs --root examples/quarto-needs \
+  github-report --git "$RANGE" --format annotations
+```
+
+Projeção estruturada do check:
+
+```bash
+quarto-needs --root examples/quarto-needs \
+  github-report --git "$RANGE" --format json
+```
+
+O CI do repositório usa essas mesmas superfícies em pull requests: baixa o histórico Git completo, recebe os SHAs de base/head do evento da PR, acrescenta o resumo de engenharia ao `GITHUB_STEP_SUMMARY` e emite annotations escapadas no log do workflow.
+
+## Por que duas referências históricas são úteis
+
+Este exemplo preserva deliberadamente duas histórias verdadeiras:
+
+1. **Histórico da implementação do produto** — `77eaaf91…ba4655d7`, onde o bug de sobreposição no JavaScript foi realmente corrigido.
+2. **Histórico executável do modelo de engenharia** — `ba69e62c…53dc04bf`, onde existe um grafo autocontido completo e válido nos dois lados e a mudança pode se propagar por requisitos, decisões, implementação, testes e evidências.
+
+Misturar essas duas histórias deixaria a documentação aparentemente mais simples, porém menos correta. O Quarto-Needs mantém a proveniência explícita.
 
 ## Perguntas para revisão
 
 Uma boa revisão de mudança deve conseguir responder:
 
-- Qual preocupação de stakeholder continua motivando o requisito alterado?
+- Qual preocupação de stakeholder/sistema continua motivando o requisito alterado?
 - Quais ADRs passam a ser candidatos a reconsideração?
 - Quais componentes lógicos e módulos-fonte implementam a obrigação afetada?
 - Quais casos de verificação precisam ser reexecutados ou alterados?
-- Quais evidências ficaram obsoletas ou precisam ser regeneradas?
-- A mudança atravessa alguma fronteira de segurança, localização ou governança?
+- Quais evidências ficaram suspeitas, obsoletas ou precisam ser regeneradas?
+- Quais quality gates ou findings mudaram?
+- Qual caminho exato no grafo justifica cada claim de revisão a jusante?
 
 É aqui que requirements-as-code se torna mais do que armazenar requisitos em Git: o próprio grafo versionado participa do raciocínio de engenharia.
