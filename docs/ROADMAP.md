@@ -58,7 +58,7 @@ The current architecture already provides the substrate for the roadmap:
 
 # Phase 1 — Executable verification and machine evidence ✅
 
-**Status: implemented end to end on the current development branch.** Phase 1 now closes the gap between authored traceability and executable proof while preserving deterministic provider output separately from volatile provenance/freshness metadata.
+**Status: implemented end to end on the current development branch.** Phase 1 closes the gap between authored traceability and executable proof while preserving deterministic provider output separately from volatile provenance/freshness metadata.
 
 ## 1.1 pytest requirement linkage ✅
 
@@ -117,13 +117,7 @@ Machine evidence can be matched to modeled `evidence` objects and checked for:
 
 ## 1.5 Self-hosted executable evidence ✅
 
-The self-hosted example now has five real executable bindings covering the principal vertical slices and one additional concrete graph-contract slice:
-
-1. multilingual semantic parity;
-2. architecture-decision governance;
-3. public graph contract/safety;
-4. named graph views;
-5. baseline/diff/impact analysis.
+The self-hosted example now has six real executable bindings covering multilingual parity, architecture-decision governance, public graph safety, named views, baseline/change intelligence, and the margin-TOC engineering slice.
 
 `make evidence-self-example` executes the real pytest nodes, writes deterministic provider output, creates a 24-hour attestation bound to the current engineering snapshot, and validates that attestation. `render-self-example` depends on this flow, so stale, incomplete, tampered, expired, or semantically inconsistent evidence blocks the executable case study.
 
@@ -133,61 +127,56 @@ Phase 1 is functionally complete. Later work may still add more provider adapter
 
 ---
 
-# Phase 2 — Git-native change intelligence and pull-request governance
+# Phase 2 — Git-native change intelligence and pull-request governance ✅
 
-**Status: next major implementation phase.** The existing baseline/diff/impact engine is the semantic substrate; Phase 2 makes Git ranges and pull requests first-class consumers of it.
+**Status: implemented end to end on the current development branch.** Git ranges and pull requests are now first-class consumers of the canonical baseline/diff/impact engine.
 
-## 2.1 Git-range analysis
+## 2.1 Git-range analysis ✅
 
-Add native workflows such as:
+Implemented commands:
 
 ```bash
-quarto-needs diff --git main..HEAD
-quarto-needs impact --git main..HEAD
+quarto-needs diff --git BASE..HEAD
+quarto-needs impact --git BASE..HEAD
 ```
 
-The implementation must materialize both engineering states deterministically rather than infer semantic change from textual patches alone.
+Both refs are materialized with `git archive`, analyzed as complete engineering states, and evaluated under the head commit's deterministic reference epoch. The working tree is never mutated. Archive extraction rejects unsafe paths and symlinks escaping the materialized tree.
 
-## 2.2 Suspect traceability
+## 2.2 Suspect traceability ✅
 
-When a requirement, decision, implementation artifact, test, or evidence changes, linked review claims can become **suspect**.
+`quarto-needs suspect --git BASE..HEAD` derives suspect review claims from the canonical impact report. Claims include origin, change classification, semantic role, distance, explicit path, relation sequence, and a human-readable witness. Suspect state is never persisted as an opaque boolean.
 
-Suspect state must be derived from explicit fingerprint/change rules and carry a witness explaining why re-review is required.
+## 2.3 Pull-request engineering report ✅
 
-## 2.3 Pull-request engineering report
+`quarto-needs pr-report --git BASE..HEAD` composes canonical diff, impact, and suspect reports and groups changed/affected requirements, decisions, architecture elements, source modules, tests, evidence, findings, gate regressions, and explicit impact paths.
 
-Generate a PR-oriented report containing, at minimum:
+Stable JSON and Markdown projections are available for automation and review.
 
-- changed requirements;
-- changed ADRs;
-- affected architecture elements;
-- affected source modules;
-- downstream tests;
-- stale or missing evidence;
-- new/removed findings;
-- gate regressions;
-- explicit impact paths.
+## 2.4 GitHub annotations and checks ✅
 
-## 2.4 GitHub annotations and checks
+`quarto-needs github-report --git BASE..HEAD` projects the canonical report into GitHub-compatible step-summary Markdown, safely escaped workflow annotations, and a structured check conclusion. GitHub remains a consumer: no GitHub API call exists in the semantic core.
 
-Project findings into GitHub-compatible surfaces while keeping GitHub as a consumer, not semantic authority:
+The PR quality workflow fetches complete history, creates the Git-native report, appends the summary to `$GITHUB_STEP_SUMMARY`, and emits annotations with least-privilege permissions.
 
-- SARIF/code-scanning annotations;
-- step summaries;
-- optional PR check summary;
-- deep links back to the rendered engineering model.
+## 2.5 Real change tutorial ✅
 
-## 2.5 Real change tutorial
+The self-hosted Change chapter uses the real margin-TOC positioning fix as the historical product change and a reproducible semantic-model Git range for `diff`, `impact`, `suspect`, `pr-report`, and `github-report` demonstrations.
 
-The `examples/quarto-needs/` Change chapter should use an actual Quarto-Needs product change as its historical case. The optional margin-TOC collapse feature is a suitable first exemplar because it spans stakeholder concern, functional requirement, design decision, extension assets, tests, and evidence.
+The complete modeled slice is:
+
+```text
+SYS-002 → FUN-009 → ADR-007 → COMP-EXTENSION → SRC-MARGIN-SIDEBAR → TC-014 → EVD-014
+```
 
 ---
 
-# Phase 3 — Declarative engineering policy engine
+# Phase 3 — Declarative engineering policy engine ✅
 
-## 3.1 User-defined rules
+**Status: implemented end to end on the current development branch.** Phase 3 adds bounded project-defined engineering semantics without arbitrary code execution. Policies, schemas, constraints, derived fields, and variants are canonical configuration inputs and therefore participate in reproducibility/fingerprint contracts.
 
-Generalize the built-in rule protocol into a bounded declarative DSL. Example direction:
+## 3.1 User-defined rules ✅
+
+A bounded `[policies.*]` DSL composes named-query scopes, canonical relation semantics, target roles, minimum cardinality, and severity:
 
 ```toml
 [policies.NFR_REQUIRES_TEST]
@@ -198,29 +187,51 @@ minimum = 1
 severity = "error"
 ```
 
-## 3.2 Type schemas
+Violations are normal findings with codes `POLICY:<NAME>`. Direct and inverse relation authoring resolve through the canonical relation catalog. Unknown keys, relations, invalid cardinalities, unsupported severities, and invalid scopes fail deterministically.
 
-Support per-type JSON Schema constraints for attributes while preserving the existing type-role, prefix, lifecycle, and required-attribute configuration.
+## 3.2 Type schemas ✅
 
-## 3.3 Graph constraints
+Per-type `attribute-schema` supports JSON Schema Draft 2020-12 over the canonical authored attribute representation. Schema violations emit deterministic `OBJ002` findings and can participate in ordinary rule severity configuration.
 
-Add declarative constraints over:
+Remote `$ref` values are rejected; local `#...` references are accepted. Quarto-Needs does not perform implicit type coercion solely to satisfy a schema.
 
-- relation endpoint roles/types;
-- cardinality;
-- required paths;
-- forbidden cycles;
-- orphan policies;
-- ambiguity/multiple-parent rules;
-- review/freshness requirements.
+## 3.3 Graph constraints ✅
 
-## 3.4 Safe derived fields and variants
+A bounded `[constraints.*]` DSL implements graph invariants that go beyond the simple endpoint/cardinality rules already available under `[relations]`:
 
-Allow bounded derived values and build variants without arbitrary code execution. Derived values must be reproducible and included in the appropriate fingerprints.
+- `required-path`;
+- `forbidden-cycle`;
+- `connected`;
+- `max-relations`.
+
+Violations use `CONSTRAINT:<NAME>` findings. Constraints consume canonical relation/inverse semantics and safe named-query scopes. The self-hosted model requires every approved requirement to reach evidence through `verified-by → evidenced-by`.
+
+## 3.4 Safe derived fields and variants ✅
+
+Derived values are stored separately from authored `attributes`. The first bounded operations are:
+
+- `relation-count`;
+- `path-exists`.
+
+Definitions are part of the canonical configuration fingerprint; materialized values participate in the semantic graph fingerprint when present.
+
+Named build variants start from a safe query and may expand over an explicit canonical relation set to a bounded depth. Membership remains a projection over the one canonical graph and receives a `variantFingerprint` bound to the final semantic graph.
+
+CLI projection:
+
+```bash
+quarto-needs variant list
+quarto-needs variant show assurance-slice
+quarto-needs variant show assurance-slice --format json
+```
+
+The self-hosted model dogfoods `verification-count`, `has-evidence-path`, and `assurance-slice`.
 
 ---
 
 # Phase 4 — Authoring ergonomics: LSP and VS Code
+
+**Status: next major implementation phase.** Phase 4 should improve authoring without creating a second parser or semantic engine.
 
 ## 4.1 Language Server Protocol
 
@@ -229,8 +240,8 @@ Implement an LSP over the same parser/configuration/catalog used by the CLI.
 Capabilities:
 
 - completion for IDs, types, statuses, relations, and configured attributes;
-- diagnostics for unknown IDs, endpoint violations, lifecycle errors, and policy findings;
-- hover with engineering metadata and coverage;
+- diagnostics for unknown IDs, endpoint violations, lifecycle errors, policies, schemas, and graph constraints;
+- hover with engineering metadata, derived values, and coverage;
 - go-to-definition across `.qmd` sources;
 - find references/backlinks;
 - relation-aware rename/refactor;
@@ -449,11 +460,11 @@ The phases are deliberately ordered because later capabilities depend on earlier
 ```text
 Executable tests + evidence ✅
           ↓
-Git / PR change intelligence ← next
+Git / PR change intelligence ✅
           ↓
-Declarative policy over real evidence/change
+Declarative policy + schemas + constraints + variants ✅
           ↓
-LSP authoring over stable semantics
+LSP authoring over stable semantics ← next
           ↓
 ReqIF / JSON-LD / OSLC interchange
           ↓
