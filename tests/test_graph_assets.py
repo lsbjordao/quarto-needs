@@ -11,6 +11,8 @@ import hashlib
 import json
 from pathlib import Path
 
+import pytest
+
 from quarto_needs import graph_output
 from quarto_needs.analysis import analyze_project
 from quarto_needs.config import load_config
@@ -22,6 +24,7 @@ CYTOSCAPE = VENDOR / "cytoscape.min.js"
 GRAPH_JS = ROOT / "_extensions" / "quarto-needs" / "graph.js"
 GRAPH_CSS = ROOT / "_extensions" / "quarto-needs" / "graph.css"
 NEEDS_JS = ROOT / "_extensions" / "quarto-needs" / "needs.js"
+MARGIN_SIDEBAR = ROOT / "_extensions" / "quarto-needs" / "margin-sidebar.js"
 
 FIXTURE = ROOT / "tests" / "fixtures" / "graph" / "adversarial.qmd"
 
@@ -85,6 +88,17 @@ def test_graph_theme_sync_uses_the_registered_cytoscape_instance() -> None:
     assert 'closest(".quarto-color-scheme-toggle")' in source
     assert 'document.addEventListener("quarto:themeChanged"' in source
     assert 'selector("edge[pathMember = \'true\']")' in source
+
+
+@pytest.mark.requirement("FUN-009")
+@pytest.mark.quarto_need_test_case("TC-014")
+def test_margin_sidebar_toggle_stays_entirely_outside_page_toc() -> None:
+    source = MARGIN_SIDEBAR.read_text(encoding="utf-8")
+    assert "const gap = 8;" in source
+    assert "rect.left - button.offsetWidth - gap" in source
+    assert "button.offsetWidth / 2" not in source
+    assert 'body.classList.add("fullcontent", FORCED)' in source
+    assert 'localStorage.setItem(KEY, value ? "true" : "false")' in source
 
 
 def test_graph_lua_registers_the_shortcode() -> None:
