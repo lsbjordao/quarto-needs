@@ -2,7 +2,7 @@
 
 Traceability is incomplete if requirements terminate at design. This chapter models verification as first-class engineering objects and connects successful tests to explicit evidence.
 
-The test cases below correspond to real classes of regression checks in the repository. The evidence objects identify the durable artifact or test surface that demonstrates the result.
+The test cases below correspond to real classes of regression checks in the repository. Four representative vertical slices now carry stable `pytest-nodeid` bindings. `make evidence-self-example` executes those tests and writes a versioned machine-evidence artifact to `.quarto-needs/evidence/pytest.json` before the self-hosted book is rendered.
 
 ## Test cases
 
@@ -24,7 +24,7 @@ Render the example and verify that static graph output, accessible traceability,
 Run the configured rule engine and quality gates against a conforming project and verify a successful deterministic verdict.
 :::
 
-::: {.need #TC-004 type="test-case" status="passed" tags="adr;decision;governance" evidenced-by="EVD-004"}
+::: {.need #TC-004 type="test-case" status="passed" tags="adr;decision;governance" pytest-nodeid="tests/test_architecture_decisions.py::test_accepted_decision_passes_decision_governance" evidenced-by="EVD-004"}
 ## Architecture-decision governance regression
 
 Verify accepted-decision driver, scope, confirmation, lineage, lifecycle, and revisit-date rules.
@@ -36,7 +36,7 @@ Verify accepted-decision driver, scope, confirmation, lineage, lifecycle, and re
 Compare canonical and pt-BR declaration batches and reject any change to IDs, types, statuses, attributes, or relations.
 :::
 
-::: {.need #TC-006 type="test-case" status="passed" tags="graph;schema;security;limits" evidenced-by="EVD-006"}
+::: {.need #TC-006 type="test-case" status="passed" tags="graph;schema;security;limits" pytest-nodeid="tests/test_graph_semantics.py::test_public_projection_publishes_catalog_semantics" evidenced-by="EVD-006"}
 ## Public graph contract and safety regression
 
 Validate public graph JSON against its schema, enforce graph budgets, and verify that unsafe source paths are not published as provenance.
@@ -54,7 +54,7 @@ Parse representative `.need` blocks and verify stable identity, attributes, rela
 Verify canonical relation names, semantic families, endpoint roles, impact direction, and traversal direction.
 :::
 
-::: {.need #TC-009 type="test-case" status="passed" tags="query;graph;views" evidenced-by="EVD-009"}
+::: {.need #TC-009 type="test-case" status="passed" tags="query;graph;views" pytest-nodeid="tests/test_graph_semantics.py::test_named_query_is_materialized_as_reusable_graph_view" evidenced-by="EVD-009"}
 ## Named-query graph-view regression
 
 Evaluate a named query in the core, materialize the corresponding graph projection, and resolve it through the view manifest.
@@ -66,7 +66,7 @@ Evaluate a named query in the core, materialize the corresponding graph projecti
 Verify the shipped exploration modules, semantic traversal markers, root-path support, filters, and canonical/showcase asset parity.
 :::
 
-::: {.need #TC-011 type="test-case" status="passed" tags="baseline;diff;impact" evidenced-by="EVD-011"}
+::: {.need #TC-011 type="test-case" status="passed" tags="baseline;diff;impact" pytest-nodeid="tests/test_impact.py::test_editing_a_requirement_impacts_its_verification" evidenced-by="EVD-011"}
 ## Baseline, diff, and impact regression
 
 Build a baseline, change the engineering model, and verify deterministic field changes, relocation, relation changes, and impact propagation.
@@ -104,10 +104,10 @@ Static graph render tests plus the Quarto/BabelQuarto rendering workflow demonst
 Regression tests exercise structural rules, configurable governance, coverage, and gate evaluation.
 :::
 
-::: {.need #EVD-004 type="evidence" status="verified" tags="pytest;adr;decision"}
-## ADR governance test suite
+::: {.need #EVD-004 type="evidence" status="verified" tags="pytest;adr;decision;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## ADR governance machine evidence
 
-Decision relation, lifecycle, cycle, confirmation, and review-date tests demonstrate the first-class ADR model.
+The modeled `TC-004` is bound to a real pytest node. The self-hosted evidence target records its execution result in the versioned pytest evidence artifact.
 :::
 
 ::: {.need #EVD-005 type="evidence" status="verified" tags="pytest;i18n;babelquarto"}
@@ -116,10 +116,10 @@ Decision relation, lifecycle, cycle, confirmation, and review-date tests demonst
 The pre-render parity validator plus paired EN/pt-BR sources demonstrate one semantic graph with translated presentation.
 :::
 
-::: {.need #EVD-006 type="evidence" status="verified" tags="jsonschema;graph;security"}
-## Public graph schema and semantic-projection tests
+::: {.need #EVD-006 type="evidence" status="verified" tags="jsonschema;graph;security;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## Public graph machine evidence
 
-Schema validation and graph semantics tests exercise bounded projection metadata and safe provenance publication.
+The modeled `TC-006` is bound to the public-projection schema and semantic-contract regression executed by the self-hosted evidence target.
 :::
 
 ::: {.need #EVD-007 type="evidence" status="verified" tags="pytest;parser;qmd"}
@@ -134,10 +134,10 @@ Parser fixtures cover QMD declarations, relation forms, source locations, ration
 Catalog tests cover authoring names, inverse forms, roles, semantic families, impact direction, and traversal semantics.
 :::
 
-::: {.need #EVD-009 type="evidence" status="verified" tags="pytest;query;views"}
-## Named-query and graph-view tests
+::: {.need #EVD-009 type="evidence" status="verified" tags="pytest;query;views;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## Named-query graph-view machine evidence
 
-Tests verify safe query evaluation, deterministic selection, materialized graph views, and manifest lookup.
+The modeled `TC-009` is bound to the executable regression that materializes a named query as a reusable graph view and verifies its manifest entry.
 :::
 
 ::: {.need #EVD-010 type="evidence" status="verified" tags="javascript;cytoscape;assets"}
@@ -146,10 +146,10 @@ Tests verify safe query evaluation, deterministic selection, materialized graph 
 Static asset regressions assert exploration capabilities and prevent semantic relation tables from being reintroduced into presentation code.
 :::
 
-::: {.need #EVD-011 type="evidence" status="verified" tags="pytest;baseline;impact"}
-## Baseline and impact comparison suite
+::: {.need #EVD-011 type="evidence" status="verified" tags="pytest;baseline;impact;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## Baseline and impact machine evidence
 
-Checked-in baseline, diff, and impact tests demonstrate deterministic comparison semantics and path explanations.
+The modeled `TC-011` is bound to the executable impact regression that changes a requirement and verifies the explicit downstream verification path.
 :::
 
 ::: {.need #EVD-012 type="evidence" status="verified" tags="python;extension;sync"}
@@ -166,8 +166,8 @@ Repeat-analysis tests and canonical fixtures demonstrate stable fingerprints and
 
 ## Verification views
 
-{{< need-table types="test-case" columns="id;title;status" sort="id" >}}
+{{< need-table types="test-case" columns="id;title;status;pytest-nodeid" sort="id" >}}
 
-{{< need-table types="evidence" columns="id;title;status" sort="id" >}}
+{{< need-table types="evidence" columns="id;title;status;provider;artifact" sort="id" >}}
 
 {{< need-graph view="verification-assets" id="verification-assets-view" >}}
