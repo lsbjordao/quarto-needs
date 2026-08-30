@@ -2,11 +2,11 @@
 
 Quarto-Needs is evolving from a requirements-as-code extension into an executable engineering knowledge graph for Git-based software development.
 
-The roadmap is intentionally capability-oriented. It does **not** aim to reproduce another tool's syntax. Every capability must extend the canonical engineering model first; Quarto, the CLI, exporters, CI, and interactive HTML remain projections over that same semantic authority.
+The roadmap is capability-oriented. It does **not** aim to reproduce another tool's syntax. Every capability must extend the canonical engineering model first; Quarto, the CLI, exporters, CI, editor tooling, and interactive HTML remain projections over that same semantic authority.
 
 ## North star
 
-> Quarto-Needs is a requirements, architecture-decision, verification, evidence, change-intelligence, and engineering-traceability engine built around a typed property graph, with Quarto as its executable documentation interface.
+> Quarto-Needs is a requirements, architecture-decision, verification, evidence, change-intelligence, authoring, and engineering-traceability engine built around a typed property graph, with Quarto as its executable documentation interface.
 
 A mature project should be able to answer, from the same canonical model:
 
@@ -19,205 +19,105 @@ A mature project should be able to answer, from the same canonical model:
 - What engineering objects are affected by that change, and through which path?
 - Which links became suspect and require renewed review?
 - Which policies or quality gates are currently violated?
+- What should an editor complete, diagnose, navigate, or safely refactor?
 - How can this model be exchanged with external requirements and architecture tooling?
 
 ## Architectural guardrails
 
 These are roadmap constraints, not optional polish.
 
-1. **Python remains the semantic authority.** Lua and JavaScript consume projections; they do not redefine relation, query, rule, impact, or coverage semantics.
-2. **One model, many projections.** CLI, Quarto, exporters, graph views, CI reports, ReqIF, JSON-LD, and editor tooling must derive from the same analysis result.
+1. **Python remains the semantic authority.** Lua, JavaScript, TypeScript, CI, and editor clients consume projections; they do not redefine relation, query, rule, impact, evidence, or coverage semantics.
+2. **One model, many projections.** CLI, Quarto, exporters, graph views, CI reports, editor tooling, ReqIF, and JSON-LD must derive from the same analysis result.
 3. **Requirements as code.** Human-authored engineering intent remains text-first, versionable, diffable, and reviewable in Git.
-4. **Evidence is distinct from assertion.** A test declaration describes verification intent; a deterministic provider artifact records what executed; a provenance-bearing attestation binds that provider result to a concrete engineering state.
-5. **Change intelligence is explainable.** Impact always carries explicit paths and policies. No opaque score replaces the graph explanation.
-6. **Interactive UI is progressive enhancement.** Static HTML, PDF, DOCX, and non-JavaScript users retain equivalent engineering information.
-7. **External data is provenance-preserving.** Imports are read-only by default, versioned, digestible, and explicit about trust and origin.
-8. **Declarative configuration is bounded.** User-defined policy, queries, derived fields, and variants never evaluate arbitrary Python/Lua/JavaScript.
-9. **Interchange formats do not become the authoring model.** ReqIF, OSLC, JSON-LD, SARIF, and other formats are adapters around the canonical graph.
-10. **Performance is measured.** Scaling claims require synthetic sparse, dense, cyclic, and high-fanout benchmarks.
-
----
-
-## Foundation already established
-
-The current architecture already provides the substrate for the roadmap:
-
-- typed engineering objects and configurable type roles;
-- canonical relation catalog with direct/inverse labels, semantic families, endpoint roles, impact direction, and traversal direction;
-- deterministic canonical snapshots and fingerprints;
-- validation, configurable governance, quality gates, and named queries;
-- architecture decisions as first-class objects;
-- baseline, semantic diff, and union-graph impact analysis;
-- JSON, CSV, SARIF, JUnit, and Markdown exporters;
-- bounded public graph projections with deny-by-default provenance;
-- static and interactive graph views driven by the same projection;
-- multilingual presentation with semantic parity validation;
-- a self-hosted bilingual engineering model in `examples/quarto-needs/`.
+4. **Evidence is distinct from assertion.** Test declarations describe verification intent; deterministic providers record execution; attestations bind provider results to a concrete engineering state.
+5. **Authored data is distinct from computed projections.** Derived fields, variants, suspect state, editor indexes, and reports never masquerade as authored attributes.
+6. **Change intelligence is explainable.** Impact always carries explicit paths and policies. No opaque score replaces graph explanation.
+7. **Interactive UI is progressive enhancement.** Static HTML, PDF, DOCX, and non-JavaScript users retain equivalent engineering information.
+8. **External data is provenance-preserving.** Imports are read-only by default, versioned, digestible, and explicit about trust and origin.
+9. **Declarative configuration is bounded.** User-defined policies, queries, constraints, derived fields, and variants never evaluate arbitrary Python/Lua/JavaScript/shell code.
+10. **Interchange formats do not become the authoring model.** ReqIF, OSLC, JSON-LD, SARIF, and other formats are adapters around the canonical graph.
+11. **Editor integrations remain thin.** LSP clients may present or transport semantics but must not maintain a second parser or rule engine.
+12. **Performance is measured.** Scaling claims require synthetic sparse, dense, cyclic, and high-fanout benchmarks.
 
 ---
 
 # Phase 1 — Executable verification and machine evidence ✅
 
-**Status: implemented end to end on the current development branch.** Phase 1 closes the gap between authored traceability and executable proof while preserving deterministic provider output separately from volatile provenance/freshness metadata.
+**Status: implemented end to end on the current development branch.**
 
-## 1.1 pytest requirement linkage ✅
+Implemented contracts include:
 
-Implemented through the packaged pytest plugin and reciprocal markers:
+- reciprocal pytest markers with stable node IDs;
+- deterministic `evidence-pytest-v1` provider output;
+- provider-neutral `evidence-checks-v1`;
+- adapters for JUnit XML, coverage.py JSON, Quarto render, JSON Schema, lint, and type-check results;
+- `evidence-envelope-v1` attestations with digest, graph/configuration fingerprints, timestamps, optional source revision, and explicit expiry;
+- semantic evidence validation against requirements, test cases, evidence objects, provider compatibility, and graph relations;
+- self-hosted executable evidence with six real pytest bindings.
 
-```python
-@pytest.mark.requirement("FUN-004")
-@pytest.mark.quarto_need_test_case("TC-010")
-def test_graph_exploration_assets():
-    ...
-```
-
-The plugin records stable pytest node IDs, linked requirement IDs, modeled test-case IDs, and normalized outcomes in deterministic `evidence-pytest-v1` artifacts. Ordinary pytest runs remain side-effect free unless evidence output is explicitly requested.
-
-## 1.2 Test-case binding ✅
-
-Modeled `test-case` objects bind to executable tests through stable `pytest-nodeid` attributes. The verifier proves agreement across both directions:
-
-```text
-requirement --verified-by--> TC-xxx
-TC-xxx      --binds-to-----> pytest nodeid
-pytest marker -------------> same requirement
-```
-
-It reports disagreement instead of silently trusting either the authored graph or the executable marker set.
-
-## 1.3 Evidence-provider protocol ✅
-
-A provider-neutral `evidence-checks-v1` contract is implemented alongside the pytest-specific payload. Initial adapters cover:
-
-- pytest execution results;
-- JUnit XML;
-- coverage.py JSON;
-- Quarto render results;
-- JSON Schema validation results;
-- lint results;
-- type-check results.
-
-The generic contract carries deterministic checks with optional `requirements`, `testCases`, and `evidenceObjects` references. Provider adapters normalize results already produced by tools; they do not execute arbitrary external commands or schemas as a hidden side effect.
-
-## 1.4 Evidence verification and freshness ✅
-
-Machine evidence can be matched to modeled `evidence` objects and checked for:
-
-- provider identity and provider compatibility;
-- referenced requirement/test/evidence identities;
-- executable/check outcome;
-- verification and evidence-family graph relations;
-- source/Git revision when available;
-- configuration, semantic-graph, and representation fingerprints;
-- payload digest integrity;
-- generation timestamp;
-- explicit expiry/freshness.
-
-`evidence-envelope-v1` separates volatile attestation metadata from deterministic provider payloads. `quarto-needs evidence attest` creates the envelope and `quarto-needs evidence check` dispatches by embedded artifact schema. Raw provider payloads remain checkable for backward compatibility.
-
-## 1.5 Self-hosted executable evidence ✅
-
-The self-hosted example now has six real executable bindings covering multilingual parity, architecture-decision governance, public graph safety, named views, baseline/change intelligence, and the margin-TOC engineering slice.
-
-`make evidence-self-example` executes the real pytest nodes, writes deterministic provider output, creates a 24-hour attestation bound to the current engineering snapshot, and validates that attestation. `render-self-example` depends on this flow, so stale, incomplete, tampered, expired, or semantically inconsistent evidence blocks the executable case study.
-
-### Phase 1 hardening that remains compatible with the completed architecture
-
-Phase 1 is functionally complete. Later work may still add more provider adapters, signatures/SLSA-style provenance, stronger repository revision discovery outside CI, provider-specific richer details, and additional self-hosted evidence bindings without changing the established payload/envelope separation.
+The architecture deliberately separates authored verification intent, deterministic provider output, and provenance-bearing attested proof.
 
 ---
 
 # Phase 2 — Git-native change intelligence and pull-request governance ✅
 
-**Status: implemented end to end on the current development branch.** Git ranges and pull requests are now first-class consumers of the canonical baseline/diff/impact engine.
+**Status: implemented end to end on the current development branch.**
 
 ## 2.1 Git-range analysis ✅
-
-Implemented commands:
 
 ```bash
 quarto-needs diff --git BASE..HEAD
 quarto-needs impact --git BASE..HEAD
 ```
 
-Both refs are materialized with `git archive`, analyzed as complete engineering states, and evaluated under the head commit's deterministic reference epoch. The working tree is never mutated. Archive extraction rejects unsafe paths and symlinks escaping the materialized tree.
+Both refs are materialized with `git archive`, analyzed as complete engineering states under a common deterministic reference epoch, and never mutate the working tree. Archive extraction rejects unsafe paths and escaping symlinks.
 
 ## 2.2 Suspect traceability ✅
 
-`quarto-needs suspect --git BASE..HEAD` derives suspect review claims from the canonical impact report. Claims include origin, change classification, semantic role, distance, explicit path, relation sequence, and a human-readable witness. Suspect state is never persisted as an opaque boolean.
+`quarto-needs suspect --git BASE..HEAD` derives review claims from canonical impact witnesses. Suspect state is not persisted as an opaque boolean.
 
 ## 2.3 Pull-request engineering report ✅
 
-`quarto-needs pr-report --git BASE..HEAD` composes canonical diff, impact, and suspect reports and groups changed/affected requirements, decisions, architecture elements, source modules, tests, evidence, findings, gate regressions, and explicit impact paths.
+`pr-report --git` composes diff, impact, suspect claims, findings, gate regressions, changed/affected semantic groups, and explicit paths into stable JSON/Markdown review surfaces.
 
-Stable JSON and Markdown projections are available for automation and review.
+## 2.4 GitHub projections ✅
 
-## 2.4 GitHub annotations and checks ✅
-
-`quarto-needs github-report --git BASE..HEAD` projects the canonical report into GitHub-compatible step-summary Markdown, safely escaped workflow annotations, and a structured check conclusion. GitHub remains a consumer: no GitHub API call exists in the semantic core.
-
-The PR quality workflow fetches complete history, creates the Git-native report, appends the summary to `$GITHUB_STEP_SUMMARY`, and emits annotations with least-privilege permissions.
+`github-report --git` produces step-summary Markdown, escaped workflow annotations, and structured conclusions without making GitHub semantic authority.
 
 ## 2.5 Real change tutorial ✅
 
-The self-hosted Change chapter uses the real margin-TOC positioning fix as the historical product change and a reproducible semantic-model Git range for `diff`, `impact`, `suspect`, `pr-report`, and `github-report` demonstrations.
-
-The complete modeled slice is:
-
-```text
-SYS-002 → FUN-009 → ADR-007 → COMP-EXTENSION → SRC-MARGIN-SIDEBAR → TC-014 → EVD-014
-```
+The self-hosted Change chapter uses the actual margin-TOC positioning fix and a reproducible semantic-model Git range.
 
 ---
 
 # Phase 3 — Declarative engineering policy engine ✅
 
-**Status: implemented end to end on the current development branch.** Phase 3 adds bounded project-defined engineering semantics without arbitrary code execution. Policies, schemas, constraints, derived fields, and variants are canonical configuration inputs and therefore participate in reproducibility/fingerprint contracts.
+**Status: implemented end to end on the current development branch.**
 
-## 3.1 User-defined rules ✅
+## 3.1 User-defined policies ✅
 
-A bounded `[policies.*]` DSL composes named-query scopes, canonical relation semantics, target roles, minimum cardinality, and severity:
-
-```toml
-[policies.NFR_REQUIRES_TEST]
-scope = "approved-nfr"
-assert-relation = "verified-by"
-target-role = "verification"
-minimum = 1
-severity = "error"
-```
-
-Violations are normal findings with codes `POLICY:<NAME>`. Direct and inverse relation authoring resolve through the canonical relation catalog. Unknown keys, relations, invalid cardinalities, unsupported severities, and invalid scopes fail deterministically.
+Bounded `[policies.*]` declarations compose safe named-query scopes, canonical relations, target roles, cardinality, and severity. Violations use `POLICY:<NAME>` findings.
 
 ## 3.2 Type schemas ✅
 
-Per-type `attribute-schema` supports JSON Schema Draft 2020-12 over the canonical authored attribute representation. Schema violations emit deterministic `OBJ002` findings and can participate in ordinary rule severity configuration.
-
-Remote `$ref` values are rejected; local `#...` references are accepted. Quarto-Needs does not perform implicit type coercion solely to satisfy a schema.
+Per-type `attribute-schema` uses JSON Schema Draft 2020-12 over canonical authored attributes. Violations emit `OBJ002`. Remote references are rejected and no implicit type coercion is performed.
 
 ## 3.3 Graph constraints ✅
 
-A bounded `[constraints.*]` DSL implements graph invariants that go beyond the simple endpoint/cardinality rules already available under `[relations]`:
+Bounded `[constraints.*]` currently implements:
 
 - `required-path`;
 - `forbidden-cycle`;
 - `connected`;
 - `max-relations`.
 
-Violations use `CONSTRAINT:<NAME>` findings. Constraints consume canonical relation/inverse semantics and safe named-query scopes. The self-hosted model requires every approved requirement to reach evidence through `verified-by → evidenced-by`.
+Violations use `CONSTRAINT:<NAME>` and include explicit witnesses/targets where appropriate.
 
 ## 3.4 Safe derived fields and variants ✅
 
-Derived values are stored separately from authored `attributes`. The first bounded operations are:
+Derived values are stored separately from authored `attributes`. Initial bounded operations are `relation-count` and `path-exists`.
 
-- `relation-count`;
-- `path-exists`.
-
-Definitions are part of the canonical configuration fingerprint; materialized values participate in the semantic graph fingerprint when present.
-
-Named build variants start from a safe query and may expand over an explicit canonical relation set to a bounded depth. Membership remains a projection over the one canonical graph and receives a `variantFingerprint` bound to the final semantic graph.
-
-CLI projection:
+Named variants start from safe queries and may expand over explicit canonical relation sets to bounded depth. Variant membership remains a selection over the one canonical graph and receives a `variantFingerprint` bound to the final semantic graph.
 
 ```bash
 quarto-needs variant list
@@ -229,35 +129,59 @@ The self-hosted model dogfoods `verification-count`, `has-evidence-path`, and `a
 
 ---
 
-# Phase 4 — Authoring ergonomics: LSP and VS Code
+# Phase 4 — Authoring ergonomics: LSP and VS Code 🚧
 
-**Status: next major implementation phase.** Phase 4 should improve authoring without creating a second parser or semantic engine.
+**Status: Phase 4.1 implemented; Phase 4.2 in active implementation.** Authoring improvements must consume the stable parser/configuration/catalog rather than create editor-specific semantics.
 
-## 4.1 Language Server Protocol
+## 4.1 Language Server Protocol ✅
 
-Implement an LSP over the same parser/configuration/catalog used by the CLI.
+Quarto-Needs now exposes a dependency-free stdio LSP transport over an editor-independent `LanguageService`:
 
-Capabilities:
+```bash
+quarto-needs --root /path/to/project lsp
+```
 
-- completion for IDs, types, statuses, relations, and configured attributes;
-- diagnostics for unknown IDs, endpoint violations, lifecycle errors, policies, schemas, and graph constraints;
-- hover with engineering metadata, derived values, and coverage;
-- go-to-definition across `.qmd` sources;
-- find references/backlinks;
-- relation-aware rename/refactor;
-- document symbols and workspace symbols.
+Implemented capabilities:
 
-## 4.2 VS Code extension
+- diagnostics projected from canonical structural, lifecycle, relation, policy, schema, and graph-constraint findings;
+- context-aware completion for configured types, type-specific statuses, relation names, and relation targets filtered by endpoint policy;
+- hover with engineering metadata and derived values;
+- exact go-to-definition across `.qmd` sources;
+- exact semantic references/backlinks;
+- relation-aware `prepareRename` and `rename` with collision protection;
+- document symbols and workspace symbols;
+- full-document open/change/save/close synchronization;
+- in-memory unsaved-buffer overlays through the canonical parser/analyzer;
+- retention of the last valid semantic graph while transient structural findings are exposed during incomplete edits;
+- exact source spans for declarations, relation attributes, scalar/list relation metadata, and `need` shortcodes;
+- localized presentation siblings included in identity refactors without becoming a second canonical graph.
 
-Keep the editor thin: the VS Code extension should consume the Quarto-Needs LSP rather than implement a second parser.
+The LSP server returns standard `WorkspaceEdit` values for refactors and never writes editor buffers or rename results directly to source files.
 
-Potential enhancements:
+## 4.2 VS Code extension 🚧
 
-- traceability peek;
-- graph preview for the focused object;
-- quality-gate status;
-- baseline/change indicators;
-- quick fixes for safe, unambiguous edits.
+A first thin multi-root client now lives in `editors/vscode/`.
+
+Implemented foundation:
+
+- `vscode-languageclient` transport only; no parser, relation catalog, rule engine, or graph implementation in TypeScript;
+- one language-server process per workspace folder containing `.quarto-needs.toml`;
+- `.qmd` document selection for both Quarto and Markdown language IDs;
+- configurable `quartoNeeds.server.command` and extra server arguments;
+- restart and output-channel commands;
+- automatic resynchronization when workspace folders or server configuration change;
+- Python regression tests that enforce the thin-client architectural boundary;
+- independent CI TypeScript check/compile job.
+
+Next hardening before calling 4.2 complete:
+
+- package-lock/reproducible Node dependency installation;
+- VS Code extension-host smoke tests;
+- packaging (`vsix`) and installation documentation;
+- clearer handling of workspace folders that gain or lose `.quarto-needs.toml` after activation;
+- optional UI conveniences only when they can be implemented as LSP/projection consumers rather than new semantics.
+
+Candidate later conveniences include traceability peek, graph preview for the focused object, quality-gate status, baseline/change indicators, and safe quick fixes.
 
 ---
 
@@ -269,7 +193,7 @@ Implement ReqIF 1.2 export first, validated against the normative XSD and at lea
 
 ## 5.2 JSON-LD
 
-Expose a versioned JSON-LD projection of the canonical graph to make stable identities, typed objects, and relations available to linked-data tooling without making RDF the internal storage model.
+Expose a versioned JSON-LD projection of the canonical graph so stable identities, typed objects, and relations are available to linked-data tooling without making RDF the internal storage model.
 
 ## 5.3 OSLC Requirements Management
 
@@ -281,7 +205,7 @@ Provide optional import/migration paths for established docs-as-code ecosystems,
 
 ## 5.5 External service adapters
 
-Read-only, cacheable adapters may target systems such as GitHub issues or other lifecycle-management services. Every imported object must preserve origin, stable external identity, digest/version, retrieval policy, and trust status.
+Read-only, cacheable adapters may target systems such as GitHub issues or lifecycle-management services. Every imported object must preserve origin, stable external identity, digest/version, retrieval policy, and trust status.
 
 ---
 
@@ -289,55 +213,34 @@ Read-only, cacheable adapters may target systems such as GitHub issues or other 
 
 The goal is not to maintain a second architecture model. C4-like views should be **projections of the same engineering graph**.
 
-## 6.1 Context elements
+Planned work:
 
-Allow projects to model actors/people, external systems, system boundaries, and interactions using configurable types and relations.
+- actors/people, external systems, system boundaries, and interactions;
+- hierarchical architecture roles corresponding to software systems, containers/subsystems, components, interfaces, and code/source modules;
+- generated System Context, Container/subsystem, Component, and Code views;
+- dynamic/deployment projections only after the static hierarchy is stable.
 
-## 6.2 Hierarchical architecture roles
-
-Support or document role patterns corresponding to:
-
-- software system;
-- container/subsystem/application/data store;
-- component;
-- interface;
-- code/source module.
-
-## 6.3 Generated views
-
-Provide semantic views inspired by the C4 hierarchy:
-
-- System Context;
-- Container/subsystem;
-- Component;
-- Code/implementation.
-
-Each view remains query/projection driven and must be traceable back to requirements, decisions, risks, tests, and evidence.
-
-## 6.4 Dynamic and deployment views
-
-Consider dynamic and deployment projections only after the static architecture hierarchy is stable and useful.
+Every view must remain traceable back to requirements, decisions, risks, tests, and evidence.
 
 ---
 
 # Phase 7 — Interactive graph workbench
 
-Extend the Cytoscape view from visualization into a controlled engineering-analysis workbench.
+Extend Cytoscape from visualization into a controlled engineering-analysis workbench.
 
-Planned capabilities:
+Planned capabilities include:
 
 - shortest path between two objects;
 - baseline/current visual comparison;
 - show-only-affected mode;
-- clustering by type, semantic role, layer, component, or configured attribute;
+- clustering by semantic role, layer, component, or configured attribute;
 - exploration breadcrumbs;
-- deep-linkable focused object/view/filter state;
-- saved/restored exploration state;
+- deep-linkable focus/view/filter state;
+- saved exploration state;
 - fullscreen exploration;
 - SVG/PNG export;
 - mini-map for large projections;
-- richer keyboard navigation and accessibility;
-- configurable layout presets without changing graph semantics.
+- richer keyboard navigation and accessibility.
 
 All interactive operations must consume published relation semantics and bounded projections.
 
@@ -347,115 +250,63 @@ All interactive operations must consume published relation semantics and bounded
 
 ## 8.1 Synthetic benchmark corpus
 
-Maintain benchmark projects with approximately:
+Maintain projects around 100, 1,000, 10,000, and 50,000+ objects where practical, across sparse, dense, cyclic, and high-fanout graph shapes.
 
-- 100 objects;
-- 1,000 objects;
-- 10,000 objects;
-- 50,000+ objects where practical;
-
-across sparse, dense, cyclic, and high-fanout graph shapes.
-
-Measure:
-
-- parsing;
-- canonical analysis;
-- rule evaluation;
-- named queries;
-- baseline/diff/impact;
-- public graph projection;
-- export;
-- Quarto render cost.
+Measure parsing, analysis, rule/policy evaluation, queries, baseline/diff/impact, source indexing/LSP latency, graph projection, export, and Quarto render cost.
 
 ## 8.2 Incremental analysis
 
-Introduce caching/incrementality only when benchmarks demonstrate a real bottleneck. Cache keys must include all semantic inputs and remain safe under configuration/catalog changes.
+Introduce caching/incrementality only when benchmarks demonstrate a real bottleneck. Cache keys must include every semantic input and remain safe under configuration/catalog changes.
 
 ## 8.3 Release gates
 
-Every release should report or test:
-
-- schema compatibility;
-- deterministic outputs;
-- migration behavior;
-- accessibility;
-- public-projection security;
-- performance budgets;
-- supported Python/Quarto versions;
-- self-hosted example health.
+Every release should report or test schema compatibility, deterministic outputs, migration behavior, accessibility, public-projection security, performance budgets, supported Python/Quarto versions, editor-client compatibility, and self-hosted example health.
 
 ---
 
 # Phase 9 — Teaching, examples, and failure scenarios
 
-## 9.1 Self-hosted example as the living engineering model
+## 9.1 Self-hosted model
 
-`examples/quarto-needs/` should increasingly become the official engineering model of Quarto-Needs itself. Significant product changes should update the relevant engineering objects in the same pull request as code and tests.
+`examples/quarto-needs/` should increasingly be the official engineering model of Quarto-Needs itself. Significant product changes should update the relevant engineering objects in the same pull request as code and tests.
 
 The target vertical slice is:
 
 ```text
 stakeholder need
-    ↓ motivates/refines
+    ↓
 requirement
-    ↓ addressed by
+    ↓
 architecture decision
-    ↓ scoped to
+    ↓
 architecture element
-    ↓ implemented in
+    ↓
 source module
-    ↓ verified by
+    ↓
+modeled test
+    ↓
 executable test / machine check
-    ↓ demonstrated by
+    ↓
 deterministic provider evidence
-    ↓ attested against
-engineering snapshot + source revision + freshness
-    ↓ associated with
+    ↓
+attestation + provenance/freshness
+    ↓
 Git change / review state
+    ↓
+editor navigation / safe refactor
 ```
-
-The stored canonical relation direction remains authoritative even when a pedagogical diagram reads in the opposite process direction.
 
 ## 9.2 Quality attributes
 
-Expand the model only when verification is available for the attribute being claimed. Candidate quality attributes include:
+Expand claims only when verification exists. Candidate attributes include determinism, reproducibility, security, accessibility, performance, scalability, maintainability, portability, installability, backward compatibility, interoperability, and usability.
 
-- determinism;
-- reproducibility;
-- security;
-- accessibility;
-- performance;
-- scalability;
-- maintainability;
-- portability;
-- installability;
-- backward compatibility;
-- interoperability;
-- usability.
+## 9.3 Deliberately broken scenarios
 
-## 9.3 Deliberately broken scenario projects
-
-Keep the canonical self-hosted model clean and create separate teaching fixtures such as:
-
-```text
-examples/quarto-needs-scenarios/
-├── missing-verification/
-├── missing-evidence/
-├── invalid-relation/
-├── orphan-requirement/
-├── overdue-adr/
-├── localization-semantic-drift/
-├── stale-source-module/
-└── suspect-after-change/
-```
-
-Each scenario should explain the defect, diagnostic, graph consequence, and correction.
+Keep the canonical model clean and create separate teaching fixtures for missing verification/evidence, invalid relations, orphan requirements, overdue ADRs, localization semantic drift, stale source modules, suspect-after-change, and editor/refactor failures.
 
 ---
 
 # Dependency order
-
-The phases are deliberately ordered because later capabilities depend on earlier contracts:
 
 ```text
 Executable tests + evidence ✅
@@ -464,7 +315,9 @@ Git / PR change intelligence ✅
           ↓
 Declarative policy + schemas + constraints + variants ✅
           ↓
-LSP authoring over stable semantics ← next
+LSP semantic authoring ✅
+          ↓
+Thin VS Code client 🚧
           ↓
 ReqIF / JSON-LD / OSLC interchange
           ↓
@@ -477,4 +330,4 @@ C4 projection work can advance earlier where it only uses already-modeled archit
 
 # Definition of success
 
-Quarto-Needs reaches its intended shape when an engineering change can be authored, reviewed, executed, evidenced, compared, explained, visualized, and exchanged without any layer inventing a second interpretation of the project.
+Quarto-Needs reaches its intended shape when an engineering change can be authored, reviewed, executed, evidenced, compared, explained, navigated, safely refactored, visualized, and exchanged without any layer inventing a second interpretation of the project.
