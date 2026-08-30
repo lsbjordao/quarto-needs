@@ -1,0 +1,74 @@
+#quarto-needs-language-switch {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  order: 9999;
+  margin-inline-start: .35rem;
+}
+
+#quarto-needs-language-switch #languages-button {
+  display: inline-flex !important;
+  align-items: center;
+  gap: .38rem;
+  min-height: 2rem;
+  padding: .3rem .68rem !important;
+  border: 1px solid var(--qn-language-border, #dee2e6) !important;
+  border-radius: 999px;
+  background: var(--qn-language-bg, #fff) !important;
+  color: var(--qn-language-fg, #212529) !important;
+  font-size: .82rem;
+  font-weight: 650;
+  letter-spacing: .02em;
+  line-height: 1;
+  text-decoration: none !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+  transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+
+#quarto-needs-language-switch #languages-button::after {
+  margin-left: .08rem;
+  border-top-color: currentColor;
+}
+
+.quarto-needs-language-globe {
+  font-size: .95rem;
+  line-height: 1;
+}
+
+#quarto-needs-language-switch #languages-button:hover,
+#quarto-needs-language-switch #languages-button:focus-visible,
+#quarto-needs-language-switch #languages-button[aria-expanded="true"] {
+  background: var(--qn-language-hover, #f8f9fa) !important;
+  color: var(--qn-language-fg, #212529) !important;
+  border-color: var(--qn-language-border, #dee2e6) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .08);
+}
+
+#quarto-needs-language-switch .dropdown-menu {
+  min-width: 12rem;
+  padding: .35rem;
+  border: 1px solid var(--qn-language-border, #dee2e6) !important;
+  border-radius: .7rem;
+  background: var(--qn-language-bg, #fff) !important;
+  color: var(--qn-language-fg, #212529) !important;
+  box-shadow: 0 .35rem 1rem rgba(0, 0, 0, .10);
+}
+
+#quarto-needs-language-switch .dropdown-item {
+  border-radius: .45rem;
+  padding: .45rem .65rem;
+  color: var(--qn-language-fg, #212529) !important;
+  background: transparent !important;
+}
+
+#quarto-needs-language-switch .dropdown-item:hover,
+#quarto-needs-language-switch .dropdown-item:focus {
+  background: var(--qn-language-hover, #f8f9fa) !important;
+  color: var(--qn-language-fg, #212529) !important;
+}
+
+@media (max-width: 575.98px) {
+  #quarto-needs-language-switch #languages-button {
+    padding-inline: .56rem !important;
+  }
+}
