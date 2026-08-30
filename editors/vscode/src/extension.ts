@@ -11,6 +11,15 @@ function folderKey(folder: vscode.WorkspaceFolder): string {
   return folder.uri.toString();
 }
 
+function clientId(folder: vscode.WorkspaceFolder): string {
+  const stable = folder
+    .uri
+    .toString()
+    .replace(/[^A-Za-z0-9_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return `quarto-needs-${stable || "workspace"}`;
+}
+
 function documentSelector(folder: vscode.WorkspaceFolder): vscode.DocumentSelector {
   const pattern = new vscode.RelativePattern(folder, "**/*.qmd");
   return [
@@ -31,7 +40,9 @@ function serverCommand(): { command: string; extraArgs: string[] } {
 
 async function projectMarkerExists(folder: vscode.WorkspaceFolder): Promise<boolean> {
   try {
-    await vscode.workspace.fs.stat(vscode.Uri.joinPath(folder.uri, ".quarto-needs.toml"));
+    await vscode.workspace.fs.stat(
+      vscode.Uri.joinPath(folder.uri, ".quarto-needs.toml"),
+    );
     return true;
   } catch {
     return false;
@@ -40,10 +51,7 @@ async function projectMarkerExists(folder: vscode.WorkspaceFolder): Promise<bool
 
 async function startClient(folder: vscode.WorkspaceFolder): Promise<void> {
   const key = folderKey(folder);
-  if (clients.has(key)) {
-    return;
-  }
-  if (!(await projectMarkerExists(folder))) {
+  if (clients.has(key) || !(await projectMarkerExists(folder))) {
     return;
   }
 
@@ -57,14 +65,9 @@ async function startClient(folder: vscode.WorkspaceFolder): Promise<void> {
   const clientOptions: LanguageClientOptions = {
     documentSelector: documentSelector(folder),
     workspaceFolder: folder,
-    synchronize: {
-      fileEvents: vscode.workspace.createFileSystemWatcher(
-        new vscode.RelativePattern(folder, ".quarto-needs.toml"),
-      ),
-    },
   };
   const client = new LanguageClient(
-    `quarto-needs-${folder.index}`,
+    clientId(folder),
     `Quarto-Needs (${folder.name})`,
     serverOptions,
     clientOptions,
@@ -81,8 +84,7 @@ async function startClient(folder: vscode.WorkspaceFolder): Promise<void> {
   }
 }
 
-async function stopClient(folder: vscode.WorkspaceFolder): Promise<void> {
-  const key = folderKey(folder);
+async function stopClientByKey(key: string): Promise<void> {
   const client = clients.get(key);
   if (!client) {
     return;
@@ -91,22 +93,36 @@ async function stopClient(folder: vscode.WorkspaceFolder): Promise<void> {
   await client.stop();
 }
 
-async function syncWorkspaceClients(): Promise<void> {
+async function stopClient(folder: vscode.WorkspaceFolder): Promise<void> {
+  await stopClientByKey(folderKey(folder));
+}
+
+async function desiredProjectFolders(): Promise<vscode.WorkspaceFolder[]> {
   const folders = vscode.workspace.workspaceFolders ?? [];
-  const active = new Set(folders.map(folderKey));
-  for (const [key, client] of clients) {
-    if (!active.has(key)) {
-      clients.delete(key);
-      await client.stop();
+  const states = await Promise.all(
+    folders.map(async (folder) => ({
+      folder,
+      enabled: await projectMarkerExists(folder),
+    })),
+  );
+  return states.filter((state) => state.enabled).map((state) => state.folder);
+}
+
+async function syncWorkspaceClients(): Promise<void> {
+  const desired = await desiredProjectFolders();
+  const activeKeys = new Set(desired.map(folderKey));
+  for (const key of [...clients.keys()]) {
+    if (!activeKeys.has(key)) {
+      await stopClientByKey(key);
     }
   }
-  for (const folder of folders) {
+  for (const folder of desired) {
     await startClient(folder);
   }
 }
 
 async function restartClients(): Promise<void> {
-  const folders = vscode.workspace.workspaceFolders ?? [];
+  const folders = await desiredProjectFolders();
   for (const folder of folders) {
     await stopClient(folder);
   }
@@ -127,7 +143,13 @@ function showOutput(): void {
 }
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
+  const markerWatcher = vscode.workspace.createFileSystemWatcher(
+    "**/.quarto-needs.toml",
+  );
   context.subscriptions.push(
+    markerWatcher,
+    markerWatcher.onDidCreate(syncWorkspaceClients),
+    markerWatcher.onDidDelete(syncWorkspaceClients),
     vscode.commands.registerCommand(
       "quartoNeeds.restartLanguageServer",
       restartClients,
