@@ -10,7 +10,13 @@ from pathlib import Path
 from .analysis import analyze_project
 from .cli import main as legacy_main
 from .config import load_config
-from .evidence import EVIDENCE_KIND, load_evidence, validate_evidence_envelope
+from .evidence import (
+    EVIDENCE_ENVELOPE_SCHEMA_VERSION,
+    EVIDENCE_KIND,
+    evidence_digest,
+    parse_evidence_time,
+    validate_evidence_envelope,
+)
 from .evidence_validation import validate_check_evidence
 
 
@@ -52,13 +58,49 @@ def _read_json_object(path: Path) -> dict[str, object]:
     return document
 
 
+def _generic_envelope(
+    path: Path, document: Mapping[str, object]
+) -> tuple[dict[str, object], dict[str, object]] | None:
+    if document.get("schemaVersion") != EVIDENCE_ENVELOPE_SCHEMA_VERSION:
+        raise ValueError(
+            f"{path} has unsupported evidence envelope schemaVersion {document.get('schemaVersion')!r}"
+        )
+    provider = document.get("provider")
+    subject = document.get("subject")
+    artifact = document.get("artifact")
+    generated_at = document.get("generatedAt")
+    expires_at = document.get("expiresAt")
+    if not isinstance(provider, Mapping):
+        raise ValueError(f"{path} has invalid envelope provider")
+    if not isinstance(provider.get("name"), str) or not provider.get("name"):
+        raise ValueError(f"{path} has invalid envelope provider name")
+    if not isinstance(provider.get("version"), str) or not provider.get("version"):
+        raise ValueError(f"{path} has invalid envelope provider version")
+    if not isinstance(subject, Mapping):
+        raise ValueError(f"{path} has invalid envelope subject")
+    if not isinstance(generated_at, str) or parse_evidence_time(generated_at) is None:
+        raise ValueError(f"{path} has invalid generatedAt")
+    if expires_at is not None and (
+        not isinstance(expires_at, str) or parse_evidence_time(expires_at) is None
+    ):
+        raise ValueError(f"{path} has invalid expiresAt")
+    if not isinstance(artifact, Mapping):
+        raise ValueError(f"{path} has invalid envelope artifact")
+    if artifact.get("schema") != "evidence-checks-v1":
+        return None
+    payload = artifact.get("payload")
+    if not isinstance(payload, dict):
+        raise ValueError(f"{path} has invalid generic evidence payload")
+    expected_digest = artifact.get("digest")
+    if expected_digest != evidence_digest(payload):
+        raise ValueError(f"{path} evidence payload digest does not match its envelope")
+    return dict(document), payload
+
+
 def _generic_document(path: Path) -> tuple[dict[str, object] | None, dict[str, object]] | None:
     document = _read_json_object(path)
     if document.get("kind") == EVIDENCE_KIND:
-        envelope, payload = load_evidence(path)
-        if isinstance(payload.get("checks"), list):
-            return envelope, payload
-        return None
+        return _generic_envelope(path, document)
     if isinstance(document.get("checks"), list):
         return None, document
     return None
