@@ -4,7 +4,11 @@ from urllib.error import URLError
 
 import pytest
 
-from quarto_needs.github_http import GitHubTransportError, fetch_github_resource
+from quarto_needs.github_http import (
+    GitHubRateLimitError,
+    GitHubTransportError,
+    fetch_github_resource,
+)
 from quarto_needs.oslc_http import HttpFetchPolicy
 
 
@@ -148,6 +152,64 @@ def test_fetch_github_resource_reports_authentication_required() -> None:
     with pytest.raises(GitHubTransportError) as excinfo:
         fetch_github_resource(URI, opener=opener)
     assert excinfo.value.code == "authentication-required"
+
+
+def test_fetch_github_resource_403_with_exhausted_rate_limit_is_rate_limited() -> None:
+    # The exact shape GitHub sends on primary-rate exhaustion (header names
+    # and values verified against a real response).
+    opener = _Opener(
+        _Response(
+            403,
+            b"",
+            **{"X-RateLimit-Remaining": "0", "X-RateLimit-Reset": "1788205623"},
+        )
+    )
+
+    with pytest.raises(GitHubRateLimitError) as excinfo:
+        fetch_github_resource(URI, opener=opener)
+
+    assert excinfo.value.code == "rate-limited"
+    assert excinfo.value.rate_limit_reset_epoch == 1788205623
+    assert excinfo.value.retry_after_seconds is None
+    assert isinstance(excinfo.value, GitHubTransportError)
+
+
+def test_fetch_github_resource_403_without_exhaustion_stays_authentication_required() -> None:
+    # A 403 that is not rate limiting (e.g. a forbidden resource) must keep
+    # its existing classification — "remaining" absent or non-zero.
+    for headers in ({}, {"X-RateLimit-Remaining": "51"}):
+        opener = _Opener(_Response(403, b"", **headers))
+        with pytest.raises(GitHubTransportError) as excinfo:
+            fetch_github_resource(URI, opener=opener)
+        assert excinfo.value.code == "authentication-required"
+        assert not isinstance(excinfo.value, GitHubRateLimitError)
+
+
+def test_fetch_github_resource_429_is_rate_limited_with_retry_after() -> None:
+    opener = _Opener(_Response(429, b"", **{"Retry-After": "30"}))
+
+    with pytest.raises(GitHubRateLimitError) as excinfo:
+        fetch_github_resource(URI, opener=opener)
+
+    assert excinfo.value.retry_after_seconds == 30
+    assert excinfo.value.rate_limit_reset_epoch is None
+
+
+def test_fetch_github_resource_429_without_retry_headers_is_still_rate_limited() -> None:
+    opener = _Opener(_Response(429, b""))
+
+    with pytest.raises(GitHubRateLimitError) as excinfo:
+        fetch_github_resource(URI, opener=opener)
+
+    assert excinfo.value.retry_after_seconds is None
+    assert excinfo.value.rate_limit_reset_epoch is None
+
+
+def test_fetch_github_resource_rejects_non_integer_retry_facts() -> None:
+    opener = _Opener(_Response(429, b"", **{"Retry-After": "soon"}))
+    with pytest.raises(GitHubTransportError) as excinfo:
+        fetch_github_resource(URI, opener=opener)
+    assert excinfo.value.code == "invalid-response"
 
 
 def test_fetch_github_resource_reports_not_found() -> None:
