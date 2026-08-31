@@ -178,9 +178,9 @@ Next 5.4 slices:
 
 Sphinx-Needs, Doorstop, and StrictDoc remain supported migration sources and inspirations for Quarto-Needs; compatibility claims are limited to the explicitly implemented adapter behavior for each.
 
-## 5.5 External service adapters 🟡 (six slices in)
+## 5.5 External service adapters 🟡 (seven slices in)
 
-**Status: a read-only GitHub issue projection is implemented end to end — external identity, content-digest provenance, normalization into the same observation shape OSLC federation already uses, a bounded GET-only HTTP transport, a persistent content-addressed cache, conditional requests, bounded issue-list discovery, and bounded multi-page traversal of that discovery, all run against the real GitHub API including a real HTTP 304, a real list-then-fetch handoff, and a real two-page traversal across GitHub's rewritten Link targets. No reconciliation or import plan yet.** See `docs/phase-5-external-adapters.md`.
+**Status: a read-only GitHub issue projection is implemented end to end — external identity, content-digest provenance, normalization into the same observation shape OSLC federation already uses, a bounded GET-only HTTP transport, a persistent content-addressed cache, conditional requests, bounded issue-list discovery, bounded multi-page traversal of that discovery, and reconciliation + import planning through OSLC's own source-agnostic contracts (zero new reconciliation code — proven, not assumed), all run against the real GitHub API including a real HTTP 304, a real list-then-fetch handoff, and a real two-page traversal across GitHub's rewritten Link targets. Rate-limit handling and self-hosted example integration remain.** See `docs/phase-5-external-adapters.md`.
 
 Read-only/cacheable adapters may target GitHub issues or lifecycle-management systems. Every imported object must preserve external identity, origin, digest/version, retrieval policy, and trust state.
 
@@ -196,11 +196,12 @@ Implemented capabilities include:
 - `fetch_external_github_issue_list`, one bounded GET-only page of `GET /repos/{owner}/{repo}/issues` returning discovered issue/pull-request numbers (explicitly separated, neither mixed in nor silently dropped) plus the list response's own digest — deliberately discovery-only, never promoting a list entry's inline data into an `ExternalRequirementObservation`, the same query-then-independently-observe boundary `oslc_query.py`'s own design note argues for around inline query-container data; run live against a real 5-issue page (3 issues / 2 pull requests) with one discovered number handed off to a real full-observation fetch;
 - `fetch_external_github_issue_list_pages`, bounded multi-page traversal of that same list following GitHub's own `Link: rel="next"` target up to an explicit `max_pages` budget (default 1 — no traversal unless asked), reporting `truncated` honestly when the budget runs out while a next page still exists, and rejecting a cross-origin next URL rather than following it; GitHub legitimately rewrites `/repos/{owner}/{repo}` to `/repositories/{id}` (plus an `after=` cursor) in its Link targets, so the traversal validates origin, never path. A present-but-malformed Link header raises rather than silently reading as "no next page". The list endpoint's own filters (`labels`, `since`, `sort`, `direction`) joined `state` as explicit URI parameters. Run live against `strictdoc-project/strictdoc`: a real two-page traversal (8 issues / 2 pull requests, page 2 served from the rewritten `/repositories/263988764` path), honest truncation at `max_pages=1`, one page-2-discovered number fetched as a full observation, and a live `labels=["documentation"]` filter.
 
+- reconciliation + import planning for GitHub observations — the slice that needed no new code: `reconcile_external_requirements`/`build_oslc_import_plan` turned out to be fully source-agnostic (their inputs are exactly the `ExternalRequirementObservation`s the GitHub parser already produces), so instead of mirroring them, the reuse was proven and pinned by `tests/test_github_reconcile.py` — an issue number stays data even when it equals a canonical ID (falsified by injecting an identifier-matching heuristic), bindings must use the adapter's API URIs (an HTML-URL key is rejected loudly, never silently unbound), and all five import-plan dispositions (ready-create/blocked/ready-update/review-required/ignored) behave identically for GitHub observations, each carrying the observation's own digest/fetched-at provenance; live-checked with a real issue (#2067) planned through the unchanged contracts;
+
 Next 5.5 slices, each its own reviewed contract exactly as OSLC's discovery/cache/HTTP/RDF/query/observe/reconcile/import-plan were:
 
-1. an explicit, non-heuristic reconciliation step and a reviewed, non-mutating import plan, mirroring `oslc_reconcile.py`/`oslc_import_plan.py`;
-2. rate-limit handling distinguished from generic auth/availability errors (GitHub's `403`/`429` + `X-RateLimit-*` on exhaustion);
-3. self-hosted example integration.
+1. rate-limit handling distinguished from generic auth/availability errors (GitHub's `403`/`429` + `X-RateLimit-*` on exhaustion);
+2. self-hosted example integration.
 
 ---
 
