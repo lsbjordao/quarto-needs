@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/branding/quarto-needs-logo.webp" alt="Quarto-Needs" width="900">
+  <img src="docs/assets/branding/quarto-needs-logo.svg" alt="Quarto-Needs" width="900">
 </p>
 
 <p align="center">
@@ -260,7 +260,7 @@ These are references and inspirations, not compatibility claims.
 
 <p align="center">
   <a href="docs/ROADMAP.md">
-    <img src="docs/assets/branding/quarto-needs-roadmap-infographic.webp" alt="Quarto-Needs engineering evolution roadmap" width="1000">
+    <img src="docs/assets/branding/quarto-needs-roadmap-infographic.svg" alt="Quarto-Needs engineering evolution roadmap" width="1000">
   </a>
 </p>
 
