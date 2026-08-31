@@ -59,9 +59,15 @@ def _complete_provider_payload() -> dict[str, object]:
                 "testCases": ["TC-004"],
             },
             {
+                "nodeid": "tests/test_graph_assets.py::test_margin_sidebar_toggle_stays_entirely_outside_page_toc",
+                "outcome": "passed",
+                "requirements": ["FUN-009"],
+                "testCases": ["TC-014"],
+            },
+            {
                 "nodeid": "tests/test_localization.py::test_localized_source_semantic_parity_rejects_model_drift",
                 "outcome": "passed",
-                "requirements": ["FUN-006"],
+                "requirements": ["FUN-006", "SYS-005"],
                 "testCases": ["TC-005"],
             },
             {
@@ -81,6 +87,36 @@ def _complete_provider_payload() -> dict[str, object]:
                 "outcome": "passed",
                 "requirements": ["FUN-005"],
                 "testCases": ["TC-011"],
+            },
+            {
+                "nodeid": "tests/test_oslc_federation.py::test_discovery_orchestrates_fetch_normalization_service_and_shape_parsing",
+                "outcome": "passed",
+                "requirements": ["SYS-007", "FUN-010", "NFR-006"],
+                "testCases": ["TC-015"],
+            },
+            {
+                "nodeid": "tests/test_oslc_reconcile.py::test_matching_external_identifier_never_creates_implicit_identity",
+                "outcome": "passed",
+                "requirements": ["SYS-007", "FUN-011", "NFR-006"],
+                "testCases": ["TC-016"],
+            },
+            {
+                "nodeid": "tests/test_oslc_query.py::test_execute_oslc_query_uses_existing_bounded_fetch_and_reports_response_provenance",
+                "outcome": "passed",
+                "requirements": ["SYS-007", "FUN-012", "NFR-006"],
+                "testCases": ["TC-017"],
+            },
+            {
+                "nodeid": "tests/test_oslc_observe.py::test_materialization_fetches_each_member_and_preserves_individual_provenance",
+                "outcome": "passed",
+                "requirements": ["SYS-007", "FUN-013", "NFR-006"],
+                "testCases": ["TC-018"],
+            },
+            {
+                "nodeid": "tests/test_oslc_import_plan.py::test_unbound_observation_requires_explicit_create_directive",
+                "outcome": "passed",
+                "requirements": ["SYS-007", "FUN-011", "FUN-013", "NFR-006"],
+                "testCases": ["TC-019"],
             },
         ],
         provider_version="8.0",

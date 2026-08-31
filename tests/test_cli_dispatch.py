@@ -74,8 +74,38 @@ def _complete_pytest_payload() -> dict[str, object]:
             {
                 "nodeid": "tests/test_localization.py::test_localized_source_semantic_parity_rejects_model_drift",
                 "outcome": "passed",
-                "requirements": ["FUN-006"],
+                "requirements": ["FUN-006", "SYS-005"],
                 "testCases": ["TC-005"],
+            },
+            {
+                "nodeid": "tests/test_oslc_federation.py::test_discovery_orchestrates_fetch_normalization_service_and_shape_parsing",
+                "outcome": "passed",
+                "requirements": ["SYS-007", "FUN-010", "NFR-006"],
+                "testCases": ["TC-015"],
+            },
+            {
+                "nodeid": "tests/test_oslc_reconcile.py::test_matching_external_identifier_never_creates_implicit_identity",
+                "outcome": "passed",
+                "requirements": ["SYS-007", "FUN-011", "NFR-006"],
+                "testCases": ["TC-016"],
+            },
+            {
+                "nodeid": "tests/test_oslc_query.py::test_execute_oslc_query_uses_existing_bounded_fetch_and_reports_response_provenance",
+                "outcome": "passed",
+                "requirements": ["SYS-007", "FUN-012", "NFR-006"],
+                "testCases": ["TC-017"],
+            },
+            {
+                "nodeid": "tests/test_oslc_observe.py::test_materialization_fetches_each_member_and_preserves_individual_provenance",
+                "outcome": "passed",
+                "requirements": ["SYS-007", "FUN-013", "NFR-006"],
+                "testCases": ["TC-018"],
+            },
+            {
+                "nodeid": "tests/test_oslc_import_plan.py::test_unbound_observation_requires_explicit_create_directive",
+                "outcome": "passed",
+                "requirements": ["SYS-007", "FUN-011", "FUN-013", "NFR-006"],
+                "testCases": ["TC-019"],
             },
         ],
         provider_version="8.0",
@@ -154,7 +184,7 @@ def test_dispatch_delegates_raw_pytest_evidence_to_legacy_cli(tmp_path: Path, ca
     report = json.loads(capsys.readouterr().out)
     assert exit_code == 0
     assert report["provider"] == "pytest"
-    assert report["tests"] == 6
+    assert report["tests"] == 11
     assert report["valid"] is True
 
 
@@ -200,7 +230,7 @@ def test_attest_wraps_pytest_payload_and_result_is_checkable(
     assert exit_code == 0
     assert checked["valid"] is True
     assert checked["attested"] is True
-    assert checked["tests"] == 6
+    assert checked["tests"] == 11
 
 
 def test_attest_wraps_generic_check_payload(tmp_path: Path, capsys) -> None:

@@ -125,7 +125,12 @@ def _self_hosted_records() -> list[dict[str, object]]:
         {"nodeid": "tests/test_graph_semantics.py::test_public_projection_publishes_catalog_semantics", "outcome": "passed", "requirements": ["SYS-006", "FUN-008", "NFR-002", "NFR-004"], "testCases": ["TC-006"]},
         {"nodeid": "tests/test_graph_semantics.py::test_named_query_is_materialized_as_reusable_graph_view", "outcome": "passed", "requirements": ["FUN-003"], "testCases": ["TC-009"]},
         {"nodeid": "tests/test_impact.py::test_editing_a_requirement_impacts_its_verification", "outcome": "passed", "requirements": ["FUN-005"], "testCases": ["TC-011"]},
-        {"nodeid": "tests/test_localization.py::test_localized_source_semantic_parity_rejects_model_drift", "outcome": "passed", "requirements": ["FUN-006"], "testCases": ["TC-005"]},
+        {"nodeid": "tests/test_localization.py::test_localized_source_semantic_parity_rejects_model_drift", "outcome": "passed", "requirements": ["FUN-006", "SYS-005"], "testCases": ["TC-005"]},
+        {"nodeid": "tests/test_oslc_federation.py::test_discovery_orchestrates_fetch_normalization_service_and_shape_parsing", "outcome": "passed", "requirements": ["SYS-007", "FUN-010", "NFR-006"], "testCases": ["TC-015"]},
+        {"nodeid": "tests/test_oslc_reconcile.py::test_matching_external_identifier_never_creates_implicit_identity", "outcome": "passed", "requirements": ["SYS-007", "FUN-011", "NFR-006"], "testCases": ["TC-016"]},
+        {"nodeid": "tests/test_oslc_query.py::test_execute_oslc_query_uses_existing_bounded_fetch_and_reports_response_provenance", "outcome": "passed", "requirements": ["SYS-007", "FUN-012", "NFR-006"], "testCases": ["TC-017"]},
+        {"nodeid": "tests/test_oslc_observe.py::test_materialization_fetches_each_member_and_preserves_individual_provenance", "outcome": "passed", "requirements": ["SYS-007", "FUN-013", "NFR-006"], "testCases": ["TC-018"]},
+        {"nodeid": "tests/test_oslc_import_plan.py::test_unbound_observation_requires_explicit_create_directive", "outcome": "passed", "requirements": ["SYS-007", "FUN-011", "FUN-013", "NFR-006"], "testCases": ["TC-019"]},
     ]
 
 
@@ -180,4 +185,4 @@ def test_evidence_check_cli_validates_against_current_graph(tmp_path: Path, caps
     assert exit_code == 0
     assert report["valid"] is True
     assert report["issues"] == []
-    assert report["tests"] == 6
+    assert report["tests"] == 11
