@@ -154,6 +154,8 @@ def test_fetch_github_resource_reports_authentication_required() -> None:
     assert excinfo.value.code == "authentication-required"
 
 
+@pytest.mark.requirement("SYS-008", "NFR-007")
+@pytest.mark.quarto_need_test_case("TC-024")
 def test_fetch_github_resource_403_with_exhausted_rate_limit_is_rate_limited() -> None:
     # The exact shape GitHub sends on primary-rate exhaustion (header names
     # and values verified against a real response).

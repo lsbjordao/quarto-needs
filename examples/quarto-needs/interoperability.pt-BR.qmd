@@ -46,6 +46,48 @@ O Quarto-Needs deverá buscar individualmente as URIs dos membros da query pela 
 A federação OSLC deverá impor limites de bytes, tempo, redirecionamentos, nós e membros; rejeitar redirecionamentos entre origens; impedir carregamento implícito de contextos remotos e crawling recursivo; preservar digests e observações históricas; distinguir proveniência da resposta da query da proveniência dos recursos membros; e nunca esconder falhas de autenticação ou conflitos de identidade.
 :::
 
+::: {.need #STK-007 type="stakeholder-need" status="approved" tags="interoperability;github;issues;tracker"}
+## Equipes de engenharia precisam de requisitos vinculados ao estado vivo do rastreador sem importá-lo
+
+As equipes precisam de visibilidade somente leitura do estado de issues do GitHub — descoberta, travessia limitada e observações normalizadas — enquanto o GitHub permanece uma fonte externa cuja identidade, proveniência e limites de confiança ficam fora do grafo canônico.
+:::
+
+::: {.need #SYS-008 type="system-requirement" status="approved" priority="high" tags="interoperability;github;issues;provenance" derives-from="STK-007" implemented-by="COMP-GHISSUES" verified-by="TC-020;TC-021;TC-022;TC-023;TC-024"}
+## Federar issues do GitHub como observações somente leitura com proveniência
+
+O Quarto-Needs deverá buscar issues do GitHub por HTTP limitado e somente GET, normalizá-las na mesma forma de observação externa que a federação OSLC usa, descobrir e percorrer páginas de listagem de issues dentro de orçamentos explícitos, e reconciliar issues observadas por vínculos explícitos de URI-de-API para ID canônico — nunca promovendo números de issue, URLs HTML ou dados inline de listagem a identidade canônica.
+:::
+
+::: {.need #FUN-014 type="functional-requirement" status="approved" priority="high" tags="github;issues;identity;projection;provenance" derives-from="SYS-008" implemented-by="COMP-GHISSUES" verified-by="TC-020" mitigates="RISK-005;RISK-012"}
+## Normalizar issues do GitHub buscadas sem criar identidade canônica
+
+O adaptador GitHub deverá normalizar o payload de uma issue buscada em uma observação de requisito externo cujo digest, horário de obtenção e validadores derivem dos bytes realmente obtidos, rejeitar pull requests explicitamente, manter o número da issue como identidade externa apenas de dados, e tratar campos nulos ou ausentes sem adivinhação.
+:::
+
+::: {.need #FUN-015 type="functional-requirement" status="approved" priority="high" tags="github;http;cache;conditional-requests" derives-from="SYS-008" implemented-by="COMP-GHISSUES;IF-006" verified-by="TC-021" mitigates="RISK-005"}
+## Buscar issues do GitHub por um transporte limitado, com cache e requisições condicionais
+
+O adaptador GitHub deverá compor o transporte limitado somente GET com um cache endereçado por conteúdo opcional: uma representação em cache fresca dispensa a rede por completo, uma entrada obsoleta envia validadores condicionais construídos de seus próprios metadados armazenados, e uma resposta 304 reutiliza o corpo em cache sob proveniência renovada em vez de baixá-lo novamente.
+:::
+
+::: {.need #FUN-016 type="functional-requirement" status="approved" priority="high" tags="github;discovery;pagination;bounded;read-only" derives-from="SYS-008" implemented-by="COMP-GHISSUES;IF-006" verified-by="TC-022" mitigates="RISK-012"}
+## Descobrir e percorrer páginas de listagem de issues dentro de orçamentos explícitos
+
+O adaptador GitHub deverá reportar separadamente os números descobertos de issues e pull requests de uma página de listagem limitada, seguir o destino Link rel="next" fornecido pelo servidor apenas dentro de um orçamento explícito de páginas e da origem da requisição, reportar truncamento honestamente quando o orçamento interromper uma travessia que poderia continuar, falhar ruidosamente diante de cabeçalhos de paginação malformados, e nunca promover dados inline de listagem a observações com proveniência.
+:::
+
+::: {.need #FUN-017 type="functional-requirement" status="approved" priority="high" tags="github;reconciliation;identity;import;review" derives-from="SYS-008" implemented-by="COMP-GHISSUES;COMP-OSLC" verified-by="TC-023" mitigates="RISK-005"}
+## Reconciliar observações do GitHub pelos contratos compartilhados de vínculo explícito
+
+Issues do GitHub observadas deverão reconciliar e planejar importação pelos mesmos contratos source-agnostic de reconciliação e plano de importação revisado que o OSLC usa: um vínculo explícito de URI-de-API externa para ID canônico é a única ponte de identidade; número de issue, título ou URL HTML coincidentes nunca criarão uma fusão implícita; e cada diretriz planejada permanece um artefato de revisão sem mutação carregando a proveniência da própria observação.
+:::
+
+::: {.need #NFR-007 type="non-functional-requirement" status="approved" priority="critical" tags="github;security;provenance;rate-limit;bounded" derives-from="SYS-008" implemented-by="COMP-GHISSUES" verified-by="TC-020;TC-021;TC-022;TC-024" mitigates="RISK-012"}
+## Manter a federação GitHub limitada, preservando proveniência e explícita sobre rate limit
+
+A federação GitHub deverá impor orçamentos de bytes, tempo, redirecionamentos e páginas; rejeitar destinos de redirecionamento e paginação entre origens; e distinguir esgotamento de rate limit (um 403 com X-RateLimit-Remaining: 0, ou qualquer 429) de falhas de autenticação — reportando os fatos de retry do servidor a quem chama, em vez de dormir implicitamente ou esconder o esgotamento atrás de erros genéricos.
+:::
+
 ## Arquitetura
 
 ::: {.need #COMP-OSLC type="component" status="implemented" tags="oslc;federation;interoperability;python"}
@@ -96,6 +138,40 @@ A reconciliação é análise pura. Somente um mapeamento explícito URI externa
 ### Confirmação
 
 `TC-016` prova que identificador externo coincidente não cria identidade canônica implícita.
+:::
+
+::: {.need #COMP-GHISSUES type="component" status="implemented" tags="github;federation;interoperability;python"}
+## Subsistema de federação de issues do GitHub
+
+Coordena identidade de issues do GitHub, transporte HTTP limitado com classificação de rate limit, cache endereçado por conteúdo, requisições condicionais, descoberta de listagem de issues, travessia multi-página limitada e normalização para a forma de observação externa compartilhada com o OSLC, sem entregar o grafo canônico de engenharia.
+:::
+
+::: {.need #IF-006 type="interface" status="implemented" tags="github;http;issues;federation"}
+## Interface de adaptador somente leitura para issues do GitHub
+
+A fronteira aceita identidade configurada de owner/repositório, orçamentos explícitos de fetch/cache/páginas, os próprios parâmetros de filtro do endpoint de listagem, cabeçalhos de autenticação apenas para requisição e um transporte injetável; retorna números descobertos de issues e pull requests por página, relatos honestos de truncamento e observações externas com proveniência independente, e levanta erros distintos para autenticação, disponibilidade e esgotamento de rate limit.
+:::
+
+::: {.need #RISK-012 type="risk" status="approved" priority="high" tags="github;security;pagination;rate-limit;traversal"}
+## Paginação sem limites, truncamento silencioso ou cegueira a rate limit faz estado externo parecer canônico
+
+Seguir URLs de paginação fornecidas pelo servidor sem orçamentos ou checagens de origem, ler um cabeçalho de paginação malformado como fim da lista, confundir pull requests com issues, promover dados inline de listagem a observações, ou classificar errado esgotamento de rate limit como falha de autenticação podem representar silenciosamente o estado externo de forma incorreta ou esconder o esgotamento atrás do erro errado.
+:::
+
+::: {.need #ADR-010 type="architecture-decision" status="accepted" date="2026-08-31" revisit-after="2027-08-31" decision-makers="Quarto-Needs maintainers" tags="github;federation;read-only;security" addresses="SYS-008;FUN-014;FUN-015;FUN-016;NFR-007;RISK-012" applies-to="COMP-GHISSUES;IF-006" confirmed-by="TC-020;TC-021;TC-022;TC-024"}
+## Manter o caminho de issues do GitHub somente leitura, limitado e com descoberta separada
+
+### Contexto e problema
+
+A API de issues do GitHub retorna pull requests junto com issues, reescreve URLs de paginação de `/repos/{owner}/{repo}` para `/repositories/{id}` com parâmetros de cursor, inclui dados completos inline nas respostas de listagem e aplica rate limit com 403/429. Tratar qualquer um desses como dados canônicos de requisitos, seguir paginação sem orçamentos ou achatar rate limits em erros genéricos apagaria a fronteira de confiança.
+
+### Resultado da decisão
+
+A federação GitHub é um adaptador somente leitura composto de um transporte JSON limitado com classificação de rate limit, um cache endereçado por conteúdo opcional com requisições condicionais, normalização de issues que rejeita pull requests, descoberta e travessia multi-página limitada que permanecem apenas com números, e reconciliação/planejamento de importação pelos contratos OSLC inalterados. Dados de listagem nunca são promovidos a observações; destinos de paginação são checados por origem; rate limits levantam um erro distinto que informa o retry.
+
+### Confirmação
+
+`TC-020` exercita fetch-composição-normalização com proveniência dos bytes exatos; `TC-021` exercita o caminho de reuso 304 com requisição condicional; `TC-022` exercita travessia limitada pelos destinos de paginação reescritos do GitHub com truncamento honesto; `TC-024` exercita a classificação de esgotamento de rate limit com formatos reais de cabeçalhos.
 :::
 
 ## Implementação no repositório
@@ -152,6 +228,18 @@ Produz planos determinísticos e sem mutação a partir de observações externa
 ## Módulo de plano de importação OSLC revisado
 
 Transforma um resultado de reconciliação e seus membros observados independentemente em um plano de importação determinístico e sem mutação, com diretrizes explícitas de criação/atualização/ignorar/revisão, recusando qualquer diretriz cujos metadados de destino sejam inseguros ou cuja reconciliação esteja obsoleta ou em conflito.
+:::
+
+::: {.need #SRC-GITHUB-HTTP type="source-module" status="implemented" path="src/quarto_needs/github_http.py" language="Python" layer="interoperability" tags="github;http;security;rate-limit" implements="FUN-015;FUN-016;NFR-007"}
+## Módulo de transporte HTTP limitado para GitHub
+
+Fornece transporte GET limitado com redirecionamentos somente na mesma origem, contrato de media type application/json, cabeçalhos de requisição condicional, cabeçalhos Link expostos e categorias explícitas de falha que distinguem autenticação, disponibilidade e esgotamento de rate limit — reportando os fatos de retry sem nunca dormir por conta própria.
+:::
+
+::: {.need #SRC-GITHUB-ISSUES type="source-module" status="implemented" path="src/quarto_needs/github_issues.py" language="Python" layer="interoperability" tags="github;issues;identity;discovery;pagination;provenance" implements="SYS-008;FUN-014;FUN-015;FUN-016;FUN-017;NFR-007"}
+## Módulo de projeção e descoberta de issues do GitHub
+
+Constrói URIs e identidades determinísticas de issues a partir dos bytes exatos buscados, normaliza payloads de issue em observações externas compartilhadas rejeitando pull requests, compõe busca por transporte/cache/requisição condicional, descobre páginas de listagem com números de issues e pull requests separados, percorre Link rel="next" dentro de orçamentos explícitos de origem e páginas com truncamento honesto, e entrega observações aos contratos compartilhados de reconciliação e plano de importação.
 :::
 
 ## Verificação e evidência
@@ -216,6 +304,66 @@ Verifica que uma observação externa não vinculada produz uma diretriz explíc
 `TC-019` protege o contrato revisado e sem mutação do plano de importação antes de qualquer futura importação canônica ou caminho de escrita.
 :::
 
+::: {.need #TC-020 type="test-case" status="passed" tags="pytest;github;issues;identity;provenance" pytest-nodeid="tests/test_github_issues.py::test_fetch_external_github_issue_composes_transport_identity_and_parsing" evidenced-by="EVD-020"}
+## Regressão de busca e normalização de issue do GitHub
+
+Verifica que uma issue buscada compõe transporte, identidade e normalização com digest sobre os bytes exatos obtidos e validadores com proveniência.
+:::
+
+::: {.need #EVD-020 type="evidence" status="verified" tags="pytest;github;issues;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## Evidência de máquina da normalização de issues do GitHub
+
+`TC-020` protege a fronteira de busca e normalização do GitHub e participa do contrato de evidência self-hosted.
+:::
+
+::: {.need #TC-021 type="test-case" status="passed" tags="pytest;github;cache;conditional-requests;provenance" pytest-nodeid="tests/test_github_issues.py::test_fetch_external_github_issue_sends_conditional_request_when_cache_is_stale" evidenced-by="EVD-021"}
+## Regressão de requisição condicional e cache do GitHub
+
+Verifica que uma representação em cache obsoleta envia validadores construídos de seus próprios metadados e que uma resposta 304 reutiliza o corpo em cache sob proveniência renovada.
+:::
+
+::: {.need #EVD-021 type="evidence" status="verified" tags="pytest;github;cache;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## Evidência de máquina da requisição condicional do GitHub
+
+`TC-021` protege o fluxo cache-então-requisição-condicional para issues do GitHub e participa do contrato de evidência self-hosted.
+:::
+
+::: {.need #TC-022 type="test-case" status="passed" tags="pytest;github;discovery;pagination;bounded" pytest-nodeid="tests/test_github_issues.py::test_fetch_external_github_issue_list_pages_follows_rel_next_across_pages" evidenced-by="EVD-022"}
+## Regressão de paginação limitada do GitHub
+
+Verifica que a travessia segue o destino Link rel="next" fornecido pelo servidor entre páginas dentro da origem da requisição e de um orçamento explícito de páginas, mantendo números de issues e pull requests separados e a travessia apenas de descoberta.
+:::
+
+::: {.need #EVD-022 type="evidence" status="verified" tags="pytest;github;pagination;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## Evidência de máquina da paginação limitada do GitHub
+
+`TC-022` protege a travessia multi-página limitada pelos destinos de paginação reescritos do GitHub e participa do contrato de evidência self-hosted.
+:::
+
+::: {.need #TC-023 type="test-case" status="passed" tags="pytest;github;reconciliation;identity;conflict" pytest-nodeid="tests/test_github_reconcile.py::test_github_issue_number_stays_data_even_when_it_equals_a_canonical_id" evidenced-by="EVD-023"}
+## Regressão de reconciliação do GitHub com vínculo explícito
+
+Verifica que o número de uma issue do GitHub permanece apenas de dados durante a reconciliação — mesmo quando igual a um ID canônico — de modo que só um vínculo explícito de URI-de-API produza correspondência.
+:::
+
+::: {.need #EVD-023 type="evidence" status="verified" tags="pytest;github;reconciliation;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## Evidência de máquina da reconciliação do GitHub
+
+`TC-023` protege a fronteira de identidade por vínculo explícito para observações do GitHub e participa do contrato de evidência self-hosted.
+:::
+
+::: {.need #TC-024 type="test-case" status="passed" tags="pytest;github;http;rate-limit;security" pytest-nodeid="tests/test_github_http.py::test_fetch_github_resource_403_with_exhausted_rate_limit_is_rate_limited" evidenced-by="EVD-024"}
+## Regressão de classificação de rate limit do GitHub
+
+Verifica que esgotamento de rate limit (um 403 com X-RateLimit-Remaining: 0) levanta um erro distinto que informa o retry, em vez de uma falha genérica de autenticação.
+:::
+
+::: {.need #EVD-024 type="evidence" status="verified" tags="pytest;github;rate-limit;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## Evidência de máquina do rate limit do GitHub
+
+`TC-024` protege a classificação de rate limit com formatos reais de cabeçalhos e participa do contrato de evidência self-hosted.
+:::
+
 ## Fatia de federação
 
 ```text
@@ -230,3 +378,20 @@ SYS-007
 ```
 
 {{< need-table types="system-requirement;functional-requirement;non-functional-requirement;architecture-decision;component;interface;source-module;test-case;evidence" tags="oslc" columns="id;title;type;status" sort="id" >}}
+
+## Fatia do adaptador de issues do GitHub
+
+```text
+STK-007
+   ↓
+SYS-008
+   ├── FUN-014 / NFR-007 → ADR-010 → SRC-GITHUB-ISSUES            → TC-020 → EVD-020
+   ├── FUN-015 / NFR-007 → ADR-010 → SRC-GITHUB-HTTP / -ISSUES    → TC-021 → EVD-021
+   ├── FUN-016 / NFR-007 → ADR-010 → SRC-GITHUB-ISSUES / -HTTP    → TC-022 → EVD-022
+   └── FUN-017           → ADR-010 → reconcile/import OSLC compartilhados → TC-023 → EVD-023
+                                                    SRC-GITHUB-HTTP → TC-024 → EVD-024
+```
+
+`FUN-017` implementa deliberadamente contra `SRC-OSLC-RECONCILE`/`SRC-OSLC-IMPORT`: os módulos de reconciliação e plano de importação são source-agnostic, então observações do GitHub passam pelos contratos OSLC inalterados, e a prova da fatia são testes que pinam esse reuso em vez de um fork.
+
+{{< need-table types="system-requirement;functional-requirement;non-functional-requirement;architecture-decision;component;interface;source-module;test-case;evidence" tags="github" columns="id;title;type;status" sort="id" >}}

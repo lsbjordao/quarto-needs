@@ -177,6 +177,8 @@ class _Opener:
         return response
 
 
+@pytest.mark.requirement("SYS-008", "FUN-014", "NFR-007")
+@pytest.mark.quarto_need_test_case("TC-020")
 def test_fetch_external_github_issue_composes_transport_identity_and_parsing() -> None:
     body = json.dumps(_real_shaped_payload()).encode("utf-8")
     opener = _Opener(
@@ -266,6 +268,8 @@ def test_fetch_external_github_issue_refetches_once_cache_is_stale(tmp_path) -> 
     assert len(opener.requests) == 2
 
 
+@pytest.mark.requirement("SYS-008", "FUN-015", "NFR-007")
+@pytest.mark.quarto_need_test_case("TC-021")
 def test_fetch_external_github_issue_sends_conditional_request_when_cache_is_stale(
     tmp_path,
 ) -> None:
@@ -508,6 +512,8 @@ def _page_response(entries: list[dict[str, object]], **headers: str) -> "_Respon
     )
 
 
+@pytest.mark.requirement("SYS-008", "FUN-016", "NFR-007")
+@pytest.mark.quarto_need_test_case("TC-022")
 def test_fetch_external_github_issue_list_pages_follows_rel_next_across_pages() -> None:
     # GitHub rewrites /repos/{owner}/{repo} to /repositories/{id} in its own
     # Link targets, so the next URL deliberately has a different path — the

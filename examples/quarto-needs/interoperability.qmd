@@ -70,6 +70,52 @@ OSLC federation shall enforce byte/time/redirect/node/member budgets, reject cro
 External integration expands the trust boundary and therefore requires stronger failure, provenance, identity, and traversal contracts than local projection alone.
 :::
 
+::: {.need #STK-007 type="stakeholder-need" status="approved" tags="interoperability;github;issues;tracker"}
+## Engineering teams need requirements linked to live issue-tracker state without importing the tracker
+
+Teams need read-only visibility into GitHub issue state — discovery, bounded traversal, and normalized observations — while GitHub remains an external source whose identity, provenance, and trust boundaries stay outside the canonical graph.
+:::
+
+::: {.need #SYS-008 type="system-requirement" status="approved" priority="high" tags="interoperability;github;issues;provenance" derives-from="STK-007" implemented-by="COMP-GHISSUES" verified-by="TC-020;TC-021;TC-022;TC-023;TC-024"}
+## Federate GitHub issues as read-only, provenance-bound observations
+
+Quarto-Needs shall fetch GitHub issues through bounded GET-only HTTP, normalize them into the same external-observation shape OSLC federation uses, discover and traverse issue-list pages within explicit budgets, and reconcile observed issues through explicit API-URI-to-canonical-ID bindings — never promoting issue numbers, HTML URLs, or inline list data into canonical identity.
+
+### Rationale
+
+GitHub issues carry engineering-relevant state, but the tracker is mutable, paginated, rate-limited, and mixes pull requests into its issue listings — federation therefore needs bounded budgets, exact-byte provenance, and explicit separation between discovery and observation.
+:::
+
+::: {.need #FUN-014 type="functional-requirement" status="approved" priority="high" tags="github;issues;identity;projection;provenance" derives-from="SYS-008" implemented-by="COMP-GHISSUES" verified-by="TC-020" mitigates="RISK-005;RISK-012"}
+## Normalize fetched GitHub issues without creating canonical identity
+
+The GitHub adapter shall normalize a fetched issue payload into an external requirement observation whose digest, retrieval time, and validators derive from the bytes actually fetched, reject pull requests explicitly, keep the issue number as data-only external identity, and treat null or missing fields without guessing.
+:::
+
+::: {.need #FUN-015 type="functional-requirement" status="approved" priority="high" tags="github;http;cache;conditional-requests" derives-from="SYS-008" implemented-by="COMP-GHISSUES;IF-006" verified-by="TC-021" mitigates="RISK-005"}
+## Fetch GitHub issues through a bounded, cached, conditional transport
+
+The GitHub adapter shall compose the bounded GET-only transport with an opt-in content-addressed cache: a fresh cached representation shall skip the network entirely, a stale entry shall send conditional validators built from its own stored metadata, and a 304 response shall reuse the cached body under refreshed provenance instead of re-downloading it.
+:::
+
+::: {.need #FUN-016 type="functional-requirement" status="approved" priority="high" tags="github;discovery;pagination;bounded;read-only" derives-from="SYS-008" implemented-by="COMP-GHISSUES;IF-006" verified-by="TC-022" mitigates="RISK-012"}
+## Discover and traverse issue-list pages within explicit budgets
+
+The GitHub adapter shall report discovered issue and pull-request numbers separately for one bounded list page, follow the server-provided Link rel="next" target only within an explicit page budget and the request origin, report truncation honestly when the budget stops a traversal that could continue, fail loudly on malformed pagination headers, and never promote inline list data into provenance-bound observations.
+:::
+
+::: {.need #FUN-017 type="functional-requirement" status="approved" priority="high" tags="github;reconciliation;identity;import;review" derives-from="SYS-008" implemented-by="COMP-GHISSUES;COMP-OSLC" verified-by="TC-023" mitigates="RISK-005"}
+## Reconcile GitHub observations through the shared explicit-binding contracts
+
+Observed GitHub issues shall reconcile and import-plan through the same source-agnostic reconciliation and reviewed import-plan contracts OSLC uses: an explicit external-API-URI to canonical-ID binding is the only identity bridge; a matching issue number, title, or HTML URL shall never create an implicit merge; and every planned directive remains a non-mutating review artifact carrying the observation's own provenance.
+:::
+
+::: {.need #NFR-007 type="non-functional-requirement" status="approved" priority="critical" tags="github;security;provenance;rate-limit;bounded" derives-from="SYS-008" implemented-by="COMP-GHISSUES" verified-by="TC-020;TC-021;TC-022;TC-024" mitigates="RISK-012"}
+## Keep GitHub federation bounded, provenance-preserving, and rate-limit-explicit
+
+GitHub federation shall enforce byte/time/redirect/page budgets, reject cross-origin redirect and pagination targets, and distinguish rate-limit exhaustion (a 403 carrying X-RateLimit-Remaining: 0, or any 429) from authentication failures — reporting the server's retry facts to the caller instead of sleeping implicitly or hiding exhaustion behind generic errors.
+:::
+
 ## Architecture
 
 ::: {.need #COMP-OSLC type="component" status="implemented" tags="oslc;federation;interoperability;python"}
@@ -148,6 +194,52 @@ This is intentionally more conservative than heuristic import. A future import c
 `TC-016` proves that a matching external identifier alone remains unbound and therefore cannot create an implicit canonical identity.
 :::
 
+::: {.need #COMP-GHISSUES type="component" status="implemented" tags="github;federation;interoperability;python"}
+## GitHub issues federation subsystem
+
+Coordinates GitHub issue identity, bounded HTTP transport with rate-limit classification, content-addressed caching, conditional requests, issue-list discovery, bounded multi-page traversal, and normalization into OSLC's shared external-observation shape without surrendering the canonical engineering graph.
+:::
+
+::: {.need #IF-006 type="interface" status="implemented" tags="github;http;issues;federation"}
+## Read-only GitHub issues adapter interface
+
+The adapter boundary accepts configured owner/repository identity, explicit fetch/cache/page budgets, the list endpoint's own filter parameters, optional request-only authentication headers, and an injectable transport; it returns discovered issue and pull-request numbers per page, honest truncation reports, and independently provenance-bearing external observations, and raises distinguished errors for authentication, availability, and rate-limit exhaustion.
+:::
+
+::: {.need #RISK-012 type="risk" status="approved" priority="high" tags="github;security;pagination;rate-limit;traversal"}
+## Unbounded pagination, silent truncation, or rate-limit blindness makes external state look canonical
+
+Following server-provided pagination URLs without budgets or origin checks, reading a malformed pagination header as the end of the list, conflating pull requests with issues, promoting inline list data into observations, or misclassifying rate-limit exhaustion as an authentication failure could silently misrepresent external state or hide exhaustion behind the wrong error.
+:::
+
+::: {.need #ADR-010 type="architecture-decision" status="accepted" date="2026-08-31" revisit-after="2027-08-31" decision-makers="Quarto-Needs maintainers" tags="github;federation;read-only;security" addresses="SYS-008;FUN-014;FUN-015;FUN-016;NFR-007;RISK-012" applies-to="COMP-GHISSUES;IF-006" confirmed-by="TC-020;TC-021;TC-022;TC-024"}
+## Keep the GitHub issues path read-only, bounded, and discovery-separated
+
+### Context and Problem Statement
+
+GitHub's issues API returns pull requests alongside issues, rewrites pagination URLs from `/repos/{owner}/{repo}` to `/repositories/{id}` with cursor parameters, includes full inline issue data in list responses, and rate-limits clients with 403/429 responses. Treating any of those as canonical requirements data, following pagination without budgets, or flattening rate limits into generic errors would blur the trust boundary.
+
+### Decision Drivers
+
+- reuse OSLC's source-agnostic identity, observation, reconciliation, and import-plan contracts instead of forking them;
+- keep discovered numbers separate from independently fetched, provenance-bound observations;
+- validate server-provided pagination targets by origin, never by path, because GitHub legitimately rewrites its own Link targets;
+- make truncation, malformed pagination, pull-request conflation, and rate-limit exhaustion explicit rather than guessed;
+- keep the transport free of retry policy: report the server's retry facts and let the caller decide.
+
+### Decision Outcome
+
+GitHub federation is a read-only adapter composed of a bounded JSON transport with rate-limit classification, an opt-in content-addressed cache with conditional requests, issue/projection normalization that rejects pull requests, discovery and bounded multi-page traversal that stay numbers-only, and reconciliation/import planning through the unchanged OSLC contracts. List data is never promoted into observations; pagination targets are origin-checked; rate limits raise a distinguished, retry-informing error.
+
+### Consequences
+
+The adapter can discover, traverse, observe, reconcile, and plan imports safely before any synchronization exists. Canonical import and all remote writes remain deliberately deferred, and a rate-limit retry policy is caller-owned until a command needs one.
+
+### Confirmation
+
+`TC-020` exercises fetch-compose-normalize with exact-byte provenance; `TC-021` exercises the conditional-request 304 reuse path; `TC-022` exercises bounded traversal across GitHub's rewritten pagination targets with honest truncation; `TC-024` exercises rate-limit exhaustion classification against real header shapes.
+:::
+
 ## Repository implementation
 
 ::: {.need #SRC-OSLC-RM type="source-module" status="implemented" path="src/quarto_needs/oslc_rm.py" language="Python" layer="interoperability" tags="oslc;projection;identity;discovery" implements="SYS-007;FUN-010"}
@@ -202,6 +294,18 @@ Produces deterministic, non-mutating reconciliation plans from external observat
 ## OSLC reviewed import-plan module
 
 Turns a reconciliation result and its independently observed members into a deterministic, non-mutating import plan with explicit create/update/ignore/review directives, refusing any directive whose target metadata is unsafe or whose reconciliation is stale or conflicting.
+:::
+
+::: {.need #SRC-GITHUB-HTTP type="source-module" status="implemented" path="src/quarto_needs/github_http.py" language="Python" layer="interoperability" tags="github;http;security;rate-limit" implements="FUN-015;FUN-016;NFR-007"}
+## GitHub bounded HTTP transport module
+
+Provides GET-only bounded transport with same-origin redirect enforcement, an application/json media-type contract, conditional-request headers, surfaced Link headers, and explicit failure categories that distinguish authentication, availability, and rate-limit exhaustion — reporting retry facts without ever sleeping on its own.
+:::
+
+::: {.need #SRC-GITHUB-ISSUES type="source-module" status="implemented" path="src/quarto_needs/github_issues.py" language="Python" layer="interoperability" tags="github;issues;identity;discovery;pagination;provenance" implements="SYS-008;FUN-014;FUN-015;FUN-016;FUN-017;NFR-007"}
+## GitHub issues projection and discovery module
+
+Builds deterministic issue URIs and identities from exact fetched bytes, normalizes issue payloads into shared external observations while rejecting pull requests, composes transport/cache/conditional-request fetching, discovers issue-list pages with separated issue/pull-request numbers, traverses Link rel="next" within explicit origin and page budgets with honest truncation, and hands observations to the shared reconciliation and import-plan contracts.
 :::
 
 ## Verification and evidence
@@ -266,6 +370,66 @@ Verify that an unbound external observation produces an explicit create directiv
 `TC-019` is bound to the executable regression protecting the reviewed, non-mutating import-plan contract before any future canonical import or write path can be enabled.
 :::
 
+::: {.need #TC-020 type="test-case" status="passed" tags="pytest;github;issues;identity;provenance" pytest-nodeid="tests/test_github_issues.py::test_fetch_external_github_issue_composes_transport_identity_and_parsing" evidenced-by="EVD-020"}
+## GitHub issue fetch-and-normalize regression
+
+Verify that one fetched GitHub issue composes transport, identity, and normalization with a digest over the exact fetched bytes and provenance-bound validators.
+:::
+
+::: {.need #EVD-020 type="evidence" status="verified" tags="pytest;github;issues;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## GitHub issue normalization machine evidence
+
+`TC-020` is bound to the executable regression protecting the GitHub fetch-and-normalize boundary and participates in the self-hosted evidence contract.
+:::
+
+::: {.need #TC-021 type="test-case" status="passed" tags="pytest;github;cache;conditional-requests;provenance" pytest-nodeid="tests/test_github_issues.py::test_fetch_external_github_issue_sends_conditional_request_when_cache_is_stale" evidenced-by="EVD-021"}
+## GitHub conditional-request cache regression
+
+Verify that a stale cached representation sends validators built from its own stored metadata and that a 304 response reuses the cached body under refreshed provenance.
+:::
+
+::: {.need #EVD-021 type="evidence" status="verified" tags="pytest;github;cache;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## GitHub conditional-request machine evidence
+
+`TC-021` is bound to the executable regression protecting the cache-then-conditional-request flow for GitHub issues and participates in the self-hosted evidence contract.
+:::
+
+::: {.need #TC-022 type="test-case" status="passed" tags="pytest;github;discovery;pagination;bounded" pytest-nodeid="tests/test_github_issues.py::test_fetch_external_github_issue_list_pages_follows_rel_next_across_pages" evidenced-by="EVD-022"}
+## GitHub bounded pagination regression
+
+Verify that a traversal follows the server-provided Link rel="next" target across pages within the request origin and an explicit page budget, keeping issue and pull-request numbers separated and the traversal discovery-only.
+:::
+
+::: {.need #EVD-022 type="evidence" status="verified" tags="pytest;github;pagination;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## GitHub bounded pagination machine evidence
+
+`TC-022` is bound to the executable regression protecting bounded multi-page traversal across GitHub's rewritten pagination targets and participates in the self-hosted evidence contract.
+:::
+
+::: {.need #TC-023 type="test-case" status="passed" tags="pytest;github;reconciliation;identity;conflict" pytest-nodeid="tests/test_github_reconcile.py::test_github_issue_number_stays_data_even_when_it_equals_a_canonical_id" evidenced-by="EVD-023"}
+## GitHub explicit-binding reconciliation regression
+
+Verify that a GitHub issue number stays data-only during reconciliation — even when it equals a canonical ID — so only an explicit API-URI binding can create a matched item.
+:::
+
+::: {.need #EVD-023 type="evidence" status="verified" tags="pytest;github;reconciliation;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## GitHub reconciliation machine evidence
+
+`TC-023` is bound to the executable regression protecting the explicit-binding identity boundary for GitHub observations and participates in the self-hosted evidence contract.
+:::
+
+::: {.need #TC-024 type="test-case" status="passed" tags="pytest;github;http;rate-limit;security" pytest-nodeid="tests/test_github_http.py::test_fetch_github_resource_403_with_exhausted_rate_limit_is_rate_limited" evidenced-by="EVD-024"}
+## GitHub rate-limit classification regression
+
+Verify that rate-limit exhaustion (a 403 carrying X-RateLimit-Remaining: 0) raises a distinguished, retry-informing error instead of a generic authentication failure.
+:::
+
+::: {.need #EVD-024 type="evidence" status="verified" tags="pytest;github;rate-limit;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## GitHub rate-limit machine evidence
+
+`TC-024` is bound to the executable regression protecting rate-limit classification with real header shapes and participates in the self-hosted evidence contract.
+:::
+
 ## Federation slice
 
 ```text
@@ -280,3 +444,20 @@ SYS-007
 ```
 
 {{< need-table types="system-requirement;functional-requirement;non-functional-requirement;architecture-decision;component;interface;source-module;test-case;evidence" tags="oslc" columns="id;title;type;status" sort="id" >}}
+
+## GitHub issues adapter slice
+
+```text
+STK-007
+   ↓
+SYS-008
+   ├── FUN-014 / NFR-007 → ADR-010 → SRC-GITHUB-ISSUES            → TC-020 → EVD-020
+   ├── FUN-015 / NFR-007 → ADR-010 → SRC-GITHUB-HTTP / -ISSUES    → TC-021 → EVD-021
+   ├── FUN-016 / NFR-007 → ADR-010 → SRC-GITHUB-ISSUES / -HTTP    → TC-022 → EVD-022
+   └── FUN-017           → ADR-010 → shared OSLC reconcile/import → TC-023 → EVD-023
+                                                    SRC-GITHUB-HTTP → TC-024 → EVD-024
+```
+
+`FUN-017` deliberately implements against `SRC-OSLC-RECONCILE`/`SRC-OSLC-IMPORT`: the reconciliation and import-plan modules are source-agnostic, so GitHub observations flow through the unchanged OSLC contracts, and the slice's proof is tests pinning that reuse rather than a fork.
+
+{{< need-table types="system-requirement;functional-requirement;non-functional-requirement;architecture-decision;component;interface;source-module;test-case;evidence" tags="github" columns="id;title;type;status" sort="id" >}}

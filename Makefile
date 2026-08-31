@@ -76,7 +76,12 @@ evidence-self-example:
 		tests/test_oslc_reconcile.py::test_matching_external_identifier_never_creates_implicit_identity \
 		tests/test_oslc_query.py::test_execute_oslc_query_uses_existing_bounded_fetch_and_reports_response_provenance \
 		tests/test_oslc_observe.py::test_materialization_fetches_each_member_and_preserves_individual_provenance \
-		tests/test_oslc_import_plan.py::test_unbound_observation_requires_explicit_create_directive
+		tests/test_oslc_import_plan.py::test_unbound_observation_requires_explicit_create_directive \
+		tests/test_github_issues.py::test_fetch_external_github_issue_composes_transport_identity_and_parsing \
+		tests/test_github_issues.py::test_fetch_external_github_issue_sends_conditional_request_when_cache_is_stale \
+		tests/test_github_issues.py::test_fetch_external_github_issue_list_pages_follows_rel_next_across_pages \
+		tests/test_github_reconcile.py::test_github_issue_number_stays_data_even_when_it_equals_a_canonical_id \
+		tests/test_github_http.py::test_fetch_github_resource_403_with_exhausted_rate_limit_is_rate_limited
 	PYTHONPATH=src $(VENV_PYTHON) -m quarto_needs.cli_entry --root examples/quarto-needs evidence attest \
 		.quarto-needs/evidence/pytest-provider.json \
 		--output .quarto-needs/evidence/pytest.json --expires-hours 24

@@ -122,6 +122,8 @@ def _observation(local_id_matching_number: bool = False):
     return observation, _snapshot()
 
 
+@pytest.mark.requirement("SYS-008", "FUN-017")
+@pytest.mark.quarto_need_test_case("TC-023")
 def test_github_issue_number_stays_data_even_when_it_equals_a_canonical_id() -> None:
     observation, snapshot = _observation(local_id_matching_number=True)
 
