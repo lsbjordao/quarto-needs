@@ -61,6 +61,10 @@ def test_parse_query_result_requires_the_query_base_container() -> None:
         parse_query_result(({"@id": MEMBER_A},), query_base_uri=QUERY_BASE)
 
 
+@pytest.mark.requirement("SYS-007")
+@pytest.mark.requirement("FUN-012")
+@pytest.mark.requirement("NFR-006")
+@pytest.mark.quarto_need_test_case("TC-017")
 def test_execute_oslc_query_uses_existing_bounded_fetch_and_reports_response_provenance(
     tmp_path: Path, monkeypatch
 ) -> None:
