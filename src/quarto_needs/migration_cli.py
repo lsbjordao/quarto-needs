@@ -7,6 +7,9 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
+from .analysis import analyze_project
+from .config import load_config
+from .migrations.apply_plan import build_sphinx_apply_plan, write_apply_plan
 from .migrations.sphinx_needs import (
     SphinxNeedsMigrationError,
     build_migration_plan,
@@ -15,6 +18,7 @@ from .migrations.sphinx_needs import (
 )
 
 DEFAULT_SPHINX_PLAN = ".quarto-needs/migrations/sphinx-needs-plan.json"
+DEFAULT_SPHINX_APPLY_PLAN = ".quarto-needs/migrations/sphinx-needs-apply-plan.json"
 
 
 def migration_action(argv: Sequence[str]) -> str | None:
@@ -72,6 +76,10 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--relation-map", action="append", default=[], metavar="FIELD=RELATION")
     parser.add_argument("--output", default=DEFAULT_SPHINX_PLAN)
     parser.add_argument("--format", choices=("text", "json"), default="text")
+    parser.add_argument("--apply-plan", action="store_true")
+    parser.add_argument("--destination", action="append", default=[], metavar="SOURCE=PATH")
+    parser.add_argument("--id-map", action="append", default=[], metavar="SOURCE=CANONICAL")
+    parser.add_argument("--apply-output", default=DEFAULT_SPHINX_APPLY_PLAN)
     return parser
 
 
@@ -110,6 +118,8 @@ def run_migration_action(root: Path, argv: Sequence[str], source: str) -> int:
         return 2
 
     parser = _parser()
+    apply_plan = None
+    apply_output = None
     try:
         args = parser.parse_args(_strip_dispatch_tokens(argv))
         type_map = _mapping(args.type_map, "--type-map")
@@ -123,6 +133,25 @@ def run_migration_action(root: Path, argv: Sequence[str], source: str) -> int:
         )
         output = _root_relative(root, args.output)
         write_migration_plan(output, plan)
+
+        if args.apply_plan:
+            destinations = _mapping(args.destination, "--destination")
+            id_map = _mapping(args.id_map, "--id-map")
+            config = load_config(root)
+            result = analyze_project(root, config=config)
+            if result.snapshot is None:
+                for finding in result.findings:
+                    print(f"[ERROR] {finding.code}: {finding.message}", file=sys.stderr)
+                return 2
+            apply_plan = build_sphinx_apply_plan(
+                plan,
+                result.snapshot,
+                config,
+                destinations=destinations,
+                id_map=id_map,
+            )
+            apply_output = _root_relative(root, args.apply_output)
+            write_apply_plan(apply_output, apply_plan)
     except (ValueError, SphinxNeedsMigrationError) as error:
         print(f"Migration error: {error}", file=sys.stderr)
         return 2
@@ -131,7 +160,8 @@ def run_migration_action(root: Path, argv: Sequence[str], source: str) -> int:
         return 3
 
     if args.format == "json":
-        print(json.dumps(plan.to_dict(), indent=2, sort_keys=True, ensure_ascii=False))
+        payload = apply_plan.to_dict() if apply_plan is not None else plan.to_dict()
+        print(json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False))
     else:
         print(
             f"Sphinx-Needs migration plan: {len(plan.candidates)} candidate(s), "
@@ -144,5 +174,31 @@ def run_migration_action(root: Path, argv: Sequence[str], source: str) -> int:
             field = f" [{issue.field}]" if issue.field else ""
             print(f"[{issue.code}]{scope}{field}: {issue.message}")
 
-    # A plan with unresolved semantics is useful output but not migration-ready.
-    return 1 if plan.issues else 0
+        if apply_plan is not None:
+            print()
+            print(
+                f"Sphinx-Needs apply plan: {len(apply_plan.items)} item(s), "
+                f"ready={apply_plan.ready}"
+            )
+            print(f"Apply plan: {apply_output}")
+            for item in apply_plan.items:
+                destination = item.destination_file or "no destination"
+                print(f"[{item.status}] {item.source_id} -> {item.canonical_id} ({destination})")
+                if item.target_type or item.target_status:
+                    print(f"  type={item.target_type} status={item.target_status}")
+                if item.relations:
+                    rendered = ", ".join(
+                        f"{relation['relation']} -> {relation['target']}"
+                        for relation in item.relations
+                    )
+                    print(f"  relations: {rendered}")
+                if item.reasons:
+                    print(f"  reasons: {'; '.join(item.reasons)}")
+
+    # A plan with unresolved semantics or an apply plan that is not fully
+    # ready-to-create is useful output but not migration-ready.
+    if plan.issues:
+        return 1
+    if apply_plan is not None and not apply_plan.ready:
+        return 1
+    return 0

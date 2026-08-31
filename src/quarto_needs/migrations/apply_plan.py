@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 from typing import Literal, Mapping
 
 from ..config import NeedsConfig
@@ -242,3 +243,9 @@ def build_sphinx_apply_plan(
         semantic_graph_fingerprint=snapshot.semantic_graph_fingerprint,
         items=tuple(items),
     )
+
+
+def write_apply_plan(path: Path, plan: MigrationApplyPlan) -> None:
+    payload = json.dumps(plan.to_dict(), indent=2, sort_keys=True, ensure_ascii=False) + "\n"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(payload, encoding="utf-8")
