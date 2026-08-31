@@ -2,7 +2,7 @@
 
 A rastreabilidade fica incompleta quando os requisitos terminam no design. Este capítulo modela verificação como objetos de engenharia de primeira classe e conecta testes bem-sucedidos a evidências explícitas.
 
-Os casos de teste abaixo correspondem a classes reais de verificações de regressão do repositório. Seis vínculos executáveis representativos agora cobrem decisões de arquitetura, paridade semântica multilíngue, segurança do grafo público, views nomeadas, impacto de mudanças e usabilidade do índice lateral. `make evidence-self-example` executa esses testes, grava a saída determinística do provider, atesta essa saída contra o snapshot de engenharia atual e valida `.quarto-needs/evidence/pytest.json` antes da renderização do livro autocontido.
+Os casos de teste abaixo correspondem a classes reais de verificações de regressão do repositório. Sete vínculos executáveis representativos agora cobrem decisões de arquitetura, paridade semântica multilíngue, segurança do grafo público, views nomeadas, impacto de mudanças, usabilidade do índice lateral e orquestração da federação OSLC. `make evidence-self-example` executa esses testes, grava a saída determinística do provider, atesta essa saída contra o snapshot de engenharia atual e valida `.quarto-needs/evidence/pytest.json` antes da renderização do livro autocontido.
 
 ## Casos de teste
 
