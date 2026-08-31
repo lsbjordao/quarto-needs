@@ -11,8 +11,11 @@ from quarto_needs.github_issues import (
     fetch_external_github_issue,
     fetch_external_github_issue_list,
     fetch_external_github_issue_list_pages,
+    fetch_external_github_issue_search,
+    fetch_external_github_issue_search_pages,
     github_issue_list_resource_uri,
     github_issue_resource_uri,
+    github_issue_search_resource_uri,
     parse_external_github_issue,
     parse_next_link,
 )
@@ -632,3 +635,139 @@ def test_fetch_external_github_issue_list_pages_remains_discovery_only() -> None
     assert result.to_dict()["pages"][0]["resourceUri"] == (
         github_issue_list_resource_uri("acme", "widgets")
     )
+
+
+def _search_entry(number: int, *, is_pull_request: bool = False) -> dict[str, object]:
+    return _list_entry(number, is_pull_request=is_pull_request)
+
+
+def _search_response(
+    total: int,
+    entries: list[dict[str, object]],
+    *,
+    incomplete: bool = False,
+    **headers: str,
+) -> "_Response":
+    body = json.dumps(
+        {"total_count": total, "incomplete_results": incomplete, "items": entries}
+    ).encode("utf-8")
+    return _Response(200, body, **{"Content-Type": "application/json", **headers})
+
+
+def test_github_issue_search_resource_uri_is_deterministic() -> None:
+    assert github_issue_search_resource_uri("repo:acme/widgets is:issue") == (
+        "https://api.github.com/search/issues"
+        "?q=repo%3Aacme%2Fwidgets+is%3Aissue&per_page=30&page=1"
+    )
+    assert github_issue_search_resource_uri(
+        "repo:acme/widgets", per_page=50, page=2, sort="updated", order="desc"
+    ) == (
+        "https://api.github.com/search/issues"
+        "?q=repo%3Aacme%2Fwidgets&per_page=50&page=2&sort=updated&order=desc"
+    )
+
+
+def test_github_issue_search_resource_uri_rejects_invalid_parameters() -> None:
+    with pytest.raises(GitHubIssueError, match="query"):
+        github_issue_search_resource_uri("   ")
+    with pytest.raises(GitHubIssueError, match="per_page"):
+        github_issue_search_resource_uri("x", per_page=101)
+    with pytest.raises(GitHubIssueError, match="page"):
+        github_issue_search_resource_uri("x", page=0)
+    with pytest.raises(GitHubIssueError, match="sort"):
+        github_issue_search_resource_uri("x", sort="popularity")
+    with pytest.raises(GitHubIssueError, match="order"):
+        github_issue_search_resource_uri("x", order="sideways")
+
+
+def test_fetch_external_github_issue_search_separates_items_and_surfaces_envelope() -> None:
+    opener = _Opener(
+        _search_response(
+            12,
+            [_search_entry(3164), _search_entry(3166, is_pull_request=True)],
+            incomplete=True,
+        )
+    )
+
+    result = fetch_external_github_issue_search(
+        "repo:acme/widgets is:issue", fetched_at="2026-08-31T12:00:00Z", opener=opener
+    )
+
+    assert result.issue_numbers == (3164,)
+    assert result.pull_request_numbers == (3166,)
+    assert result.total_count == 12
+    assert result.incomplete_results is True
+    assert result.resource_uri == github_issue_search_resource_uri("repo:acme/widgets is:issue")
+    assert not hasattr(result, "observations")
+
+
+def test_fetch_external_github_issue_search_rejects_malformed_envelopes() -> None:
+    for body in (
+        b"[]",
+        b'{"total_count": 1}',
+        b'{"total_count": "12", "incomplete_results": false, "items": []}',
+        b'{"total_count": 12, "incomplete_results": "no", "items": []}',
+        b'{"total_count": 12, "incomplete_results": false}',
+        b'{"total_count": 12, "incomplete_results": false, "items": {"number": 1}}',
+    ):
+        opener = _Opener(_Response(200, body, **{"Content-Type": "application/json"}))
+        with pytest.raises(GitHubIssueError):
+            fetch_external_github_issue_search(
+                "repo:acme/widgets", fetched_at="2026-08-31T12:00:00Z", opener=opener
+            )
+
+
+def test_fetch_external_github_issue_search_pages_follows_rel_next_across_pages() -> None:
+    next_url = "https://api.github.com/search/issues?q=repo%3Aacme%2Fwidgets&page=2"
+    opener = _Opener(
+        _search_response(
+            12, [_search_entry(3164)], Link=f'<{next_url}>; rel="next"'
+        ),
+        _search_response(
+            12, [_search_entry(3165, is_pull_request=True)], incomplete=True
+        ),
+    )
+
+    result = fetch_external_github_issue_search_pages(
+        "repo:acme/widgets is:issue", fetched_at="2026-08-31T12:00:00Z", max_pages=3, opener=opener
+    )
+
+    assert len(opener.requests) == 2
+    assert opener.requests[1].full_url == next_url
+    assert result.total_count == 12
+    assert result.incomplete_results is True  # conservative union across pages
+    assert result.issue_numbers == (3164,)
+    assert result.pull_request_numbers == (3165,)
+    assert result.truncated is False
+
+
+def test_fetch_external_github_issue_search_pages_reports_truncation_at_the_budget() -> None:
+    next_url = "https://api.github.com/search/issues?q=repo%3Aacme%2Fwidgets&page=2"
+    opener = _Opener(_search_response(12, [_search_entry(3164)], Link=f'<{next_url}>; rel="next"'))
+
+    result = fetch_external_github_issue_search_pages(
+        "repo:acme/widgets", fetched_at="2026-08-31T12:00:00Z", max_pages=1, opener=opener
+    )
+
+    assert len(opener.requests) == 1
+    assert result.truncated is True
+
+
+def test_fetch_external_github_issue_search_pages_rejects_cross_origin_next() -> None:
+    opener = _Opener(
+        _search_response(1, [_search_entry(3164)], Link='<https://evil.example/search?page=2>; rel="next"')
+    )
+
+    with pytest.raises(GitHubIssueError, match="crossed origin"):
+        fetch_external_github_issue_search_pages(
+            "repo:acme/widgets", fetched_at="2026-08-31T12:00:00Z", max_pages=2, opener=opener
+        )
+
+
+def test_fetch_external_github_issue_search_pages_rejects_invalid_max_pages() -> None:
+    opener = _Opener()
+    with pytest.raises(GitHubIssueError, match="max_pages"):
+        fetch_external_github_issue_search_pages(
+            "repo:acme/widgets", fetched_at="2026-08-31T12:00:00Z", max_pages=0, opener=opener
+        )
+    assert opener.requests == []
