@@ -12,6 +12,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from .cli_dispatch import main as dispatch_main
+from .console import install_semantic_color, restore_streams
 from .git_range_cli import git_action, run_git_action
 from .interchange_cli import interchange_action, run_interchange_export
 from .migration_cli import migration_action, run_migration_action
@@ -44,8 +45,7 @@ def _top_level_command(argv: Sequence[str]) -> str | None:
     return None
 
 
-def main(argv: Sequence[str] | None = None) -> int:
-    values = list(sys.argv[1:] if argv is None else argv)
+def _dispatch(values: list[str]) -> int:
     git = git_action(values)
     if git is not None:
         command, range_spec = git
@@ -68,6 +68,15 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         return run_stdio(_root(values))
     return dispatch_main(values)
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    values = list(sys.argv[1:] if argv is None else argv)
+    originals = install_semantic_color(values)
+    try:
+        return _dispatch(values)
+    finally:
+        restore_streams(originals)
 
 
 if __name__ == "__main__":
