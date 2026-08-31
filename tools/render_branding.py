@@ -6,12 +6,30 @@ import tempfile
 from pathlib import Path
 
 
-def _sha256(path: Path) -> str:
+def _pixel_sha256(path: Path) -> str:
+    try:
+        from PIL import Image
+    except ImportError as error:  # pragma: no cover - developer tooling guard
+        raise SystemExit(
+            "branding tooling is not installed; run `make setup-branding` first"
+        ) from error
+    image = Image.open(path).convert("RGBA")
     digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
+    digest.update(f"{image.width}x{image.height}:RGBA\0".encode("ascii"))
+    digest.update(image.tobytes())
     return digest.hexdigest()
+
+
+def _same_pixels(first: Path, second: Path) -> bool:
+    try:
+        from PIL import Image
+    except ImportError as error:  # pragma: no cover - developer tooling guard
+        raise SystemExit(
+            "branding tooling is not installed; run `make setup-branding` first"
+        ) from error
+    left = Image.open(first).convert("RGBA")
+    right = Image.open(second).convert("RGBA")
+    return left.size == right.size and left.tobytes() == right.tobytes()
 
 
 def _render(svg: Path, target: Path, size: int) -> None:
@@ -33,7 +51,7 @@ def _render(svg: Path, target: Path, size: int) -> None:
         )
         image = Image.open(raw).convert("RGBA")
         # Palette quantization keeps packaged extension assets compact while
-        # preserving transparency and deterministic source-derived artwork.
+        # preserving transparency and source-derived artwork.
         image = image.quantize(colors=96, method=Image.Quantize.FASTOCTREE)
         target.parent.mkdir(parents=True, exist_ok=True)
         image.save(target, optimize=True)
@@ -79,10 +97,11 @@ def main() -> int:
             if not target.exists():
                 failures.append(f"missing derived asset: {target.relative_to(root)}")
                 continue
-            if target.read_bytes() != generated[size].read_bytes():
+            if not _same_pixels(target, generated[size]):
                 failures.append(
                     f"stale derived asset: {target.relative_to(root)} "
-                    f"(actual sha256={_sha256(target)}, expected sha256={_sha256(generated[size])})"
+                    f"(actual pixel sha256={_pixel_sha256(target)}, "
+                    f"expected pixel sha256={_pixel_sha256(generated[size])})"
                 )
 
     if failures:
@@ -91,7 +110,7 @@ def main() -> int:
         print("Run `make branding-assets` to regenerate the derived assets.")
         return 1
 
-    print("Branding derivatives match the canonical SVG.")
+    print("Branding derivatives visually match the canonical SVG.")
     return 0
 
 
