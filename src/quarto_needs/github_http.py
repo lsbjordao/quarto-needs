@@ -20,6 +20,31 @@ class GitHubTransportError(RuntimeError):
         self.code = code
 
 
+class GitHubRateLimitError(GitHubTransportError):
+    """GitHub's rate limiting, distinguished from auth/availability failures.
+
+    Raised for a ``429`` (GitHub uses it for both primary and secondary
+    limits) or a ``403`` carrying ``X-RateLimit-Remaining: 0`` (GitHub's
+    primary-exhaustion shape). A ``403`` without that header is *not* a rate
+    limit and keeps raising the generic ``authentication-required`` error.
+    The transport reports the server's retry facts and never sleeps on its
+    own; ``retry_after_seconds`` comes from ``Retry-After`` (integer-seconds
+    form, the only form GitHub sends) and ``rate_limit_reset_epoch`` from
+    ``X-RateLimit-Reset``, both ``None`` when the server omitted them.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        retry_after_seconds: int | None,
+        rate_limit_reset_epoch: int | None,
+    ) -> None:
+        super().__init__("rate-limited", message)
+        self.retry_after_seconds = retry_after_seconds
+        self.rate_limit_reset_epoch = rate_limit_reset_epoch
+
+
 @dataclass(frozen=True, slots=True)
 class GitHubFetchResult:
     payload: bytes | None
@@ -67,6 +92,34 @@ def _media_type(value: str | None) -> str:
             f"unsupported GitHub response media type: {media_type or value!r}",
         )
     return media_type
+
+
+def _header_int(headers, name: str) -> int | None:  # type: ignore[no-untyped-def]
+    value = headers.get(name)
+    if value is None:
+        return None
+    try:
+        parsed = int(value.strip())
+    except ValueError as error:
+        raise GitHubTransportError(
+            "invalid-response", f"GitHub sent a non-integer {name} header: {value!r}"
+        ) from error
+    return parsed
+
+
+def _rate_limit_error(status: int, headers) -> GitHubRateLimitError:  # type: ignore[no-untyped-def]
+    retry_after = _header_int(headers, "Retry-After")
+    reset_epoch = _header_int(headers, "X-RateLimit-Reset")
+    facts = [f"HTTP {status}"]
+    if retry_after is not None:
+        facts.append(f"Retry-After={retry_after}s")
+    if reset_epoch is not None:
+        facts.append(f"X-RateLimit-Reset={reset_epoch}")
+    return GitHubRateLimitError(
+        "GitHub rate limit exhausted (" + ", ".join(facts) + ")",
+        retry_after_seconds=retry_after,
+        rate_limit_reset_epoch=reset_epoch,
+    )
 
 
 def _read_bounded(response, max_bytes: int) -> bytes:  # type: ignore[no-untyped-def]
@@ -164,6 +217,11 @@ def fetch_github_resource(
                 link=response.headers.get("Link"),
             )
 
+        if status == 429 or (
+            status == 403
+            and (response.headers.get("X-RateLimit-Remaining") or "").strip() == "0"
+        ):
+            raise _rate_limit_error(status, response.headers)
         if status in {401, 403}:
             raise GitHubTransportError("authentication-required", f"GitHub returned HTTP {status}")
         if status == 404:
