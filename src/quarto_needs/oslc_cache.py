@@ -210,6 +210,26 @@ def _parsed_fetched_at(entry: CachedRepresentation) -> datetime:
     return datetime.fromisoformat(value)
 
 
+def latest_cached_representation(
+    root: Path,
+    *,
+    resource_uri: str,
+    include_rejected: bool = False,
+) -> CachedRepresentation | None:
+    candidates = [
+        entry
+        for entry in load_cache_manifest(root)
+        if entry.identity.resource_uri == resource_uri
+        and (include_rejected or entry.identity.trust_state != "rejected")
+    ]
+    if not candidates:
+        return None
+    return max(
+        candidates,
+        key=lambda entry: (_parsed_fetched_at(entry), entry.identity.digest),
+    )
+
+
 def select_cached_representation(
     root: Path,
     *,
@@ -217,19 +237,9 @@ def select_cached_representation(
     policy: CachePolicy,
     now: str,
 ) -> CacheSelection | None:
-    candidates = [
-        entry
-        for entry in load_cache_manifest(root)
-        if entry.identity.resource_uri == resource_uri
-        and entry.identity.trust_state != "rejected"
-    ]
-    if not candidates:
+    representation = latest_cached_representation(root, resource_uri=resource_uri)
+    if representation is None:
         return None
-
-    representation = max(
-        candidates,
-        key=lambda entry: (_parsed_fetched_at(entry), entry.identity.digest),
-    )
     decision = policy.decide(representation.identity, now=now)
     if decision == "stale-rejected":
         return None
