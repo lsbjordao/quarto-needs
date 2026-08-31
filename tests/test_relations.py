@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from quarto_needs.parser import parse_qmd
+from quarto_needs.parser import parse_qmd_declarations
 from quarto_needs.relations import DEFAULT_RELATION_CATALOG
 
 
@@ -77,7 +77,7 @@ def test_parser_resolves_inverse_relation_names(tmp_path: Path) -> None:
 '''.strip() + "\n",
         encoding="utf-8",
     )
-    batch = parse_qmd(source, tmp_path)
+    batch = parse_qmd_declarations(source, tmp_path)
     relation = batch.declarations[0].relations[0]
     assert relation.authored_name == "implemented-by"
     assert relation.target == "COMP-1"

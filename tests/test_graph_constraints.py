@@ -193,7 +193,7 @@ def test_max_relations_uses_logical_relation_view_and_target_role(tmp_path: Path
     findings = evaluate_graph_constraints(constraints, snapshot, config)
     assert len(findings) == 1
     assert findings[0].object_id == "FUN-1"
-    assert findings[0].properties["targets"] == ["TC-1", "TC-2"]
+    assert list(findings[0].properties["targets"]) == ["TC-1", "TC-2"]
 
 
 @pytest.mark.parametrize(

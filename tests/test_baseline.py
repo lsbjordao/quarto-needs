@@ -8,20 +8,17 @@ from jsonschema import Draft202012Validator
 from quarto_needs.analysis import analyze_project
 from quarto_needs.baseline import build_baseline
 from quarto_needs.config import load_config
+from quarto_needs.rules import RULE_SET_VERSION
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = ROOT / "schemas" / "baseline-v1.schema.json"
 
 
 PROJECT = '''
-::: {.need #REQ-1 type="functional-requirement" status="approved" priority="high" tags="security"}
+::: {.need #REQ-1 type="functional-requirement" status="approved" priority="high" tags="security" rationale="Protect privileged operations."}
 ## Authenticate
 
 The service shall authenticate users.
-
-### Rationale
-
-Protect privileged operations.
 :::
 '''.strip() + "\n"
 
@@ -54,7 +51,7 @@ def test_baseline_carries_both_comparison_axes(tmp_path: Path) -> None:
     assert payload["valid"] is True
     assert len(payload["configurationFingerprint"]) == 64
     assert payload["referenceDate"]
-    assert payload["ruleSetVersion"] == "3"
+    assert payload["ruleSetVersion"] == RULE_SET_VERSION
 
 
 def test_baseline_stores_authored_content_not_only_fingerprints(tmp_path: Path) -> None:
