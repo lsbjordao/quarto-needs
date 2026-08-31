@@ -1,0 +1,157 @@
+# Interoperability: federating without surrendering the canonical model
+
+Quarto-Needs treats interchange and federation as projections and adapters around the canonical engineering graph. External standards may transport, describe, or discover requirements, but they do not become a second semantic authority.
+
+## Driver and obligations
+
+::: {.need #STK-006 type="stakeholder-need" status="approved" tags="interoperability;oslc;federation;standards"}
+## Engineering teams need standards-based federation without semantic drift
+
+Teams need to exchange and discover requirements through established standards while preserving canonical identity, provenance, trust, and explicit loss semantics.
+:::
+
+::: {.need #SYS-007 type="system-requirement" status="approved" priority="high" tags="interoperability;oslc;federation;provenance" derives-from="STK-006" implemented-by="COMP-OSLC" verified-by="TC-015"}
+## Federate OSLC requirements through a bounded read-only adapter
+
+Quarto-Needs shall discover OSLC Requirements Management services and Resource Shapes through a bounded read-only federation layer that preserves external identity, cache provenance, and trust without importing remote semantics into the canonical graph automatically.
+
+### Rationale
+
+Federation is useful only if remote state remains distinguishable from authored project truth and failures remain explainable.
+:::
+
+::: {.need #FUN-010 type="functional-requirement" status="approved" priority="high" tags="oslc;http;cache;rdf;discovery" derives-from="SYS-007" implemented-by="COMP-OSLC;IF-005" verified-by="TC-015" mitigates="RISK-005"}
+## Discover OSLC RM services and advertised Resource Shapes
+
+The federation adapter shall fetch a configured Service Provider through bounded GET-only HTTP, normalize supported RDF representations without implicit network dereferencing, discover RM Query Capabilities, and fetch advertised Resource Shapes through the same cache and transport policy.
+
+### Rationale
+
+Discovery, RDF parsing, transport, and cache semantics must be explicit and independently testable before remote requirement import is considered.
+:::
+
+::: {.need #NFR-006 type="non-functional-requirement" status="approved" priority="critical" tags="oslc;security;provenance;offline;determinism" derives-from="SYS-007" implemented-by="COMP-OSLC" verified-by="TC-015" mitigates="RISK-005"}
+## Keep federation bounded, provenance-preserving, and fail-explicit
+
+OSLC federation shall enforce byte/time/redirect/node budgets, reject cross-origin redirects, prevent implicit remote JSON-LD context loading, preserve content digests and historical observations, and never hide authentication failures behind stale cache fallback.
+
+### Rationale
+
+External integration expands the trust boundary and therefore requires stronger failure and provenance contracts than local projection alone.
+:::
+
+## Architecture
+
+::: {.need #COMP-OSLC type="component" status="implemented" tags="oslc;federation;interoperability;python"}
+## OSLC federation subsystem
+
+Coordinates OSLC projection, external identity, deterministic cache persistence, bounded HTTP transport, RDF normalization, RM discovery, and Resource Shape parsing without mutating the canonical engineering graph.
+:::
+
+::: {.need #IF-005 type="interface" status="implemented" tags="oslc;http;rdf;federation"}
+## Read-only OSLC federation interface
+
+The adapter boundary accepts configured HTTP(S) Service Provider identity, explicit cache/fetch policies, optional request-only authentication headers, and returns discovered RM services and Resource Shapes with provenance.
+:::
+
+::: {.need #RISK-005 type="risk" status="approved" priority="critical" tags="oslc;security;federation;credentials;stale-cache"}
+## External federation leaks credentials or silently trusts stale/changed data
+
+Redirects, remote contexts, mutable resources, stale cache, or opaque network failure could leak authentication material or make unverified external state appear canonical.
+:::
+
+::: {.need #ADR-008 type="architecture-decision" status="accepted" date="2026-08-30" revisit-after="2027-08-30" decision-makers="Quarto-Needs maintainers" tags="oslc;federation;read-only;security" addresses="SYS-007;FUN-010;NFR-006;RISK-005" applies-to="COMP-OSLC;IF-005" confirmed-by="TC-015"}
+## Keep the first OSLC federation path read-only, bounded, and cache-provenanced
+
+### Context and Problem Statement
+
+OSLC introduces external identity, authentication, mutable remote representations, linked-data serialization, caching, and provider-specific failure modes. Treating those concerns as ordinary local objects would blur the trust boundary.
+
+### Decision Drivers
+
+- preserve the canonical Quarto-Needs graph as semantic authority;
+- make external identity and observed bytes independently auditable;
+- prevent hidden network activity during RDF normalization;
+- prevent credentials from crossing redirect origins or entering persistent artifacts;
+- support deterministic offline behavior without silently accepting stale state.
+
+### Decision Outcome
+
+Implement OSLC as a read-only adapter. HTTP uses GET only with explicit budgets and same-origin redirects. Cached bytes are content-addressed by SHA-256 and historical observations are retained. RDF normalization performs no implicit remote context fetches. Discovery and Resource Shapes remain external projections and are not merged into the canonical graph.
+
+### Consequences
+
+The adapter can federate safely before synchronization exists, but remote writes/import conflict policy remains deliberately deferred.
+
+### Confirmation
+
+`TC-015` exercises the complete network-free orchestration path using deterministic fake HTTP responses.
+:::
+
+## Repository implementation
+
+::: {.need #SRC-OSLC-RM type="source-module" status="implemented" path="src/quarto_needs/oslc_rm.py" language="Python" layer="interoperability" tags="oslc;projection;identity;discovery" implements="SYS-007;FUN-010"}
+## OSLC RM semantic projection module
+
+Defines conservative RM projection, external identity, cache freshness, and network-free RM service discovery contracts.
+:::
+
+::: {.need #SRC-OSLC-CACHE type="source-module" status="implemented" path="src/quarto_needs/oslc_cache.py" language="Python" layer="interoperability" tags="oslc;cache;provenance;determinism" implements="NFR-006"}
+## OSLC persistent cache module
+
+Stores content-addressed validated blobs and deterministic historical observation metadata.
+:::
+
+::: {.need #SRC-OSLC-HTTP type="source-module" status="implemented" path="src/quarto_needs/oslc_http.py" language="Python" layer="interoperability" tags="oslc;http;security;offline" implements="FUN-010;NFR-006"}
+## OSLC bounded HTTP transport module
+
+Provides GET-only bounded transport, conditional retrieval, same-origin redirect enforcement, explicit failure categories, and policy-controlled offline fallback.
+:::
+
+::: {.need #SRC-OSLC-RDF type="source-module" status="implemented" path="src/quarto_needs/oslc_rdf.py" language="Python" layer="interoperability" tags="oslc;rdf;jsonld;turtle;rdfxml" implements="FUN-010;NFR-006"}
+## OSLC RDF normalization module
+
+Normalizes JSON-LD, Turtle, and RDF/XML into expanded JSON-LD without implicit remote document/context loading.
+:::
+
+::: {.need #SRC-OSLC-FEDERATION type="source-module" status="implemented" path="src/quarto_needs/oslc_federation.py" language="Python" layer="interoperability" tags="oslc;federation;discovery;shape" implements="SYS-007;FUN-010"}
+## OSLC federation orchestration module
+
+Composes transport, cache, RDF normalization, RM discovery, and Resource Shape parsing while keeping discovered resources external to the canonical graph.
+:::
+
+## Verification and evidence
+
+::: {.need #TC-015 type="test-case" status="passed" tags="pytest;oslc;federation;cache;http;rdf" pytest-nodeid="tests/test_oslc_federation.py::test_discovery_orchestrates_fetch_normalization_service_and_shape_parsing" evidenced-by="EVD-015"}
+## OSLC federation orchestration regression
+
+Exercise Service Provider retrieval, RDF normalization, referenced-service materialization, RM Query Capability discovery, advertised Resource Shape retrieval, and bounded parsing through deterministic fake HTTP responses.
+:::
+
+::: {.need #EVD-015 type="evidence" status="verified" tags="pytest;oslc;federation;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## OSLC federation machine evidence
+
+`TC-015` is bound to a real pytest function and participates in the self-hosted evidence contract once the executable evidence suite is run in a working environment.
+:::
+
+## Federation slice
+
+```text
+STK-006
+   ↓
+SYS-007
+   ↓
+FUN-010 / NFR-006
+   ↓
+ADR-008
+   ↓
+COMP-OSLC / IF-005
+   ↓
+SRC-OSLC-RM / CACHE / HTTP / RDF / FEDERATION
+   ↓
+TC-015
+   ↓
+EVD-015
+```
+
+{{< need-table types="system-requirement;functional-requirement;non-functional-requirement;architecture-decision;component;interface;source-module;test-case;evidence" tags="oslc" columns="id;title;type;status" sort="id" >}}
