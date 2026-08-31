@@ -18,6 +18,7 @@ classifiers = [
 ]
 dependencies = [
   "jsonschema>=4.23",
+  "PyYAML>=6",
 ]
 
 [project.scripts]
@@ -30,7 +31,6 @@ quarto-needs = "quarto_needs.pytest_plugin"
 test = [
   "pytest>=8",
   "referencing",
-  "PyYAML>=6",
   "reqif>=0.1,<0.2",
   "xmlschema>=4.3,<5",
   "PyLD>=3.2,<4",
