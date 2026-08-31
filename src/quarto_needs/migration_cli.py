@@ -10,6 +10,7 @@ from pathlib import Path
 from .analysis import analyze_project
 from .config import load_config
 from .migrations.apply_plan import build_sphinx_apply_plan, write_apply_plan
+from .migrations.apply_write import MigrationApplyError, apply_migration_plan
 from .migrations.sphinx_needs import (
     SphinxNeedsMigrationError,
     build_migration_plan,
@@ -81,6 +82,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--id-map", action="append", default=[], metavar="SOURCE=CANONICAL")
     parser.add_argument("--apply-output", default=DEFAULT_SPHINX_APPLY_PLAN)
     parser.add_argument("--show-content", action="store_true")
+    parser.add_argument("--write", action="store_true")
     return parser
 
 
@@ -121,8 +123,11 @@ def run_migration_action(root: Path, argv: Sequence[str], source: str) -> int:
     parser = _parser()
     apply_plan = None
     apply_output = None
+    apply_result = None
     try:
         args = parser.parse_args(_strip_dispatch_tokens(argv))
+        if args.write and not args.apply_plan:
+            raise ValueError("--write requires --apply-plan")
         type_map = _mapping(args.type_map, "--type-map")
         relation_map = _mapping(args.relation_map, "--relation-map")
         document = load_needs_json(_root_relative(root, args.needs_json))
@@ -153,7 +158,10 @@ def run_migration_action(root: Path, argv: Sequence[str], source: str) -> int:
             )
             apply_output = _root_relative(root, args.apply_output)
             write_apply_plan(apply_output, apply_plan)
-    except (ValueError, SphinxNeedsMigrationError) as error:
+
+            if args.write:
+                apply_result = apply_migration_plan(root, apply_plan, config)
+    except (ValueError, SphinxNeedsMigrationError, MigrationApplyError) as error:
         print(f"Migration error: {error}", file=sys.stderr)
         return 2
     except OSError as error:
@@ -161,7 +169,12 @@ def run_migration_action(root: Path, argv: Sequence[str], source: str) -> int:
         return 3
 
     if args.format == "json":
-        payload = apply_plan.to_dict() if apply_plan is not None else plan.to_dict()
+        if apply_result is not None:
+            payload = apply_result.to_dict()
+        elif apply_plan is not None:
+            payload = apply_plan.to_dict()
+        else:
+            payload = plan.to_dict()
         print(json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False))
     else:
         print(
@@ -199,6 +212,12 @@ def run_migration_action(root: Path, argv: Sequence[str], source: str) -> int:
                     print("  content preview:")
                     for line in item.content_preview.splitlines():
                         print(f"    {line}")
+
+            if apply_result is not None:
+                print()
+                print(f"Wrote {len(apply_result.written)} file(s):")
+                for destination_file in apply_result.written:
+                    print(f"  {destination_file}")
 
     # A plan with unresolved semantics or an apply plan that is not fully
     # ready-to-create is useful output but not migration-ready.
