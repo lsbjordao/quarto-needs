@@ -1,4 +1,4 @@
-.PHONY: setup setup-babelquarto test scan check coverage example preview-example sync-example check-example render-example render-example-all render-example-multilingual render-manual-multilingual preview-self-example sync-self-example check-self-example evidence-self-example render-self-example baseline-example diff-example impact-example check-install
+.PHONY: setup setup-branding setup-babelquarto test branding-assets branding-check scan check coverage example preview-example sync-example check-example render-example render-example-all render-example-multilingual render-manual-multilingual preview-self-example sync-self-example check-self-example evidence-self-example render-self-example baseline-example diff-example impact-example check-install
 .DEFAULT_GOAL := test
 
 VENV_PYTHON := .venv/bin/python
@@ -10,11 +10,20 @@ AEGIS_REFERENCE_EPOCH = $(shell $(VENV_PYTHON) -c 'import json; from datetime im
 setup: .venv/bin/python
 	$(VENV_PYTHON) -m pip install -e ".[test]"
 
+setup-branding: .venv/bin/python
+	$(VENV_PYTHON) -m pip install -e ".[branding]"
+
 setup-babelquarto:
 	Rscript -e 'install.packages("babelquarto", repos=c("https://ropensci.r-universe.dev", "https://cloud.r-project.org"))'
 
 test:
 	$(VENV_PYTHON) -m pytest -q
+
+branding-assets:
+	$(VENV_PYTHON) tools/render_branding.py
+
+branding-check:
+	$(VENV_PYTHON) tools/render_branding.py --check
 
 scan:
 	PYTHONPATH=src $(VENV_PYTHON) -m quarto_needs.cli scan
