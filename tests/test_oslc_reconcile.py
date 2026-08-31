@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from quarto_needs.oslc_reconcile import (
     ExternalRequirementObservation,
     reconcile_external_requirements,
@@ -56,6 +58,8 @@ def _observation(
     )
 
 
+@pytest.mark.requirement("SYS-007", "FUN-011", "NFR-006")
+@pytest.mark.quarto_need_test_case("TC-016")
 def test_matching_external_identifier_never_creates_implicit_identity() -> None:
     observation = _observation("https://provider.test/oslc/rm/requirements/7")
 
@@ -143,8 +147,6 @@ def test_binding_to_missing_local_object_is_not_treated_as_create() -> None:
 
 
 def test_bindings_cannot_reference_unobserved_resources() -> None:
-    import pytest
-
     with pytest.raises(ValueError, match="unobserved external URIs"):
         reconcile_external_requirements(
             _snapshot(),
