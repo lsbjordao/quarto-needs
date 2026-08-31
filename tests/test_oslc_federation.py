@@ -118,6 +118,8 @@ def _discover(tmp_path: Path, opener: _Opener, **overrides):
     return discover_oslc_rm(**values)
 
 
+@pytest.mark.requirement("SYS-007", "FUN-010", "NFR-006")
+@pytest.mark.quarto_need_test_case("TC-015")
 def test_discovery_orchestrates_fetch_normalization_service_and_shape_parsing(tmp_path: Path) -> None:
     opener = _Opener(_Response(_provider_document()), _Response(_shape_document()))
 
