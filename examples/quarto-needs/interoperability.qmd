@@ -10,7 +10,7 @@ Quarto-Needs treats interchange and federation as projections and adapters aroun
 Teams need to exchange and discover requirements through established standards while preserving canonical identity, provenance, trust, and explicit loss semantics.
 :::
 
-::: {.need #SYS-007 type="system-requirement" status="approved" priority="high" tags="interoperability;oslc;federation;provenance" derives-from="STK-006" implemented-by="COMP-OSLC" verified-by="TC-015"}
+::: {.need #SYS-007 type="system-requirement" status="approved" priority="high" tags="interoperability;oslc;federation;provenance" derives-from="STK-006" implemented-by="COMP-OSLC" verified-by="TC-015;TC-016"}
 ## Federate OSLC requirements through a bounded read-only adapter
 
 Quarto-Needs shall discover OSLC Requirements Management services and Resource Shapes through a bounded read-only federation layer that preserves external identity, cache provenance, and trust without importing remote semantics into the canonical graph automatically.
@@ -30,14 +30,24 @@ The federation adapter shall fetch a configured Service Provider through bounded
 Discovery, RDF parsing, transport, and cache semantics must be explicit and independently testable before remote requirement import is considered.
 :::
 
-::: {.need #NFR-006 type="non-functional-requirement" status="approved" priority="critical" tags="oslc;security;provenance;offline;determinism" derives-from="SYS-007" implemented-by="COMP-OSLC" verified-by="TC-015" mitigates="RISK-005"}
-## Keep federation bounded, provenance-preserving, and fail-explicit
+::: {.need #FUN-011 type="functional-requirement" status="approved" priority="high" tags="oslc;reconciliation;identity;conflict" derives-from="SYS-007" implemented-by="COMP-OSLC" verified-by="TC-016" mitigates="RISK-005"}
+## Reconcile external requirements only through explicit identity bindings
 
-OSLC federation shall enforce byte/time/redirect/node budgets, reject cross-origin redirects, prevent implicit remote JSON-LD context loading, preserve content digests and historical observations, and never hide authentication failures behind stale cache fallback.
+Quarto-Needs shall compare observed external requirements with canonical objects without mutating either side and shall treat an explicit external-resource-URI to canonical-ID binding as the only identity bridge. Matching titles or external identifiers shall never create an implicit merge.
 
 ### Rationale
 
-External integration expands the trust boundary and therefore requires stronger failure and provenance contracts than local projection alone.
+Provider identifiers and display fields can be reused, mutable, or locally ambiguous. Reconciliation must surface unbound resources, stale or rejected observations, missing local targets, duplicate bindings, and field differences before any future import operation is allowed.
+:::
+
+::: {.need #NFR-006 type="non-functional-requirement" status="approved" priority="critical" tags="oslc;security;provenance;offline;determinism" derives-from="SYS-007" implemented-by="COMP-OSLC" verified-by="TC-015;TC-016" mitigates="RISK-005"}
+## Keep federation bounded, provenance-preserving, and fail-explicit
+
+OSLC federation shall enforce byte/time/redirect/node budgets, reject cross-origin redirects, prevent implicit remote JSON-LD context loading, preserve content digests and historical observations, and never hide authentication failures or identity conflicts behind stale cache fallback or heuristic matching.
+
+### Rationale
+
+External integration expands the trust boundary and therefore requires stronger failure, provenance, and identity contracts than local projection alone.
 :::
 
 ## Architecture
@@ -45,7 +55,7 @@ External integration expands the trust boundary and therefore requires stronger 
 ::: {.need #COMP-OSLC type="component" status="implemented" tags="oslc;federation;interoperability;python"}
 ## OSLC federation subsystem
 
-Coordinates OSLC projection, external identity, deterministic cache persistence, bounded HTTP transport, RDF normalization, RM discovery, and Resource Shape parsing without mutating the canonical engineering graph.
+Coordinates OSLC projection, external identity, deterministic cache persistence, bounded HTTP transport, RDF normalization, RM discovery, Resource Shape parsing, and explicit non-mutating reconciliation without surrendering the canonical engineering graph.
 :::
 
 ::: {.need #IF-005 type="interface" status="implemented" tags="oslc;http;rdf;federation"}
@@ -55,9 +65,9 @@ The adapter boundary accepts configured HTTP(S) Service Provider identity, expli
 :::
 
 ::: {.need #RISK-005 type="risk" status="approved" priority="critical" tags="oslc;security;federation;credentials;stale-cache"}
-## External federation leaks credentials or silently trusts stale/changed data
+## External federation leaks credentials or silently trusts stale, changed, or misidentified data
 
-Redirects, remote contexts, mutable resources, stale cache, or opaque network failure could leak authentication material or make unverified external state appear canonical.
+Redirects, remote contexts, mutable resources, stale cache, opaque network failure, or heuristic identity matching could leak authentication material or make unverified external state appear canonical.
 :::
 
 ::: {.need #ADR-008 type="architecture-decision" status="accepted" date="2026-08-30" revisit-after="2027-08-30" decision-makers="Quarto-Needs maintainers" tags="oslc;federation;read-only;security" addresses="SYS-007;FUN-010;NFR-006;RISK-005" applies-to="COMP-OSLC;IF-005" confirmed-by="TC-015"}
@@ -77,15 +87,43 @@ OSLC introduces external identity, authentication, mutable remote representation
 
 ### Decision Outcome
 
-Implement OSLC as a read-only adapter. HTTP uses GET only with explicit budgets and same-origin redirects. Cached bytes are content-addressed by SHA-256 and historical observations are retained. RDF normalization performs no implicit remote context fetches. Discovery and Resource Shapes remain external projections and are not merged into the canonical graph.
+Implement OSLC as a read-only adapter. HTTP uses GET only with explicit budgets and same-origin redirects. Cached bytes are content-addressed by SHA-256 and historical observations are retained. RDF normalization performs no implicit remote context fetches. Discovery, Resource Shapes, and reconciliation inputs remain external projections and are not merged into the canonical graph.
 
 ### Consequences
 
-The adapter can federate safely before synchronization exists, but remote writes/import conflict policy remains deliberately deferred.
+The adapter can federate and analyze reconciliation safely before synchronization exists. Canonical import and all remote writes remain deliberately deferred.
 
 ### Confirmation
 
-`TC-015` exercises the complete network-free orchestration path using deterministic fake HTTP responses.
+`TC-015` exercises the complete network-free discovery orchestration path using deterministic fake HTTP responses.
+:::
+
+::: {.need #ADR-009 type="architecture-decision" status="accepted" date="2026-08-30" revisit-after="2027-08-30" decision-makers="Quarto-Needs maintainers" tags="oslc;reconciliation;identity;conflict" addresses="FUN-011;NFR-006;RISK-005" applies-to="COMP-OSLC" confirmed-by="TC-016"}
+## Require explicit URI-to-canonical-ID bindings for OSLC reconciliation
+
+### Context and Problem Statement
+
+A remote OSLC requirement can expose an identifier or title that happens to match a local object even when the two resources are unrelated. Automatically treating such similarity as identity would permit silent aliasing across independent authorities.
+
+### Decision Drivers
+
+- preserve external resource URI as the primary remote identity;
+- make every bridge into canonical identity explicit and reviewable;
+- reject stale or rejected observations before reconciliation;
+- expose duplicate bindings and missing local targets as conflicts;
+- keep comparison separate from mutation.
+
+### Decision Outcome
+
+Reconciliation is a pure analysis step. Only an explicit mapping from external resource URI to canonical Quarto-Needs ID can yield a matched item. External identifiers and titles are comparison data only. Unbound resources remain unbound, and field differences are reported without changing the snapshot.
+
+### Consequences
+
+This is intentionally more conservative than heuristic import. A future import command may consume an accepted reconciliation plan, but it cannot infer identity by itself and it cannot bypass provenance/trust checks.
+
+### Confirmation
+
+`TC-016` proves that a matching external identifier alone remains unbound and therefore cannot create an implicit canonical identity.
 :::
 
 ## Repository implementation
@@ -120,6 +158,12 @@ Normalizes JSON-LD, Turtle, and RDF/XML into expanded JSON-LD without implicit r
 Composes transport, cache, RDF normalization, RM discovery, and Resource Shape parsing while keeping discovered resources external to the canonical graph.
 :::
 
+::: {.need #SRC-OSLC-RECONCILE type="source-module" status="implemented" path="src/quarto_needs/oslc_reconcile.py" language="Python" layer="interoperability" tags="oslc;reconciliation;identity;conflict" implements="FUN-011;NFR-006"}
+## OSLC reconciliation module
+
+Produces deterministic, non-mutating reconciliation plans from external observations and explicit URI-to-canonical-ID bindings, surfacing unbound resources and identity/trust conflicts instead of guessing merges.
+:::
+
 ## Verification and evidence
 
 ::: {.need #TC-015 type="test-case" status="passed" tags="pytest;oslc;federation;cache;http;rdf" pytest-nodeid="tests/test_oslc_federation.py::test_discovery_orchestrates_fetch_normalization_service_and_shape_parsing" evidenced-by="EVD-015"}
@@ -134,24 +178,26 @@ Exercise Service Provider retrieval, RDF normalization, referenced-service mater
 `TC-015` is bound to a real pytest function and participates in the self-hosted evidence contract once the executable evidence suite is run in a working environment.
 :::
 
+::: {.need #TC-016 type="test-case" status="passed" tags="pytest;oslc;reconciliation;identity;conflict" pytest-nodeid="tests/test_oslc_reconcile.py::test_matching_external_identifier_never_creates_implicit_identity" evidenced-by="EVD-016"}
+## OSLC explicit-identity reconciliation regression
+
+Verify that matching external identifiers do not create implicit canonical identity and that reconciliation requires an explicit external-resource-URI to canonical-ID binding.
+:::
+
+::: {.need #EVD-016 type="evidence" status="verified" tags="pytest;oslc;reconciliation;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## OSLC reconciliation machine evidence
+
+`TC-016` is bound to the executable regression that protects the explicit identity boundary before any future import path can be enabled.
+:::
+
 ## Federation slice
 
 ```text
 STK-006
    ↓
 SYS-007
-   ↓
-FUN-010 / NFR-006
-   ↓
-ADR-008
-   ↓
-COMP-OSLC / IF-005
-   ↓
-SRC-OSLC-RM / CACHE / HTTP / RDF / FEDERATION
-   ↓
-TC-015
-   ↓
-EVD-015
+   ├── FUN-010 / NFR-006 → ADR-008 → discovery/federation modules → TC-015 → EVD-015
+   └── FUN-011 / NFR-006 → ADR-009 → SRC-OSLC-RECONCILE      → TC-016 → EVD-016
 ```
 
 {{< need-table types="system-requirement;functional-requirement;non-functional-requirement;architecture-decision;component;interface;source-module;test-case;evidence" tags="oslc" columns="id;title;type;status" sort="id" >}}
