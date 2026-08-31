@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import sys
 from collections.abc import Sequence
 from pathlib import Path
@@ -11,15 +10,26 @@ from .analysis import analyze_project
 from .config import load_config
 from .migrations.apply_plan import build_sphinx_apply_plan, write_apply_plan
 from .migrations.apply_write import MigrationApplyError, apply_migration_plan
+from .migrations.doorstop import DoorstopMigrationError, load_doorstop_documents
+from .migrations.doorstop import build_migration_plan as build_doorstop_plan
 from .migrations.sphinx_needs import (
     SphinxNeedsMigrationError,
-    build_migration_plan,
+    SphinxNeedsMigrationPlan,
+    build_migration_plan as build_sphinx_plan,
     load_needs_json,
     write_migration_plan,
 )
 
-DEFAULT_SPHINX_PLAN = ".quarto-needs/migrations/sphinx-needs-plan.json"
-DEFAULT_SPHINX_APPLY_PLAN = ".quarto-needs/migrations/sphinx-needs-apply-plan.json"
+SOURCES = ("sphinx-needs", "doorstop")
+
+DEFAULT_PLAN_PATHS = {
+    "sphinx-needs": ".quarto-needs/migrations/sphinx-needs-plan.json",
+    "doorstop": ".quarto-needs/migrations/doorstop-plan.json",
+}
+DEFAULT_APPLY_PLAN_PATHS = {
+    "sphinx-needs": ".quarto-needs/migrations/sphinx-needs-apply-plan.json",
+    "doorstop": ".quarto-needs/migrations/doorstop-apply-plan.json",
+}
 
 
 def migration_action(argv: Sequence[str]) -> str | None:
@@ -65,7 +75,18 @@ def _mapping(values: list[str], option: str) -> dict[str, str]:
     return result
 
 
-def _parser() -> argparse.ArgumentParser:
+def _add_apply_flags(parser: argparse.ArgumentParser, source: str) -> None:
+    parser.add_argument("--output", default=DEFAULT_PLAN_PATHS[source])
+    parser.add_argument("--format", choices=("text", "json"), default="text")
+    parser.add_argument("--apply-plan", action="store_true")
+    parser.add_argument("--destination", action="append", default=[], metavar="SOURCE=PATH")
+    parser.add_argument("--id-map", action="append", default=[], metavar="SOURCE=CANONICAL")
+    parser.add_argument("--apply-output", default=DEFAULT_APPLY_PLAN_PATHS[source])
+    parser.add_argument("--show-content", action="store_true")
+    parser.add_argument("--write", action="store_true")
+
+
+def _sphinx_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="quarto-needs migrate sphinx-needs",
         description="Build a conservative migration plan from a Sphinx-Needs needs.json file.",
@@ -75,18 +96,30 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--version")
     parser.add_argument("--type-map", action="append", default=[], metavar="SOURCE=TARGET")
     parser.add_argument("--relation-map", action="append", default=[], metavar="FIELD=RELATION")
-    parser.add_argument("--output", default=DEFAULT_SPHINX_PLAN)
-    parser.add_argument("--format", choices=("text", "json"), default="text")
-    parser.add_argument("--apply-plan", action="store_true")
-    parser.add_argument("--destination", action="append", default=[], metavar="SOURCE=PATH")
-    parser.add_argument("--id-map", action="append", default=[], metavar="SOURCE=CANONICAL")
-    parser.add_argument("--apply-output", default=DEFAULT_SPHINX_APPLY_PLAN)
-    parser.add_argument("--show-content", action="store_true")
-    parser.add_argument("--write", action="store_true")
+    _add_apply_flags(parser, "sphinx-needs")
     return parser
 
 
-def _strip_dispatch_tokens(argv: Sequence[str]) -> list[str]:
+def _doorstop_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="quarto-needs migrate doorstop",
+        description="Build a conservative migration plan from a Doorstop document tree.",
+    )
+    parser.add_argument("doorstop_root")
+    parser.add_argument("--root")
+    parser.add_argument(
+        "--type-map", action="append", default=[], metavar="PREFIX=TARGET",
+        help="Doorstop document prefix (e.g. REQ) to Quarto-Needs type",
+    )
+    parser.add_argument(
+        "--relation-map", action="append", default=[], metavar="PREFIX=RELATION",
+        help="Doorstop child-document prefix to the canonical relation its links express",
+    )
+    _add_apply_flags(parser, "doorstop")
+    return parser
+
+
+def _strip_dispatch_tokens(argv: Sequence[str], source: str) -> list[str]:
     values = list(argv)
     result: list[str] = []
     skipped = False
@@ -104,7 +137,7 @@ def _strip_dispatch_tokens(argv: Sequence[str]) -> list[str]:
         if not skipped and value == "migrate":
             skipped = True
             index += 1
-            if index < len(values) and values[index] == "sphinx-needs":
+            if index < len(values) and values[index] == source:
                 index += 1
             continue
         result.append(value)
@@ -112,31 +145,46 @@ def _strip_dispatch_tokens(argv: Sequence[str]) -> list[str]:
     return result
 
 
-def run_migration_action(root: Path, argv: Sequence[str], source: str) -> int:
-    if source != "sphinx-needs":
-        if not source:
-            print("Migration source required: sphinx-needs", file=sys.stderr)
-        else:
-            print(f"Unknown migration source: {source}", file=sys.stderr)
-        return 2
-
-    parser = _parser()
-    apply_plan = None
-    apply_output = None
-    apply_result = None
-    try:
-        args = parser.parse_args(_strip_dispatch_tokens(argv))
+def _build_plan(
+    root: Path, source: str, argv: Sequence[str]
+) -> tuple[SphinxNeedsMigrationPlan, argparse.Namespace]:
+    if source == "sphinx-needs":
+        parser = _sphinx_parser()
+        args = parser.parse_args(_strip_dispatch_tokens(argv, source))
         if args.write and not args.apply_plan:
             raise ValueError("--write requires --apply-plan")
         type_map = _mapping(args.type_map, "--type-map")
         relation_map = _mapping(args.relation_map, "--relation-map")
         document = load_needs_json(_root_relative(root, args.needs_json))
-        plan = build_migration_plan(
-            document,
-            version=args.version,
-            type_map=type_map,
-            relation_map=relation_map,
+        plan = build_sphinx_plan(
+            document, version=args.version, type_map=type_map, relation_map=relation_map
         )
+        return plan, args
+
+    parser = _doorstop_parser()
+    args = parser.parse_args(_strip_dispatch_tokens(argv, source))
+    if args.write and not args.apply_plan:
+        raise ValueError("--write requires --apply-plan")
+    type_map = _mapping(args.type_map, "--type-map")
+    relation_map = _mapping(args.relation_map, "--relation-map")
+    documents = load_doorstop_documents(_root_relative(root, args.doorstop_root))
+    plan = build_doorstop_plan(documents, type_map=type_map, relation_map=relation_map)
+    return plan, args
+
+
+def run_migration_action(root: Path, argv: Sequence[str], source: str) -> int:
+    if source not in SOURCES:
+        if not source:
+            print(f"Migration source required: {', '.join(SOURCES)}", file=sys.stderr)
+        else:
+            print(f"Unknown migration source: {source}", file=sys.stderr)
+        return 2
+
+    apply_plan = None
+    apply_output = None
+    apply_result = None
+    try:
+        plan, args = _build_plan(root, source, argv)
         output = _root_relative(root, args.output)
         write_migration_plan(output, plan)
 
@@ -161,7 +209,7 @@ def run_migration_action(root: Path, argv: Sequence[str], source: str) -> int:
 
             if args.write:
                 apply_result = apply_migration_plan(root, apply_plan, config)
-    except (ValueError, SphinxNeedsMigrationError, MigrationApplyError) as error:
+    except (ValueError, SphinxNeedsMigrationError, DoorstopMigrationError, MigrationApplyError) as error:
         print(f"Migration error: {error}", file=sys.stderr)
         return 2
     except OSError as error:
@@ -178,7 +226,7 @@ def run_migration_action(root: Path, argv: Sequence[str], source: str) -> int:
         print(json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False))
     else:
         print(
-            f"Sphinx-Needs migration plan: {len(plan.candidates)} candidate(s), "
+            f"{plan.tool} migration plan: {len(plan.candidates)} candidate(s), "
             f"{len(plan.issues)} issue(s)"
         )
         print(f"Source version: {plan.source_version}")
@@ -191,7 +239,7 @@ def run_migration_action(root: Path, argv: Sequence[str], source: str) -> int:
         if apply_plan is not None:
             print()
             print(
-                f"Sphinx-Needs apply plan: {len(apply_plan.items)} item(s), "
+                f"{plan.tool} apply plan: {len(apply_plan.items)} item(s), "
                 f"ready={apply_plan.ready}"
             )
             print(f"Apply plan: {apply_output}")

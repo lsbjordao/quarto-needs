@@ -255,7 +255,7 @@ def build_sphinx_apply_plan(
                 tags=candidate.tags,
                 relations=sorted_relations,
                 provenance={
-                    "tool": "Sphinx-Needs",
+                    "tool": migration.tool,
                     "project": migration.source_project,
                     "version": migration.source_version,
                     "sourceId": candidate.source_id,
@@ -266,7 +266,7 @@ def build_sphinx_apply_plan(
         )
 
     return MigrationApplyPlan(
-        source_tool="Sphinx-Needs",
+        source_tool=migration.tool,
         source_project=migration.source_project,
         source_version=migration.source_version,
         semantic_graph_fingerprint=snapshot.semantic_graph_fingerprint,

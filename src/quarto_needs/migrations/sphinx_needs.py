@@ -78,12 +78,14 @@ class SphinxNeedsMigrationPlan:
     source_version: str
     candidates: tuple[SphinxNeedCandidate, ...]
     issues: tuple[MigrationIssue, ...]
+    tool: str = "Sphinx-Needs"
+    schema: str = "sphinx-needs-migration-plan-v1"
 
     def to_dict(self) -> dict[str, object]:
         return {
-            "schema": "sphinx-needs-migration-plan-v1",
+            "schema": self.schema,
             "source": {
-                "tool": "Sphinx-Needs",
+                "tool": self.tool,
                 "project": self.source_project,
                 "version": self.source_version,
             },
