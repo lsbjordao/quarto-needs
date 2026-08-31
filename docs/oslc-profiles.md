@@ -1,11 +1,13 @@
 # Named OSLC federation profiles
 
-Quarto-Needs keeps OSLC connection policy separate from the canonical engineering model. Named federation profiles live in `.quarto-needs-oslc.toml`; the file may be versioned because it contains endpoint names and budgets, **not credential values**.
+Quarto-Needs keeps OSLC connection policy separate from the canonical engineering model **without creating a second project configuration file**. Named federation profiles live under `[federation.oslc.profiles.*]` in `.quarto-needs.toml`.
+
+The section may be versioned because it contains endpoint identity and bounded retrieval policy, **not credential values**. While federation remains read-only and does not import remote resources into the canonical graph, this operational section is deliberately excluded from the graph configuration fingerprint.
 
 A profile declares one read-only Service Provider boundary:
 
 ```toml
-[profiles.production]
+[federation.oslc.profiles.production]
 service-provider-uri = "https://provider.example/oslc/sp/requirements"
 cache-dir = ".quarto-needs/oslc/production"
 max-age-seconds = 3600
@@ -62,8 +64,31 @@ A Service Provider URI may also be supplied directly instead of using a profile.
 
 Unknown keys fail explicitly. A `bearer-token` key is deliberately unsupported so a secret cannot be normalized into the profile model by accident.
 
-## Why this is a separate file
+## One file, two semantic domains
 
-`.quarto-needs.toml` currently describes the canonical local engineering model and participates in semantic/configuration fingerprints. OSLC profiles describe **external connectivity policy**. Keeping those concerns separate in the first federation milestone avoids making a remote endpoint or credential-binding choice part of local engineering semantics.
+`.quarto-needs.toml` now contains both local engineering-model configuration and bounded external-adapter configuration, but they remain semantically distinct:
 
-A future configuration unification may provide one schema and migration path, but it must preserve this distinction: changing connectivity must not silently change the meaning of authored requirements.
+- `profile`, `types`, `relations`, governance, policies, constraints, variants, gates, and graph settings participate in canonical engineering configuration;
+- `federation.oslc.profiles` controls read-only external connectivity and currently does **not** participate in the canonical graph fingerprint.
+
+This distinction is intentional. Changing a timeout, cache directory, Service Provider URI, or environment-variable binding must not silently change the meaning of authored requirements while remote data remains external to the graph.
+
+If future Quarto-Needs versions allow remote requirements to be imported into the canonical graph, the fingerprint/provenance contract must be revised explicitly before that feature is enabled.
+
+## Migration from the experimental parallel file
+
+The temporary `.quarto-needs-oslc.toml` format is retired. If it is present, `quarto-needs oslc discover --profile ...` fails with migration guidance rather than silently choosing between two sources.
+
+Move:
+
+```toml
+[profiles.production]
+service-provider-uri = "https://provider.example/oslc/sp/requirements"
+```
+
+to `.quarto-needs.toml` as:
+
+```toml
+[federation.oslc.profiles.production]
+service-provider-uri = "https://provider.example/oslc/sp/requirements"
+```
