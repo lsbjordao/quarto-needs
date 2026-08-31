@@ -178,9 +178,26 @@ Next 5.4 slices:
 
 Sphinx-Needs, Doorstop, and StrictDoc remain supported migration sources and inspirations for Quarto-Needs; compatibility claims are limited to the explicitly implemented adapter behavior for each.
 
-## 5.5 External service adapters ⚪
+## 5.5 External service adapters 🟡 (first slice)
+
+**Status: a read-only, network-free GitHub issue projection is implemented — external identity, content-digest provenance, and normalization into the same observation shape OSLC federation already uses. No HTTP transport, cache, query, or reconciliation yet.** See `docs/phase-5-external-adapters.md`.
 
 Read-only/cacheable adapters may target GitHub issues or lifecycle-management systems. Every imported object must preserve external identity, origin, digest/version, retrieval policy, and trust state.
+
+Implemented capabilities include:
+
+- `github_issue_resource_uri`/`build_github_issue_identity`, reusing OSLC's `ExternalResourceIdentity`/`content_digest` directly rather than a parallel identity model — those turned out to already be source-agnostic;
+- `parse_external_github_issue`, normalizing a fetched issue payload into OSLC's own `ExternalRequirementObservation` shape, validated against a real payload fetched live from a public GitHub repository, not only synthetic fixtures;
+- explicit pull-request rejection (GitHub's issues endpoint also returns pull requests) and explicit, non-guessed handling of `state`, `null` bodies, and missing labels.
+
+Next 5.5 slices, each its own reviewed contract exactly as OSLC's discovery/cache/HTTP/RDF/query/observe/reconcile/import-plan were:
+
+1. bounded GET-only HTTP transport to actually fetch an issue, with conditional requests and the same byte/time/redirect budgets OSLC's transport enforces;
+2. a persistent, content-addressed cache with historical observations;
+3. listing/query support beyond one issue at a time;
+4. an explicit, non-heuristic reconciliation step and a reviewed, non-mutating import plan, mirroring `oslc_reconcile.py`/`oslc_import_plan.py`;
+5. authentication handling for a real fetch;
+6. self-hosted example integration.
 
 ---
 
