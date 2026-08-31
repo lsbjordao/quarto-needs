@@ -10,10 +10,10 @@ O Quarto-Needs trata intercâmbio e federação como projeções e adaptadores a
 As equipes precisam trocar e descobrir requisitos por padrões estabelecidos preservando identidade canônica, proveniência, confiança e semântica explícita de perdas.
 :::
 
-::: {.need #SYS-007 type="system-requirement" status="approved" priority="high" tags="interoperability;oslc;federation;provenance" derives-from="STK-006" implemented-by="COMP-OSLC" verified-by="TC-015;TC-016;TC-017"}
+::: {.need #SYS-007 type="system-requirement" status="approved" priority="high" tags="interoperability;oslc;federation;provenance" derives-from="STK-006" implemented-by="COMP-OSLC" verified-by="TC-015;TC-016;TC-017;TC-018"}
 ## Federar requisitos OSLC por um adaptador somente leitura e limitado
 
-O Quarto-Needs deverá descobrir serviços OSLC Requirements Management, executar Query Capabilities explicitamente selecionadas em modo somente leitura e reconciliar recursos externos observados por uma camada limitada que preserve identidade, proveniência de cache e confiança sem importar automaticamente semântica remota para o grafo canônico.
+O Quarto-Needs deverá descobrir serviços OSLC Requirements Management, executar Query Capabilities explicitamente selecionadas em modo somente leitura, materializar membros selecionados como observações com proveniência própria e reconciliar recursos externos observados por uma camada limitada que preserve identidade externa, proveniência de cache e confiança sem importar automaticamente semântica remota para o grafo canônico.
 :::
 
 ::: {.need #FUN-010 type="functional-requirement" status="approved" priority="high" tags="oslc;http;cache;rdf;discovery" derives-from="SYS-007" implemented-by="COMP-OSLC;IF-005" verified-by="TC-015" mitigates="RISK-005"}
@@ -34,10 +34,16 @@ O Quarto-Needs deverá comparar requisitos externos observados com objetos canô
 O Quarto-Needs deverá executar HTTP GET limitado contra uma OSLC Query Capability explicitamente selecionada, analisar deterministicamente o container de resultados, impor limite máximo de membros, preservar a proveniência da resposta e relatar URIs de membros sem desreferenciá-las recursivamente.
 :::
 
-::: {.need #NFR-006 type="non-functional-requirement" status="approved" priority="critical" tags="oslc;security;provenance;offline;determinism" derives-from="SYS-007" implemented-by="COMP-OSLC" verified-by="TC-015;TC-016;TC-017" mitigates="RISK-005"}
+::: {.need #FUN-013 type="functional-requirement" status="approved" priority="high" tags="oslc;observation;provenance;member-fetch;bounded" derives-from="SYS-007" implemented-by="COMP-OSLC;IF-005" verified-by="TC-018" mitigates="RISK-005"}
+## Materializar membros OSLC selecionados como observações com proveniência independente
+
+O Quarto-Needs deverá buscar individualmente as URIs dos membros da query pela política existente de transporte/cache limitado, normalizar cada representação, impor limites explícitos de fan-out e de nós por recurso e criar observações externas cujos digest, data de obtenção, estado de confiança, validadores e identidade sejam derivados dos bytes efetivamente observados para aquele membro.
+:::
+
+::: {.need #NFR-006 type="non-functional-requirement" status="approved" priority="critical" tags="oslc;security;provenance;offline;determinism" derives-from="SYS-007" implemented-by="COMP-OSLC" verified-by="TC-015;TC-016;TC-017;TC-018" mitigates="RISK-005"}
 ## Manter a federação limitada, preservando proveniência e falhando explicitamente
 
-A federação OSLC deverá impor limites de bytes, tempo, redirecionamentos, nós e membros; rejeitar redirecionamentos entre origens; impedir carregamento implícito de contextos remotos e crawling recursivo; preservar digests e observações históricas; e nunca esconder falhas de autenticação ou conflitos de identidade.
+A federação OSLC deverá impor limites de bytes, tempo, redirecionamentos, nós e membros; rejeitar redirecionamentos entre origens; impedir carregamento implícito de contextos remotos e crawling recursivo; preservar digests e observações históricas; distinguir proveniência da resposta da query da proveniência dos recursos membros; e nunca esconder falhas de autenticação ou conflitos de identidade.
 :::
 
 ## Arquitetura
@@ -45,22 +51,22 @@ A federação OSLC deverá impor limites de bytes, tempo, redirecionamentos, nó
 ::: {.need #COMP-OSLC type="component" status="implemented" tags="oslc;federation;interoperability;python"}
 ## Subsistema de federação OSLC
 
-Coordena projeção OSLC, identidade externa, cache determinístico, transporte HTTP limitado, normalização RDF, descoberta RM, Resource Shapes, query explícita e reconciliação sem mutação.
+Coordena projeção OSLC, identidade externa, cache determinístico, transporte HTTP limitado, normalização RDF, descoberta RM, Resource Shapes, query explícita, materialização de observações de membros e reconciliação sem mutação.
 :::
 
 ::: {.need #IF-005 type="interface" status="implemented" tags="oslc;http;rdf;federation"}
 ## Interface de federação OSLC somente leitura
 
-A fronteira recebe identidade HTTP(S) do Service Provider, políticas explícitas de cache/fetch/query, autenticação apenas para requisição e retorna serviços RM, Resource Shapes e resultados limitados com proveniência.
+A fronteira recebe identidade HTTP(S) do Service Provider, políticas explícitas de cache/fetch/query/observação, autenticação apenas para requisição e retorna serviços RM, Resource Shapes, resultados limitados e observações externas com proveniência independente.
 :::
 
 ::: {.need #RISK-005 type="risk" status="approved" priority="critical" tags="oslc;security;federation;credentials;stale-cache"}
 ## A federação externa vaza credenciais ou confia silenciosamente em dados remotos obsoletos, alterados, mal identificados ou sem limites
 
-Redirecionamentos, contextos remotos, recursos mutáveis, cache obsoleto, falhas de rede, correspondência heurística ou travessia recursiva podem vazar credenciais ou fazer estado externo não verificado parecer canônico.
+Redirecionamentos, contextos remotos, recursos mutáveis, cache obsoleto, falhas de rede, correspondência heurística, confusão entre proveniência do container e do membro ou travessia recursiva podem vazar credenciais ou fazer estado externo não verificado parecer canônico.
 :::
 
-::: {.need #ADR-008 type="architecture-decision" status="accepted" date="2026-08-30" revisit-after="2027-08-30" decision-makers="Quarto-Needs maintainers" tags="oslc;federation;read-only;security" addresses="SYS-007;FUN-010;FUN-012;NFR-006;RISK-005" applies-to="COMP-OSLC;IF-005" confirmed-by="TC-015;TC-017"}
+::: {.need #ADR-008 type="architecture-decision" status="accepted" date="2026-08-30" revisit-after="2027-08-30" decision-makers="Quarto-Needs maintainers" tags="oslc;federation;read-only;security" addresses="SYS-007;FUN-010;FUN-012;FUN-013;NFR-006;RISK-005" applies-to="COMP-OSLC;IF-005" confirmed-by="TC-015;TC-017;TC-018"}
 ## Manter o primeiro caminho de federação OSLC somente leitura, limitado e com proveniência em cache
 
 ### Contexto e problema
@@ -69,11 +75,11 @@ OSLC introduz identidade externa, autenticação, representações mutáveis, Li
 
 ### Resultado da decisão
 
-Implementar OSLC como adaptador somente leitura. HTTP usa GET com limites explícitos e redirecionamentos na mesma origem. Bytes em cache são endereçados por SHA-256. A normalização RDF não busca contextos remotos implicitamente. Query exige query base explícita, limita membros e não os busca recursivamente. Descoberta, query, Resource Shapes e reconciliação permanecem projeções externas.
+Implementar OSLC como adaptador somente leitura. HTTP usa GET com limites explícitos e redirecionamentos na mesma origem. Bytes em cache são endereçados por SHA-256. A normalização RDF não busca contextos remotos implicitamente. Query exige query base explícita, limita membros e não os busca recursivamente. Uma etapa separada de observação pode buscar membros selecionados individualmente e registra a proveniência a partir dos bytes reais de cada membro. Descoberta, query, observações de membros, Resource Shapes e reconciliação permanecem projeções externas.
 
 ### Confirmação
 
-`TC-015` exercita descoberta/orquestração e `TC-017` exercita query limitada e proveniência da resposta.
+`TC-015` exercita descoberta/orquestração; `TC-017` exercita query limitada e proveniência da resposta; `TC-018` exercita observação independente de membros e proveniência por recurso.
 :::
 
 ::: {.need #ADR-009 type="architecture-decision" status="accepted" date="2026-08-30" revisit-after="2027-08-30" decision-makers="Quarto-Needs maintainers" tags="oslc;reconciliation;identity;conflict" addresses="FUN-011;NFR-006;RISK-005" applies-to="COMP-OSLC" confirmed-by="TC-016"}
@@ -100,22 +106,22 @@ A reconciliação é análise pura. Somente um mapeamento explícito URI externa
 Define projeção RM conservadora, identidade externa, validade de cache e descoberta RM.
 :::
 
-::: {.need #SRC-OSLC-CACHE type="source-module" status="implemented" path="src/quarto_needs/oslc_cache.py" language="Python" layer="interoperability" tags="oslc;cache;provenance;determinism" implements="NFR-006"}
+::: {.need #SRC-OSLC-CACHE type="source-module" status="implemented" path="src/quarto_needs/oslc_cache.py" language="Python" layer="interoperability" tags="oslc;cache;provenance;determinism" implements="NFR-006;FUN-013"}
 ## Módulo de cache persistente OSLC
 
 Armazena blobs validados e observações históricas determinísticas.
 :::
 
-::: {.need #SRC-OSLC-HTTP type="source-module" status="implemented" path="src/quarto_needs/oslc_http.py" language="Python" layer="interoperability" tags="oslc;http;security;offline" implements="FUN-010;FUN-012;NFR-006"}
+::: {.need #SRC-OSLC-HTTP type="source-module" status="implemented" path="src/quarto_needs/oslc_http.py" language="Python" layer="interoperability" tags="oslc;http;security;offline" implements="FUN-010;FUN-012;FUN-013;NFR-006"}
 ## Módulo de transporte HTTP limitado para OSLC
 
 Fornece transporte GET limitado, recuperação condicional, redirecionamentos na mesma origem e fallback offline controlado.
 :::
 
-::: {.need #SRC-OSLC-RDF type="source-module" status="implemented" path="src/quarto_needs/oslc_rdf.py" language="Python" layer="interoperability" tags="oslc;rdf;jsonld;turtle;rdfxml" implements="FUN-010;FUN-012;NFR-006"}
+::: {.need #SRC-OSLC-RDF type="source-module" status="implemented" path="src/quarto_needs/oslc_rdf.py" language="Python" layer="interoperability" tags="oslc;rdf;jsonld;turtle;rdfxml" implements="FUN-010;FUN-012;FUN-013;NFR-006"}
 ## Módulo de normalização RDF para OSLC
 
-Normaliza JSON-LD, Turtle e RDF/XML sem carregamento implícito de rede.
+Normaliza JSON-LD, Turtle e RDF/XML sem carregamento implícito de rede e aplica limites de nós antes e depois da expansão.
 :::
 
 ::: {.need #SRC-OSLC-FEDERATION type="source-module" status="implemented" path="src/quarto_needs/oslc_federation.py" language="Python" layer="interoperability" tags="oslc;federation;discovery;shape" implements="SYS-007;FUN-010"}
@@ -128,6 +134,12 @@ Compõe transporte, cache, RDF, descoberta RM e Resource Shapes mantendo recurso
 ## Módulo de query OSLC limitada
 
 Executa GET em query base explícita, analisa o container, limita membros, preserva digest/data da resposta e não desreferencia membros recursivamente.
+:::
+
+::: {.need #SRC-OSLC-OBSERVE type="source-module" status="implemented" path="src/quarto_needs/oslc_observe.py" language="Python" layer="interoperability" tags="oslc;observation;provenance;member-fetch" implements="FUN-013;NFR-006"}
+## Módulo de observação de membros OSLC
+
+Busca membros selecionados de forma independente pela camada limitada de transporte/cache, preserva a proveniência dos bytes efetivamente observados e o estado de confiança de cada recurso, extrai campos conservadores e mantém RDF residual como atributos externos sem criar identidade canônica.
 :::
 
 ::: {.need #SRC-OSLC-RECONCILE type="source-module" status="implemented" path="src/quarto_needs/oslc_reconcile.py" language="Python" layer="interoperability" tags="oslc;reconciliation;identity;conflict" implements="FUN-011;NFR-006"}
@@ -174,6 +186,18 @@ Verifica reutilização do fetch/cache limitado, limites de nós/membros, proven
 `TC-017` protege a fronteira de query somente leitura e participa do artefato pytest self-hosted.
 :::
 
+::: {.need #TC-018 type="test-case" status="passed" tags="pytest;oslc;observation;provenance;member-fetch" pytest-nodeid="tests/test_oslc_observe.py::test_materialization_fetches_each_member_and_preserves_individual_provenance" evidenced-by="EVD-018"}
+## Regressão de proveniência da observação de membros OSLC
+
+Verifica que cada membro selecionado é buscado pela camada limitada, validado contra a URI solicitada, normalizado independentemente e representado com digest derivado de seus próprios bytes, e não da resposta do container da query.
+:::
+
+::: {.need #EVD-018 type="evidence" status="verified" tags="pytest;oslc;observation;provenance;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## Evidência de máquina da observação de membros OSLC
+
+`TC-018` protege a proveniência independente dos recursos antes da reconciliação ou de qualquer futuro plano de importação revisado.
+:::
+
 ## Fatia de federação
 
 ```text
@@ -182,6 +206,7 @@ STK-006
 SYS-007
    ├── FUN-010 / NFR-006 → ADR-008 → descoberta/federação → TC-015 → EVD-015
    ├── FUN-012 / NFR-006 → ADR-008 → SRC-OSLC-QUERY      → TC-017 → EVD-017
+   ├── FUN-013 / NFR-006 → ADR-008 → SRC-OSLC-OBSERVE    → TC-018 → EVD-018
    └── FUN-011 / NFR-006 → ADR-009 → SRC-OSLC-RECONCILE  → TC-016 → EVD-016
 ```
 
