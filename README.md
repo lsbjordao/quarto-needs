@@ -1,24 +1,33 @@
+<p align="center">
+  <img src="docs/assets/branding/quarto-needs-logo.webp" alt="Quarto-Needs" width="900">
+</p>
+
+<p align="center">
+  <strong>Requirements as Code · Architecture Decisions · Verification · Evidence · Change Intelligence · Interoperability</strong>
+</p>
+
 # Quarto-Needs
 
-Quarto-Needs is a **requirements-as-code and engineering-traceability engine for Quarto**. It turns engineering objects authored in `.qmd` files into a deterministic typed property graph, applies validation and governance, computes coverage and change impact, and projects the same engineering model into Quarto documentation, CLI reports, CI artifacts, editor tooling, and interactive graph views.
+Quarto-Needs is a **requirements-as-code and engineering-traceability engine for Quarto**. Engineering objects authored in `.qmd` files become a deterministic typed property graph that drives validation, governance, coverage, change impact, CI artifacts, editor tooling, interchange formats, and Quarto documentation.
 
-> **Status:** pre-1.0 and under active development. The Python core is the semantic authority; Quarto is the executable documentation interface; editor and CI integrations consume the same canonical analysis instead of maintaining parallel semantics.
+> **Status:** pre-1.0 and under active development. The Python core is the semantic authority; Quarto is the executable documentation interface. Rendering, editor, CI, and interoperability layers consume projections of the same canonical model rather than redefining engineering semantics.
 
 ## North star
 
-> Quarto-Needs is a requirements, architecture-decision, verification, evidence, change-intelligence, and engineering-traceability engine built around a typed property graph, with Quarto as its executable documentation interface.
+> Quarto-Needs is a requirements, architecture-decision, verification, evidence, change-intelligence, authoring, interoperability, and engineering-traceability engine built around a typed property graph, with Quarto as its executable documentation interface.
 
-The goal is not only to publish requirements. A mature Quarto-Needs project should be able to answer:
+A mature project should be able to answer from one model:
 
 - why a requirement exists;
 - which decisions address it;
 - where it is implemented;
 - which tests verify it;
-- which evidence supports the verification claim;
-- what changed between two engineering states;
-- what is affected by a change and through which explicit path;
-- which governance policies or quality gates are violated;
-- what the editor should complete, diagnose, navigate, or safely refactor from that same model.
+- which evidence proves those tests ran;
+- what changed between engineering states;
+- what is affected and through which explicit graph path;
+- which governance policies fail;
+- how the model can be safely navigated/refactored in an editor;
+- how requirements can be exchanged or federated without surrendering canonical identity and provenance.
 
 ## Architecture
 
@@ -29,11 +38,11 @@ QMD / configuration / code / tests / evidence / editor buffers
                   Quarto-Needs Core
       parser → analysis → typed graph → rules/query → snapshot
                          │
-       ┌─────────────────┼──────────────────────┐
-       ▼                 ▼                      ▼
-     CLI/CI        machine exports       graph projections
-       │                                        │
-       ▼                                        ▼
+       ┌─────────────────┼───────────────────────┬──────────────────┐
+       ▼                 ▼                       ▼                  ▼
+     CLI/CI       machine exports         graph projections    interchange
+       │                                         │            ReqIF/JSON-LD
+       ▼                                         ▼               OSLC RM
  LanguageService                         Quarto extension
        │                                  HTML/PDF/DOCX
        ▼
@@ -43,55 +52,50 @@ QMD / configuration / code / tests / evidence / editor buffers
  VS Code / LSP clients
 ```
 
-The canonical model is a property graph of typed engineering objects and typed relations. Python owns relation semantics, validation, queries, coverage, fingerprints, baseline/diff/impact, evidence validation, policy evaluation, graph constraints, derived fields, variants, and editor language intelligence. Lua, JavaScript, GitHub Actions, and VS Code consume projections and do not redefine engineering meaning.
+The defining constraint is simple: **one canonical engineering graph, many projections**.
 
 ## Current capabilities
 
-- configurable engineering object types, prefixes, roles, lifecycles, required attributes, and per-type JSON Schemas;
-- canonical relation catalog with direct/inverse labels, semantic families, endpoint roles, impact direction, and traversal direction;
+- configurable typed engineering objects, prefixes, roles, lifecycles, required attributes, and per-type JSON Schemas;
+- canonical direct/inverse relation catalog with semantic families, endpoint roles, impact direction, and traversal direction;
 - requirements, risks, tests, evidence, architecture elements, and first-class Architecture Decision Records;
-- deterministic canonical snapshots and fingerprints;
-- structural validation, configurable built-in rules, bounded declarative policies, named queries, coverage metrics, graph constraints, and quality gates;
-- safe derived fields (`relation-count`, `path-exists`) kept separate from authored attributes;
-- deterministic named build variants with bounded relation closure and a `variantFingerprint`;
-- baselines, semantic diff, relocation detection, explainable union-graph impact analysis, suspect traceability, and Git-native PR reporting;
-- GitHub-compatible step summaries and workflow annotations projected from canonical PR reports;
-- JSON, CSV, SARIF, JUnit, and Markdown exporters;
-- an opt-in pytest integration with reciprocal requirement/test-case markers and deterministic `evidence-pytest-v1` output;
-- a provider-neutral `evidence-checks-v1` contract with adapters for JUnit XML, coverage.py JSON, Quarto render results, JSON Schema validations, lint, and type-check results;
-- provider-neutral evidence attestations with SHA-256 payload digests, graph/configuration fingerprints, optional Git revision, generation time, explicit expiry, and `quarto-needs evidence attest` / `evidence check` workflows;
-- semantic evidence validation against modeled requirements, test cases, and evidence objects, including provider compatibility and reciprocal verification/evidence relations;
-- Quarto cards, cross-references, tables, lists, matrices, dashboards, inspectors, Mermaid flows, and graph views;
-- bounded public graph projections with deny-by-default provenance;
-- progressive interactive Cytoscape exploration with semantic traversal, filters, root paths, collapse/expand, and edge inspection;
-- optional collapsible Quarto margin TOC through the extension;
-- bilingual English / Brazilian Portuguese presentation with semantic-parity validation;
-- a dependency-free LSP stdio server over the canonical `LanguageService`;
-- editor diagnostics, context-aware completion, hover, exact definitions/references, document/workspace symbols, unsaved-buffer overlays, and relation-aware rename;
-- a thin multi-root VS Code client under `editors/vscode/` that starts the Python LSP rather than implementing editor semantics itself;
-- a self-hosted executable engineering case study in `examples/quarto-needs/`.
+- deterministic snapshots and semantic/configuration/representation fingerprints;
+- built-in governance rules, bounded declarative policies, graph constraints, named queries, coverage metrics, and quality gates;
+- safe derived values and deterministic build variants without creating alternate semantic graphs;
+- baselines, semantic diff, relocation detection, explainable union-graph impact analysis, suspect state, and Git-native PR reports;
+- GitHub-compatible summaries/annotations, JSON, CSV, SARIF, JUnit, Markdown, ReqIF 1.2, and JSON-LD projections;
+- executable pytest bindings, provider-neutral machine checks, evidence attestations, digest/freshness/provenance validation, and reciprocal model↔test verification;
+- Quarto cards, cross-references, tables, matrices, dashboards, inspectors, Mermaid flows, and bounded graph views;
+- progressive Cytoscape exploration over the published semantic projection;
+- bilingual English / Brazilian Portuguese presentation with semantic-parity enforcement;
+- dependency-free LSP stdio server with diagnostics, completion, hover, definitions/references, symbols, unsaved-buffer overlays, and relation-aware rename;
+- thin multi-root VS Code client delegating language intelligence to the Python LSP;
+- ReqIF 1.2 interchange and deterministic JSON-LD 1.1 projection;
+- read-only OSLC RM federation foundation with deterministic cache provenance, bounded HTTP GET, network-free RDF normalization, RM service discovery, and Resource Shape orchestration;
+- a self-hosted engineering case study in `examples/quarto-needs/` that models Quarto-Needs with Quarto-Needs.
 
 ## Repository layout
 
 ```text
-src/quarto_needs/              Python semantic core and LSP server
+src/quarto_needs/             Python semantic core, LSP and interoperability
 _extensions/quarto-needs/     Quarto filters, shortcodes and browser assets
-editors/vscode/                Thin VS Code client for the Python LSP
-schemas/                       Versioned artifact schemas
-tools/                         Pre-render and release tooling
-docs/manual/                   Quarto-Needs manual
-docs/ROADMAP.md                Accepted product roadmap
-examples/book/                 Aegis IAM external-domain showcase
-examples/quarto-needs/         Self-hosted engineering model
-tests/                         Regression and integration tests
-.github/workflows/             CI workflows
+editors/vscode/               Thin VS Code client for the Python LSP
+schemas/                      Versioned artifact schemas
+tools/                        Pre-render and release tooling
+docs/manual/                  User/manual documentation
+docs/ROADMAP.md               Authoritative product roadmap
+docs/assets/branding/         Project visual identity and roadmap artwork
+examples/quarto-needs/        Self-hosted engineering model
+examples/book/                Aegis IAM external-domain showcase
+tests/                        Regression and integration tests
+.github/workflows/            CI workflows
 ```
 
 ## Quick start
 
-For an end-user path, start with [`docs/quickstart.md`](docs/quickstart.md).
+For the end-user path, start with [`docs/quickstart.md`](docs/quickstart.md).
 
-For contributor development:
+Contributor setup:
 
 ```bash
 make setup
@@ -99,7 +103,7 @@ source .venv/bin/activate
 make test
 ```
 
-Build and validate a project:
+Analyze a project:
 
 ```bash
 quarto-needs scan
@@ -109,60 +113,49 @@ quarto-needs coverage
 quarto-needs trace SYS-REQ-042
 ```
 
-Create and compare an engineering baseline:
+Compare engineering states:
 
 ```bash
 quarto-needs baseline create
 quarto-needs diff baselines/quarto-needs.json
 quarto-needs impact baselines/quarto-needs.json
-```
 
-Analyze two Git states without mutating the worktree:
-
-```bash
 quarto-needs diff --git main..HEAD
 quarto-needs impact --git main..HEAD
 quarto-needs suspect --git main..HEAD
 quarto-needs pr-report --git main..HEAD
-quarto-needs github-report --git main..HEAD
 ```
 
-Inspect a configured build variant:
+Export interchange formats:
 
 ```bash
-quarto-needs variant list
-quarto-needs variant show assurance-slice
-quarto-needs variant show assurance-slice --format json
+quarto-needs export --format reqif
+quarto-needs export --format jsonld
 ```
 
-Start the Language Server Protocol endpoint for an editor:
+Discover a configured OSLC RM Service Provider through the bounded read-only adapter:
+
+```bash
+pip install 'quarto-needs[oslc]'
+
+quarto-needs oslc discover \
+  https://provider.example/oslc/sp/requirements \
+  --format json
+```
+
+Bearer credentials are supplied by **environment-variable name**, never embedded in configuration or command output:
+
+```bash
+export MY_OSLC_TOKEN='...'
+quarto-needs oslc discover \
+  https://provider.example/oslc/sp/requirements \
+  --bearer-token-env MY_OSLC_TOKEN
+```
+
+Start the language server directly when integrating another editor:
 
 ```bash
 quarto-needs --root /path/to/project lsp
-```
-
-The VS Code client lives in `editors/vscode/` and starts this command automatically for workspace folders containing `.quarto-needs.toml`.
-
-Generate deterministic pytest evidence, attest it against the current engineering state, and validate the attestation:
-
-```bash
-pytest --quarto-needs-evidence=.quarto-needs/evidence/pytest-provider.json
-quarto-needs evidence attest \
-  .quarto-needs/evidence/pytest-provider.json \
-  --output .quarto-needs/evidence/pytest.json \
-  --expires-hours 24
-quarto-needs evidence check .quarto-needs/evidence/pytest.json
-```
-
-Raw provider payloads remain directly checkable for backward-compatible or local workflows, but attestations are the preferred CI/review artifact when freshness and provenance matter.
-
-Preview the self-hosted case study:
-
-```bash
-make check-self-example
-make evidence-self-example
-make render-self-example
-make preview-self-example
 ```
 
 ## Authoring syntax
@@ -180,18 +173,27 @@ Authentication protects private data from unauthorized access.
 :::
 ```
 
-The relation direction is semantic: the system requirement **derives from** the stakeholder need. Presentation or traversal may read the engineering process in the opposite direction, but the canonical stored relation remains authoritative.
-
-Cross-reference an object with:
+Cross-reference objects with:
 
 ```qmd
 {{< need SYS-REQ-042 >}}
 {{< need SYS-REQ-042 title=true >}}
 ```
 
-## Executable verification and machine evidence
+Generated views are projections of the canonical graph:
 
-Quarto-Needs separates verification intent, provider output, and attested proof. A modeled `test-case` may bind to a stable pytest node ID while the executable test carries reciprocal markers:
+```qmd
+{{< need-table types="functional-requirement;non-functional-requirement" status="approved" >}}
+{{< need-matrix rows="functional-requirement" columns="test-case" relation="verified-by" >}}
+{{< need-flow root="STK-001" depth="4" relations="derives-from;implemented-by;verified-by" >}}
+{{< need-dashboard >}}
+{{< need-inspector SYS-001 >}}
+{{< need-graph view="graph-exploration" >}}
+```
+
+## Executable evidence
+
+Verification intent, machine execution output, and provenance-bearing evidence remain distinct. A modeled test case can bind to a real pytest node while the executable test carries reciprocal requirement/test-case markers:
 
 ```python
 @pytest.mark.requirement("FUN-004")
@@ -200,187 +202,77 @@ def test_graph_exploration_assets():
     ...
 ```
 
-The pytest plugin emits deterministic `evidence-pytest-v1` output. A second provider-neutral contract, `evidence-checks-v1`, normalizes machine checks from JUnit XML, coverage.py, Quarto render, JSON Schema, lint, and type-check tooling. Generic checks can explicitly reference modeled `requirements`, `testCases`, and `evidenceObjects`.
-
-Volatile provenance is deliberately kept out of deterministic provider payloads. `quarto-needs evidence attest` wraps either supported payload in `evidence-envelope-v1`, recording:
-
-- the provider and provider version;
-- a SHA-256 digest of the embedded provider payload;
-- the current configuration, semantic-graph, and representation fingerprints;
-- generation time;
-- optional source/Git revision;
-- optional explicit expiry.
-
-`quarto-needs evidence check` dispatches by artifact schema and validates both the envelope and provider semantics. For pytest it verifies executable outcome, modeled test-case identity, `pytest-nodeid`, reciprocal requirement↔test claims, and completeness of modeled executable bindings. For generic checks it verifies outcomes, referenced requirements/test cases/evidence objects, verification/evidence relations, and provider compatibility declared by modeled evidence objects. Attested artifacts additionally fail on digest tampering, graph/configuration drift, revision mismatch when a current revision is available, future timestamps, or expiry.
+The pytest plugin emits deterministic provider output. `evidence-envelope-v1` then records SHA-256 digest, graph/configuration fingerprints, generation time, optional Git revision, and explicit expiry. `quarto-needs evidence check` validates both artifact integrity and semantic agreement with the current engineering graph.
 
 See [`docs/manual/executable-evidence.qmd`](docs/manual/executable-evidence.qmd) and [`docs/manual/evidence-providers.qmd`](docs/manual/evidence-providers.qmd).
 
-## Generated views
+## Interoperability philosophy
 
-The Quarto extension consumes the canonical graph and precomputed projections. Common views include:
+Interchange formats are adapters, not authoring models.
 
-```qmd
-{{< need-table types="functional-requirement;non-functional-requirement" status="approved" >}}
-{{< need-list tags="authentication" >}}
-{{< need-count types="system-requirement" status="approved" >}}
-{{< need-matrix rows="functional-requirement" columns="test-case" relation="verified-by" >}}
-{{< need-flow root="STK-001" depth="4" relations="derives-from;implemented-by;verified-by" >}}
-{{< need-backlinks SYS-001 >}}
-{{< need-dashboard >}}
-{{< need-inspector SYS-001 >}}
-{{< need-graph view="graph-exploration" >}}
-```
+**ReqIF 1.2** provides structured requirements exchange. **JSON-LD 1.1** exposes the engineering graph as Linked Data while preserving canonical relation metadata. **OSLC RM** is being implemented as a federation boundary: external identity, observed bytes/digest, retrieval time, trust, cache freshness, transport limits, RDF normalization, and Resource Shapes remain explicit before any remote import or synchronization is allowed.
 
-Named queries are evaluated by Python and materialized for presentation clients. Browser code does not implement a second query language.
+The first OSLC path is intentionally read-only. It uses GET-only bounded HTTP, same-origin redirects, conditional retrieval, content-addressed cache blobs, network-free JSON-LD/Turtle/RDFXML normalization, and deterministic RM discovery. POST/PUT/PATCH/DELETE remain deferred until conflict, concurrency, authorization, and audit contracts exist.
 
-## Configuration
-
-Governed projects use `.quarto-needs.toml`. A compact example:
-
-```toml
-profile = "strict"
-
-[types.functional-requirement]
-id-prefix = "FUN-"
-role = "requirement"
-required-attributes = ["priority", "tags"]
-allowed-statuses = ["draft", "in-review", "approved", "deprecated"]
-
-[relations."verified-by"]
-allowed-source-types = ["functional-requirement"]
-allowed-target-types = ["test-case"]
-minimum-per-source = 1
-
-[queries.approved-high]
-all = [
-  { field = "type", op = "eq", value = "functional-requirement" },
-  { field = "status", op = "eq", value = "approved" },
-  { field = "priority", op = "in", values = ["high", "critical"] },
-]
-
-[policies.APPROVED_REQUIRES_TEST]
-scope = "approved-high"
-assert-relation = "verified-by"
-target-role = "verification"
-minimum = 1
-severity = "error"
-
-[gates]
-scope = "approved-requirements"
-max-errors = 0
-min-implementation-trace = 100.0
-min-verification-successful = 100.0
-min-evidence = 100.0
-```
-
-Configuration is declarative and bounded. Unknown keys and malformed values fail fast rather than being silently ignored.
-
-## Baseline, diff, impact, and PR intelligence
-
-A baseline captures the authored engineering state, configuration fingerprint, semantic graph fingerprint, findings, and derived report surfaces. `diff` classifies changes such as added/removed objects, modified fields, relation changes, and relocation. `impact` traverses the **union of baseline and current graphs**, so removed objects and links remain explainable.
-
-Impact results carry explicit paths and distance. Quarto-Needs deliberately avoids an opaque risk score when the graph path itself is the more auditable explanation. `suspect`, `pr-report`, and `github-report` reuse those paths to derive review state and GitHub projections without interpreting textual patches as engineering semantics.
-
-## Editor authoring
-
-`LanguageService` is an editor-independent façade over the canonical analyzer. The stdio LSP transport exposes context-aware completion, diagnostics, hover, definitions, references, symbols, and safe rename.
-
-Open editor documents are passed to the same parser as in-memory overlays. Unsaved text is never written to the repository. If a buffer is temporarily structurally invalid while the user types, structural findings are retained while cross-file navigation continues to use the last valid semantic snapshot.
-
-Rename uses an exact source-span index. It changes declarations, authored relation targets, and `need` shortcodes, including localized presentation siblings such as `*.pt-BR.qmd`; arbitrary prose containing the same ID remains untouched.
-
-See [`docs/manual/language-server.qmd`](docs/manual/language-server.qmd) and [`editors/vscode/README.md`](editors/vscode/README.md).
-
-## Interchange and CI
-
-Current exporters include:
-
-| Format | Purpose |
-|---|---|
-| JSON | Canonical graph projection |
-| CSV | Objects, relations, and findings for tabular consumers |
-| SARIF | Findings for code-scanning compatible tooling |
-| JUnit | Quality gates represented as test cases |
-| Markdown | Human-readable CI / pull-request summary |
-
-Machine evidence additionally uses versioned pytest, generic-check, and attestation schemas. The CI also maintains an independent TypeScript check/compile job for the thin VS Code language client. ReqIF, JSON-LD, OSLC federation, C4-derived architecture views, and deeper graph-workbench capabilities remain on the accepted roadmap.
-
-See [`docs/ROADMAP.md`](docs/ROADMAP.md).
+See [`docs/phase-5-reqif.md`](docs/phase-5-reqif.md), [`docs/phase-5-jsonld.md`](docs/phase-5-jsonld.md), and [`docs/phase-5-oslc.md`](docs/phase-5-oslc.md).
 
 ## Self-hosted engineering model
 
-`examples/quarto-needs/` uses Quarto-Needs to model Quarto-Needs itself. It connects stakeholder needs, system and functional/non-functional requirements, ADRs, components/interfaces, risks, real source modules, modeled tests, executable pytest tests, and evidence. English is canonical and Brazilian Portuguese is presentation-only localization over the same semantic model.
+`examples/quarto-needs/` models the project itself: stakeholder needs → requirements → ADRs → architecture → real source modules → modeled test cases → executable tests → evidence. The OSLC milestone adds a complete federation slice from `STK-006` through `TC-015` / `EVD-015`, with English canonical content and a semantic-equivalent Brazilian Portuguese presentation.
 
-Six modeled test cases bind to real pytest functions and are executed by `make evidence-self-example`, covering architecture-decision governance, multilingual semantic parity, public graph safety, named graph views, baseline/diff/impact, and the margin-TOC engineering slice. The target first writes deterministic provider output, then creates a 24-hour attestation bound to the current engineering snapshot, and finally validates that attestation. `render-self-example` depends on this complete flow.
-
-The target is increasingly complete executable traceability:
-
-```text
-stakeholder need
-       ↓
-requirement
-       ↓
-architecture decision
-       ↓
-architecture element
-       ↓
-real source module
-       ↓
-modeled test-case
-       ↓
-executable test / machine check
-       ↓
-deterministic provider evidence
-       ↓
-attestation + provenance/freshness
-       ↓
-Git change / review state
-       ↓
-editor navigation / safe refactor
-```
-
-The Aegis IAM showcase remains separately available in `examples/book/` as proof that Quarto-Needs also works outside its own development domain.
+This keeps major features traceable as engineering changes rather than leaving architecture and validation implicit in implementation code.
 
 ## Inspirations and related work
 
-Quarto-Needs has its own Quarto/Pandoc-native architecture, but it is informed by several mature ideas and ecosystems:
+Quarto-Needs has its own Quarto/Pandoc-native architecture, but it is informed by mature ideas and ecosystems:
 
-- **Sphinx-Needs** — one of the original inspirations for treating requirements and engineering objects as first-class documentation entities with typed links, generated views, filtering, and validation. Quarto-Needs intentionally pursues capability inspiration rather than Sphinx syntax compatibility.
-- **Requirements as Code / Docs as Code** — text-first, Git-versioned, reviewable engineering artifacts as the primary workflow.
-- **Architecture Decision Records (ADRs)** — durable architectural rationale represented explicitly instead of being hidden in prose or commit history.
-- **C4 model** — inspiration for hierarchical architecture projections such as system context, container/subsystem, component, and code views; Quarto-Needs aims to derive such views from the same engineering graph rather than maintain a parallel architecture model.
-- **ReqIF** — inspiration and future interchange boundary for structured requirements exchange.
-- **OSLC Requirements Management** — future direction for standards-based federation once identity, provenance, caching, authentication, and conflict semantics are explicit.
-- **StrictDoc, Doorstop, and OpenFastTrace** — useful reference points for requirements-as-code, source traceability, review state, and transitive traceability capabilities.
-- **Language Server Protocol** — editor interoperability boundary: Quarto-Needs exposes the Python semantic core to editors instead of implementing editor-specific language logic.
-- **SARIF and JUnit** — established machine-consumable formats that inform current CI/export and evidence integration.
+- **Sphinx-Needs** — **one of the original inspirations** for first-class typed engineering objects, links, generated views, filtering, and validation. Quarto-Needs pursues capability inspiration, not Sphinx syntax compatibility.
+- **Requirements as Code / Docs as Code** — text-first, Git-versioned, reviewable engineering artifacts.
+- **Architecture Decision Records (ADRs)** — explicit and durable architectural rationale.
+- **C4 model** — inspiration for future architecture projections derived from the same engineering graph rather than maintained as a parallel model.
+- **ReqIF** — structured requirements interchange.
+- **OSLC Requirements Management** — standards-based federation with explicit identity, provenance, caching, trust, and failure behavior.
+- **StrictDoc, Doorstop, and OpenFastTrace** — reference points for requirements-as-code, traceability, review state, and transitive links.
+- **Language Server Protocol** — editor interoperability without editor-specific semantic forks.
+- **SARIF and JUnit** — established machine-consumable CI/reporting formats.
 
-These projects and standards are references, not compatibility claims. Quarto-Needs' defining constraint is that all capabilities remain projections of one deterministic semantic engineering graph.
+These are references and inspirations, not compatibility claims.
 
 ## Design principles
 
 - Requirements as Code
-- Documentation as interface
-- Traceability as a typed property graph
-- Single semantic source of truth
-- Architecture decisions as first-class objects
-- Verification distinct from evidence
-- Deterministic provider output distinct from provenance-bearing attestation
-- Explainable change intelligence
-- Deterministic artifacts and reproducible analysis
-- Bounded declarative project policy
-- Authored data distinct from derived projections
-- Variants as selections, not alternate semantic graphs
-- Progressive enhancement for interactive views
-- Extensible types, relations, queries, and policy
-- Renderer-independent semantic core
-- Editor clients thin over the Python language service
+- documentation as interface
+- traceability as a typed property graph
+- one semantic source of truth
+- architecture decisions as first-class objects
+- verification distinct from evidence
+- authored data distinct from computed projections
+- explainable change intelligence
+- deterministic and reproducible artifacts
+- bounded declarative policy
+- progressive enhancement for interactive views
+- renderer-independent semantic core
+- thin editor clients
 - Git/CI-first workflows
-- Interoperability without surrendering the canonical model
+- interoperability without surrendering the canonical model
 
 ## Roadmap
 
-The full accepted roadmap is maintained in [`docs/ROADMAP.md`](docs/ROADMAP.md). **Phases 1, 2, and 3 are implemented, and Phase 4.1 — the shared Language Server Protocol layer — is implemented on the current development branch.** Phase 4.2 has started with a thin multi-root VS Code client that delegates all language intelligence to `quarto-needs lsp`. The next hardening work is to validate/package that editor client and then proceed to interchange and architecture projections without forking the canonical model.
+<p align="center">
+  <a href="docs/ROADMAP.md">
+    <img src="docs/assets/branding/quarto-needs-roadmap-infographic.webp" alt="Quarto-Needs engineering evolution roadmap" width="1000">
+  </a>
+</p>
+
+The infographic is a **visual presentation snapshot**. [`docs/ROADMAP.md`](docs/ROADMAP.md) is the authoritative, continuously updated roadmap.
+
+Current status: **Phases 1, 2, 3 and 4.1 are implemented; Phase 4.2 is functionally implemented but release validation is blocked by the current runner/npm environment; Phase 5.1 ReqIF is implemented and locally validated; Phase 5.2 JSON-LD is functionally implemented with an independent execution gate pending; Phase 5.3 OSLC RM is actively implemented through the read-only federation/discovery foundation and its first CLI surface.**
+
+GitHub Actions currently terminates the Python and VS Code jobs before checkout (`steps: null`), so the project does not misrepresent that infrastructure failure as either a repository test failure or successful execution evidence.
+
+## Branding
+
+The logo, symbol, extension icon, palette, and visual-roadmap assets live under [`docs/assets/branding/`](docs/assets/branding/). See [`docs/branding.md`](docs/branding.md) for the visual semantics and palette.
 
 ## License
 
