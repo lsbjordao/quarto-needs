@@ -47,6 +47,21 @@ class _Opener:
 URI = "https://api.github.com/repos/acme/widgets/issues/1"
 
 
+def test_fetch_github_resource_surfaces_link_header_and_omits_it_when_absent() -> None:
+    link = '<https://api.github.com/repositories/123/issues?state=open&per_page=5&page=2>; rel="next"'
+    with_link = _Opener(
+        _Response(
+            200,
+            b"[]",
+            **{"Content-Type": "application/json", "Link": link},
+        )
+    )
+    without_link = _Opener(_Response(200, b"[]", **{"Content-Type": "application/json"}))
+
+    assert fetch_github_resource(URI, opener=with_link).link == link
+    assert fetch_github_resource(URI, opener=without_link).link is None
+
+
 def test_fetch_github_resource_returns_payload_and_validators() -> None:
     opener = _Opener(
         _Response(

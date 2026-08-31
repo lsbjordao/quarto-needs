@@ -10,9 +10,11 @@ from quarto_needs.github_issues import (
     build_github_issue_identity,
     fetch_external_github_issue,
     fetch_external_github_issue_list,
+    fetch_external_github_issue_list_pages,
     github_issue_list_resource_uri,
     github_issue_resource_uri,
     parse_external_github_issue,
+    parse_next_link,
 )
 from quarto_needs.oslc_rm import CachePolicy, ExternalResourceIdentity
 
@@ -429,3 +431,198 @@ def test_fetch_external_github_issue_list_does_not_promote_inline_data_to_an_obs
 
     assert not hasattr(result, "observations")
     assert result.issue_numbers == (3164,)
+
+
+def test_parse_next_link_extracts_next_target_from_a_multi_entry_header() -> None:
+    header = (
+        '<https://api.github.com/repositories/123/issues?state=open&per_page=5&page=1>; rel="prev", '
+        '<https://api.github.com/repositories/123/issues?state=open&per_page=5&page=2>; rel="next", '
+        '<https://api.github.com/repositories/123/issues?state=open&per_page=5&page=9>; rel="last"'
+    )
+    assert parse_next_link(header) == (
+        "https://api.github.com/repositories/123/issues?state=open&per_page=5&page=2"
+    )
+
+
+def test_parse_next_link_returns_none_when_no_next_page_exists() -> None:
+    header = '<https://api.github.com/repositories/123/issues?page=9>; rel="last"'
+    assert parse_next_link(header) is None
+    assert parse_next_link(None) is None
+
+
+def test_parse_next_link_rejects_malformed_headers() -> None:
+    with pytest.raises(GitHubIssueError, match="malformed"):
+        parse_next_link("not-a-link-header")
+    with pytest.raises(GitHubIssueError, match='more than one rel="next"'):
+        parse_next_link('<https://a.example/2>; rel="next", <https://a.example/3>; rel="next"')
+
+
+def test_github_issue_list_resource_uri_accepts_the_endpoints_own_filters() -> None:
+    assert github_issue_list_resource_uri(
+        "acme", "widgets", labels=["bug", "ui"], sort="updated", direction="asc"
+    ) == (
+        "https://api.github.com/repos/acme/widgets/issues"
+        "?state=open&per_page=30&page=1&labels=bug%2Cui&sort=updated&direction=asc"
+    )
+    assert github_issue_list_resource_uri(
+        "acme", "widgets", since="2026-08-01T00:00:00Z"
+    ) == (
+        "https://api.github.com/repos/acme/widgets/issues"
+        "?state=open&per_page=30&page=1&since=2026-08-01T00%3A00%3A00Z"
+    )
+
+
+def test_github_issue_list_resource_uri_rejects_invalid_filter_parameters() -> None:
+    with pytest.raises(GitHubIssueError, match="sort"):
+        github_issue_list_resource_uri("acme", "widgets", sort="popularity")
+    with pytest.raises(GitHubIssueError, match="direction"):
+        github_issue_list_resource_uri("acme", "widgets", direction="sideways")
+    with pytest.raises(GitHubIssueError, match="since"):
+        github_issue_list_resource_uri("acme", "widgets", since="")
+    with pytest.raises(GitHubIssueError, match="labels"):
+        github_issue_list_resource_uri("acme", "widgets", labels="bug")
+    with pytest.raises(GitHubIssueError, match="non-empty string"):
+        github_issue_list_resource_uri("acme", "widgets", labels=["bug", ""])
+
+
+def test_fetch_external_github_issue_list_sends_filters_as_query_parameters() -> None:
+    body = json.dumps([]).encode("utf-8")
+    opener = _Opener(_Response(200, body, **{"Content-Type": "application/json"}))
+
+    fetch_external_github_issue_list(
+        "acme",
+        "widgets",
+        fetched_at="2026-08-31T12:00:00Z",
+        labels=["bug"],
+        opener=opener,
+    )
+
+    assert opener.requests[0].full_url == github_issue_list_resource_uri(
+        "acme", "widgets", labels=["bug"]
+    )
+
+
+def _page_response(entries: list[dict[str, object]], **headers: str) -> "_Response":
+    return _Response(
+        200, json.dumps(entries).encode("utf-8"), **{"Content-Type": "application/json", **headers}
+    )
+
+
+def test_fetch_external_github_issue_list_pages_follows_rel_next_across_pages() -> None:
+    # GitHub rewrites /repos/{owner}/{repo} to /repositories/{id} in its own
+    # Link targets, so the next URL deliberately has a different path — the
+    # traversal must follow it (same origin) instead of rejecting it.
+    next_url = "https://api.github.com/repositories/123/issues?state=open&per_page=30&page=2"
+    opener = _Opener(
+        _page_response([_list_entry(3164)], Link=f'<{next_url}>; rel="next"'),
+        _page_response([_list_entry(3165, is_pull_request=True)]),
+    )
+
+    result = fetch_external_github_issue_list_pages(
+        "acme", "widgets", fetched_at="2026-08-31T12:00:00Z", max_pages=3, opener=opener
+    )
+
+    assert len(opener.requests) == 2
+    assert opener.requests[1].full_url == next_url
+    assert [page.resource_uri for page in result.pages] == [
+        github_issue_list_resource_uri("acme", "widgets"),
+        next_url,
+    ]
+    assert result.issue_numbers == (3164,)
+    assert result.pull_request_numbers == (3165,)
+    assert result.truncated is False
+
+
+def test_fetch_external_github_issue_list_pages_stops_when_github_offers_no_next() -> None:
+    opener = _Opener(_page_response([_list_entry(3164)]))
+
+    result = fetch_external_github_issue_list_pages(
+        "acme", "widgets", fetched_at="2026-08-31T12:00:00Z", max_pages=5, opener=opener
+    )
+
+    assert len(opener.requests) == 1
+    assert result.truncated is False
+    assert result.issue_numbers == (3164,)
+
+
+def test_fetch_external_github_issue_list_pages_reports_truncation_at_the_budget() -> None:
+    next_url = "https://api.github.com/repositories/123/issues?page=2"
+    opener = _Opener(_page_response([_list_entry(3164)], Link=f'<{next_url}>; rel="next"'))
+
+    result = fetch_external_github_issue_list_pages(
+        "acme", "widgets", fetched_at="2026-08-31T12:00:00Z", max_pages=1, opener=opener
+    )
+
+    # The budget, not the end of the list, stopped the traversal — and the
+    # result says so instead of implying completeness.
+    assert len(opener.requests) == 1
+    assert result.truncated is True
+    assert result.max_pages == 1
+    assert result.pages[-1].resource_uri == github_issue_list_resource_uri("acme", "widgets")
+
+
+def test_fetch_external_github_issue_list_pages_rejects_cross_origin_next() -> None:
+    opener = _Opener(
+        _page_response(
+            [_list_entry(3164)],
+            Link='<https://evil.example/issues?page=2>; rel="next"',
+        )
+    )
+
+    with pytest.raises(GitHubIssueError, match="crossed origin"):
+        fetch_external_github_issue_list_pages(
+            "acme", "widgets", fetched_at="2026-08-31T12:00:00Z", max_pages=2, opener=opener
+        )
+
+
+def test_fetch_external_github_issue_list_pages_rejects_a_malformed_link_header() -> None:
+    # A malformed Link header must fail loudly even mid-traversal: reading it
+    # as "no next page" would misreport a truncated list as complete.
+    opener = _Opener(_page_response([_list_entry(3164)], Link="garbage"))
+
+    with pytest.raises(GitHubIssueError, match="malformed"):
+        fetch_external_github_issue_list_pages(
+            "acme", "widgets", fetched_at="2026-08-31T12:00:00Z", max_pages=1, opener=opener
+        )
+
+
+def test_fetch_external_github_issue_list_pages_rejects_invalid_max_pages() -> None:
+    opener = _Opener()
+    with pytest.raises(GitHubIssueError, match="max_pages"):
+        fetch_external_github_issue_list_pages(
+            "acme", "widgets", fetched_at="2026-08-31T12:00:00Z", max_pages=0, opener=opener
+        )
+    with pytest.raises(GitHubIssueError, match="max_pages"):
+        fetch_external_github_issue_list_pages(
+            "acme", "widgets", fetched_at="2026-08-31T12:00:00Z", max_pages=True, opener=opener
+        )
+    assert opener.requests == []
+
+
+def test_fetch_external_github_issue_list_pages_dedupes_aggregates_keeps_per_page_truth() -> None:
+    next_url = "https://api.github.com/repositories/123/issues?page=2"
+    opener = _Opener(
+        _page_response([_list_entry(3164)], Link=f'<{next_url}>; rel="next"'),
+        _page_response([_list_entry(3164), _list_entry(3165)]),
+    )
+
+    result = fetch_external_github_issue_list_pages(
+        "acme", "widgets", fetched_at="2026-08-31T12:00:00Z", max_pages=2, opener=opener
+    )
+
+    assert result.issue_numbers == (3164, 3165)
+    assert [page.issue_numbers for page in result.pages] == [(3164,), (3164, 3165)]
+
+
+def test_fetch_external_github_issue_list_pages_remains_discovery_only() -> None:
+    opener = _Opener(_page_response([_list_entry(3164)]))
+
+    result = fetch_external_github_issue_list_pages(
+        "acme", "widgets", fetched_at="2026-08-31T12:00:00Z", opener=opener
+    )
+
+    assert not hasattr(result, "observations")
+    assert result.to_dict()["schema"] == "github-issue-list-pages-v1"
+    assert result.to_dict()["pages"][0]["resourceUri"] == (
+        github_issue_list_resource_uri("acme", "widgets")
+    )
