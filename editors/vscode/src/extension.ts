@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import {
+  DocumentSelector,
   LanguageClient,
   LanguageClientOptions,
   ServerOptions,
@@ -20,8 +21,13 @@ function clientId(folder: vscode.WorkspaceFolder): string {
   return `quarto-needs-${stable || "workspace"}`;
 }
 
-function documentSelector(folder: vscode.WorkspaceFolder): vscode.DocumentSelector {
-  const pattern = new vscode.RelativePattern(folder, "**/*.qmd");
+function documentSelector(_folder: vscode.WorkspaceFolder): DocumentSelector {
+  // A plain glob, not a per-folder vscode.RelativePattern: the language
+  // client's own DocumentSelector/GlobPattern types (from
+  // vscode-languageserver-protocol) don't accept a vscode.Uri-backed
+  // RelativePattern instance. Folder scoping for multi-root workspaces is
+  // handled by clientOptions.workspaceFolder below, not by this selector.
+  const pattern = "**/*.qmd";
   return [
     { scheme: "file", language: "quarto", pattern },
     { scheme: "file", language: "markdown", pattern },
