@@ -172,3 +172,82 @@ def test_known_relation_without_targets_is_structurally_invalid(
     assert [(item.code, item.object_id) for item in batch.findings] == [
         ("QND002", "REQ-EMPTY")
     ]
+
+
+def test_rationale_heading_is_indexed_and_body_stays_verbatim(tmp_path: Path) -> None:
+    """The authoring manual keeps explanations in Markdown; this indexes them."""
+    source = tmp_path / "rationale.qmd"
+    source.write_text(
+        "::: {.need #REQ-R type=\"system-requirement\" status=\"approved\"}\n"
+        "\n## Authenticate\n"
+        "The service shall authenticate users.\n"
+        "\n### Rationale\n"
+        "Protect privileged operations.\n"
+        ":::\n",
+        encoding="utf-8",
+    )
+
+    declaration = parse_qmd_declarations(source, tmp_path).declarations[0]
+
+    assert declaration.rationale == "Protect privileged operations."
+    # The body stays the authored text verbatim — extraction never rewrites it.
+    assert "### Rationale" in declaration.body
+    assert "Protect privileged operations." in declaration.body
+
+
+def test_rationale_section_ends_at_the_next_heading(tmp_path: Path) -> None:
+    source = tmp_path / "rationale-boundary.qmd"
+    source.write_text(
+        "::: {.need #REQ-R type=\"system-requirement\" status=\"approved\"}\n"
+        "\n## Authenticate\n"
+        "Body.\n"
+        "\n### Rationale\n"
+        "Protect privileged operations.\n"
+        "\n### Confirmation\n"
+        "Verified by login tests.\n"
+        ":::\n",
+        encoding="utf-8",
+    )
+
+    declaration = parse_qmd_declarations(source, tmp_path).declarations[0]
+
+    assert declaration.rationale == "Protect privileged operations."
+    assert "### Confirmation" in declaration.body
+    assert "Verified by login tests." in declaration.body
+    assert "Verified by login tests." not in declaration.rationale
+
+
+def test_rationale_metadata_takes_precedence_over_body_heading(tmp_path: Path) -> None:
+    source = tmp_path / "rationale-precedence.qmd"
+    source.write_text(
+        "::: {.need #REQ-R type=\"system-requirement\" status=\"approved\""
+        " rationale=\"Protect the perimeter.\"}\n"
+        "\n## Authenticate\n"
+        "Body.\n"
+        "\n### Rationale\n"
+        "Protect privileged operations.\n"
+        ":::\n",
+        encoding="utf-8",
+    )
+
+    declaration = parse_qmd_declarations(source, tmp_path).declarations[0]
+
+    assert declaration.rationale == "Protect the perimeter."
+
+
+def test_bodies_without_a_rationale_heading_keep_an_empty_rationale(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "no-rationale.qmd"
+    source.write_text(
+        "::: {.need #REQ-PLAIN type=\"system-requirement\" status=\"approved\"}\n"
+        "\n## Authenticate\n"
+        "Body.\n"
+        ":::\n",
+        encoding="utf-8",
+    )
+
+    declaration = parse_qmd_declarations(source, tmp_path).declarations[0]
+
+    assert declaration.rationale == ""
+    assert declaration.body == "Body."

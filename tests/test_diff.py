@@ -304,3 +304,23 @@ def test_report_dict_is_json_safe_and_flags_emptiness(tmp_path: Path) -> None:
     assert payload["empty"] is True
     assert payload["schemaVersion"] == "1"
     _json.dumps(payload)
+
+
+def test_editing_a_rationale_section_is_a_named_modification(tmp_path: Path) -> None:
+    """The rationale heading is indexed into the field, so authoring it via
+    Markdown still produces a per-field modification — alongside the body
+    edit, since the section is part of the authored body by contract."""
+    write(tmp_path)
+    before = baseline_of(tmp_path)
+    (tmp_path / "needs.qmd").write_text(
+        REQUIREMENT.format(body="The service shall authenticate.").replace(
+            "Protect data.", "Protect every privileged operation."
+        )
+        + TEST_CASE
+    )
+    snapshot, config = snapshot_of(tmp_path)
+
+    report = diff.compare(before, snapshot, config)
+
+    assert [item["id"] for item in report.modified] == ["REQ-1"]
+    assert "rationale" in report.modified[0]["fields"]

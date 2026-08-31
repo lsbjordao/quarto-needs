@@ -15,10 +15,14 @@ SCHEMA = ROOT / "schemas" / "baseline-v1.schema.json"
 
 
 PROJECT = '''
-::: {.need #REQ-1 type="functional-requirement" status="approved" priority="high" tags="security" rationale="Protect privileged operations."}
+::: {.need #REQ-1 type="functional-requirement" status="approved" priority="high" tags="security"}
 ## Authenticate
 
 The service shall authenticate users.
+
+### Rationale
+
+Protect privileged operations.
 :::
 '''.strip() + "\n"
 
