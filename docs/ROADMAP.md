@@ -178,9 +178,9 @@ Next 5.4 slices:
 
 Sphinx-Needs, Doorstop, and StrictDoc remain supported migration sources and inspirations for Quarto-Needs; compatibility claims are limited to the explicitly implemented adapter behavior for each.
 
-## 5.5 External service adapters 🟡 (ten slices in)
+## 5.5 External service adapters 🟡 (ten slices in — apply step and trust transitions close the deferred list)
 
-**Status: a read-only GitHub issue projection is implemented end to end — external identity, content-digest provenance, normalization into the same observation shape OSLC federation already uses, a bounded GET-only HTTP transport with rate-limit exhaustion distinguished from auth failures, a persistent content-addressed cache, conditional requests, bounded issue-list discovery, bounded multi-page traversal of that discovery, search-API discovery on the same bounded contract, reconciliation + import planning through OSLC's own source-agnostic contracts (zero new reconciliation code — proven, not assumed), explicit reviewer trust-state transitions over a closed allowlist, and a fully traced self-hosted example slice with five real pytest bindings in the attested evidence artifact — all run against the real GitHub API including a real HTTP 304, a real list-then-fetch handoff, and a real two-page traversal across GitHub's rewritten Link targets. Remaining deferred: an apply step and a caller-side rate-limit retry policy.** See `docs/phase-5-external-adapters.md`.
+**Status: a read-only GitHub issue projection is implemented end to end — external identity, content-digest provenance, normalization into the same observation shape OSLC federation already uses, a bounded GET-only HTTP transport with rate-limit exhaustion distinguished from auth failures, a persistent content-addressed cache, conditional requests, bounded issue-list discovery, bounded multi-page traversal of that discovery, search-API discovery on the same bounded contract, reconciliation + import planning through OSLC's own source-agnostic contracts (zero new reconciliation code — proven, not assumed), explicit reviewer trust-state transitions over a closed allowlist, an apply step that writes accepted plans into authored files with all-or-nothing preflight and post-write rollback, and a fully traced self-hosted example slice with five real pytest bindings in the attested evidence artifact — all run against the real GitHub API including a real HTTP 304, a real list-then-fetch handoff, and a real two-page traversal across GitHub's rewritten Link targets. Remaining deferred: a caller-side rate-limit retry policy.** See `docs/phase-5-external-adapters.md`.
 
 Read-only/cacheable adapters may target GitHub issues or lifecycle-management systems. Every imported object must preserve external identity, origin, digest/version, retrieval policy, and trust state.
 
@@ -206,10 +206,11 @@ Implemented capabilities include:
 
 - explicit trust-state transitions: `external_trust.py` — `apply_trust_decision` turns an immutable, substantive reviewer decision (`action`/`decided_by`/`reason`/`decided_at`) into a new observation plus an auditable record, over a closed allowlist of `(from, action) → to` transitions; the input is never mutated, the observed-bytes digest and retrieval provenance carry over unchanged (a trust decision is about the reviewer's judgement, not the remote representation), and a rejected observation must pass an explicit `reset` before it can be trusted again — trust can never directly follow rejection; the transitioned state flows into reconciliation unchanged (rejected blocks, reset unbinds, trust matches); falsified by bypassing the allowlist;
 
+- an apply step (`import_apply.py`): the first write path downstream of the reviewed plan, inheriting the migration apply's safety contracts and adding updates — every applicable item is preflighted against a fresh scan (created IDs must not exist yet; update `from` values must still match the authored file, and the plan's target file must be where the object is authored), writes are atomic per file with the project re-scanned afterwards and rolled back on any error finding, a second apply refuses idempotently, and non-applicable dispositions (blocked/review-required/ignored/no-change) are reported as skipped with the plan's own reason, never half-applied;
+
 Next 5.5 work (each its own reviewed contract, exactly as above):
 
-1. an apply step consuming an accepted import plan (both OSLC and GitHub stop at the plan today);
-2. a caller-side rate-limit retry policy built on the transport's retry facts.
+1. a caller-side rate-limit retry policy built on the transport's retry facts.
 
 ---
 
