@@ -122,7 +122,9 @@ def _atomic_write(path: Path, payload: bytes) -> None:
         temporary_path.unlink(missing_ok=True)
 
 
-def load_cache_manifest(root: Path) -> tuple[CachedRepresentation, ...]:
+def load_cache_manifest(
+    root: Path, *, schema: str = OSLC_CACHE_SCHEMA
+) -> tuple[CachedRepresentation, ...]:
     manifest_path = root / "manifest.json"
     if not manifest_path.exists():
         return ()
@@ -135,7 +137,7 @@ def load_cache_manifest(root: Path) -> tuple[CachedRepresentation, ...]:
         raise ValueError("OSLC cache manifest must be an object")
     if set(document) != {"schema", "entries"}:
         raise ValueError("OSLC cache manifest must contain only schema and entries")
-    if document.get("schema") != OSLC_CACHE_SCHEMA:
+    if document.get("schema") != schema:
         raise ValueError(f"unsupported OSLC cache schema: {document.get('schema')!r}")
     raw_entries = document.get("entries")
     if not isinstance(raw_entries, list):
@@ -148,12 +150,14 @@ def load_cache_manifest(root: Path) -> tuple[CachedRepresentation, ...]:
     return tuple(sorted(entries, key=_entry_sort_key))
 
 
-def write_cache_manifest(root: Path, entries: tuple[CachedRepresentation, ...]) -> None:
+def write_cache_manifest(
+    root: Path, entries: tuple[CachedRepresentation, ...], *, schema: str = OSLC_CACHE_SCHEMA
+) -> None:
     keys = [_entry_key(entry) for entry in entries]
     if len(keys) != len(set(keys)):
         raise ValueError("OSLC cache manifest contains duplicate observations")
     document = {
-        "schema": OSLC_CACHE_SCHEMA,
+        "schema": schema,
         "entries": [entry.to_dict() for entry in sorted(entries, key=_entry_sort_key)],
     }
     encoded = (
@@ -167,6 +171,8 @@ def store_cached_representation(
     root: Path,
     representation: CachedRepresentation,
     payload: bytes,
+    *,
+    schema: str = OSLC_CACHE_SCHEMA,
 ) -> None:
     observed_digest = content_digest(payload)
     if observed_digest != representation.identity.digest:
@@ -183,11 +189,11 @@ def store_cached_representation(
     else:
         _atomic_write(blob_path, payload)
 
-    entries = list(load_cache_manifest(root))
+    entries = list(load_cache_manifest(root, schema=schema))
     key = _entry_key(representation)
     if key not in {_entry_key(entry) for entry in entries}:
         entries.append(representation)
-    write_cache_manifest(root, tuple(entries))
+    write_cache_manifest(root, tuple(entries), schema=schema)
 
 
 def read_cached_payload(root: Path, representation: CachedRepresentation) -> bytes:
@@ -215,10 +221,11 @@ def latest_cached_representation(
     *,
     resource_uri: str,
     include_rejected: bool = False,
+    schema: str = OSLC_CACHE_SCHEMA,
 ) -> CachedRepresentation | None:
     candidates = [
         entry
-        for entry in load_cache_manifest(root)
+        for entry in load_cache_manifest(root, schema=schema)
         if entry.identity.resource_uri == resource_uri
         and (include_rejected or entry.identity.trust_state != "rejected")
     ]
@@ -236,8 +243,9 @@ def select_cached_representation(
     resource_uri: str,
     policy: CachePolicy,
     now: str,
+    schema: str = OSLC_CACHE_SCHEMA,
 ) -> CacheSelection | None:
-    representation = latest_cached_representation(root, resource_uri=resource_uri)
+    representation = latest_cached_representation(root, resource_uri=resource_uri, schema=schema)
     if representation is None:
         return None
     decision = policy.decide(representation.identity, now=now)

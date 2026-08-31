@@ -1,15 +1,18 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Mapping
 from urllib.parse import quote
 
 from .github_http import fetch_github_resource
+from .oslc_cache import CachedRepresentation, select_cached_representation, store_cached_representation
 from .oslc_http import HttpFetchPolicy
 from .oslc_reconcile import ExternalRequirementObservation
-from .oslc_rm import ExternalResourceIdentity, TrustState, content_digest
+from .oslc_rm import CachePolicy, ExternalResourceIdentity, TrustState, content_digest
 
 _SUPPORTED_STATES = {"open", "closed"}
+GITHUB_ISSUES_CACHE_SCHEMA = "github-issues-cache-v1"
 
 
 class GitHubIssueError(ValueError):
@@ -119,6 +122,18 @@ def parse_external_github_issue(
     )
 
 
+def _observation_from_payload_bytes(
+    payload_bytes: bytes, *, identity: ExternalResourceIdentity
+) -> ExternalRequirementObservation:
+    try:
+        payload = json.loads(payload_bytes)
+    except json.JSONDecodeError as error:
+        raise GitHubIssueError(f"GitHub response is not valid JSON: {error}") from error
+    if not isinstance(payload, Mapping):
+        raise GitHubIssueError("GitHub response is not a JSON object")
+    return parse_external_github_issue(payload, identity=identity)
+
+
 def fetch_external_github_issue(
     owner: str,
     repo: str,
@@ -128,25 +143,37 @@ def fetch_external_github_issue(
     fetch_policy: HttpFetchPolicy = HttpFetchPolicy(),
     auth_headers: Mapping[str, str] | None = None,
     opener=None,
+    cache_root: Path | None = None,
+    cache_policy: CachePolicy = CachePolicy(max_age_seconds=300),
 ) -> ExternalRequirementObservation:
     """Fetch and normalize one GitHub issue end to end.
 
     Composes the bounded transport (``fetch_github_resource``) with identity
-    construction and normalization; still no caching or conditional
-    requests — a fresh network fetch every call, exactly as the transport
-    slice alone provides.
+    construction and normalization. Caching is opt-in: pass ``cache_root``
+    to check a fresh cached representation first and skip the network
+    entirely, and to persist a live fetch afterward. There are no
+    conditional requests (``If-None-Match``) yet — a cache miss or stale
+    entry always re-fetches the whole representation, never a 304; that is
+    the next slice, once there is something worth conditioning against.
     """
     resource_uri = github_issue_resource_uri(owner, repo, number)
+
+    if cache_root is not None:
+        selection = select_cached_representation(
+            cache_root,
+            resource_uri=resource_uri,
+            policy=cache_policy,
+            now=fetched_at,
+            schema=GITHUB_ISSUES_CACHE_SCHEMA,
+        )
+        if selection is not None and selection.decision == "fresh":
+            return _observation_from_payload_bytes(
+                selection.payload, identity=selection.representation.identity
+            )
+
     result = fetch_github_resource(
         resource_uri, fetch_policy=fetch_policy, auth_headers=auth_headers, opener=opener
     )
-    try:
-        payload = json.loads(result.payload)
-    except json.JSONDecodeError as error:
-        raise GitHubIssueError(f"GitHub response is not valid JSON: {error}") from error
-    if not isinstance(payload, Mapping):
-        raise GitHubIssueError("GitHub response is not a JSON object")
-
     identity = build_github_issue_identity(
         owner,
         repo,
@@ -156,4 +183,14 @@ def fetch_external_github_issue(
         etag=result.etag,
         last_modified=result.last_modified,
     )
-    return parse_external_github_issue(payload, identity=identity)
+    observation = _observation_from_payload_bytes(result.payload, identity=identity)
+
+    if cache_root is not None:
+        store_cached_representation(
+            cache_root,
+            CachedRepresentation(identity=identity, media_type="application/json"),
+            result.payload,
+            schema=GITHUB_ISSUES_CACHE_SCHEMA,
+        )
+
+    return observation
