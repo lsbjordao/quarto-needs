@@ -64,6 +64,11 @@ def _require_http_uri(value: str, field: str) -> None:
         raise ValueError(f"{field} must be an absolute http(s) URI")
 
 
+def _origin(value: str) -> tuple[str, str, int | None]:
+    parsed = urlparse(value)
+    return (parsed.scheme.lower(), (parsed.hostname or "").lower(), parsed.port)
+
+
 def _media_type(value: str | None) -> str:
     if value is None:
         raise OslcTransportError("unsupported-media-type", "OSLC response omitted Content-Type")
@@ -142,6 +147,8 @@ def fetch_oslc_resource(
     Fresh cache wins without network I/O. Stale observations are used only for
     conditional requests or, when explicitly allowed, as an offline fallback.
     Authentication headers are request-only inputs and are never persisted.
+    Redirects are same-origin only so request credentials cannot leak to an
+    attacker-controlled host.
     """
     _require_http_uri(resource_uri, "resource_uri")
     _require_http_uri(service_provider_uri, "service_provider_uri")
@@ -170,6 +177,7 @@ def fetch_oslc_resource(
 
     transport = opener or build_opener(_NoRedirect())
     current_uri = resource_uri
+    allowed_origin = _origin(resource_uri)
 
     for redirect_count in range(fetch_policy.max_redirects + 1):
         response = _request_once(
@@ -188,6 +196,11 @@ def fetch_oslc_resource(
                 raise OslcTransportError("redirect-invalid", "OSLC redirect omitted Location")
             next_uri = urljoin(current_uri, location)
             _require_http_uri(next_uri, "redirect URI")
+            if _origin(next_uri) != allowed_origin:
+                raise OslcTransportError(
+                    "redirect-origin",
+                    "OSLC redirect crossed origin and was rejected",
+                )
             current_uri = next_uri
             continue
 
@@ -250,10 +263,12 @@ def fetch_oslc_resource(
 def fetch_oslc_resource_with_offline_fallback(
     **kwargs,
 ) -> OslcFetchResult:  # type: ignore[no-untyped-def]
-    """Fetch live, falling back only to cache admitted by the configured policy."""
+    """Use admissible cache only when the live provider is genuinely unavailable."""
     try:
         return fetch_oslc_resource(**kwargs)
     except OslcTransportError as error:
+        if error.code not in {"unavailable", "timeout"}:
+            raise
         cache_root = kwargs["cache_root"]
         resource_uri = kwargs["resource_uri"]
         cache_policy = kwargs["cache_policy"]
