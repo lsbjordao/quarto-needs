@@ -62,7 +62,8 @@ evidence-self-example:
 		tests/test_graph_semantics.py::test_public_projection_publishes_catalog_semantics \
 		tests/test_graph_semantics.py::test_named_query_is_materialized_as_reusable_graph_view \
 		tests/test_impact.py::test_editing_a_requirement_impacts_its_verification \
-		tests/test_graph_assets.py::test_margin_sidebar_toggle_stays_entirely_outside_page_toc
+		tests/test_graph_assets.py::test_margin_sidebar_toggle_stays_entirely_outside_page_toc \
+		tests/test_oslc_federation.py::test_discovery_orchestrates_fetch_normalization_service_and_shape_parsing
 	PYTHONPATH=src $(VENV_PYTHON) -m quarto_needs.cli_entry --root examples/quarto-needs evidence attest \
 		.quarto-needs/evidence/pytest-provider.json \
 		--output .quarto-needs/evidence/pytest.json --expires-hours 24
