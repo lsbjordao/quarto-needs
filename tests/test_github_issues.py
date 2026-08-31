@@ -262,6 +262,76 @@ def test_fetch_external_github_issue_refetches_once_cache_is_stale(tmp_path) -> 
     assert len(opener.requests) == 2
 
 
+def test_fetch_external_github_issue_sends_conditional_request_when_cache_is_stale(
+    tmp_path,
+) -> None:
+    body = json.dumps(_real_shaped_payload()).encode("utf-8")
+    opener = _Opener(
+        _Response(200, body, **{"Content-Type": "application/json", "ETag": '"v1"'}),
+        _Response(304, b"", **{"ETag": '"v1"'}),
+    )
+
+    first = fetch_external_github_issue(
+        "acme",
+        "widgets",
+        3164,
+        fetched_at="2026-08-31T12:00:00Z",
+        opener=opener,
+        cache_root=tmp_path,
+        cache_policy=CachePolicy(max_age_seconds=60),
+    )
+    second = fetch_external_github_issue(
+        "acme",
+        "widgets",
+        3164,
+        fetched_at="2026-08-31T13:00:00Z",  # past the 60s freshness window
+        opener=opener,
+        cache_root=tmp_path,
+        cache_policy=CachePolicy(max_age_seconds=60),
+    )
+
+    assert len(opener.requests) == 2
+    assert opener.requests[1].get_header("If-none-match") == '"v1"'
+    # 304 means the body is reused, not re-fetched, but provenance is refreshed.
+    assert second.title == first.title
+    assert second.identity.digest == first.identity.digest
+    assert second.identity.fetched_at == "2026-08-31T13:00:00Z"
+
+
+def test_fetch_external_github_issue_refetches_fully_when_conditional_request_returns_200(
+    tmp_path,
+) -> None:
+    old_body = json.dumps(_real_shaped_payload(title="Old title")).encode("utf-8")
+    new_body = json.dumps(_real_shaped_payload(title="New title")).encode("utf-8")
+    opener = _Opener(
+        _Response(200, old_body, **{"Content-Type": "application/json", "ETag": '"v1"'}),
+        _Response(200, new_body, **{"Content-Type": "application/json", "ETag": '"v2"'}),
+    )
+
+    fetch_external_github_issue(
+        "acme",
+        "widgets",
+        3164,
+        fetched_at="2026-08-31T12:00:00Z",
+        opener=opener,
+        cache_root=tmp_path,
+        cache_policy=CachePolicy(max_age_seconds=60),
+    )
+    second = fetch_external_github_issue(
+        "acme",
+        "widgets",
+        3164,
+        fetched_at="2026-08-31T13:00:00Z",
+        opener=opener,
+        cache_root=tmp_path,
+        cache_policy=CachePolicy(max_age_seconds=60),
+    )
+
+    assert opener.requests[1].get_header("If-none-match") == '"v1"'
+    assert second.title == "New title"
+    assert second.identity.etag == '"v2"'
+
+
 def test_build_github_issue_identity_accepts_conditional_request_validators() -> None:
     identity = build_github_issue_identity(
         "acme",

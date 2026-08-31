@@ -159,3 +159,51 @@ def test_fetch_github_resource_reports_network_unavailable() -> None:
 def test_fetch_github_resource_rejects_non_http_uri() -> None:
     with pytest.raises(ValueError):
         fetch_github_resource("ftp://api.github.com/x", opener=_Opener())
+
+
+def test_fetch_github_resource_sends_conditional_headers_when_provided() -> None:
+    opener = _Opener(_Response(200, b"{}", **{"Content-Type": "application/json"}))
+
+    fetch_github_resource(
+        URI,
+        opener=opener,
+        if_none_match='"cached-etag"',
+        if_modified_since="Mon, 31 Aug 2026 12:00:00 GMT",
+    )
+
+    request = opener.requests[0]
+    assert request.get_header("If-none-match") == '"cached-etag"'
+    assert request.get_header("If-modified-since") == "Mon, 31 Aug 2026 12:00:00 GMT"
+
+
+def test_fetch_github_resource_omits_conditional_headers_when_not_provided() -> None:
+    opener = _Opener(_Response(200, b"{}", **{"Content-Type": "application/json"}))
+
+    fetch_github_resource(URI, opener=opener)
+
+    request = opener.requests[0]
+    assert request.get_header("If-none-match") is None
+    assert request.get_header("If-modified-since") is None
+
+
+def test_fetch_github_resource_returns_not_modified_result_on_304() -> None:
+    opener = _Opener(
+        _Response(304, b"", **{"ETag": '"same-etag"', "Last-Modified": "Mon, 31 Aug 2026 12:00:00 GMT"})
+    )
+
+    result = fetch_github_resource(URI, opener=opener, if_none_match='"same-etag"')
+
+    assert result.payload is None
+    assert result.etag == '"same-etag"'
+    assert result.last_modified == "Mon, 31 Aug 2026 12:00:00 GMT"
+
+
+def test_fetch_github_resource_304_response_is_not_media_type_or_byte_checked() -> None:
+    # A 304 carries no body and often no Content-Type at all; it must not be
+    # run through the application/json media-type check or the byte-limit
+    # reader that a 200 response is.
+    opener = _Opener(_Response(304, b""))
+
+    result = fetch_github_resource(URI, opener=opener, if_none_match='"etag"')
+
+    assert result.payload is None
