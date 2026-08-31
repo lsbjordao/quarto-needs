@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from quarto_needs.cli_entry import main
+from quarto_needs.oslc_catalog import OslcCatalogResult
 from quarto_needs.oslc_federation import OslcDiscoveryResult
 from quarto_needs.oslc_rm import OslcQueryCapability, OslcRmService
 
@@ -148,6 +149,58 @@ bearer-token-env = "QUARTO_NEEDS_OSLC_TOKEN"
     assert captured["max_nodes"] == 700
     assert captured["fetch_shapes"] is True
     assert captured["auth_headers"] == {"Authorization": "Bearer profile-secret"}
+
+
+def test_oslc_cli_catalog_reports_one_level_without_recursive_follow(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    captured = {}
+
+    def fake_catalog(**kwargs):
+        captured.update(kwargs)
+        return OslcCatalogResult(
+            catalog_uri="https://provider.test/oslc/catalog",
+            fetch_source="live",
+            service_provider_uris=(
+                "https://provider.test/oslc/sp/a",
+                "https://provider.test/oslc/sp/b",
+            ),
+            nested_catalog_uris=("https://provider.test/oslc/catalog/nested",),
+        )
+
+    monkeypatch.setattr("quarto_needs.oslc_cli.discover_oslc_catalog", fake_catalog)
+
+    assert (
+        main(
+            [
+                "--root",
+                str(tmp_path),
+                "oslc",
+                "catalog",
+                "https://provider.test/oslc/catalog",
+                "--format",
+                "json",
+                "--max-providers",
+                "10",
+                "--max-nested-catalogs",
+                "2",
+            ]
+        )
+        == 0
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert payload == {
+        "catalogUri": "https://provider.test/oslc/catalog",
+        "fetchSource": "live",
+        "nestedCatalogUris": ["https://provider.test/oslc/catalog/nested"],
+        "schema": "oslc-catalog-v1",
+        "serviceProviderUris": [
+            "https://provider.test/oslc/sp/a",
+            "https://provider.test/oslc/sp/b",
+        ],
+    }
+    assert captured["max_providers"] == 10
+    assert captured["max_nested_catalogs"] == 2
 
 
 def test_oslc_cli_reads_bearer_token_from_environment_without_printing_it(
