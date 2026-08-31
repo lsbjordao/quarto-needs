@@ -165,12 +165,13 @@ Implemented capabilities include:
 - regression coverage for parser, mappings, deterministic serialization, and CLI behavior;
 - deterministic, non-mutating `migration-apply-plan-v1` covering destination-file selection/collision policy, canonical-ID collision checks against the current project, type/status validation against `.quarto-needs.toml`, and canonical relation/endpoint resolution;
 - a source-provenance envelope (tool/project/version/source ID) carried through every apply-plan item;
-- installed `quarto-needs migrate sphinx-needs ... --apply-plan` CLI producing a reviewable text/JSON diff, with ready/review-required/blocked status per item and matching exit-code semantics.
+- installed `quarto-needs migrate sphinx-needs ... --apply-plan` CLI producing a reviewable text/JSON diff, with ready/review-required/blocked status per item and matching exit-code semantics;
+- deterministic, escaped rendering of each ready candidate into authored `.need` block text (`content_preview`), refusing to render (and blocking the item) whenever source content cannot round-trip through the grammar, verified against the real parser rather than the renderer's own assumptions; exposed in the CLI via `--show-content`.
 
 Next 5.4 slices:
 
 1. execute and harden the existing Sphinx-Needs migration regression/CLI suite locally;
-2. only then implement atomic/idempotent authored-file generation — escaping and lossless rendering of source content into `.need` blocks, atomic multi-file writes, rollback on failed writes or post-write validation, post-write `scan/check` verification, an idempotence contract for reruns, and explicit handling of fields that cannot be represented canonically;
+2. only then implement atomic/idempotent authored-file generation — writing each `ready-create` item's `content_preview` to its destination file, atomic multi-file writes, rollback on failed writes or post-write validation, post-write `scan/check` verification, an idempotence contract for reruns, and explicit handling of fields that cannot be represented canonically;
 3. add additional source-specific adapters such as StrictDoc, Doorstop, and OpenFastTrace after the shared migration-plan/apply contracts stabilize.
 
 Sphinx-Needs remains one inspiration for Quarto-Needs as well as a supported migration source; compatibility claims are limited to the explicitly implemented adapter behavior.

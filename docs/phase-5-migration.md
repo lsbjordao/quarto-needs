@@ -151,6 +151,19 @@ quarto-needs migrate sphinx-needs needs.json \
 
 Each candidate without an explicit `--destination` is reported `review-required` rather than guessed; a canonical-ID collision, disallowed type/status, or unresolved relation target is reported `blocked` with its reasons. The CLI exits `0` only when every item is `ready-create`.
 
+Add `--show-content` to print the exact `.need` block text that would be written for every item that has one (see below):
+
+```bash
+quarto-needs migrate sphinx-needs needs.json \
+  --type-map req=system-requirement \
+  --type-map test=test-case \
+  --relation-map tests=verified-by \
+  --apply-plan \
+  --destination REQ_001=requirements/authentication.qmd \
+  --destination TC_001=verification/authentication.qmd \
+  --show-content
+```
+
 The CLI currently supports Sphinx-Needs as the explicit source identifier. Unknown migration sources fail rather than selecting an adapter heuristically.
 
 ## Non-mutating apply-plan artifact
@@ -167,7 +180,21 @@ Default path:
 .quarto-needs/migrations/sphinx-needs-apply-plan.json
 ```
 
-Each item carries the proposed canonical ID, destination file (or `null` pending review), target type/status, title/content/tags, canonically resolved relations, source provenance (tool/project/version/source ID), and — when not `ready-create` — the explicit reasons it is `blocked` or `review-required`. This plan is validated against the *current* project's snapshot and `.quarto-needs.toml`, so it reflects collisions and configuration as they exist right now; it is not itself a guarantee that a later `--apply` run against a changed project will reproduce it. Building this plan never writes, creates, or modifies an authored `.qmd`/`.md` file.
+Each item carries the proposed canonical ID, destination file (or `null` pending review), target type/status, title/content/tags, canonically resolved relations, source provenance (tool/project/version/source ID), a `contentPreview` (see below), and — when not `ready-create` — the explicit reasons it is `blocked` or `review-required`. This plan is validated against the *current* project's snapshot and `.quarto-needs.toml`, so it reflects collisions and configuration as they exist right now; it is not itself a guarantee that a later `--apply` run against a changed project will reproduce it. Building this plan never writes, creates, or modifies an authored `.qmd`/`.md` file.
+
+## Content preview: rendering into `.need` blocks
+
+`src/quarto_needs/migrations/render.py` renders a candidate's title/body/tags/relations into authored `.need` block text using the same grammar `parser.py` reads (`::: {.need #ID type="..." status="..."}`, flat `relation: target` lines, an `##` heading, then body). The authored grammar has no escape mechanism, so rather than risk producing text that fails to round-trip, `need_block_problems(...)` refuses to render whenever the source data cannot be represented safely:
+
+- a canonical ID outside `[A-Za-z0-9_.:-]+`;
+- a target type, target status, or tag containing `"` or `}`, or a tag containing `;` (the tag separator);
+- a title containing a newline;
+- source content containing a line that is exactly `:::`, which would close the block early and silently truncate everything after it;
+- a relation target outside the same ID character set.
+
+Every `MigrationApplyItem` whose content renders cleanly carries the exact text in `content_preview` (`contentPreview` in JSON); any problem found is appended to the item's `reasons` and forces `status="blocked"`, even if destination/collision/type checks all pass. The renderer itself is verified by round-tripping its output through the real `parse_qmd_text_declarations` parser, not by asserting on its own string output.
+
+Rendering a preview never writes a file — it is purely part of the reviewable apply plan.
 
 ## Existing regression coverage
 
@@ -178,6 +205,7 @@ tests/test_sphinx_needs_migration.py
 tests/test_migration_cli.py
 tests/test_migration_apply_plan.py
 tests/test_migration_apply_plan_cli.py
+tests/test_migration_need_render.py
 ```
 
 Current tests protect:
@@ -196,7 +224,8 @@ Current tests protect:
 - conflicting mapping rejection;
 - unknown-source rejection;
 - apply-plan destination/collision/type/status/relation validation and status classification;
-- apply-plan CLI wiring, ready/review-required exit contracts, and default artifact path.
+- apply-plan CLI wiring, ready/review-required exit contracts, and default artifact path;
+- `.need` block content-preview rendering, its unrepresentable-content guard, and `--show-content` CLI output, verified by round-tripping through the real parser.
 
 ## What is intentionally not implemented
 
@@ -209,11 +238,11 @@ The non-mutating apply-plan contract (`--apply-plan`, see above) now covers:
 - (3) type/status validation against `.quarto-needs.toml`;
 - (4) canonical relation resolution and endpoint validation;
 - (5) source-provenance retention in generated declarations;
-- (12) a reviewable dry-run diff before mutation (the plan's text/JSON CLI output).
+- (6) escaping and lossless rendering of source content into `.need` blocks (as a preview; nothing is written yet);
+- (12) a reviewable dry-run diff before mutation (the plan's text/JSON CLI output, including the rendered content itself via `--show-content`).
 
 Before authored files can actually be generated or changed, Quarto-Needs still needs:
 
-- (6) escaping and lossless rendering of source content into `.need` blocks;
 - (7) atomic multi-file writes;
 - (8) rollback behavior on any failed write or post-write validation;
 - (9) post-write `scan/check` verification;
