@@ -30,6 +30,7 @@ KNOWN_TOP_LEVEL_KEYS = (
     "variants",
     "gates",
     "graph",
+    "federation",
 )
 PROFILES = ("advisory", "default", "strict")
 SEVERITIES = ("error", "warning", "info")
