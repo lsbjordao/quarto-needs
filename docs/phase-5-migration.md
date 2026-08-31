@@ -137,7 +137,37 @@ quarto-needs migrate sphinx-needs needs.json \
   --format json
 ```
 
+Reviewable apply plan, added against the current project graph and configuration (no file is written or changed):
+
+```bash
+quarto-needs migrate sphinx-needs needs.json \
+  --type-map req=system-requirement \
+  --type-map test=test-case \
+  --relation-map tests=verified-by \
+  --apply-plan \
+  --destination REQ_001=requirements/authentication.qmd \
+  --destination TC_001=verification/authentication.qmd
+```
+
+Each candidate without an explicit `--destination` is reported `review-required` rather than guessed; a canonical-ID collision, disallowed type/status, or unresolved relation target is reported `blocked` with its reasons. The CLI exits `0` only when every item is `ready-create`.
+
 The CLI currently supports Sphinx-Needs as the explicit source identifier. Unknown migration sources fail rather than selecting an adapter heuristically.
+
+## Non-mutating apply-plan artifact
+
+The `--apply-plan` flag emits:
+
+```text
+migration-apply-plan-v1
+```
+
+Default path:
+
+```text
+.quarto-needs/migrations/sphinx-needs-apply-plan.json
+```
+
+Each item carries the proposed canonical ID, destination file (or `null` pending review), target type/status, title/content/tags, canonically resolved relations, source provenance (tool/project/version/source ID), and — when not `ready-create` — the explicit reasons it is `blocked` or `review-required`. This plan is validated against the *current* project's snapshot and `.quarto-needs.toml`, so it reflects collisions and configuration as they exist right now; it is not itself a guarantee that a later `--apply` run against a changed project will reproduce it. Building this plan never writes, creates, or modifies an authored `.qmd`/`.md` file.
 
 ## Existing regression coverage
 
@@ -146,6 +176,8 @@ The implementation is covered by:
 ```text
 tests/test_sphinx_needs_migration.py
 tests/test_migration_cli.py
+tests/test_migration_apply_plan.py
+tests/test_migration_apply_plan_cli.py
 ```
 
 Current tests protect:
@@ -162,28 +194,33 @@ Current tests protect:
 - deterministic plan serialization;
 - CLI ready/unresolved exit contracts;
 - conflicting mapping rejection;
-- unknown-source rejection.
+- unknown-source rejection;
+- apply-plan destination/collision/type/status/relation validation and status classification;
+- apply-plan CLI wiring, ready/review-required exit contracts, and default artifact path.
 
 ## What is intentionally not implemented
 
-Phase 5.4 does **not** yet provide `migrate ... --apply`.
+Phase 5.4 does **not** yet provide `migrate ... --apply`. No command in this phase writes, creates, or modifies an authored `.qmd`/`.md` file.
 
-Before authored files can be generated or changed, Quarto-Needs needs an explicit apply contract covering:
+The non-mutating apply-plan contract (`--apply-plan`, see above) now covers:
 
-1. destination-file selection and collision policy;
-2. canonical-ID collision checks against the current project;
-3. type/status validation against `.quarto-needs.toml`;
-4. canonical relation resolution and endpoint validation;
-5. source-provenance retention in generated declarations;
-6. escaping and lossless rendering of source content into `.need` blocks;
-7. atomic multi-file writes;
-8. rollback behavior on any failed write or post-write validation;
-9. post-write `scan/check` verification;
-10. an idempotence contract for rerunning the same migration;
-11. explicit handling of source fields that cannot be represented canonically;
-12. reviewable dry-run diff before mutation.
+- (1) destination-file selection and collision policy;
+- (2) canonical-ID collision checks against the current project;
+- (3) type/status validation against `.quarto-needs.toml`;
+- (4) canonical relation resolution and endpoint validation;
+- (5) source-provenance retention in generated declarations;
+- (12) a reviewable dry-run diff before mutation (the plan's text/JSON CLI output).
 
-Until those contracts exist, the migration plan is the terminal artifact.
+Before authored files can actually be generated or changed, Quarto-Needs still needs:
+
+- (6) escaping and lossless rendering of source content into `.need` blocks;
+- (7) atomic multi-file writes;
+- (8) rollback behavior on any failed write or post-write validation;
+- (9) post-write `scan/check` verification;
+- (10) an idempotence contract for rerunning the same migration;
+- (11) explicit handling of source fields that cannot be represented canonically.
+
+Until those remaining contracts exist, the apply plan is the terminal artifact.
 
 ## Candidate next adapters
 
