@@ -178,9 +178,9 @@ Next 5.4 slices:
 
 Sphinx-Needs, Doorstop, and StrictDoc remain supported migration sources and inspirations for Quarto-Needs; compatibility claims are limited to the explicitly implemented adapter behavior for each.
 
-## 5.5 External service adapters 🟡 (eight slices in)
+## 5.5 External service adapters 🟡 (nine slices in — planned GitHub path complete)
 
-**Status: a read-only GitHub issue projection is implemented end to end — external identity, content-digest provenance, normalization into the same observation shape OSLC federation already uses, a bounded GET-only HTTP transport with rate-limit exhaustion distinguished from auth failures, a persistent content-addressed cache, conditional requests, bounded issue-list discovery, bounded multi-page traversal of that discovery, and reconciliation + import planning through OSLC's own source-agnostic contracts (zero new reconciliation code — proven, not assumed), all run against the real GitHub API including a real HTTP 304, a real list-then-fetch handoff, and a real two-page traversal across GitHub's rewritten Link targets. Self-hosted example integration remains.** See `docs/phase-5-external-adapters.md`.
+**Status: a read-only GitHub issue projection is implemented end to end — external identity, content-digest provenance, normalization into the same observation shape OSLC federation already uses, a bounded GET-only HTTP transport with rate-limit exhaustion distinguished from auth failures, a persistent content-addressed cache, conditional requests, bounded issue-list discovery, bounded multi-page traversal of that discovery, reconciliation + import planning through OSLC's own source-agnostic contracts (zero new reconciliation code — proven, not assumed), and a fully traced self-hosted example slice with five real pytest bindings in the attested evidence artifact — all run against the real GitHub API including a real HTTP 304, a real list-then-fetch handoff, and a real two-page traversal across GitHub's rewritten Link targets.** See `docs/phase-5-external-adapters.md`.
 
 Read-only/cacheable adapters may target GitHub issues or lifecycle-management systems. Every imported object must preserve external identity, origin, digest/version, retrieval policy, and trust state.
 
@@ -200,9 +200,14 @@ Implemented capabilities include:
 
 - rate-limit classification: `github_http.py` now raises `GitHubRateLimitError` (code `rate-limited`, a `GitHubTransportError` subclass so existing handlers keep working) for a `403` with `X-RateLimit-Remaining: 0` or any `429`, carrying the server's retry facts (`retry_after_seconds` from `Retry-After`, `rate_limit_reset_epoch` from `X-RateLimit-Reset`) without ever sleeping on its own; a `403` without exhaustion keeps the `authentication-required` classification, both branches are falsified, and live checks confirmed normal requests are untouched and the real `/rate_limit` endpoint's semantics match what the error reports (a real exhaustion was deliberately not triggered — it would burn the shared-IP hourly quota);
 
-Next 5.5 slices, each its own reviewed contract exactly as OSLC's discovery/cache/HTTP/RDF/query/observe/reconcile/import-plan were:
+- self-hosted example integration: the GitHub adapter is modeled as a complete chain in `examples/quarto-needs` — `STK-007 → SYS-008 → FUN-014…017 / NFR-007 → ADR-010 → COMP-GHISSUES / IF-006 / SRC-GITHUB-HTTP / SRC-GITHUB-ISSUES → TC-020…024 → EVD-020…024` (with `RISK-012` covering unbounded pagination, silent truncation, and rate-limit blindness, and `FUN-017` implementing against `COMP-OSLC` to record the reconciliation reuse in the model itself) — where the five test cases bind to real pytest nodeids with matching markers, all five joined `make evidence-self-example` (now attesting 16 linked tests; the evidence check's marker↔model cross-validation caught one real `verified-by` omission during authoring), and the pt-BR page mirrors all objects with identical semantic signatures;
 
-1. self-hosted example integration.
+Next 5.5 work (each its own reviewed contract, exactly as above):
+
+1. search-API text search (`GET /search/issues`) — different envelope and rate-limit class;
+2. an apply step consuming an accepted import plan (both OSLC and GitHub stop at the plan today);
+3. trust-state transitions for external observations;
+4. a caller-side rate-limit retry policy built on the transport's retry facts.
 
 ---
 
