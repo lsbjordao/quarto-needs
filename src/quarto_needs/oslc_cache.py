@@ -6,7 +6,6 @@ import tempfile
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Literal
 
 from .oslc_rm import CacheDecision, CachePolicy, ExternalResourceIdentity, content_digest
 
@@ -92,6 +91,14 @@ def _entry_key(entry: CachedRepresentation) -> tuple[str, str, str]:
     )
 
 
+def _entry_sort_key(entry: CachedRepresentation) -> tuple[str, datetime, str]:
+    return (
+        entry.identity.resource_uri,
+        _parsed_fetched_at(entry),
+        entry.identity.digest,
+    )
+
+
 def _blob_path(root: Path, digest: str) -> Path:
     hex_digest = digest.removeprefix("sha256:")
     return root / "blobs" / f"{hex_digest}.bin"
@@ -138,7 +145,7 @@ def load_cache_manifest(root: Path) -> tuple[CachedRepresentation, ...]:
     keys = [_entry_key(entry) for entry in entries]
     if len(keys) != len(set(keys)):
         raise ValueError("OSLC cache manifest contains duplicate observations")
-    return tuple(sorted(entries, key=_entry_key))
+    return tuple(sorted(entries, key=_entry_sort_key))
 
 
 def write_cache_manifest(root: Path, entries: tuple[CachedRepresentation, ...]) -> None:
@@ -147,7 +154,7 @@ def write_cache_manifest(root: Path, entries: tuple[CachedRepresentation, ...]) 
         raise ValueError("OSLC cache manifest contains duplicate observations")
     document = {
         "schema": OSLC_CACHE_SCHEMA,
-        "entries": [entry.to_dict() for entry in sorted(entries, key=_entry_key)],
+        "entries": [entry.to_dict() for entry in sorted(entries, key=_entry_sort_key)],
     }
     encoded = (
         json.dumps(document, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
