@@ -27,6 +27,7 @@ LOCALIZED_QMD_RE = re.compile(
 )
 
 RELATION_KEYS = set(DEFAULT_RELATION_CATALOG.names)
+RATIONALE_HEADING_RE = re.compile(r'^###\s+Rationale\s*$')
 
 
 def _parse_attrs(raw: str) -> dict[str, str]:
@@ -91,6 +92,30 @@ def _relation_targets(value: object) -> list[str]:
     return targets
 
 
+def _extract_rationale(body: str) -> str:
+    """Return the text under a ``### Rationale`` body heading, if any.
+
+    The authoring manual keeps human explanations in Markdown while
+    machine-queryable metadata lives in the preamble, and validation
+    accepts this heading as a requirement's rationale. This indexes that
+    prose into the ``rationale`` field so diff, baseline, and export see
+    it; the body is never modified — it stays the authored text verbatim.
+    Only the first heading counts, and the section ends at the next
+    heading of any level.
+    """
+    lines = body.split("\n")
+    for index, line in enumerate(lines):
+        if not RATIONALE_HEADING_RE.match(line):
+            continue
+        collected: list[str] = []
+        for candidate in lines[index + 1:]:
+            if HEADING_RE.match(candidate):
+                break
+            collected.append(candidate)
+        return "\n".join(collected).strip()
+    return ""
+
+
 def parse_qmd_text_declarations(text: str, source_file: str) -> DeclarationBatch:
     """Parse one QMD source buffer using the canonical .need grammar."""
     lines = text.splitlines()
@@ -141,6 +166,8 @@ def parse_qmd_text_declarations(text: str, source_file: str) -> DeclarationBatch
         if title_index is not None:
             body_lines = block[title_index + 1:]
         body = "\n".join(body_lines).strip()
+        if not rationale:
+            rationale = _extract_rationale(body)
 
         relations: list[RelationToken] = []
         attributes: dict[str, object] = {}

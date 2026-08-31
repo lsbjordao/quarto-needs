@@ -1760,7 +1760,7 @@
       "body": "The service shall validate credentials against the corporate directory before creating a session.\n\n### Rationale\n\nEnsures the session represents a known corporate identity.",
       "href": "requirements/functional.html#FUN-001",
       "id": "FUN-001",
-      "rationale": "",
+      "rationale": "Ensures the session represents a known corporate identity.",
       "relations": [
         {
           "attributes": {},
@@ -1798,7 +1798,7 @@
       "body": "The service shall require a second factor for privileged roles.\n\n### Rationale\n\nReduces the effectiveness of credentials captured through phishing.",
       "href": "requirements/functional.html#FUN-002",
       "id": "FUN-002",
-      "rationale": "",
+      "rationale": "Reduces the effectiveness of credentials captured through phishing.",
       "relations": [
         {
           "attributes": {},
@@ -1842,7 +1842,7 @@
       "body": "The service shall revoke sessions when the account is suspended or risk increases.\n\n### Rationale\n\nLimits the abuse window after a risk event.",
       "href": "requirements/functional.html#FUN-003",
       "id": "FUN-003",
-      "rationale": "",
+      "rationale": "Limits the abuse window after a risk event.",
       "relations": [
         {
           "attributes": {},
@@ -1880,7 +1880,7 @@
       "body": "The engine shall evaluate subject, resource, action, and context when deciding access.\n\n### Rationale\n\nAllows consistent policy enforcement regardless of the consuming application.",
       "href": "requirements/functional.html#FUN-004",
       "id": "FUN-004",
-      "rationale": "",
+      "rationale": "Allows consistent policy enforcement regardless of the consuming application.",
       "relations": [
         {
           "attributes": {},
@@ -1918,7 +1918,7 @@
       "body": "The engine shall deny requests that do not match a permissive rule.\n\n### Rationale\n\nPrevents privilege escalation caused by missing or overly broad policy.",
       "href": "requirements/functional.html#FUN-005",
       "id": "FUN-005",
-      "rationale": "",
+      "rationale": "Prevents privilege escalation caused by missing or overly broad policy.",
       "relations": [
         {
           "attributes": {},
@@ -1962,7 +1962,7 @@
       "body": "The system shall limit and record access delegations with an expiration date.\n\n### Rationale\n\nKeeps exceptional delegations temporary and accountable.",
       "href": "requirements/functional.html#FUN-006",
       "id": "FUN-006",
-      "rationale": "",
+      "rationale": "Keeps exceptional delegations temporary and accountable.",
       "relations": [
         {
           "attributes": {},
@@ -2000,7 +2000,7 @@
       "body": "The orchestrator shall create an account after receiving a valid onboarding event.\n\n### Rationale\n\nReduces manual work and ensures access starts from trusted source data.",
       "href": "requirements/functional.html#FUN-007",
       "id": "FUN-007",
-      "rationale": "",
+      "rationale": "Reduces manual work and ensures access starts from trusted source data.",
       "relations": [
         {
           "attributes": {},
@@ -2038,7 +2038,7 @@
       "body": "The orchestrator shall suspend the account and remove sessions after an offboarding event.\n\n### Rationale\n\nPrevents departed identities from retaining operational access.",
       "href": "requirements/functional.html#FUN-008",
       "id": "FUN-008",
-      "rationale": "",
+      "rationale": "Prevents departed identities from retaining operational access.",
       "relations": [
         {
           "attributes": {},
@@ -2076,7 +2076,7 @@
       "body": "The system shall open review campaigns for resource owners.\n\n### Rationale\n\nPeriodic reviews remove privileges that are no longer needed.",
       "href": "requirements/functional.html#FUN-009",
       "id": "FUN-009",
-      "rationale": "",
+      "rationale": "Periodic reviews remove privileges that are no longer needed.",
       "relations": [
         {
           "attributes": {},
@@ -2114,7 +2114,7 @@
       "body": "The system shall record the applied policy, subject, resource, outcome, and correlation.\n\n### Rationale\n\nMakes authorization decisions explainable and investigable.",
       "href": "requirements/functional.html#FUN-010",
       "id": "FUN-010",
-      "rationale": "",
+      "rationale": "Makes authorization decisions explainable and investigable.",
       "relations": [
         {
           "attributes": {},
@@ -2152,7 +2152,7 @@
       "body": "Auditors shall query account events in temporal order with filters.\n\n### Rationale\n\nReduces the time needed to investigate a specific identity.",
       "href": "requirements/functional.html#FUN-011",
       "id": "FUN-011",
-      "rationale": "",
+      "rationale": "Reduces the time needed to investigate a specific identity.",
       "relations": [
         {
           "attributes": {},
@@ -2190,7 +2190,7 @@
       "body": "The flow shall require proof of possession and additional validation for a high-risk account.\n\n### Rationale\n\nPrevents account recovery from being exploited for account takeover.",
       "href": "requirements/functional.html#FUN-012",
       "id": "FUN-012",
-      "rationale": "",
+      "rationale": "Prevents account recovery from being exploited for account takeover.",
       "relations": [
         {
           "attributes": {},
@@ -2363,7 +2363,7 @@
       "body": "Credentials and secrets shall use approved encryption during transport and storage.\n\n### Rationale\n\nProtects secrets from interception and exposure in persistent storage.",
       "href": "requirements/non-functional.html#NFR-001",
       "id": "NFR-001",
-      "rationale": "",
+      "rationale": "Protects secrets from interception and exposure in persistent storage.",
       "relations": [
         {
           "attributes": {},
@@ -2401,7 +2401,7 @@
       "body": "The authentication service shall achieve 99.95% monthly availability.\n\n### Rationale\n\nUnavailable identity blocks work across all consuming systems.",
       "href": "requirements/non-functional.html#NFR-002",
       "id": "NFR-002",
-      "rationale": "",
+      "rationale": "Unavailable identity blocks work across all consuming systems.",
       "relations": [
         {
           "attributes": {},
@@ -2439,7 +2439,7 @@
       "body": "Audit events shall contain only personal data necessary for their purpose.\n\n### Rationale\n\nMinimizes the impact of improper access or leakage from the log repository.",
       "href": "requirements/non-functional.html#NFR-003",
       "id": "NFR-003",
-      "rationale": "",
+      "rationale": "Minimizes the impact of improper access or leakage from the log repository.",
       "relations": [
         {
           "attributes": {},
@@ -2483,7 +2483,7 @@
       "body": "The 95th percentile of authorization decisions shall be below 200 ms under nominal load.\n\n### Rationale\n\nSlow decisions degrade experience and encourage insecure workarounds.",
       "href": "requirements/non-functional.html#NFR-004",
       "id": "NFR-004",
-      "rationale": "",
+      "rationale": "Slow decisions degrade experience and encourage insecure workarounds.",
       "relations": [
         {
           "attributes": {},
@@ -2521,7 +2521,7 @@
       "body": "Audit storage shall detect event modification or removal.\n\n### Rationale\n\nA tamperable trail cannot support investigation or evidence compliance.",
       "href": "requirements/non-functional.html#NFR-005",
       "id": "NFR-005",
-      "rationale": "",
+      "rationale": "A tamperable trail cannot support investigation or evidence compliance.",
       "relations": [
         {
           "attributes": {},
@@ -2559,7 +2559,7 @@
       "body": "Authentication screens shall meet level-AA accessibility criteria.\n\n### Rationale\n\nAll users need to complete authentication without depending on a single interaction mode.",
       "href": "requirements/non-functional.html#NFR-006",
       "id": "NFR-006",
-      "rationale": "",
+      "rationale": "All users need to complete authentication without depending on a single interaction mode.",
       "relations": [
         {
           "attributes": {},
@@ -2597,7 +2597,7 @@
       "body": "Access evidence shall remain available for the defined retention period.\n\n### Rationale\n\nMeets audit obligations and allows investigation of historical events.",
       "href": "requirements/non-functional.html#NFR-007",
       "id": "NFR-007",
-      "rationale": "",
+      "rationale": "Meets audit obligations and allows investigation of historical events.",
       "relations": [
         {
           "attributes": {},
@@ -2635,7 +2635,7 @@
       "body": "The service shall restore account recovery within the four-hour objective.\n\n### Rationale\n\nLimits the period in which legitimate users lack a safe recovery path.",
       "href": "requirements/non-functional.html#NFR-008",
       "id": "NFR-008",
-      "rationale": "",
+      "rationale": "Limits the period in which legitimate users lack a safe recovery path.",
       "relations": [
         {
           "attributes": {},
@@ -2902,7 +2902,7 @@
       "body": "Aegis IAM shall authenticate the identity before issuing a usable session.\n\n### Rationale\n\nPrevents protected resources from being exposed to anonymous requesters.",
       "href": "requirements/system.html#SYS-001",
       "id": "SYS-001",
-      "rationale": "",
+      "rationale": "Prevents protected resources from being exposed to anonymous requesters.",
       "relations": [
         {
           "attributes": {},
@@ -2940,7 +2940,7 @@
       "body": "The system shall decide access through centralized policies and trusted attributes.\n\n### Rationale\n\nCentralizing the decision reduces divergence among consuming applications.",
       "href": "requirements/system.html#SYS-002",
       "id": "SYS-002",
-      "rationale": "",
+      "rationale": "Centralizing the decision reduces divergence among consuming applications.",
       "relations": [
         {
           "attributes": {},
@@ -2978,7 +2978,7 @@
       "body": "The system shall provision, modify, suspend, and terminate accounts in an auditable manner.\n\n### Rationale\n\nOrphan accounts and persistent privileges are significant operational risks.",
       "href": "requirements/system.html#SYS-003",
       "id": "SYS-003",
-      "rationale": "",
+      "rationale": "Orphan accounts and persistent privileges are significant operational risks.",
       "relations": [
         {
           "attributes": {},
@@ -3016,7 +3016,7 @@
       "body": "The system shall record authentication, authorization, and administration events.\n\n### Rationale\n\nIntegrity-preserving records support investigation, compliance, and accountability.",
       "href": "requirements/system.html#SYS-004",
       "id": "SYS-004",
-      "rationale": "",
+      "rationale": "Integrity-preserving records support investigation, compliance, and accountability.",
       "relations": [
         {
           "attributes": {},
@@ -3054,7 +3054,7 @@
       "body": "The system shall recover access only after identity validation proportional to risk.\n\n### Rationale\n\nThe recovery process must not become an account-takeover path.",
       "href": "requirements/system.html#SYS-005",
       "id": "SYS-005",
-      "rationale": "",
+      "rationale": "The recovery process must not become an account-takeover path.",
       "relations": [
         {
           "attributes": {},
@@ -3092,7 +3092,7 @@
       "body": "The system shall provide open federation and provisioning protocols.\n\n### Rationale\n\nStandardized protocols reduce integration cost and risk.",
       "href": "requirements/system.html#SYS-006",
       "id": "SYS-006",
-      "rationale": "",
+      "rationale": "Standardized protocols reduce integration cost and risk.",
       "relations": [
         {
           "attributes": {},
@@ -3130,7 +3130,7 @@
       "body": "The system shall prioritize anomalous access patterns for review.\n\n### Rationale\n\nAnomaly analysis may surface privilege abuse earlier.",
       "href": "requirements/system.html#SYS-007",
       "id": "SYS-007",
-      "rationale": "",
+      "rationale": "Anomaly analysis may surface privilege abuse earlier.",
       "relations": [
         {
           "attributes": {},
@@ -3156,7 +3156,7 @@
       "body": "The system may provide a mobile credential for physical access.\n\n### Rationale\n\nThe need depends on a joint physical-security and privacy assessment.",
       "href": "requirements/system.html#SYS-008",
       "id": "SYS-008",
-      "rationale": "",
+      "rationale": "The need depends on a joint physical-security and privacy assessment.",
       "relations": [
         {
           "attributes": {},
