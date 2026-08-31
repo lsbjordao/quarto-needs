@@ -149,6 +149,56 @@ def test_apply_plan_cli_hides_content_by_default(tmp_path: Path, capsys) -> None
     assert "::: {.need" not in stdout
 
 
+def test_apply_plan_cli_write_creates_files_and_reports_them(
+    tmp_path: Path, capsys
+) -> None:
+    exit_code = _run(
+        tmp_path,
+        "--apply-plan",
+        "--write",
+        "--destination",
+        "REQ_001=requirements/authentication.qmd",
+        "--destination",
+        "TC_001=verification/authentication.qmd",
+        "--format",
+        "json",
+    )
+
+    assert exit_code == 0
+    req_path = tmp_path / "requirements" / "authentication.qmd"
+    tc_path = tmp_path / "verification" / "authentication.qmd"
+    assert req_path.is_file()
+    assert tc_path.is_file()
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["schema"] == "migration-apply-result-v1"
+    assert sorted(payload["written"]) == [
+        "requirements/authentication.qmd",
+        "verification/authentication.qmd",
+    ]
+
+
+def test_apply_plan_cli_write_requires_apply_plan_flag(tmp_path: Path, capsys) -> None:
+    exit_code = _run(tmp_path, "--write")
+
+    assert exit_code == 2
+    assert "--write requires --apply-plan" in capsys.readouterr().err
+
+
+def test_apply_plan_cli_write_refuses_and_writes_nothing_when_not_ready(
+    tmp_path: Path,
+) -> None:
+    exit_code = _run(
+        tmp_path,
+        "--apply-plan",
+        "--write",
+        "--destination",
+        "TC_001=verification/authentication.qmd",
+    )
+
+    assert exit_code == 2
+    assert list(tmp_path.rglob("*.qmd")) == []
+
+
 def test_plan_only_invocation_is_unaffected_by_apply_plan_support(
     tmp_path: Path, capsys
 ) -> None:
