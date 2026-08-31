@@ -4,7 +4,11 @@ from types import MappingProxyType
 
 from quarto_needs.config import Gates, NeedsConfig
 from quarto_needs.migrations.apply_plan import build_sphinx_apply_plan
-from quarto_needs.migrations.sphinx_needs import build_migration_plan
+from quarto_needs.migrations.sphinx_needs import (
+    SphinxNeedCandidate,
+    SphinxNeedsMigrationPlan,
+    build_migration_plan,
+)
 from quarto_needs.parser import parse_qmd_text_declarations
 from quarto_needs.snapshot import AnalysisSnapshot, ObjectRecord
 
@@ -249,3 +253,39 @@ def test_unrenderable_source_content_blocks_the_item_and_omits_content_preview()
     assert req.status == "blocked"
     assert req.content_preview is None
     assert any("prematurely close" in reason for reason in req.reasons)
+
+
+def test_apply_plan_carries_a_non_sphinx_source_tool_through_provenance_and_plan() -> None:
+    migration = SphinxNeedsMigrationPlan(
+        source_project="reqs",
+        source_version="n/a",
+        candidates=(
+            SphinxNeedCandidate(
+                source_id="REQ001",
+                source_type="REQ",
+                target_type="system-requirement",
+                title="Doorstop item",
+                content="Doorstop-sourced requirement text.",
+                status=None,
+                tags=(),
+                relations=(),
+                unmapped_links={},
+                extras={},
+            ),
+        ),
+        issues=(),
+        tool="Doorstop",
+        schema="doorstop-migration-plan-v1",
+    )
+
+    plan = build_sphinx_apply_plan(
+        migration,
+        _snapshot(),
+        _config(),
+        destinations={"REQ001": "requirements/imported.qmd"},
+    )
+
+    assert plan.source_tool == "Doorstop"
+    item = plan.items[0]
+    assert item.status == "ready-create"
+    assert item.provenance["tool"] == "Doorstop"
