@@ -18,6 +18,7 @@ book:
     - architecture.qmd
     - implementation.qmd
     - verification.qmd
+    - interoperability.qmd
     - traceability.qmd
     - change.qmd
 
