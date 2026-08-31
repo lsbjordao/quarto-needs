@@ -156,7 +156,7 @@ def test_discovery_requires_configured_provider_identity_and_rm_service(tmp_path
         [{"@id": "https://provider.test/oslc/sp/other"}]
     ).encode("utf-8")
     with pytest.raises(OslcRdfError, match="configured Service Provider URI"):
-        _discover(tmp_path, _Opener(_Response(wrong_provider)))
+        _discover(tmp_path / "wrong-provider", _Opener(_Response(wrong_provider)))
 
     provider_without_rm = json.dumps(
         [
@@ -173,7 +173,7 @@ def test_discovery_requires_configured_provider_identity_and_rm_service(tmp_path
         ]
     ).encode("utf-8")
     with pytest.raises(OslcRdfError, match="exposes no RM service"):
-        _discover(tmp_path, _Opener(_Response(provider_without_rm)))
+        _discover(tmp_path / "without-rm", _Opener(_Response(provider_without_rm)))
 
 
 def test_discovery_rejects_resource_shape_identity_mismatch(tmp_path: Path) -> None:
