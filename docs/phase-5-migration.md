@@ -1,10 +1,10 @@
 # Phase 5.4 — Migration adapters
 
-Status: **two migration adapters — Sphinx-Needs and Doorstop — are implemented end to end on a shared contract: a source-specific deterministic plan, a reviewable non-mutating apply plan with a `.need` block content preview, and a create-only, atomic, rollback-protected `--write` step that generates authored files.**
+Status: **three migration adapters — Sphinx-Needs, Doorstop, and StrictDoc — are implemented end to end on a shared contract: a source-specific deterministic plan, a reviewable non-mutating apply plan with a `.need` block content preview, and a create-only, atomic, rollback-protected `--write` step that generates authored files.**
 
 Quarto-Needs treats migration as a reviewed interoperability operation, not as a parser shortcut. A migration source may have its own type system, relation semantics, computed fields, conditional links, backlinks, dynamic functions, rendering behavior, and identity conventions. Those concepts must not be silently reinterpreted as canonical Quarto-Needs semantics.
 
-Sphinx-Needs is one of the inspirations for Quarto-Needs and was the first migration source supported by this phase; Doorstop followed, converging on the same apply-plan/write contract without either adapter guessing the other's semantics.
+Sphinx-Needs is one of the inspirations for Quarto-Needs and was the first migration source supported by this phase; Doorstop and StrictDoc followed, each converging on the same apply-plan/write contract without any adapter guessing another's semantics.
 
 ## Architectural rule
 
@@ -217,6 +217,38 @@ quarto-needs migrate doorstop reqs \
   --write
 ```
 
+## StrictDoc adapter
+
+StrictDoc stores requirements as `.sdoc` text files using its own SDoc grammar: `[TAG]` blocks (`[DOCUMENT]`, `[REQUIREMENT]`, `[TEXT]`, `[[SECTION]]`/`[[/SECTION]]`, and any project-custom tag declared in a `[GRAMMAR]` block) containing flat `KEY: value` fields, `KEY: >>>` … `<<<` multi-line fields, and an optional `RELATIONS:` list of `- TYPE: <type>` entries with their own sub-fields. `src/quarto_needs/migrations/strictdoc.py` reads only this text; it never executes StrictDoc.
+
+Unlike Doorstop, a StrictDoc item's `UID` is authored directly and is globally unique across the whole project, not derived from a filename or a per-document prefix — so `--type-map` is keyed by the block's `[TAG]` (e.g. `REQUIREMENT`, exactly like Sphinx-Needs' `type` field) and `--relation-map` is keyed by each relation entry's own `TYPE` (e.g. `Parent`), which can point to a UID defined in a *different* `.sdoc` file; every file under the given root is loaded together so cross-document relations resolve. Only blocks that carry a non-empty `UID` become candidates — `[TEXT]` and `[[SECTION]]` prose blocks without one are structural presentation, not migrated. `RATIONALE`, when present, is folded into the candidate's content as a `### Rationale` subsection — the same convention `parser.py` already recognizes in authored `.qmd` bodies — rather than inventing a separate field the destination grammar has no slot for.
+
+```bash
+quarto-needs migrate strictdoc reqs \
+  --type-map REQUIREMENT=system-requirement \
+  --relation-map Parent=derives-from
+```
+
+A `[TAG]` without an explicit `--type-map` entry produces `TYPE_UNMAPPED`, exactly like the other two adapters. A relation `TYPE` without an explicit `--relation-map` entry produces `RELATION_UNMAPPED` and is preserved under `unmappedLinks` keyed by that `TYPE`, not dropped. A relation whose `VALUE` is not defined anywhere in the loaded project produces `EXTERNAL_LINK_TARGET`. Not every relation is UID-addressed: StrictDoc's `TYPE: File` relations carry `FORMAT`/`PATH` instead of `VALUE` (pointing at a source file, not a requirement), so they cannot resolve against the canonical ID space at all — rather than forcing them through the UID-relation path or discarding them, every such entry is preserved verbatim under the candidate's `extras.nonUidRelations`. The same duplicate-UID fail-closed behavior applies across files as within a single Doorstop tree, and both were verified not only against synthetic fixtures but by running the adapter against StrictDoc's own real, self-hosted `.sdoc` requirements documents (fetched from `strictdoc-project/strictdoc` on GitHub) — the `[GRAMMAR]`-block edge cases (`[DOCUMENT].OPTIONS`, `[GRAMMAR].ELEMENTS`, and `TYPE: File` relations) that synthetic fixtures alone would not have surfaced were found and handled this way specifically because of that real-data run.
+
+Each migrated candidate preserves every field the adapter does not consume as `extras` (`MID`, `COMMENT`, any project-custom field), keyed exactly as StrictDoc authored them.
+
+```bash
+quarto-needs migrate strictdoc reqs \
+  --type-map REQUIREMENT=system-requirement \
+  --relation-map Parent=derives-from \
+  --apply-plan \
+  --destination SRS-1=requirements/config.qmd \
+  --write
+```
+
+Default artifact paths, independent of the other two adapters':
+
+```text
+.quarto-needs/migrations/strictdoc-plan.json
+.quarto-needs/migrations/strictdoc-apply-plan.json
+```
+
 ## Non-mutating apply-plan artifact
 
 The `--apply-plan` flag emits:
@@ -274,6 +306,8 @@ tests/test_migration_need_render.py
 tests/test_migration_apply_write.py
 tests/test_doorstop_migration.py
 tests/test_doorstop_migration_cli.py
+tests/test_strictdoc_migration.py
+tests/test_strictdoc_migration_cli.py
 ```
 
 Current tests protect:
@@ -296,35 +330,37 @@ Current tests protect:
 - `.need` block content-preview rendering, its unrepresentable-content guard, and `--show-content` CLI output, verified by round-tripping through the real parser;
 - `--apply-plan --write`: create-only, atomic-per-file, all-or-nothing-with-rollback authored-file generation, with post-write `scan`/`check` re-verification and a refusal-based idempotence contract;
 - the apply-plan contract carrying a non-Sphinx `tool`/`schema` through provenance and the plan artifact, proven directly rather than only through Doorstop;
-- Doorstop document/item discovery across nested `.doorstop.yml` document boundaries, prefix-keyed type/relation mapping, unmapped-type/unmapped-relation/external-link diagnostics (falsified, not just asserted, for duplicate-UID rejection), and the same CLI plan/apply-plan/write contract end to end with independent default artifact paths.
+- Doorstop document/item discovery across nested `.doorstop.yml` document boundaries, prefix-keyed type/relation mapping, unmapped-type/unmapped-relation/external-link diagnostics (falsified, not just asserted, for duplicate-UID rejection), and the same CLI plan/apply-plan/write contract end to end with independent default artifact paths;
+- StrictDoc `.sdoc` parsing across multiple files with globally-unique, cross-file UID resolution, TAG-keyed type mapping and relation-TYPE-keyed relation mapping, rationale folded into content as a `### Rationale` subsection, `TYPE: File` (non-UID) relations preserved rather than misresolved or dropped, and the same CLI plan/apply-plan/write contract end to end — additionally validated by running against StrictDoc's own real, self-hosted `.sdoc` requirements documents.
 
 ## What is intentionally not implemented
 
-`--apply-plan --write` (see above) covers all twelve items originally listed for the apply contract: destination selection/collision policy, canonical-ID collision checks, type/status validation, relation/endpoint resolution, source-provenance retention, escaped `.need` block rendering, atomic multi-file writes, rollback on failed writes or post-write validation, post-write `scan`/`check` verification, a refusal-based idempotence contract, upstream handling of unrepresentable fields, and a reviewable dry-run diff before mutation. This holds for both adapters, since they converge on the same `build_sphinx_apply_plan`/`apply_migration_plan` implementation.
+`--apply-plan --write` (see above) covers all twelve items originally listed for the apply contract: destination selection/collision policy, canonical-ID collision checks, type/status validation, relation/endpoint resolution, source-provenance retention, escaped `.need` block rendering, atomic multi-file writes, rollback on failed writes or post-write validation, post-write `scan`/`check` verification, a refusal-based idempotence contract, upstream handling of unrepresentable fields, and a reviewable dry-run diff before mutation. This holds for all three adapters, since they converge on the same `build_sphinx_apply_plan`/`apply_migration_plan` implementation.
 
 What is still explicitly out of scope for this phase:
 
-- **update/match semantics.** `build_sphinx_apply_plan` is create-only by design (see its docstring): an existing canonical ID is always a collision, never an implicit update. Migrating a *changed* upstream project (Sphinx-Needs or Doorstop) onto an already-migrated Quarto-Needs project needs its own reviewed identity/merge contract, not an extension of this one.
+- **update/match semantics.** `build_sphinx_apply_plan` is create-only by design (see its docstring): an existing canonical ID is always a collision, never an implicit update. Migrating a *changed* upstream project (Sphinx-Needs, Doorstop, or StrictDoc) onto an already-migrated Quarto-Needs project needs its own reviewed identity/merge contract, not an extension of this one.
 - **multi-file/partial-batch review.** A plan is applied whole or not at all; there is no "apply only the ready subset and leave the rest for later" mode.
-- **additional source-specific adapters** (StrictDoc, Doorstop, OpenFastTrace, …) beyond Sphinx-Needs.
+- **non-UID relation resolution**, such as StrictDoc's file-addressed `TYPE: File` relations — preserved for review, never guessed into a canonical relation.
+- **additional source-specific adapters** (OpenFastTrace, …) beyond the three implemented.
 
-Automatic migration writes now existing for Sphinx-Needs does not change the terminal-artifact posture of Phase 5.3's OSLC federation (still plan-only) or of any future external adapter: each adapter earns its own reviewed apply contract independently.
+Automatic migration writes now existing for these adapters does not change the terminal-artifact posture of Phase 5.3's OSLC federation (still plan-only) or of any future external adapter: each adapter earns its own reviewed apply contract independently.
 
 ## Candidate next adapters
 
-Additional adapters may target other requirements/docs-as-code ecosystems such as StrictDoc and OpenFastTrace.
+Additional adapters may target other requirements/docs-as-code ecosystems such as OpenFastTrace.
 
-Each adapter must remain source-specific at the parsing boundary and converge only at a shared migration-plan contract, exactly as Doorstop converged onto Sphinx-Needs' apply-plan/render/write implementation rather than reimplementing it. The project should not build a generic heuristic importer that guesses semantics across unrelated source ecosystems.
+Each adapter must remain source-specific at the parsing boundary and converge only at a shared migration-plan contract, exactly as Doorstop and StrictDoc converged onto Sphinx-Needs' apply-plan/render/write implementation rather than reimplementing it. The project should not build a generic heuristic importer that guesses semantics across unrelated source ecosystems.
 
 ## Phase 5.4 acceptance direction
 
-The Sphinx-Needs and Doorstop adapters are considered functionally complete for their sources now that:
+The Sphinx-Needs, Doorstop, and StrictDoc adapters are considered functionally complete for their sources now that:
 
 - their regression and CLI suites pass locally;
-- the plan, apply-plan, and apply-result schemas/contracts are documented, stable, and shared across both adapters (each carrying its own `tool`/`schema` provenance);
-- a representative real-world source tree can be processed without hidden source execution (no Sphinx project, no Doorstop invocation, no arbitrary Python);
+- the plan, apply-plan, and apply-result schemas/contracts are documented, stable, and shared across all three adapters (each carrying its own `tool`/`schema` provenance);
+- a representative real-world source tree can be processed without hidden source execution (no Sphinx project, no Doorstop invocation, no StrictDoc invocation, no arbitrary Python) — StrictDoc's adapter specifically against StrictDoc's own real self-hosted `.sdoc` documents, not only synthetic fixtures;
 - unresolved semantics are surfaced explicitly rather than silently dropped;
 - the apply contract was specified (this document, and the roadmap) before any mutation code was introduced, and every one of its explicit requirements — atomicity, rollback, post-write verification, idempotence, create-only identity, unrepresentable-content refusal — is exercised by a test that fails when the corresponding behavior is removed;
-- adding the second adapter required no change to the apply-plan/render/write contract itself, only to the source-specific parser — evidence that the contract, not just the first adapter, is what was actually built.
+- adding a second and third adapter required no change to the apply-plan/render/write contract itself, only to each source-specific parser — evidence that the contract, not just the first adapter, is what was actually built.
 
-What remains is further breadth (StrictDoc, OpenFastTrace), and, independently, an update/match identity contract if migrating an already-migrated project ever becomes a requirement.
+What remains is further breadth (OpenFastTrace), and, independently, an update/match identity contract if migrating an already-migrated project ever becomes a requirement.
