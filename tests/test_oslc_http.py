@@ -163,28 +163,31 @@ def test_transport_rejects_unsupported_media_type_and_oversized_payload(tmp_path
 
 
 def test_redirects_are_same_origin_and_bounded(tmp_path: Path) -> None:
+    same_origin_root = tmp_path / "same-origin"
     opener = _Opener(
         _Response(302, Location="/oslc/sp/final"),
         _Response(200, b"{}", **{"Content-Type": "application/ld+json"}),
     )
-    result = fetch_oslc_resource(**_kwargs(tmp_path), opener=opener)
+    result = fetch_oslc_resource(**_kwargs(same_origin_root), opener=opener)
     assert result.source == "live"
     assert opener.requests[1][0].full_url == "https://provider.test/oslc/sp/final"
 
+    cross_origin_root = tmp_path / "cross-origin"
     opener = _Opener(_Response(302, Location="https://evil.test/steal"))
     with pytest.raises(OslcTransportError) as cross_origin:
         fetch_oslc_resource(
-            **_kwargs(tmp_path),
+            **_kwargs(cross_origin_root),
             opener=opener,
             auth_headers={"Authorization": "Bearer secret"},
         )
     assert cross_origin.value.code == "redirect-origin"
     assert len(opener.requests) == 1
 
+    redirect_limit_root = tmp_path / "redirect-limit"
     opener = _Opener(_Response(302, Location="/again"))
     with pytest.raises(OslcTransportError) as redirect_limit:
         fetch_oslc_resource(
-            **_kwargs(tmp_path),
+            **_kwargs(redirect_limit_root),
             opener=opener,
             fetch_policy=HttpFetchPolicy(max_redirects=0),
         )
