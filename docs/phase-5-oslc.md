@@ -1,6 +1,6 @@
 # Phase 5.3 — OSLC Requirements Management federation
 
-Status: **read-only federation foundation implemented through deterministic cache persistence and bounded HTTP transport; local execution and RDF normalization/discovery orchestration remain pending**.
+Status: **read-only federation foundation implemented through deterministic cache persistence, bounded HTTP transport, network-free RDF normalization, RM discovery, and Resource Shape orchestration; executable validation and user-facing CLI/configuration remain pending**.
 
 Quarto-Needs approaches OSLC Requirements Management as a federation boundary around the canonical engineering graph, not as a replacement authoring model and not as a second semantic authority.
 
@@ -20,15 +20,7 @@ Quarto-Needs does **not** claim to be an OSLC RM server in Phase 5.3. Server con
 
 Only Quarto-Needs types named `requirement` or ending in `-requirement` are projected as `rm:Requirement`. Other engineering objects remain valid link targets but are not misclassified as requirements.
 
-Projected requirements preserve:
-
-- canonical ID as `dcterms:identifier` and Quarto-Needs extension metadata;
-- title as `dcterms:title`;
-- body as `dcterms:description`;
-- `oslc:serviceProvider` URI;
-- original Quarto-Needs type, status, rationale, authored attributes, and semantic graph fingerprint in the versioned Quarto-Needs OSLC extension namespace.
-
-The projection uses caller-supplied HTTP(S) base and Service Provider URIs. Canonical IDs are percent-encoded into stable resource paths.
+Projected requirements preserve canonical ID, title, body, Service Provider URI, original Quarto-Needs type/status/rationale/attributes, and the semantic graph fingerprint. Canonical IDs are percent-encoded into stable resource paths.
 
 ## Conservative relation mapping
 
@@ -40,158 +32,141 @@ OSLC terms are emitted only where the canonical Quarto-Needs meaning has a safe 
 | `verified-by` | `rm:validatedBy` |
 | `validated-by` | `rm:validatedBy` |
 
-No other relation is promoted merely because its English label looks similar. All outgoing relations remain available in Quarto-Needs extension metadata with canonical name, authored name, semantic family, and target URI. This makes unsupported mapping explicit rather than silently lossy.
+Unsupported relations are retained in Quarto-Needs extension metadata rather than guessed into superficially similar OSLC terms.
 
 ## External identity and cache provenance
 
-`ExternalResourceIdentity` establishes the minimum metadata required before a fetched OSLC resource can participate in federation:
+`ExternalResourceIdentity` records the external resource URI, Service Provider URI, SHA-256 digest of the bytes actually observed, timezone-aware retrieval time, trust state, optional `ETag`, and optional `Last-Modified` value.
 
-- absolute HTTP(S) resource URI;
-- absolute HTTP(S) Service Provider URI;
-- SHA-256 content digest;
-- timezone-aware retrieval timestamp;
-- trust state: `trusted`, `unverified`, `stale`, or `rejected`;
-- optional HTTP `ETag`;
-- optional `Last-Modified` value.
-
-The digest identifies the bytes actually inspected, not merely the remote URI. URI and digest therefore remain distinct notions: the former is external identity; the latter is the observed representation/version.
-
-`CachePolicy` evaluates cache freshness deterministically against an explicit `now` instant. It returns one of `fresh`, `stale-allowed`, or `stale-rejected`; it never silently upgrades stale content to current data. Naive timestamps and backwards time are rejected.
+`CachePolicy` evaluates freshness against an explicit `now`. It returns `fresh`, `stale-allowed`, or `stale-rejected`; stale content is never silently upgraded to current data.
 
 ## Persistent deterministic cache
 
-`src/quarto_needs/oslc_cache.py` implements the first persistent federation cache contract.
+`src/quarto_needs/oslc_cache.py` implements `oslc-cache-v1`:
 
-The cache is intentionally append-observational rather than mutable-current-state storage:
-
-- the manifest schema is versioned as `oslc-cache-v1`;
-- remote bytes are content-addressed under their SHA-256 digest;
-- the manifest preserves distinct observations by `resourceUri + digest + fetchedAt`;
-- observations are serialized deterministically by resource URI, retrieval time, then digest;
+- remote bytes are content-addressed under SHA-256;
+- distinct observations are preserved by `resourceUri + digest + fetchedAt`;
+- manifest serialization is deterministic by resource URI, retrieval time, and digest;
 - re-storing the same observation is idempotent and byte-stable;
-- a changed remote payload produces a new digest and a new historical observation instead of overwriting the old one;
-- every cached blob is digest-validated before use;
-- unknown manifest fields, duplicate observations, unsupported schemas, malformed identities, and corrupted blobs fail explicitly;
-- rejected trust-state observations are never selected automatically.
-
-The manifest stores only federation provenance and representation metadata. Request credentials and authorization headers have no persistence path.
-
-## Service and Query Capability discovery
-
-`discover_rm_services()` consumes an **already expanded JSON-LD** Service Provider representation. RDF expansion remains outside this pure function so transport/serialization concerns do not redefine discovery semantics.
-
-The parser:
-
-- ignores services whose `oslc:domain` is not the RM namespace;
-- requires every discovered Query Capability to expose exactly one `oslc:queryBase`;
-- accepts at most one `oslc:resourceShape` per Query Capability;
-- retains advertised `oslc:resourceType` URIs;
-- validates HTTP(S) query/service/shape URIs where the Core discovery contract requires dereferenceable resources;
-- sorts services and query capabilities deterministically.
-
-Keeping expanded RDF parsing separate allows JSON-LD, Turtle, or RDF/XML normalization to converge on one discovery contract.
-
-## Resource Shape parsing
-
-`src/quarto_needs/oslc_shape.py` implements a bounded parser for an already expanded OSLC Core 3.0 `ResourceShape`.
-
-It preserves:
-
-- shape URI;
-- `oslc:describes` resource types;
-- inline `oslc:property` constraints;
-- required `oslc:name`, `oslc:occurs`, and `oslc:propertyDefinition` values;
-- optional `oslc:valueType`, `oslc:range`, `oslc:readOnly`, `oslc:representation`, and `oslc:valueShape` values.
-
-The occurrence contract is restricted to the four Core cardinalities: `Exactly-one`, `One-or-many`, `Zero-or-many`, and `Zero-or-one`. Invalid or structurally ambiguous shape data is rejected explicitly instead of guessed.
+- a changed payload produces a new observation instead of overwriting history;
+- blobs are digest-validated before use;
+- unknown fields/schemas, duplicate observations, malformed identities, and corrupted blobs fail explicitly;
+- rejected trust-state observations are not selected automatically;
+- request credentials have no persistence path.
 
 ## Bounded read-only HTTP transport
 
-`src/quarto_needs/oslc_http.py` implements the first live transport boundary. It is deliberately narrow:
+`src/quarto_needs/oslc_http.py` provides the live transport boundary:
 
-- only HTTP `GET` is emitted;
-- resource and Service Provider identifiers must be absolute HTTP(S) URIs;
-- timeout, byte budget, and redirect count are explicit `HttpFetchPolicy` values;
-- supported representation media types are bounded to JSON-LD/JSON, Turtle, and RDF/XML;
-- declared `Content-Length` and streamed bytes are both checked against the configured byte budget;
-- stale cached observations contribute `If-None-Match` and `If-Modified-Since` conditional headers;
-- HTTP `304` refreshes the observation timestamp while retaining the validated cached bytes/digest;
-- redirects are accepted only within the original origin (`scheme + host + port`) so authorization material cannot leak across hosts;
-- authentication headers are request-only inputs and are never stored;
-- `401/403`, unsupported media type, invalid response, timeout, unavailability, redirect violation, and oversized responses are distinct `OslcTransportError` categories;
-- offline fallback is permitted only for genuine provider unavailability/timeout and only when the configured cache policy admits the stale representation;
+- HTTP `GET` only;
+- absolute HTTP(S) identifiers;
+- explicit timeout, byte, and redirect budgets;
+- bounded media types: JSON-LD/JSON, Turtle, and RDF/XML;
+- `Content-Length` and streamed payload size validation;
+- conditional retrieval with `If-None-Match` / `If-Modified-Since`;
+- deterministic `304 Not Modified` refresh over previously validated bytes;
+- same-origin redirects only, with default ports normalized (`http:80`, `https:443`);
+- request-only authentication headers cannot override transport-owned `Accept`, `User-Agent`, or conditional headers;
+- `401/403`, timeout, provider unavailability, unsupported media type, malformed response metadata, oversized responses, and redirect violations have distinct error codes;
+- offline fallback occurs only for genuine unavailability/timeout and only when cache policy explicitly admits the stale representation;
 - authentication failures are never hidden by stale-cache fallback.
 
 A fresh cache hit avoids network I/O entirely.
 
-## Next discovery orchestration slice
+## Network-free RDF normalization
 
-The next slice will connect the pieces in this order:
+`src/quarto_needs/oslc_rdf.py` normalizes supported representations into expanded JSON-LD:
 
-1. normalize supported RDF representations into expanded JSON-LD;
-2. fetch a configured Service Provider or Service Provider Catalog through the bounded transport;
-3. feed normalized data through the existing RM service discovery parser;
-4. fetch advertised Resource Shapes through the same transport/cache budgets;
-5. expose deterministic local discovery results before any remote requirement import is permitted;
-6. add CLI configuration and explainable diagnostics around this orchestration.
+- JSON-LD and JSON are expanded with PyLD;
+- Turtle and RDF/XML are parsed through RDFLib and then expanded through the same JSON-LD boundary;
+- remote JSON-LD document/context loading is disabled, so parsing cannot create hidden network traffic;
+- expanded-node counts are bounded;
+- malformed RDF/JSON-LD and duplicate expanded node identities fail explicitly;
+- RDF tooling is exposed through the optional `quarto-needs[oslc]` dependency set rather than inflating the minimal runtime core.
 
-Discovery will not recursively crawl arbitrary Linked Data graphs.
+## RM Service and Query Capability discovery
+
+`discover_rm_services()` remains a pure parser over expanded JSON-LD. It filters for the RM domain, validates Query Capability cardinality, preserves resource types, validates HTTP(S) discovery URIs, and sorts results deterministically.
+
+`src/quarto_needs/oslc_federation.py` now orchestrates the full read-only path for a configured Service Provider:
+
+```text
+bounded GET/cache
+      ↓
+RDF → expanded JSON-LD
+      ↓
+materialize referenced service/query nodes
+      ↓
+RM Service + Query Capability discovery
+      ↓
+fetch advertised Resource Shapes
+      ↓
+normalize/materialize/parse shapes
+      ↓
+deterministic discovery result
+```
+
+The configured Service Provider URI must exist in the normalized representation. A provider exposing no RM service fails explicitly. Advertised Resource Shapes must resolve to the advertised identity. Discovered resources remain external projections; they are **not** merged into the canonical engineering graph.
+
+## Resource Shape parsing
+
+`src/quarto_needs/oslc_shape.py` preserves shape identity, described resource types, property definitions, occurrence cardinalities, value types/ranges, read-only state, representation, and nested value-shape links. The occurrence contract is bounded to the four OSLC Core cardinalities and ambiguous shape data is rejected rather than guessed.
 
 ## Authentication boundary
 
-Authentication is provider-specific and therefore not part of the canonical model. The federation layer accepts credentials/tokens only through the transport adapter boundary; secrets must never be written into `.quarto-needs.toml`, generated graph projections, evidence artifacts, logs, or cache metadata.
+Authentication remains provider-specific and outside the canonical model. Credentials/tokens are request-only adapter inputs and must never be written into `.quarto-needs.toml`, graph projections, evidence, logs, or cache metadata.
 
-The live adapter remains read-only. No POST, PUT, PATCH, or DELETE will be implemented until identity conflict policy, optimistic-concurrency behavior, authorization failure semantics, and audit/provenance contracts are complete.
+No POST, PUT, PATCH, or DELETE will be implemented until identity conflict policy, optimistic concurrency, authorization failure behavior, and audit/provenance contracts are explicit.
 
-## Offline and stale-cache behavior
+## Self-hosted engineering slice
 
-The cache contract is fail-explicit:
+The official self-hosted example now models Phase 5.3 end to end in English and Brazilian Portuguese:
 
-- a fresh cached representation may be used according to configured policy;
-- an expired but available representation is usable only when stale data is explicitly permitted;
-- absence of both a live response and an admissible cache is an explicit unavailable result;
-- digest changes create a new observed representation rather than mutating historical provenance;
-- rejected/untrusted content is never merged into the canonical engineering graph automatically;
-- stale fallback does not mask authentication or policy failures.
+```text
+STK-006
+   ↓
+SYS-007
+   ↓
+FUN-010 / NFR-006
+   ↓
+ADR-008
+   ↓
+COMP-OSLC / IF-005
+   ↓
+SRC-OSLC-RM / CACHE / HTTP / RDF / FEDERATION
+   ↓
+TC-015
+   ↓
+EVD-015
+```
+
+`TC-015` is reciprocally bound to `tests/test_oslc_federation.py::test_discovery_orchestrates_fetch_normalization_service_and_shape_parsing` and therefore participates in the same executable-evidence model used by other self-hosted capabilities.
 
 ## Failure model
 
-The read-only transport and federation foundation now distinguish:
+The current foundation distinguishes at least authentication/authorization failure, provider unavailability, timeout, unsupported media type, invalid response metadata, byte-budget violation, redirect-count/origin violation, malformed cache state, corrupted cached bytes, stale cache rejected by policy, malformed RDF/JSON-LD, missing configured Service Provider identity, incompatible/non-RM discovery data, and invalid Resource Shapes.
 
-- authentication/authorization required;
-- provider or resource unavailable;
-- request timeout;
-- unsupported media type;
-- invalid response metadata;
-- response exceeding configured byte budget;
-- redirect count violation;
-- redirect origin violation;
-- malformed cache manifest or identity;
-- corrupted cached bytes;
-- stale cache without permission to use stale data;
-- malformed or incompatible RM discovery data;
-- unsupported/invalid Resource Shape.
-
-RDF parsing/normalization failures and higher-level external identity conflicts will be added at the discovery orchestration boundary.
+External requirement identity collision/reconciliation belongs to the later import boundary and is not silently approximated here.
 
 ## Current acceptance status
 
-1. **implemented** — official RM/Core namespace boundary and requirement class projection;
-2. **implemented** — conservative mapping for implementation and validation relations;
-3. **implemented** — unsupported relations preserved explicitly as Quarto-Needs extension metadata;
-4. **implemented** — deterministic local/external resource identity rules;
-5. **implemented** — external cache/provenance/trust record, SHA-256 digest helper, and deterministic freshness policy;
-6. **implemented** — bounded RM Service/Query Capability discovery parser over expanded JSON-LD;
-7. **implemented** — bounded Core ResourceShape parser;
-8. **implemented** — regression tests for projection, relation mapping, unsupported mapping, URI encoding, provenance, freshness, discovery ordering/cardinality, and shape contracts;
-9. **pending local execution** — execute the complete OSLC foundation/cache/transport test set in a real runner;
-10. **implemented** — deterministic persistent cache manifest with content-addressed validated blobs and historical observations;
-11. **implemented, pending execution gate** — first HTTP read-only transport with explicit auth/offline/redirect/media-type/size/failure contracts;
-12. **pending** — RDF representation normalization plus live discovery/Resource Shape orchestration;
-13. **pending** — CLI/configuration surface for configured OSLC federation;
-14. **deferred** — remote writes or synchronization.
+1. **implemented** — official RM/Core namespace boundary and requirement projection;
+2. **implemented** — conservative relation mapping and explicit unsupported-relation preservation;
+3. **implemented** — external identity, provenance, trust, digest, and freshness contracts;
+4. **implemented** — deterministic persistent cache with content-addressed validated blobs and historical observations;
+5. **implemented, pending execution gate** — bounded GET-only HTTP transport with conditional retrieval, same-origin redirect security, auth/offline/media/size/failure contracts;
+6. **implemented, pending execution gate** — JSON-LD/Turtle/RDFXML normalization with no implicit network dereferencing;
+7. **implemented** — bounded RM Service/Query Capability parser;
+8. **implemented** — bounded Core Resource Shape parser;
+9. **implemented, pending execution gate** — read-only Service Provider → RM discovery → Resource Shape orchestration;
+10. **implemented** — self-hosted requirements/ADR/component/source/test/evidence traceability for the OSLC slice;
+11. **pending local execution** — run the complete OSLC regression set in a working environment;
+12. **pending** — user-facing named federation configuration and deterministic CLI discovery report;
+13. **candidate next** — bounded Service Provider Catalog selection where required by real providers;
+14. **deferred** — external requirement import/conflict/reconciliation;
+15. **deferred** — remote writes or synchronization.
 
-## Local foundation tests
+## Regression set
 
 ```bash
 pytest -q \
@@ -199,7 +174,9 @@ pytest -q \
   tests/test_oslc_discovery.py \
   tests/test_oslc_shape.py \
   tests/test_oslc_cache.py \
-  tests/test_oslc_http.py
+  tests/test_oslc_http.py \
+  tests/test_oslc_rdf.py \
+  tests/test_oslc_federation.py
 ```
 
-The tests are network-free by design; HTTP behavior is exercised through deterministic fake openers/responses. In the current execution environment they remain **unexecuted** because the available GitHub Actions jobs terminate before repository checkout and this session cannot clone the private repository into a runnable container. The implementation status above therefore distinguishes committed regression coverage from a successful execution claim.
+The suite is network-free by design: HTTP behavior is exercised through deterministic fake openers/responses. In the current execution environment it remains **unexecuted** because GitHub Actions jobs terminate before repository checkout and this session cannot run the private repository in a local clone. Committed regression coverage is therefore not represented as successful execution evidence.
