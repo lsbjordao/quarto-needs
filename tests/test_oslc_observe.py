@@ -145,7 +145,12 @@ def test_materialization_requires_requested_identity_and_title(tmp_path: Path) -
             opener=_Opener(_Response(wrong)),
         )
 
-    no_title = json.dumps({"@id": uri}).encode("utf-8")
+    no_title = json.dumps(
+        {
+            "@id": uri,
+            DCTERMS_DESCRIPTION: [{"@value": "Body without title"}],
+        }
+    ).encode("utf-8")
     with pytest.raises(OslcRdfError, match="dcterms:title"):
         materialize_query_observations(
             _query(uri),
