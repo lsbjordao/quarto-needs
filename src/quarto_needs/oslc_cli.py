@@ -4,14 +4,30 @@ import argparse
 import json
 import os
 import sys
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Sequence
 
 from .oslc_federation import OslcDiscoveryResult, discover_oslc_rm
 from .oslc_http import HttpFetchPolicy, OslcTransportError
+from .oslc_profiles import OslcFederationProfile, OslcProfileError, load_oslc_profiles
 from .oslc_rdf import OslcRdfError
 from .oslc_rm import CachePolicy
+
+
+@dataclass(frozen=True, slots=True)
+class _ResolvedDiscovery:
+    service_provider_uri: str
+    cache_dir: str
+    max_age_seconds: int
+    allow_stale: bool
+    timeout_seconds: float
+    max_bytes: int
+    max_redirects: int
+    max_nodes: int
+    fetch_shapes: bool
+    bearer_token_env: str | None
 
 
 def oslc_action(argv: Sequence[str]) -> str | None:
@@ -41,17 +57,20 @@ def _parser() -> argparse.ArgumentParser:
         prog="quarto-needs oslc discover",
         description="Discover one OSLC RM Service Provider through the bounded read-only federation adapter.",
     )
-    parser.add_argument("service_provider_uri")
+    parser.add_argument("service_provider_uri", nargs="?")
+    parser.add_argument("--profile", help="Named profile from .quarto-needs-oslc.toml")
     parser.add_argument("--root")
     parser.add_argument("--format", choices=("text", "json"), default="text")
-    parser.add_argument("--cache-dir", default=".quarto-needs/oslc-cache")
-    parser.add_argument("--max-age-seconds", type=int, default=3600)
-    parser.add_argument("--allow-stale", action="store_true")
-    parser.add_argument("--timeout-seconds", type=float, default=10.0)
-    parser.add_argument("--max-bytes", type=int, default=2_000_000)
-    parser.add_argument("--max-redirects", type=int, default=3)
-    parser.add_argument("--max-nodes", type=int, default=5_000)
-    parser.add_argument("--no-shapes", action="store_true")
+    parser.add_argument("--cache-dir")
+    parser.add_argument("--max-age-seconds", type=int)
+    parser.add_argument("--allow-stale", dest="allow_stale", action="store_true", default=None)
+    parser.add_argument("--disallow-stale", dest="allow_stale", action="store_false")
+    parser.add_argument("--timeout-seconds", type=float)
+    parser.add_argument("--max-bytes", type=int)
+    parser.add_argument("--max-redirects", type=int)
+    parser.add_argument("--max-nodes", type=int)
+    parser.add_argument("--no-shapes", dest="fetch_shapes", action="store_false", default=None)
+    parser.add_argument("--shapes", dest="fetch_shapes", action="store_true")
     parser.add_argument(
         "--bearer-token-env",
         metavar="ENV_VAR",
@@ -92,7 +111,6 @@ def _strip_dispatch_tokens(argv: Sequence[str]) -> list[str]:
 
 def _now(value: str | None) -> str:
     if value:
-        # CachePolicy performs the canonical timezone-aware validation.
         return value
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
@@ -109,6 +127,83 @@ def _auth_headers(env_name: str | None) -> dict[str, str] | None:
     if token is None or not token.strip():
         raise ValueError(f"environment variable {env_name!r} is unset or empty")
     return {"Authorization": f"Bearer {token.strip()}"}
+
+
+def _value(cli_value, profile_value, default):
+    if cli_value is not None:
+        return cli_value
+    if profile_value is not None:
+        return profile_value
+    return default
+
+
+def _resolve_discovery(root: Path, args: argparse.Namespace) -> _ResolvedDiscovery:
+    if args.profile and args.service_provider_uri:
+        raise ValueError("provide either a Service Provider URI or --profile, not both")
+    if not args.profile and not args.service_provider_uri:
+        raise ValueError("a Service Provider URI or --profile is required")
+
+    profile: OslcFederationProfile | None = None
+    if args.profile:
+        profiles = load_oslc_profiles(root)
+        try:
+            profile = profiles[args.profile]
+        except KeyError as error:
+            available = ", ".join(sorted(profiles)) or "none"
+            raise ValueError(
+                f"unknown OSLC profile {args.profile!r} (available: {available})"
+            ) from error
+
+    return _ResolvedDiscovery(
+        service_provider_uri=(
+            profile.service_provider_uri if profile is not None else args.service_provider_uri
+        ),
+        cache_dir=_value(
+            args.cache_dir,
+            profile.cache_dir if profile is not None else None,
+            ".quarto-needs/oslc-cache",
+        ),
+        max_age_seconds=_value(
+            args.max_age_seconds,
+            profile.max_age_seconds if profile is not None else None,
+            3600,
+        ),
+        allow_stale=_value(
+            args.allow_stale,
+            profile.allow_stale if profile is not None else None,
+            False,
+        ),
+        timeout_seconds=_value(
+            args.timeout_seconds,
+            profile.timeout_seconds if profile is not None else None,
+            10.0,
+        ),
+        max_bytes=_value(
+            args.max_bytes,
+            profile.max_bytes if profile is not None else None,
+            2_000_000,
+        ),
+        max_redirects=_value(
+            args.max_redirects,
+            profile.max_redirects if profile is not None else None,
+            3,
+        ),
+        max_nodes=_value(
+            args.max_nodes,
+            profile.max_nodes if profile is not None else None,
+            5_000,
+        ),
+        fetch_shapes=_value(
+            args.fetch_shapes,
+            profile.fetch_shapes if profile is not None else None,
+            True,
+        ),
+        bearer_token_env=_value(
+            args.bearer_token_env,
+            profile.bearer_token_env if profile is not None else None,
+            None,
+        ),
+    )
 
 
 def discovery_to_dict(result: OslcDiscoveryResult) -> dict[str, object]:
@@ -185,27 +280,28 @@ def run_oslc_action(root: Path, argv: Sequence[str], action: str) -> int:
     parser = _parser()
     try:
         args = parser.parse_args(_strip_dispatch_tokens(argv))
+        resolved = _resolve_discovery(root, args)
         cache_policy = CachePolicy(
-            max_age_seconds=args.max_age_seconds,
-            allow_stale=args.allow_stale,
+            max_age_seconds=resolved.max_age_seconds,
+            allow_stale=resolved.allow_stale,
         )
         fetch_policy = HttpFetchPolicy(
-            timeout_seconds=args.timeout_seconds,
-            max_bytes=args.max_bytes,
-            max_redirects=args.max_redirects,
+            timeout_seconds=resolved.timeout_seconds,
+            max_bytes=resolved.max_bytes,
+            max_redirects=resolved.max_redirects,
         )
-        auth_headers = _auth_headers(args.bearer_token_env)
+        auth_headers = _auth_headers(resolved.bearer_token_env)
         result = discover_oslc_rm(
-            service_provider_uri=args.service_provider_uri,
-            cache_root=_cache_root(root, args.cache_dir),
+            service_provider_uri=resolved.service_provider_uri,
+            cache_root=_cache_root(root, resolved.cache_dir),
             cache_policy=cache_policy,
             now=_now(args.now),
             fetch_policy=fetch_policy,
             auth_headers=auth_headers,
-            max_nodes=args.max_nodes,
-            fetch_shapes=not args.no_shapes,
+            max_nodes=resolved.max_nodes,
+            fetch_shapes=resolved.fetch_shapes,
         )
-    except (ValueError, OslcRdfError) as error:
+    except (ValueError, OslcProfileError, OslcRdfError) as error:
         print(f"OSLC configuration/data error: {error}", file=sys.stderr)
         return 2
     except OslcTransportError as error:
