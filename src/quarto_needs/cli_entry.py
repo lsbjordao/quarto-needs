@@ -14,6 +14,7 @@ from pathlib import Path
 from .cli_dispatch import main as dispatch_main
 from .git_range_cli import git_action, run_git_action
 from .interchange_cli import interchange_action, run_interchange_export
+from .migration_cli import migration_action, run_migration_action
 from .oslc_cli import oslc_action, run_oslc_action
 from .variant_cli import run_variant_action, variant_action
 
@@ -56,6 +57,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     interchange = interchange_action(values)
     if interchange is not None:
         return run_interchange_export(_root(values), values, interchange)
+    migration = migration_action(values)
+    if migration is not None:
+        return run_migration_action(_root(values), values, migration)
     oslc = oslc_action(values)
     if oslc is not None:
         return run_oslc_action(_root(values), values, oslc)
