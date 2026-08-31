@@ -21,6 +21,8 @@ Centralized policy is acceptable only if it does not materially degrade the expe
 
 Machine-queryable metadata stays in the block preamble; human explanations remain in Markdown. This distinction prevents documentation from becoming an excessively structured form.
 
+A `### Rationale` section inside the block is indexed into the object's machine-readable rationale field — so per-field diffs, baselines, and exports see it — while the body itself is preserved verbatim. A `rationale:` preamble key, when present, takes precedence.
+
 ## References and views
 
 The book can project the graph with shortcodes such as:

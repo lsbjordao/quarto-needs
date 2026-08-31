@@ -21,6 +21,8 @@ A centralização da política só é aceitável se não degradar materialmente 
 
 Metadados computáveis ficam no preâmbulo do bloco; explicações humanas permanecem em Markdown. Essa distinção evita transformar documentação em um formulário excessivamente estruturado.
 
+Uma seção `### Rationale` dentro do bloco é indexada no campo rationale computável do objeto — assim diffs por campo, baselines e exportações a enxergam — enquanto o corpo é preservado verbatim. Uma chave `rationale:` no preâmbulo, quando presente, tem precedência.
+
 ## Referências e visualizações
 
 O livro pode projetar o grafo com shortcodes como:
