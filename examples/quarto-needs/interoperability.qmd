@@ -10,10 +10,10 @@ Quarto-Needs treats interchange and federation as projections and adapters aroun
 Teams need to exchange and discover requirements through established standards while preserving canonical identity, provenance, trust, and explicit loss semantics.
 :::
 
-::: {.need #SYS-007 type="system-requirement" status="approved" priority="high" tags="interoperability;oslc;federation;provenance" derives-from="STK-006" implemented-by="COMP-OSLC" verified-by="TC-015;TC-016"}
+::: {.need #SYS-007 type="system-requirement" status="approved" priority="high" tags="interoperability;oslc;federation;provenance" derives-from="STK-006" implemented-by="COMP-OSLC" verified-by="TC-015;TC-016;TC-017"}
 ## Federate OSLC requirements through a bounded read-only adapter
 
-Quarto-Needs shall discover OSLC Requirements Management services and Resource Shapes through a bounded read-only federation layer that preserves external identity, cache provenance, and trust without importing remote semantics into the canonical graph automatically.
+Quarto-Needs shall discover OSLC Requirements Management services, execute explicitly selected read-only Query Capabilities, and reconcile observed external resources through a bounded federation layer that preserves external identity, cache provenance, and trust without importing remote semantics into the canonical graph automatically.
 
 ### Rationale
 
@@ -40,14 +40,24 @@ Quarto-Needs shall compare observed external requirements with canonical objects
 Provider identifiers and display fields can be reused, mutable, or locally ambiguous. Reconciliation must surface unbound resources, stale or rejected observations, missing local targets, duplicate bindings, and field differences before any future import operation is allowed.
 :::
 
-::: {.need #NFR-006 type="non-functional-requirement" status="approved" priority="critical" tags="oslc;security;provenance;offline;determinism" derives-from="SYS-007" implemented-by="COMP-OSLC" verified-by="TC-015;TC-016" mitigates="RISK-005"}
-## Keep federation bounded, provenance-preserving, and fail-explicit
+::: {.need #FUN-012 type="functional-requirement" status="approved" priority="high" tags="oslc;query;query-capability;read-only;bounded" derives-from="SYS-007" implemented-by="COMP-OSLC;IF-005" verified-by="TC-017" mitigates="RISK-005"}
+## Execute an explicitly selected OSLC Query Capability without crawling members
 
-OSLC federation shall enforce byte/time/redirect/node budgets, reject cross-origin redirects, prevent implicit remote JSON-LD context loading, preserve content digests and historical observations, and never hide authentication failures or identity conflicts behind stale cache fallback or heuristic matching.
+Quarto-Needs shall execute a bounded HTTP GET against an explicitly selected OSLC Query Capability, parse the query-result container deterministically, enforce a maximum member count, preserve query-response provenance, and report member URIs without recursively dereferencing them.
 
 ### Rationale
 
-External integration expands the trust boundary and therefore requires stronger failure, provenance, and identity contracts than local projection alone.
+Discovery is not sufficient for practical federation, but query execution must not silently turn into unbounded Linked Data crawling. The first query slice therefore consumes an explicit query base and keeps member fetching as a separate future operation.
+:::
+
+::: {.need #NFR-006 type="non-functional-requirement" status="approved" priority="critical" tags="oslc;security;provenance;offline;determinism" derives-from="SYS-007" implemented-by="COMP-OSLC" verified-by="TC-015;TC-016;TC-017" mitigates="RISK-005"}
+## Keep federation bounded, provenance-preserving, and fail-explicit
+
+OSLC federation shall enforce byte/time/redirect/node/member budgets, reject cross-origin redirects, prevent implicit remote JSON-LD context loading and recursive member crawling, preserve content digests and historical observations, and never hide authentication failures or identity conflicts behind stale cache fallback or heuristic matching.
+
+### Rationale
+
+External integration expands the trust boundary and therefore requires stronger failure, provenance, identity, and traversal contracts than local projection alone.
 :::
 
 ## Architecture
@@ -55,27 +65,27 @@ External integration expands the trust boundary and therefore requires stronger 
 ::: {.need #COMP-OSLC type="component" status="implemented" tags="oslc;federation;interoperability;python"}
 ## OSLC federation subsystem
 
-Coordinates OSLC projection, external identity, deterministic cache persistence, bounded HTTP transport, RDF normalization, RM discovery, Resource Shape parsing, and explicit non-mutating reconciliation without surrendering the canonical engineering graph.
+Coordinates OSLC projection, external identity, deterministic cache persistence, bounded HTTP transport, RDF normalization, RM discovery, Resource Shape parsing, explicit query execution, and non-mutating reconciliation without surrendering the canonical engineering graph.
 :::
 
 ::: {.need #IF-005 type="interface" status="implemented" tags="oslc;http;rdf;federation"}
 ## Read-only OSLC federation interface
 
-The adapter boundary accepts configured HTTP(S) Service Provider identity, explicit cache/fetch policies, optional request-only authentication headers, and returns discovered RM services and Resource Shapes with provenance.
+The adapter boundary accepts configured HTTP(S) Service Provider identity, explicit cache/fetch/query policies, optional request-only authentication headers, and returns discovered RM services, Resource Shapes, and bounded query results with provenance.
 :::
 
 ::: {.need #RISK-005 type="risk" status="approved" priority="critical" tags="oslc;security;federation;credentials;stale-cache"}
-## External federation leaks credentials or silently trusts stale, changed, or misidentified data
+## External federation leaks credentials or silently trusts stale, changed, misidentified, or unbounded remote data
 
-Redirects, remote contexts, mutable resources, stale cache, opaque network failure, or heuristic identity matching could leak authentication material or make unverified external state appear canonical.
+Redirects, remote contexts, mutable resources, stale cache, opaque network failure, heuristic identity matching, or recursive member traversal could leak authentication material or make unverified external state appear canonical.
 :::
 
-::: {.need #ADR-008 type="architecture-decision" status="accepted" date="2026-08-30" revisit-after="2027-08-30" decision-makers="Quarto-Needs maintainers" tags="oslc;federation;read-only;security" addresses="SYS-007;FUN-010;NFR-006;RISK-005" applies-to="COMP-OSLC;IF-005" confirmed-by="TC-015"}
+::: {.need #ADR-008 type="architecture-decision" status="accepted" date="2026-08-30" revisit-after="2027-08-30" decision-makers="Quarto-Needs maintainers" tags="oslc;federation;read-only;security" addresses="SYS-007;FUN-010;FUN-012;NFR-006;RISK-005" applies-to="COMP-OSLC;IF-005" confirmed-by="TC-015;TC-017"}
 ## Keep the first OSLC federation path read-only, bounded, and cache-provenanced
 
 ### Context and Problem Statement
 
-OSLC introduces external identity, authentication, mutable remote representations, linked-data serialization, caching, and provider-specific failure modes. Treating those concerns as ordinary local objects would blur the trust boundary.
+OSLC introduces external identity, authentication, mutable remote representations, linked-data serialization, caching, query capabilities, and provider-specific failure modes. Treating those concerns as ordinary local objects or automatically traversing every discovered link would blur the trust boundary.
 
 ### Decision Drivers
 
@@ -83,19 +93,20 @@ OSLC introduces external identity, authentication, mutable remote representation
 - make external identity and observed bytes independently auditable;
 - prevent hidden network activity during RDF normalization;
 - prevent credentials from crossing redirect origins or entering persistent artifacts;
-- support deterministic offline behavior without silently accepting stale state.
+- support deterministic offline behavior without silently accepting stale state;
+- prevent discovery/query execution from becoming recursive Linked Data crawling.
 
 ### Decision Outcome
 
-Implement OSLC as a read-only adapter. HTTP uses GET only with explicit budgets and same-origin redirects. Cached bytes are content-addressed by SHA-256 and historical observations are retained. RDF normalization performs no implicit remote context fetches. Discovery, Resource Shapes, and reconciliation inputs remain external projections and are not merged into the canonical graph.
+Implement OSLC as a read-only adapter. HTTP uses GET only with explicit budgets and same-origin redirects. Cached bytes are content-addressed by SHA-256 and historical observations are retained. RDF normalization performs no implicit remote context fetches. Query execution requires an explicitly selected query base, limits member count, and reports member URIs without recursively fetching them. Discovery, query results, Resource Shapes, and reconciliation inputs remain external projections and are not merged into the canonical graph.
 
 ### Consequences
 
-The adapter can federate and analyze reconciliation safely before synchronization exists. Canonical import and all remote writes remain deliberately deferred.
+The adapter can discover, query, and analyze reconciliation safely before synchronization exists. Canonical import and all remote writes remain deliberately deferred.
 
 ### Confirmation
 
-`TC-015` exercises the complete network-free discovery orchestration path using deterministic fake HTTP responses.
+`TC-015` exercises the complete network-free discovery orchestration path; `TC-017` exercises bounded query execution and response provenance.
 :::
 
 ::: {.need #ADR-009 type="architecture-decision" status="accepted" date="2026-08-30" revisit-after="2027-08-30" decision-makers="Quarto-Needs maintainers" tags="oslc;reconciliation;identity;conflict" addresses="FUN-011;NFR-006;RISK-005" applies-to="COMP-OSLC" confirmed-by="TC-016"}
@@ -140,13 +151,13 @@ Defines conservative RM projection, external identity, cache freshness, and netw
 Stores content-addressed validated blobs and deterministic historical observation metadata.
 :::
 
-::: {.need #SRC-OSLC-HTTP type="source-module" status="implemented" path="src/quarto_needs/oslc_http.py" language="Python" layer="interoperability" tags="oslc;http;security;offline" implements="FUN-010;NFR-006"}
+::: {.need #SRC-OSLC-HTTP type="source-module" status="implemented" path="src/quarto_needs/oslc_http.py" language="Python" layer="interoperability" tags="oslc;http;security;offline" implements="FUN-010;FUN-012;NFR-006"}
 ## OSLC bounded HTTP transport module
 
 Provides GET-only bounded transport, conditional retrieval, same-origin redirect enforcement, explicit failure categories, and policy-controlled offline fallback.
 :::
 
-::: {.need #SRC-OSLC-RDF type="source-module" status="implemented" path="src/quarto_needs/oslc_rdf.py" language="Python" layer="interoperability" tags="oslc;rdf;jsonld;turtle;rdfxml" implements="FUN-010;NFR-006"}
+::: {.need #SRC-OSLC-RDF type="source-module" status="implemented" path="src/quarto_needs/oslc_rdf.py" language="Python" layer="interoperability" tags="oslc;rdf;jsonld;turtle;rdfxml" implements="FUN-010;FUN-012;NFR-006"}
 ## OSLC RDF normalization module
 
 Normalizes JSON-LD, Turtle, and RDF/XML into expanded JSON-LD without implicit remote document/context loading.
@@ -156,6 +167,12 @@ Normalizes JSON-LD, Turtle, and RDF/XML into expanded JSON-LD without implicit r
 ## OSLC federation orchestration module
 
 Composes transport, cache, RDF normalization, RM discovery, and Resource Shape parsing while keeping discovered resources external to the canonical graph.
+:::
+
+::: {.need #SRC-OSLC-QUERY type="source-module" status="implemented" path="src/quarto_needs/oslc_query.py" language="Python" layer="interoperability" tags="oslc;query;query-capability;bounded" implements="FUN-012;NFR-006"}
+## OSLC bounded query module
+
+Executes an explicit query-base GET through the existing cache/transport boundary, parses the result container, enforces member limits, preserves response digest/time provenance, and never recursively dereferences member URIs.
 :::
 
 ::: {.need #SRC-OSLC-RECONCILE type="source-module" status="implemented" path="src/quarto_needs/oslc_reconcile.py" language="Python" layer="interoperability" tags="oslc;reconciliation;identity;conflict" implements="FUN-011;NFR-006"}
@@ -190,6 +207,18 @@ Verify that matching external identifiers do not create implicit canonical ident
 `TC-016` is bound to the executable regression that protects the explicit identity boundary before any future import path can be enabled.
 :::
 
+::: {.need #TC-017 type="test-case" status="passed" tags="pytest;oslc;query;query-capability;provenance" pytest-nodeid="tests/test_oslc_query.py::test_execute_oslc_query_uses_existing_bounded_fetch_and_reports_response_provenance" evidenced-by="EVD-017"}
+## OSLC bounded query execution regression
+
+Verify that query execution reuses bounded fetch/cache policy, enforces explicit node/member limits, preserves response provenance, and reports inline/non-inline members without recursive dereferencing.
+:::
+
+::: {.need #EVD-017 type="evidence" status="verified" tags="pytest;oslc;query;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## OSLC query machine evidence
+
+`TC-017` is bound to the executable regression protecting the read-only query boundary and participates in the self-hosted pytest evidence artifact.
+:::
+
 ## Federation slice
 
 ```text
@@ -197,7 +226,8 @@ STK-006
    ↓
 SYS-007
    ├── FUN-010 / NFR-006 → ADR-008 → discovery/federation modules → TC-015 → EVD-015
-   └── FUN-011 / NFR-006 → ADR-009 → SRC-OSLC-RECONCILE      → TC-016 → EVD-016
+   ├── FUN-012 / NFR-006 → ADR-008 → SRC-OSLC-QUERY             → TC-017 → EVD-017
+   └── FUN-011 / NFR-006 → ADR-009 → SRC-OSLC-RECONCILE         → TC-016 → EVD-016
 ```
 
 {{< need-table types="system-requirement;functional-requirement;non-functional-requirement;architecture-decision;component;interface;source-module;test-case;evidence" tags="oslc" columns="id;title;type;status" sort="id" >}}
