@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import json
 from typing import Mapping
 from urllib.parse import quote
 
+from .github_http import fetch_github_resource
+from .oslc_http import HttpFetchPolicy
 from .oslc_reconcile import ExternalRequirementObservation
 from .oslc_rm import ExternalResourceIdentity, TrustState, content_digest
 
@@ -114,3 +117,43 @@ def parse_external_github_issue(
             "labels": sorted(labels),
         },
     )
+
+
+def fetch_external_github_issue(
+    owner: str,
+    repo: str,
+    number: int,
+    *,
+    fetched_at: str,
+    fetch_policy: HttpFetchPolicy = HttpFetchPolicy(),
+    auth_headers: Mapping[str, str] | None = None,
+    opener=None,
+) -> ExternalRequirementObservation:
+    """Fetch and normalize one GitHub issue end to end.
+
+    Composes the bounded transport (``fetch_github_resource``) with identity
+    construction and normalization; still no caching or conditional
+    requests — a fresh network fetch every call, exactly as the transport
+    slice alone provides.
+    """
+    resource_uri = github_issue_resource_uri(owner, repo, number)
+    result = fetch_github_resource(
+        resource_uri, fetch_policy=fetch_policy, auth_headers=auth_headers, opener=opener
+    )
+    try:
+        payload = json.loads(result.payload)
+    except json.JSONDecodeError as error:
+        raise GitHubIssueError(f"GitHub response is not valid JSON: {error}") from error
+    if not isinstance(payload, Mapping):
+        raise GitHubIssueError("GitHub response is not a JSON object")
+
+    identity = build_github_issue_identity(
+        owner,
+        repo,
+        number,
+        payload_bytes=result.payload,
+        fetched_at=fetched_at,
+        etag=result.etag,
+        last_modified=result.last_modified,
+    )
+    return parse_external_github_issue(payload, identity=identity)
