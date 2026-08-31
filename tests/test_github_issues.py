@@ -9,6 +9,8 @@ from quarto_needs.github_issues import (
     GitHubIssueError,
     build_github_issue_identity,
     fetch_external_github_issue,
+    fetch_external_github_issue_list,
+    github_issue_list_resource_uri,
     github_issue_resource_uri,
     parse_external_github_issue,
 )
@@ -346,3 +348,84 @@ def test_build_github_issue_identity_accepts_conditional_request_validators() ->
     assert identity.etag == '"abc123"'
     assert identity.last_modified == "Mon, 31 Aug 2026 12:00:00 GMT"
     assert identity.trust_state == "trusted"
+
+
+def _list_entry(number: int, *, is_pull_request: bool = False) -> dict[str, object]:
+    entry = _real_shaped_payload(number=number)
+    if is_pull_request:
+        entry["pull_request"] = {
+            "url": f"https://api.github.com/repos/acme/widgets/pulls/{number}",
+        }
+    return entry
+
+
+def test_github_issue_list_resource_uri_is_deterministic() -> None:
+    assert github_issue_list_resource_uri("acme", "widgets") == (
+        "https://api.github.com/repos/acme/widgets/issues?state=open&per_page=30&page=1"
+    )
+    assert github_issue_list_resource_uri("acme", "widgets", state="all", page=2, per_page=50) == (
+        "https://api.github.com/repos/acme/widgets/issues?state=all&per_page=50&page=2"
+    )
+
+
+def test_github_issue_list_resource_uri_rejects_invalid_parameters() -> None:
+    with pytest.raises(GitHubIssueError, match="state"):
+        github_issue_list_resource_uri("acme", "widgets", state="draft")
+    with pytest.raises(GitHubIssueError, match="per_page"):
+        github_issue_list_resource_uri("acme", "widgets", per_page=0)
+    with pytest.raises(GitHubIssueError, match="per_page"):
+        github_issue_list_resource_uri("acme", "widgets", per_page=101)
+    with pytest.raises(GitHubIssueError, match="page"):
+        github_issue_list_resource_uri("acme", "widgets", page=0)
+
+
+def test_fetch_external_github_issue_list_separates_issues_from_pull_requests() -> None:
+    body = json.dumps(
+        [_list_entry(3166, is_pull_request=True), _list_entry(3164), _list_entry(3157)]
+    ).encode("utf-8")
+    opener = _Opener(_Response(200, body, **{"Content-Type": "application/json"}))
+
+    result = fetch_external_github_issue_list(
+        "acme", "widgets", fetched_at="2026-08-31T12:00:00Z", opener=opener
+    )
+
+    assert result.issue_numbers == (3157, 3164)
+    assert result.pull_request_numbers == (3166,)
+    assert result.resource_uri == github_issue_list_resource_uri("acme", "widgets")
+    assert result.response_digest == "sha256:" + hashlib.sha256(body).hexdigest()
+
+
+def test_fetch_external_github_issue_list_rejects_non_array_response() -> None:
+    opener = _Opener(_Response(200, b"{}", **{"Content-Type": "application/json"}))
+    with pytest.raises(GitHubIssueError, match="array"):
+        fetch_external_github_issue_list(
+            "acme", "widgets", fetched_at="2026-08-31T12:00:00Z", opener=opener
+        )
+
+
+def test_fetch_external_github_issue_list_rejects_entry_without_integer_number() -> None:
+    body = json.dumps([{**_real_shaped_payload(), "number": "3164"}]).encode("utf-8")
+    opener = _Opener(_Response(200, body, **{"Content-Type": "application/json"}))
+    with pytest.raises(GitHubIssueError, match="number"):
+        fetch_external_github_issue_list(
+            "acme", "widgets", fetched_at="2026-08-31T12:00:00Z", opener=opener
+        )
+
+
+def test_fetch_external_github_issue_list_does_not_promote_inline_data_to_an_observation() -> None:
+    """List entries carry full issue bodies, but this is discovery only.
+
+    Getting a provenance-bound ExternalRequirementObservation for a
+    discovered number is a separate, independently fetched call — mirroring
+    OSLC's query/observe split, where a query's inline node data is never
+    treated as equivalent to an independently fetched member observation.
+    """
+    body = json.dumps([_list_entry(3164)]).encode("utf-8")
+    opener = _Opener(_Response(200, body, **{"Content-Type": "application/json"}))
+
+    result = fetch_external_github_issue_list(
+        "acme", "widgets", fetched_at="2026-08-31T12:00:00Z", opener=opener
+    )
+
+    assert not hasattr(result, "observations")
+    assert result.issue_numbers == (3164,)
