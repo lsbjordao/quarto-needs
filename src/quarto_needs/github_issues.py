@@ -6,7 +6,13 @@ from typing import Mapping
 from urllib.parse import quote
 
 from .github_http import fetch_github_resource
-from .oslc_cache import CachedRepresentation, select_cached_representation, store_cached_representation
+from .oslc_cache import (
+    CachedRepresentation,
+    latest_cached_representation,
+    read_cached_payload,
+    select_cached_representation,
+    store_cached_representation,
+)
 from .oslc_http import HttpFetchPolicy
 from .oslc_reconcile import ExternalRequirementObservation
 from .oslc_rm import CachePolicy, ExternalResourceIdentity, TrustState, content_digest
@@ -151,12 +157,15 @@ def fetch_external_github_issue(
     Composes the bounded transport (``fetch_github_resource``) with identity
     construction and normalization. Caching is opt-in: pass ``cache_root``
     to check a fresh cached representation first and skip the network
-    entirely, and to persist a live fetch afterward. There are no
-    conditional requests (``If-None-Match``) yet — a cache miss or stale
-    entry always re-fetches the whole representation, never a 304; that is
-    the next slice, once there is something worth conditioning against.
+    entirely, and to persist a live fetch afterward. When the cache exists
+    but is stale, the request carries conditional headers (``If-None-Match``/
+    ``If-Modified-Since``) built from that stale entry's own validators; a
+    ``304`` reuses the cached body under a refreshed identity (new
+    ``fetched_at``, same digest) instead of re-downloading it, exactly as
+    OSLC's own cache-then-conditional-request flow works.
     """
     resource_uri = github_issue_resource_uri(owner, repo, number)
+    latest: CachedRepresentation | None = None
 
     if cache_root is not None:
         selection = select_cached_representation(
@@ -170,10 +179,43 @@ def fetch_external_github_issue(
             return _observation_from_payload_bytes(
                 selection.payload, identity=selection.representation.identity
             )
+        latest = latest_cached_representation(
+            cache_root, resource_uri=resource_uri, schema=GITHUB_ISSUES_CACHE_SCHEMA
+        )
 
     result = fetch_github_resource(
-        resource_uri, fetch_policy=fetch_policy, auth_headers=auth_headers, opener=opener
+        resource_uri,
+        fetch_policy=fetch_policy,
+        auth_headers=auth_headers,
+        if_none_match=latest.identity.etag if latest is not None else None,
+        if_modified_since=latest.identity.last_modified if latest is not None else None,
+        opener=opener,
     )
+
+    if result.payload is None:
+        # 304: the caller had something to condition against, so latest is
+        # guaranteed here — the transport cannot invent a 304 on its own.
+        assert latest is not None
+        assert cache_root is not None
+        payload_bytes = read_cached_payload(cache_root, latest)
+        identity = ExternalResourceIdentity(
+            resource_uri=latest.identity.resource_uri,
+            service_provider_uri=latest.identity.service_provider_uri,
+            digest=latest.identity.digest,
+            fetched_at=fetched_at,
+            trust_state=latest.identity.trust_state,
+            etag=result.etag or latest.identity.etag,
+            last_modified=result.last_modified or latest.identity.last_modified,
+        )
+        observation = _observation_from_payload_bytes(payload_bytes, identity=identity)
+        store_cached_representation(
+            cache_root,
+            CachedRepresentation(identity=identity, media_type="application/json"),
+            payload_bytes,
+            schema=GITHUB_ISSUES_CACHE_SCHEMA,
+        )
+        return observation
+
     identity = build_github_issue_identity(
         owner,
         repo,

@@ -22,7 +22,7 @@ class GitHubTransportError(RuntimeError):
 
 @dataclass(frozen=True, slots=True)
 class GitHubFetchResult:
-    payload: bytes
+    payload: bytes | None
     etag: str | None
     last_modified: str | None
 
@@ -94,15 +94,20 @@ def fetch_github_resource(
     *,
     fetch_policy: HttpFetchPolicy = HttpFetchPolicy(),
     auth_headers: Mapping[str, str] | None = None,
+    if_none_match: str | None = None,
+    if_modified_since: str | None = None,
     opener=None,
 ) -> GitHubFetchResult:
     """Fetch one GitHub REST API resource with bounded, GET-only HTTP semantics.
 
-    Transport only: no caching, no conditional requests (nothing to condition
-    against without a cache), and no query/listing support — those are
-    separate, later contracts, exactly as OSLC federation built cache, query,
-    and observation as their own reviewed slices rather than one large fetch
-    function. Redirects are same-origin only so an Authorization header
+    Transport only: no caching and no query/listing support — those are
+    separate, later contracts, exactly as OSLC federation built cache,
+    query, and observation as their own reviewed slices rather than one
+    large fetch function. This does send conditional-request headers when
+    the caller (typically a cache layer) supplies them, and returns
+    ``GitHubFetchResult(payload=None, ...)`` on a ``304 Not Modified``
+    rather than attempting to media-type- or byte-limit-check a response
+    with no body. Redirects are same-origin only so an Authorization header
     cannot leak to an attacker-controlled host.
     """
     _require_http_uri(uri, "uri")
@@ -110,6 +115,10 @@ def fetch_github_resource(
         "Accept": "application/vnd.github+json",
         "User-Agent": "quarto-needs/0.1 GitHub read-only client",
     }
+    if if_none_match:
+        headers["If-None-Match"] = if_none_match
+    if if_modified_since:
+        headers["If-Modified-Since"] = if_modified_since
     _merge_auth_headers(headers, auth_headers)
 
     transport = opener or build_opener(_NoRedirect())
@@ -143,6 +152,13 @@ def fetch_github_resource(
                 )
             current_uri = next_uri
             continue
+
+        if status == 304:
+            return GitHubFetchResult(
+                payload=None,
+                etag=response.headers.get("ETag"),
+                last_modified=response.headers.get("Last-Modified"),
+            )
 
         if status in {401, 403}:
             raise GitHubTransportError("authentication-required", f"GitHub returned HTTP {status}")
