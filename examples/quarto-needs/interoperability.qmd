@@ -10,7 +10,7 @@ Quarto-Needs treats interchange and federation as projections and adapters aroun
 Teams need to exchange and discover requirements through established standards while preserving canonical identity, provenance, trust, and explicit loss semantics.
 :::
 
-::: {.need #SYS-007 type="system-requirement" status="approved" priority="high" tags="interoperability;oslc;federation;provenance" derives-from="STK-006" implemented-by="COMP-OSLC" verified-by="TC-015;TC-016;TC-017;TC-018"}
+::: {.need #SYS-007 type="system-requirement" status="approved" priority="high" tags="interoperability;oslc;federation;provenance" derives-from="STK-006" implemented-by="COMP-OSLC" verified-by="TC-015;TC-016;TC-017;TC-018;TC-019"}
 ## Federate OSLC requirements through a bounded read-only adapter
 
 Quarto-Needs shall discover OSLC Requirements Management services, execute explicitly selected read-only Query Capabilities, materialize selected query members as independently provenance-bearing observations, and reconcile observed external resources through a bounded federation layer that preserves external identity, cache provenance, and trust without importing remote semantics into the canonical graph automatically.
@@ -30,7 +30,7 @@ The federation adapter shall fetch a configured Service Provider through bounded
 Discovery, RDF parsing, transport, and cache semantics must be explicit and independently testable before remote requirement import is considered.
 :::
 
-::: {.need #FUN-011 type="functional-requirement" status="approved" priority="high" tags="oslc;reconciliation;identity;conflict" derives-from="SYS-007" implemented-by="COMP-OSLC" verified-by="TC-016" mitigates="RISK-005"}
+::: {.need #FUN-011 type="functional-requirement" status="approved" priority="high" tags="oslc;reconciliation;identity;conflict" derives-from="SYS-007" implemented-by="COMP-OSLC" verified-by="TC-016;TC-019" mitigates="RISK-005"}
 ## Reconcile external requirements only through explicit identity bindings
 
 Quarto-Needs shall compare observed external requirements with canonical objects without mutating either side and shall treat an explicit external-resource-URI to canonical-ID binding as the only identity bridge. Matching titles or external identifiers shall never create an implicit merge.
@@ -50,7 +50,7 @@ Quarto-Needs shall execute a bounded HTTP GET against an explicitly selected OSL
 Discovery is not sufficient for practical federation, but query execution must not silently turn into unbounded Linked Data crawling. Query results therefore remain a resource-discovery projection; authoritative member observation is a separate bounded operation.
 :::
 
-::: {.need #FUN-013 type="functional-requirement" status="approved" priority="high" tags="oslc;observation;provenance;member-fetch;bounded" derives-from="SYS-007" implemented-by="COMP-OSLC;IF-005" verified-by="TC-018" mitigates="RISK-005"}
+::: {.need #FUN-013 type="functional-requirement" status="approved" priority="high" tags="oslc;observation;provenance;member-fetch;bounded" derives-from="SYS-007" implemented-by="COMP-OSLC;IF-005" verified-by="TC-018;TC-019" mitigates="RISK-005"}
 ## Materialize selected OSLC query members as independently provenance-bearing observations
 
 Quarto-Needs shall fetch query-member URIs individually through the existing bounded transport/cache policy, normalize each fetched representation, enforce explicit fan-out and per-resource node limits, and create external requirement observations whose digest, retrieval time, trust state, validators, and resource identity derive from the bytes actually observed for that member.
@@ -60,7 +60,7 @@ Quarto-Needs shall fetch query-member URIs individually through the existing bou
 A query container may include inline member data, but its response digest is not the digest of every member resource. Independent retrieval preserves the provenance boundary required for trustworthy reconciliation and any future reviewed import plan.
 :::
 
-::: {.need #NFR-006 type="non-functional-requirement" status="approved" priority="critical" tags="oslc;security;provenance;offline;determinism" derives-from="SYS-007" implemented-by="COMP-OSLC" verified-by="TC-015;TC-016;TC-017;TC-018" mitigates="RISK-005"}
+::: {.need #NFR-006 type="non-functional-requirement" status="approved" priority="critical" tags="oslc;security;provenance;offline;determinism" derives-from="SYS-007" implemented-by="COMP-OSLC" verified-by="TC-015;TC-016;TC-017;TC-018;TC-019" mitigates="RISK-005"}
 ## Keep federation bounded, provenance-preserving, and fail-explicit
 
 OSLC federation shall enforce byte/time/redirect/node/member budgets, reject cross-origin redirects, prevent implicit remote JSON-LD context loading and recursive member crawling, preserve content digests and historical observations, distinguish query-response provenance from member-resource provenance, and never hide authentication failures or identity conflicts behind stale cache fallback or heuristic matching.
@@ -90,7 +90,7 @@ The adapter boundary accepts configured HTTP(S) Service Provider identity, expli
 Redirects, remote contexts, mutable resources, stale cache, opaque network failure, heuristic identity matching, query-container/member provenance confusion, or recursive member traversal could leak authentication material or make unverified external state appear canonical.
 :::
 
-::: {.need #ADR-008 type="architecture-decision" status="accepted" date="2026-08-30" revisit-after="2027-08-30" decision-makers="Quarto-Needs maintainers" tags="oslc;federation;read-only;security" addresses="SYS-007;FUN-010;FUN-012;FUN-013;NFR-006;RISK-005" applies-to="COMP-OSLC;IF-005" confirmed-by="TC-015;TC-017;TC-018"}
+::: {.need #ADR-008 type="architecture-decision" status="accepted" date="2026-08-30" revisit-after="2027-08-30" decision-makers="Quarto-Needs maintainers" tags="oslc;federation;read-only;security" addresses="SYS-007;FUN-010;FUN-012;FUN-013;NFR-006;RISK-005" applies-to="COMP-OSLC;IF-005" confirmed-by="TC-015;TC-017;TC-018;TC-019"}
 ## Keep the first OSLC federation path read-only, bounded, and cache-provenanced
 
 ### Context and Problem Statement
@@ -117,7 +117,7 @@ The adapter can discover, query, observe, and analyze reconciliation safely befo
 
 ### Confirmation
 
-`TC-015` exercises the complete network-free discovery orchestration path; `TC-017` exercises bounded query execution and response provenance; `TC-018` exercises independent member observation and per-resource provenance.
+`TC-015` exercises the complete network-free discovery orchestration path; `TC-017` exercises bounded query execution and response provenance; `TC-018` exercises independent member observation and per-resource provenance; `TC-019` exercises the reviewed, non-mutating import-plan directives derived from that observation and reconciliation.
 :::
 
 ::: {.need #ADR-009 type="architecture-decision" status="accepted" date="2026-08-30" revisit-after="2027-08-30" decision-makers="Quarto-Needs maintainers" tags="oslc;reconciliation;identity;conflict" addresses="FUN-011;NFR-006;RISK-005" applies-to="COMP-OSLC" confirmed-by="TC-016"}
@@ -198,6 +198,12 @@ Fetches selected query members independently through the bounded transport/cache
 Produces deterministic, non-mutating reconciliation plans from external observations and explicit URI-to-canonical-ID bindings, surfacing unbound resources and identity/trust conflicts instead of guessing merges.
 :::
 
+::: {.need #SRC-OSLC-IMPORT type="source-module" status="implemented" path="src/quarto_needs/oslc_import_plan.py" language="Python" layer="interoperability" tags="oslc;import;reconciliation;review;non-mutating" implements="FUN-011;FUN-013;NFR-006"}
+## OSLC reviewed import-plan module
+
+Turns a reconciliation result and its independently observed members into a deterministic, non-mutating import plan with explicit create/update/ignore/review directives, refusing any directive whose target metadata is unsafe or whose reconciliation is stale or conflicting.
+:::
+
 ## Verification and evidence
 
 ::: {.need #TC-015 type="test-case" status="passed" tags="pytest;oslc;federation;cache;http;rdf" pytest-nodeid="tests/test_oslc_federation.py::test_discovery_orchestrates_fetch_normalization_service_and_shape_parsing" evidenced-by="EVD-015"}
@@ -248,6 +254,18 @@ Verify that each selected query member is fetched through the bounded transport,
 `TC-018` is bound to the executable regression protecting independent resource provenance before reconciliation or any future reviewed import plan.
 :::
 
+::: {.need #TC-019 type="test-case" status="passed" tags="pytest;oslc;import;reconciliation;review" pytest-nodeid="tests/test_oslc_import_plan.py::test_unbound_observation_requires_explicit_create_directive" evidenced-by="EVD-019"}
+## OSLC reviewed import-plan directive regression
+
+Verify that an unbound external observation produces an explicit create directive rather than an implicit import, and that the resulting plan remains deterministic and provenance-bound.
+:::
+
+::: {.need #EVD-019 type="evidence" status="verified" tags="pytest;oslc;import;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## OSLC import-plan machine evidence
+
+`TC-019` is bound to the executable regression protecting the reviewed, non-mutating import-plan contract before any future canonical import or write path can be enabled.
+:::
+
 ## Federation slice
 
 ```text
@@ -257,7 +275,8 @@ SYS-007
    ├── FUN-010 / NFR-006 → ADR-008 → discovery/federation modules → TC-015 → EVD-015
    ├── FUN-012 / NFR-006 → ADR-008 → SRC-OSLC-QUERY             → TC-017 → EVD-017
    ├── FUN-013 / NFR-006 → ADR-008 → SRC-OSLC-OBSERVE           → TC-018 → EVD-018
-   └── FUN-011 / NFR-006 → ADR-009 → SRC-OSLC-RECONCILE         → TC-016 → EVD-016
+   ├── FUN-011 / NFR-006 → ADR-009 → SRC-OSLC-RECONCILE         → TC-016 → EVD-016
+   └── FUN-011 / FUN-013 / NFR-006 → ADR-008 → SRC-OSLC-IMPORT  → TC-019 → EVD-019
 ```
 
 {{< need-table types="system-requirement;functional-requirement;non-functional-requirement;architecture-decision;component;interface;source-module;test-case;evidence" tags="oslc" columns="id;title;type;status" sort="id" >}}

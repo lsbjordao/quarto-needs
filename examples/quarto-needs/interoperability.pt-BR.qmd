@@ -10,7 +10,7 @@ O Quarto-Needs trata intercâmbio e federação como projeções e adaptadores a
 As equipes precisam trocar e descobrir requisitos por padrões estabelecidos preservando identidade canônica, proveniência, confiança e semântica explícita de perdas.
 :::
 
-::: {.need #SYS-007 type="system-requirement" status="approved" priority="high" tags="interoperability;oslc;federation;provenance" derives-from="STK-006" implemented-by="COMP-OSLC" verified-by="TC-015;TC-016;TC-017;TC-018"}
+::: {.need #SYS-007 type="system-requirement" status="approved" priority="high" tags="interoperability;oslc;federation;provenance" derives-from="STK-006" implemented-by="COMP-OSLC" verified-by="TC-015;TC-016;TC-017;TC-018;TC-019"}
 ## Federar requisitos OSLC por um adaptador somente leitura e limitado
 
 O Quarto-Needs deverá descobrir serviços OSLC Requirements Management, executar Query Capabilities explicitamente selecionadas em modo somente leitura, materializar membros selecionados como observações com proveniência própria e reconciliar recursos externos observados por uma camada limitada que preserve identidade externa, proveniência de cache e confiança sem importar automaticamente semântica remota para o grafo canônico.
@@ -22,7 +22,7 @@ O Quarto-Needs deverá descobrir serviços OSLC Requirements Management, executa
 O adaptador deverá buscar um Service Provider por HTTP GET limitado, normalizar RDF sem rede implícita, descobrir RM Query Capabilities e buscar Resource Shapes anunciados pela mesma política de cache e transporte.
 :::
 
-::: {.need #FUN-011 type="functional-requirement" status="approved" priority="high" tags="oslc;reconciliation;identity;conflict" derives-from="SYS-007" implemented-by="COMP-OSLC" verified-by="TC-016" mitigates="RISK-005"}
+::: {.need #FUN-011 type="functional-requirement" status="approved" priority="high" tags="oslc;reconciliation;identity;conflict" derives-from="SYS-007" implemented-by="COMP-OSLC" verified-by="TC-016;TC-019" mitigates="RISK-005"}
 ## Reconciliar requisitos externos apenas por vínculos explícitos de identidade
 
 O Quarto-Needs deverá comparar requisitos externos observados com objetos canônicos sem alterar nenhum dos lados e deverá tratar um vínculo explícito entre URI do recurso externo e ID canônico como a única ponte de identidade. Títulos ou identificadores externos coincidentes nunca deverão produzir mesclagem implícita.
@@ -34,13 +34,13 @@ O Quarto-Needs deverá comparar requisitos externos observados com objetos canô
 O Quarto-Needs deverá executar HTTP GET limitado contra uma OSLC Query Capability explicitamente selecionada, analisar deterministicamente o container de resultados, impor limite máximo de membros, preservar a proveniência da resposta e relatar URIs de membros sem desreferenciá-las recursivamente.
 :::
 
-::: {.need #FUN-013 type="functional-requirement" status="approved" priority="high" tags="oslc;observation;provenance;member-fetch;bounded" derives-from="SYS-007" implemented-by="COMP-OSLC;IF-005" verified-by="TC-018" mitigates="RISK-005"}
+::: {.need #FUN-013 type="functional-requirement" status="approved" priority="high" tags="oslc;observation;provenance;member-fetch;bounded" derives-from="SYS-007" implemented-by="COMP-OSLC;IF-005" verified-by="TC-018;TC-019" mitigates="RISK-005"}
 ## Materializar membros OSLC selecionados como observações com proveniência independente
 
 O Quarto-Needs deverá buscar individualmente as URIs dos membros da query pela política existente de transporte/cache limitado, normalizar cada representação, impor limites explícitos de fan-out e de nós por recurso e criar observações externas cujos digest, data de obtenção, estado de confiança, validadores e identidade sejam derivados dos bytes efetivamente observados para aquele membro.
 :::
 
-::: {.need #NFR-006 type="non-functional-requirement" status="approved" priority="critical" tags="oslc;security;provenance;offline;determinism" derives-from="SYS-007" implemented-by="COMP-OSLC" verified-by="TC-015;TC-016;TC-017;TC-018" mitigates="RISK-005"}
+::: {.need #NFR-006 type="non-functional-requirement" status="approved" priority="critical" tags="oslc;security;provenance;offline;determinism" derives-from="SYS-007" implemented-by="COMP-OSLC" verified-by="TC-015;TC-016;TC-017;TC-018;TC-019" mitigates="RISK-005"}
 ## Manter a federação limitada, preservando proveniência e falhando explicitamente
 
 A federação OSLC deverá impor limites de bytes, tempo, redirecionamentos, nós e membros; rejeitar redirecionamentos entre origens; impedir carregamento implícito de contextos remotos e crawling recursivo; preservar digests e observações históricas; distinguir proveniência da resposta da query da proveniência dos recursos membros; e nunca esconder falhas de autenticação ou conflitos de identidade.
@@ -66,7 +66,7 @@ A fronteira recebe identidade HTTP(S) do Service Provider, políticas explícita
 Redirecionamentos, contextos remotos, recursos mutáveis, cache obsoleto, falhas de rede, correspondência heurística, confusão entre proveniência do container e do membro ou travessia recursiva podem vazar credenciais ou fazer estado externo não verificado parecer canônico.
 :::
 
-::: {.need #ADR-008 type="architecture-decision" status="accepted" date="2026-08-30" revisit-after="2027-08-30" decision-makers="Quarto-Needs maintainers" tags="oslc;federation;read-only;security" addresses="SYS-007;FUN-010;FUN-012;FUN-013;NFR-006;RISK-005" applies-to="COMP-OSLC;IF-005" confirmed-by="TC-015;TC-017;TC-018"}
+::: {.need #ADR-008 type="architecture-decision" status="accepted" date="2026-08-30" revisit-after="2027-08-30" decision-makers="Quarto-Needs maintainers" tags="oslc;federation;read-only;security" addresses="SYS-007;FUN-010;FUN-012;FUN-013;NFR-006;RISK-005" applies-to="COMP-OSLC;IF-005" confirmed-by="TC-015;TC-017;TC-018;TC-019"}
 ## Manter o primeiro caminho de federação OSLC somente leitura, limitado e com proveniência em cache
 
 ### Contexto e problema
@@ -79,7 +79,7 @@ Implementar OSLC como adaptador somente leitura. HTTP usa GET com limites explí
 
 ### Confirmação
 
-`TC-015` exercita descoberta/orquestração; `TC-017` exercita query limitada e proveniência da resposta; `TC-018` exercita observação independente de membros e proveniência por recurso.
+`TC-015` exercita descoberta/orquestração; `TC-017` exercita query limitada e proveniência da resposta; `TC-018` exercita observação independente de membros e proveniência por recurso; `TC-019` exercita as diretrizes do plano de importação revisado e sem mutação derivadas dessa observação e reconciliação.
 :::
 
 ::: {.need #ADR-009 type="architecture-decision" status="accepted" date="2026-08-30" revisit-after="2027-08-30" decision-makers="Quarto-Needs maintainers" tags="oslc;reconciliation;identity;conflict" addresses="FUN-011;NFR-006;RISK-005" applies-to="COMP-OSLC" confirmed-by="TC-016"}
@@ -148,6 +148,12 @@ Busca membros selecionados de forma independente pela camada limitada de transpo
 Produz planos determinísticos e sem mutação a partir de observações externas e vínculos explícitos de identidade.
 :::
 
+::: {.need #SRC-OSLC-IMPORT type="source-module" status="implemented" path="src/quarto_needs/oslc_import_plan.py" language="Python" layer="interoperability" tags="oslc;import;reconciliation;review;non-mutating" implements="FUN-011;FUN-013;NFR-006"}
+## Módulo de plano de importação OSLC revisado
+
+Transforma um resultado de reconciliação e seus membros observados independentemente em um plano de importação determinístico e sem mutação, com diretrizes explícitas de criação/atualização/ignorar/revisão, recusando qualquer diretriz cujos metadados de destino sejam inseguros ou cuja reconciliação esteja obsoleta ou em conflito.
+:::
+
 ## Verificação e evidência
 
 ::: {.need #TC-015 type="test-case" status="passed" tags="pytest;oslc;federation;cache;http;rdf" pytest-nodeid="tests/test_oslc_federation.py::test_discovery_orchestrates_fetch_normalization_service_and_shape_parsing" evidenced-by="EVD-015"}
@@ -198,6 +204,18 @@ Verifica que cada membro selecionado é buscado pela camada limitada, validado c
 `TC-018` protege a proveniência independente dos recursos antes da reconciliação ou de qualquer futuro plano de importação revisado.
 :::
 
+::: {.need #TC-019 type="test-case" status="passed" tags="pytest;oslc;import;reconciliation;review" pytest-nodeid="tests/test_oslc_import_plan.py::test_unbound_observation_requires_explicit_create_directive" evidenced-by="EVD-019"}
+## Regressão de diretriz do plano de importação OSLC revisado
+
+Verifica que uma observação externa não vinculada produz uma diretriz explícita de criação, e não uma importação implícita, e que o plano resultante permanece determinístico e vinculado à proveniência.
+:::
+
+::: {.need #EVD-019 type="evidence" status="verified" tags="pytest;oslc;import;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## Evidência de máquina do plano de importação OSLC
+
+`TC-019` protege o contrato revisado e sem mutação do plano de importação antes de qualquer futura importação canônica ou caminho de escrita.
+:::
+
 ## Fatia de federação
 
 ```text
@@ -207,7 +225,8 @@ SYS-007
    ├── FUN-010 / NFR-006 → ADR-008 → descoberta/federação → TC-015 → EVD-015
    ├── FUN-012 / NFR-006 → ADR-008 → SRC-OSLC-QUERY      → TC-017 → EVD-017
    ├── FUN-013 / NFR-006 → ADR-008 → SRC-OSLC-OBSERVE    → TC-018 → EVD-018
-   └── FUN-011 / NFR-006 → ADR-009 → SRC-OSLC-RECONCILE  → TC-016 → EVD-016
+   ├── FUN-011 / NFR-006 → ADR-009 → SRC-OSLC-RECONCILE  → TC-016 → EVD-016
+   └── FUN-011 / FUN-013 / NFR-006 → ADR-008 → SRC-OSLC-IMPORT → TC-019 → EVD-019
 ```
 
 {{< need-table types="system-requirement;functional-requirement;non-functional-requirement;architecture-decision;component;interface;source-module;test-case;evidence" tags="oslc" columns="id;title;type;status" sort="id" >}}
