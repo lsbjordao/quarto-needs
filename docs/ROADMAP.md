@@ -109,9 +109,9 @@ ReqIF import remains intentionally deferred until conflict policy, typed attribu
 
 Implemented capabilities include deterministic JSON-LD 1.1 projection, stable object/relation IRIs, embedded context, canonical relation semantics, authored attributes as `@json`, installed CLI export, deterministic writes, and independent PyLD/RDF verification hooks.
 
-## 5.3 OSLC Requirements Management 🟡
+## 5.3 OSLC Requirements Management ✅ (read-only)
 
-**Status: read-only federation is implemented through discovery, query execution, independently provenance-bearing member observations, explicit reconciliation, and reviewed import planning; remote writes remain deferred.** See `docs/phase-5-oslc.md`.
+**Status: read-only federation is implemented end to end through discovery, bounded query execution, independently provenance-bearing member observations, explicit reconciliation, and a reviewed, non-mutating import plan — all executed locally against the self-hosted example. Remote writes (POST/PUT/PATCH/DELETE) remain the only deliberately deferred slice.** See `docs/phase-5-oslc.md`.
 
 Implemented capabilities include:
 
@@ -132,15 +132,14 @@ Implemented capabilities include:
 - explicit URI-to-canonical-ID reconciliation with no heuristic identity merge;
 - deterministic `oslc-reconciliation-v1`;
 - deterministic, non-mutating `oslc-import-plan-v1` with explicit create/update/ignore/review directives;
-- self-hosted EN/PT-BR requirements, ADRs, implementation modules, tests, and evidence through `TC-018` / `EVD-018`;
-- ten representative executable tests in `make evidence-self-example` after the TC-018 slice;
-- centralized validation of `[federation.oslc.profiles.*]` inside ordinary `load_config()`, with read-only connectivity kept outside the canonical configuration fingerprint.
+- self-hosted EN/PT-BR requirements, ADRs, implementation modules, tests, and evidence through `TC-019` / `EVD-019`, including the reviewed import-plan module (`SRC-OSLC-IMPORT`);
+- eleven representative executable tests in `make evidence-self-example` after the TC-019 slice;
+- centralized validation of `[federation.oslc.profiles.*]` inside ordinary `load_config()`, with read-only connectivity kept outside the canonical configuration fingerprint;
+- the self-hosted evidence gate re-validated end to end: `_self_hosted_records()`/`_complete_provider_payload()`/`_complete_pytest_payload()` had silently drifted since `TC-014` (missing TC-014 through TC-018, and a missing requirement on TC-005) and are now generated against, and checked to match, `make evidence-self-example`'s real output.
 
-Remaining 5.3 gates:
+Remaining 5.3 gate:
 
-1. validate the current self-hosted evidence gate after every newly promoted OSLC test-case;
-2. promote the import-plan regression into modeled `TC-019` / `EVD-019` only after local execution confirms it;
-3. keep canonical import/apply and all POST/PUT/PATCH/DELETE operations deferred until staleness, conflict, authored-file placement, atomicity, rollback, optimistic concurrency, authorization, and audit contracts are explicit.
+1. keep canonical import/apply and all POST/PUT/PATCH/DELETE operations deferred until staleness, conflict, authored-file placement, atomicity, rollback, optimistic concurrency, authorization, and audit contracts are explicit.
 
 The terminal artifact for this phase is therefore a reviewable import plan, not automatic mutation.
 
@@ -257,7 +256,7 @@ LSP semantic authoring ✅
           ↓
 Thin VS Code client 🟡 release validation
           ↓
-ReqIF 1.2 ✅ → JSON-LD 🟡 → OSLC RM 🟡 → Sphinx-Needs migration ✅
+ReqIF 1.2 ✅ → JSON-LD 🟡 → OSLC RM ✅ (read-only) → Sphinx-Needs migration ✅
           ↓
 Broader migration / external federation
           ↓

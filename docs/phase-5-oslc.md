@@ -1,6 +1,6 @@
 # Phase 5.3 — OSLC Requirements Management federation
 
-Status: **read-only federation, named project configuration, deterministic CLI discovery, bounded Service Provider Catalog inspection, and explicit non-mutating requirement reconciliation are implemented; full local execution remains the primary open acceptance gate.**
+Status: **read-only federation, named project configuration, deterministic CLI discovery, bounded Service Provider Catalog inspection, bounded query execution, independent member observation, explicit non-mutating requirement reconciliation, and a deterministic, non-mutating import plan are all implemented and run locally end to end; POST/PUT/PATCH/DELETE and remote synchronization remain the only deliberately deferred slice.**
 
 Quarto-Needs approaches OSLC Requirements Management as a federation boundary around the canonical engineering graph, not as a replacement authoring model and not as a second semantic authority.
 
@@ -182,24 +182,14 @@ The official self-hosted example models both discovery and reconciliation in Eng
 STK-006
    ↓
 SYS-007
-   ├── FUN-010 / NFR-006
-   │       ↓
-   │     ADR-008
-   │       ↓
-   │     SRC-OSLC-RM / CACHE / HTTP / RDF / FEDERATION
-   │       ↓
-   │     TC-015 → EVD-015
-   │
-   └── FUN-011
-           ↓
-         ADR-009
-           ↓
-         SRC-OSLC-RECONCILE
-           ↓
-         TC-016 → EVD-016
+   ├── FUN-010 / NFR-006 → ADR-008 → SRC-OSLC-RM / CACHE / HTTP / RDF / FEDERATION → TC-015 → EVD-015
+   ├── FUN-012 / NFR-006 → ADR-008 → SRC-OSLC-QUERY                                → TC-017 → EVD-017
+   ├── FUN-013 / NFR-006 → ADR-008 → SRC-OSLC-OBSERVE                              → TC-018 → EVD-018
+   ├── FUN-011 / NFR-006 → ADR-009 → SRC-OSLC-RECONCILE                           → TC-016 → EVD-016
+   └── FUN-011 / FUN-013 / NFR-006 → ADR-008 → SRC-OSLC-IMPORT                     → TC-019 → EVD-019
 ```
 
-`TC-015` exercises deterministic federation discovery and Resource Shape orchestration. `TC-016` exercises explicit identity reconciliation and prevents identifier/title matching from becoming an implicit merge rule. Both participate in `make evidence-self-example`.
+`TC-015` exercises deterministic federation discovery and Resource Shape orchestration. `TC-016` exercises explicit identity reconciliation and prevents identifier/title matching from becoming an implicit merge rule. `TC-017` exercises bounded query execution and response provenance. `TC-018` exercises independent per-member observation provenance. `TC-019` exercises the reviewed, non-mutating import-plan directive boundary built from that observation and reconciliation. All five participate in `make evidence-self-example` (eleven attested tests in total, including the non-OSLC self-hosted slices).
 
 ## Failure model
 
@@ -211,19 +201,19 @@ The current phase distinguishes authentication/authorization failure, provider u
 2. **implemented** — conservative relation mapping and explicit unsupported-relation preservation;
 3. **implemented** — external identity, provenance, trust, digest, and freshness contracts;
 4. **implemented** — deterministic persistent cache with content-addressed validated blobs and historical observations;
-5. **implemented, pending full local execution gate** — bounded GET-only HTTP transport;
-6. **implemented, pending full local execution gate** — network-free JSON-LD/Turtle/RDFXML normalization;
+5. **implemented** — bounded GET-only HTTP transport;
+6. **implemented** — network-free JSON-LD/Turtle/RDFXML normalization;
 7. **implemented** — bounded RM Service/Query Capability parser;
 8. **implemented** — bounded Core Resource Shape parser;
-9. **implemented, pending full local execution gate** — Service Provider → RM discovery → Resource Shape orchestration;
-10. **implemented** — `.quarto-needs.toml` named OSLC federation profiles with environment-variable-only secret binding;
+9. **implemented** — Service Provider → RM discovery → Resource Shape orchestration;
+10. **implemented** — `.quarto-needs.toml` named OSLC federation profiles with environment-variable-only secret binding, centrally validated by `load_config()`;
 11. **implemented** — deterministic `oslc discover` CLI for direct URI or named profile;
 12. **implemented** — bounded one-level `oslc catalog` inspection without recursive crawling;
 13. **implemented** — explicit non-mutating external requirement reconciliation contract (`oslc-reconciliation-v1`);
-14. **implemented** — self-hosted discovery and reconciliation requirements/ADRs/source/test/evidence traceability;
-15. **pending local execution** — run the complete OSLC regression/evidence set in a working clone;
-16. **candidate next** — provider query execution and normalized requirement observation extraction through discovered Query Capabilities;
-17. **candidate later** — reviewed import plan materialization only after import provenance, authored-file placement, and change-review semantics are specified;
+14. **implemented** — self-hosted discovery, query, observation, reconciliation, and import-plan requirements/ADRs/source/test/evidence traceability through `TC-019`/`EVD-019`;
+15. **implemented** — the complete OSLC regression/evidence set runs locally end to end (`make evidence-self-example`, eleven attested tests);
+16. **implemented** — provider query execution and normalized requirement observation extraction through discovered Query Capabilities (`SRC-OSLC-QUERY`, `SRC-OSLC-OBSERVE`);
+17. **implemented** — reviewed, non-mutating import plan (`oslc-import-plan-v1`, `SRC-OSLC-IMPORT`) with explicit create/update/ignore/review directives;
 18. **deferred** — POST/PUT/PATCH/DELETE and remote synchronization.
 
 ## Regression set
@@ -239,7 +229,12 @@ pytest -q \
   tests/test_oslc_federation.py \
   tests/test_oslc_profiles.py \
   tests/test_oslc_cli.py \
-  tests/test_oslc_reconcile.py
+  tests/test_oslc_catalog.py \
+  tests/test_oslc_query.py \
+  tests/test_oslc_query_cli.py \
+  tests/test_oslc_observe.py \
+  tests/test_oslc_reconcile.py \
+  tests/test_oslc_import_plan.py
 ```
 
 The suite is network-free by design where provider behavior is simulated. The repository must not represent committed regression coverage as successful execution evidence until the tests are actually executed. The self-hosted executable-evidence gate is:
