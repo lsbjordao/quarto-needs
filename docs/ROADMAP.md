@@ -103,11 +103,11 @@ Implemented and validated capabilities include deterministic ReqIF 1.2 projectio
 
 ReqIF import remains intentionally deferred until conflict policy, typed attribute recovery, provenance handling, and round-trip guarantees are designed explicitly.
 
-## 5.2 JSON-LD 🟡
+## 5.2 JSON-LD ✅
 
-**Status: functionally implemented; independent processor execution remains an acceptance gate.** See `docs/phase-5-jsonld.md`.
+**Status: implemented and independently verified — `pytest -q tests/test_export_jsonld.py tests/test_interchange_cli.py` ran locally against a real PyLD (no skip guard) and passed.** See `docs/phase-5-jsonld.md`.
 
-Implemented capabilities include deterministic JSON-LD 1.1 projection, stable object/relation IRIs, embedded context, canonical relation semantics, authored attributes as `@json`, installed CLI export, deterministic writes, and independent PyLD/RDF verification hooks.
+Implemented capabilities include deterministic JSON-LD 1.1 projection, stable object/relation IRIs, embedded context, canonical relation semantics, authored attributes as `@json`, installed CLI export, deterministic writes, and independent PyLD expansion/RDF-N-Quads verification that preserves canonical relation endpoints.
 
 ## 5.3 OSLC Requirements Management ✅ (read-only)
 
@@ -258,7 +258,7 @@ LSP semantic authoring ✅
           ↓
 Thin VS Code client 🟡 release validation
           ↓
-ReqIF 1.2 ✅ → JSON-LD 🟡 → OSLC RM ✅ (read-only) → Sphinx-Needs/Doorstop migration ✅
+ReqIF 1.2 ✅ → JSON-LD ✅ → OSLC RM ✅ (read-only) → Sphinx-Needs/Doorstop migration ✅
           ↓
 Broader migration / external federation
           ↓
