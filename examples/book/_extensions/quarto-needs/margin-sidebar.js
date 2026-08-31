@@ -35,8 +35,11 @@
         button.style.right = "0.75rem";
       } else {
         const rect = margin.getBoundingClientRect();
+        const gap = 8;
         button.style.right = "auto";
-        button.style.left = `${Math.max(8, Math.round(rect.left - button.offsetWidth / 2))}px`;
+        // Keep the control entirely outside the margin sidebar. The old
+        // half-width offset put half the button over the TOC title/items.
+        button.style.left = `${Math.max(8, Math.round(rect.left - button.offsetWidth - gap))}px`;
       }
     }
 

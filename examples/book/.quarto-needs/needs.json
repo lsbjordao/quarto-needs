@@ -870,7 +870,7 @@
           "version": "0.1.0"
         },
         "profile": "strict",
-        "referenceDate": "2026-08-29",
+        "referenceDate": "2026-08-31",
         "schemaVersion": "1",
         "scopes": {
           "accepted-decisions": {
