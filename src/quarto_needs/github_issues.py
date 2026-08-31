@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Mapping
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 
 from .github_http import fetch_github_resource
 from .oslc_cache import (
@@ -18,6 +19,7 @@ from .oslc_reconcile import ExternalRequirementObservation
 from .oslc_rm import CachePolicy, ExternalResourceIdentity, TrustState, content_digest
 
 _SUPPORTED_STATES = {"open", "closed"}
+_SUPPORTED_LIST_STATES = {"open", "closed", "all"}
 GITHUB_ISSUES_CACHE_SCHEMA = "github-issues-cache-v1"
 
 
@@ -236,3 +238,114 @@ def fetch_external_github_issue(
         )
 
     return observation
+
+
+@dataclass(frozen=True, slots=True)
+class GitHubIssueListResult:
+    """The outcome of one bounded issue-list query: discovery, not observation.
+
+    List entries carry full issue bodies inline, but that inline data is
+    never promoted into an ``ExternalRequirementObservation`` here — the
+    same boundary OSLC's query step draws around inline query-container
+    data. Fetch each ``issue_numbers`` entry independently with
+    ``fetch_external_github_issue`` for a provenance-bound observation.
+    """
+
+    resource_uri: str
+    fetched_at: str
+    response_digest: str
+    issue_numbers: tuple[int, ...]
+    pull_request_numbers: tuple[int, ...]
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "schema": "github-issue-list-v1",
+            "resourceUri": self.resource_uri,
+            "fetchedAt": self.fetched_at,
+            "responseDigest": self.response_digest,
+            "issueNumbers": list(self.issue_numbers),
+            "pullRequestNumbers": list(self.pull_request_numbers),
+        }
+
+
+def github_issue_list_resource_uri(
+    owner: str,
+    repo: str,
+    *,
+    state: str = "open",
+    per_page: int = 30,
+    page: int = 1,
+) -> str:
+    """Build the deterministic GitHub REST API URL for one bounded issue-list page."""
+    if not owner.strip():
+        raise GitHubIssueError("owner must be non-empty")
+    if not repo.strip():
+        raise GitHubIssueError("repo must be non-empty")
+    if state not in _SUPPORTED_LIST_STATES:
+        raise GitHubIssueError(f"unsupported issue list state: {state!r}")
+    if not (1 <= per_page <= 100):
+        raise GitHubIssueError("per_page must be between 1 and 100")
+    if page < 1:
+        raise GitHubIssueError("page must be a positive integer")
+    query = urlencode({"state": state, "per_page": per_page, "page": page})
+    return f"https://api.github.com/repos/{quote(owner)}/{quote(repo)}/issues?{query}"
+
+
+def _parse_issue_list_payload(payload: object) -> tuple[tuple[int, ...], tuple[int, ...]]:
+    if not isinstance(payload, list):
+        raise GitHubIssueError("GitHub issue list response is not a JSON array")
+
+    issue_numbers: list[int] = []
+    pull_request_numbers: list[int] = []
+    for entry in payload:
+        if not isinstance(entry, Mapping):
+            raise GitHubIssueError("GitHub issue list entry is not a JSON object")
+        number = entry.get("number")
+        if not isinstance(number, int) or isinstance(number, bool):
+            raise GitHubIssueError("GitHub issue list entry is missing an integer 'number'")
+        if "pull_request" in entry:
+            pull_request_numbers.append(number)
+        else:
+            issue_numbers.append(number)
+
+    return tuple(sorted(set(issue_numbers))), tuple(sorted(set(pull_request_numbers)))
+
+
+def fetch_external_github_issue_list(
+    owner: str,
+    repo: str,
+    *,
+    fetched_at: str,
+    state: str = "open",
+    per_page: int = 30,
+    page: int = 1,
+    fetch_policy: HttpFetchPolicy = HttpFetchPolicy(),
+    auth_headers: Mapping[str, str] | None = None,
+    opener=None,
+) -> GitHubIssueListResult:
+    """Discover which issue numbers exist for one bounded list query.
+
+    A single bounded GET (no follow-your-nose pagination here — the caller
+    requests one page at a time and decides whether to request the next).
+    Pull requests, which GitHub's issues-list endpoint also returns, are
+    reported separately rather than silently mixed in or silently dropped.
+    """
+    resource_uri = github_issue_list_resource_uri(
+        owner, repo, state=state, per_page=per_page, page=page
+    )
+    result = fetch_github_resource(
+        resource_uri, fetch_policy=fetch_policy, auth_headers=auth_headers, opener=opener
+    )
+    try:
+        payload = json.loads(result.payload)
+    except json.JSONDecodeError as error:
+        raise GitHubIssueError(f"GitHub response is not valid JSON: {error}") from error
+    issue_numbers, pull_request_numbers = _parse_issue_list_payload(payload)
+
+    return GitHubIssueListResult(
+        resource_uri=resource_uri,
+        fetched_at=fetched_at,
+        response_digest=content_digest(result.payload),
+        issue_numbers=issue_numbers,
+        pull_request_numbers=pull_request_numbers,
+    )
