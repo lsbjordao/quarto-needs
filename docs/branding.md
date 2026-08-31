@@ -33,7 +33,7 @@ make branding-assets
 make branding-check
 ```
 
-`branding-check` renders fresh temporary derivatives and compares their bytes with the committed files. A stale packaged icon therefore fails explicitly instead of silently diverging from the brand master.
+`branding-check` renders fresh temporary derivatives and compares their decoded RGBA pixels and dimensions with the committed files. This avoids false failures caused only by PNG compression differences while still detecting visual drift. The repository regression test separately requires `editors/vscode/icon.png` to remain byte-identical to `quarto-needs-app-icon-256.png`.
 
 ## Palette
 
