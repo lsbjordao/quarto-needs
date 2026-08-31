@@ -1,6 +1,6 @@
 # Phase 5.4 — Migration adapters
 
-Status: **the first Sphinx-Needs migration adapter is implemented as a deterministic, plan-only workflow; automatic authored-file mutation remains deliberately deferred.**
+Status: **the first Sphinx-Needs migration adapter is implemented end to end: a deterministic plan, a reviewable non-mutating apply plan with a `.need` block content preview, and a create-only, atomic, rollback-protected `--write` step that generates authored files.**
 
 Quarto-Needs treats migration as a reviewed interoperability operation, not as a parser shortcut. A migration source may have its own type system, relation semantics, computed fields, conditional links, backlinks, dynamic functions, rendering behavior, and identity conventions. Those concepts must not be silently reinterpreted as canonical Quarto-Needs semantics.
 
@@ -19,11 +19,12 @@ explicit semantic mappings
         ↓
 reviewable migration plan
         ↓
-future apply contract
-        ✕ not implemented yet
+reviewable, non-mutating apply plan (--apply-plan)
+        ↓
+create-only, atomic, rollback-protected write (--write)
 ```
 
-The migration plan is analysis output. It does not become a second semantic model and it does not write authored `.qmd` or `.md` files.
+The migration plan and the apply plan are analysis output; building either never writes an authored `.qmd`/`.md` file. Only the explicit `--write` step does, and only when the apply plan is fully `ready-create`. None of these stages become a second semantic model — every field, type, status, and relation in a written file still means exactly what it means anywhere else in the canonical graph.
 
 ## Sphinx-Needs source boundary
 
@@ -164,6 +165,21 @@ quarto-needs migrate sphinx-needs needs.json \
   --show-content
 ```
 
+Add `--write` (which requires `--apply-plan`) to actually create the files, only once every item is `ready-create`:
+
+```bash
+quarto-needs migrate sphinx-needs needs.json \
+  --type-map req=system-requirement \
+  --type-map test=test-case \
+  --relation-map tests=verified-by \
+  --apply-plan \
+  --destination REQ_001=requirements/authentication.qmd \
+  --destination TC_001=verification/authentication.qmd \
+  --write
+```
+
+`--write` without `--apply-plan` is a usage error (exit code `2`). If any item is not `ready-create`, or a destination file already exists on disk, `--write` refuses and creates nothing.
+
 The CLI currently supports Sphinx-Needs as the explicit source identifier. Unknown migration sources fail rather than selecting an adapter heuristically.
 
 ## Non-mutating apply-plan artifact
@@ -196,6 +212,20 @@ Every `MigrationApplyItem` whose content renders cleanly carries the exact text 
 
 Rendering a preview never writes a file — it is purely part of the reviewable apply plan.
 
+## Writing files: `--apply-plan --write`
+
+`src/quarto_needs/migrations/apply_write.py` implements `apply_migration_plan(root, plan, config)`, wired into the CLI as `--write` (which requires `--apply-plan`). Its contract:
+
+- **all-or-nothing**: if any item in the plan is not `ready-create`, nothing is written — the whole call is refused before touching disk;
+- **create-only**: if a destination file already exists on disk, the whole call is refused; this is never an update path;
+- **atomic per file**: each file is written through the same temp-file-plus-`os.replace` helper (`export._write_atomic_text`) every other exporter in this project uses;
+- **all-or-nothing across files, with real rollback**: if any file write fails, or the required post-write check fails, every file this call wrote is deleted before the error propagates — verified by forcing an OS-level write failure on the second of two files and confirming the first is rolled back, not by asserting on the rollback code's own logic;
+- **post-write scan/check verification**: after every file is written, the project is re-analyzed (`analyze_project`, the same engine `quarto-needs scan`/`check` use) and any structural failure or `error`-severity finding triggers the rollback above — verified by injecting a synthetic error finding and confirming rollback, since the plan's own checks already prevent every "natural" way to reach this path;
+- **idempotence**: rerunning `--write` for the same plan is refused, not silently duplicated or silently skipped — the canonical IDs it would create now exist in the project graph, so `build_sphinx_apply_plan` reclassifies every item as `blocked` on the next run and `apply_migration_plan` refuses a plan that isn't fully `ready-create`. This refusal *is* the idempotence contract: a rerun is a safe no-op, not a silent duplicate.
+- **unrepresentable fields**: already excluded upstream — an item only reaches `ready-create` (and therefore only reaches `apply_migration_plan`) once `need_block_problems` has found nothing it cannot represent.
+
+`--write` prints (or, in `--format json`, emits) a `migration-apply-result-v1` payload listing the destination files actually written; it never prints or writes anything on refusal.
+
 ## Existing regression coverage
 
 The implementation is covered by:
@@ -206,6 +236,7 @@ tests/test_migration_cli.py
 tests/test_migration_apply_plan.py
 tests/test_migration_apply_plan_cli.py
 tests/test_migration_need_render.py
+tests/test_migration_apply_write.py
 ```
 
 Current tests protect:
@@ -225,31 +256,20 @@ Current tests protect:
 - unknown-source rejection;
 - apply-plan destination/collision/type/status/relation validation and status classification;
 - apply-plan CLI wiring, ready/review-required exit contracts, and default artifact path;
-- `.need` block content-preview rendering, its unrepresentable-content guard, and `--show-content` CLI output, verified by round-tripping through the real parser.
+- `.need` block content-preview rendering, its unrepresentable-content guard, and `--show-content` CLI output, verified by round-tripping through the real parser;
+- `--apply-plan --write`: create-only, atomic-per-file, all-or-nothing-with-rollback authored-file generation, with post-write `scan`/`check` re-verification and a refusal-based idempotence contract.
 
 ## What is intentionally not implemented
 
-Phase 5.4 does **not** yet provide `migrate ... --apply`. No command in this phase writes, creates, or modifies an authored `.qmd`/`.md` file.
+`migrate sphinx-needs ... --apply-plan --write` (see above) now covers all twelve items originally listed for the apply contract: destination selection/collision policy, canonical-ID collision checks, type/status validation, relation/endpoint resolution, source-provenance retention, escaped `.need` block rendering, atomic multi-file writes, rollback on failed writes or post-write validation, post-write `scan`/`check` verification, a refusal-based idempotence contract, upstream handling of unrepresentable fields, and a reviewable dry-run diff before mutation.
 
-The non-mutating apply-plan contract (`--apply-plan`, see above) now covers:
+What is still explicitly out of scope for this phase:
 
-- (1) destination-file selection and collision policy;
-- (2) canonical-ID collision checks against the current project;
-- (3) type/status validation against `.quarto-needs.toml`;
-- (4) canonical relation resolution and endpoint validation;
-- (5) source-provenance retention in generated declarations;
-- (6) escaping and lossless rendering of source content into `.need` blocks (as a preview; nothing is written yet);
-- (12) a reviewable dry-run diff before mutation (the plan's text/JSON CLI output, including the rendered content itself via `--show-content`).
+- **update/match semantics.** `build_sphinx_apply_plan` is create-only by design (see its docstring): an existing canonical ID is always a collision, never an implicit update. Migrating a *changed* upstream Sphinx-Needs project onto an already-migrated Quarto-Needs project needs its own reviewed identity/merge contract, not an extension of this one.
+- **multi-file/partial-batch review.** A plan is applied whole or not at all; there is no "apply only the ready subset and leave the rest for later" mode.
+- **additional source-specific adapters** (StrictDoc, Doorstop, OpenFastTrace, …) beyond Sphinx-Needs.
 
-Before authored files can actually be generated or changed, Quarto-Needs still needs:
-
-- (7) atomic multi-file writes;
-- (8) rollback behavior on any failed write or post-write validation;
-- (9) post-write `scan/check` verification;
-- (10) an idempotence contract for rerunning the same migration;
-- (11) explicit handling of source fields that cannot be represented canonically.
-
-Until those remaining contracts exist, the apply plan is the terminal artifact.
+Automatic migration writes now existing for Sphinx-Needs does not change the terminal-artifact posture of Phase 5.3's OSLC federation (still plan-only) or of any future external adapter: each adapter earns its own reviewed apply contract independently.
 
 ## Candidate next adapters
 
@@ -259,12 +279,12 @@ Each adapter must remain source-specific at the parsing boundary and converge on
 
 ## Phase 5.4 acceptance direction
 
-The Sphinx-Needs adapter is considered functionally useful when:
+The Sphinx-Needs adapter is considered functionally complete for its first source now that:
 
 - its regression and CLI suites pass locally;
-- the plan schema/contract is documented and stable;
+- the plan, apply-plan, and apply-result schemas/contracts are documented and stable;
 - a representative real-world `needs.json` can be processed without hidden source execution;
 - unresolved semantics are surfaced explicitly rather than silently dropped;
-- the future apply contract is specified before mutation code is introduced.
+- the apply contract was specified (this document, and the roadmap) before any mutation code was introduced, and every one of its explicit requirements — atomicity, rollback, post-write verification, idempotence, create-only identity, unrepresentable-content refusal — is exercised by a test that fails when the corresponding behavior is removed.
 
-Automatic migration writes remain a later controlled slice, not a prerequisite for recognizing the current plan-only adapter as implemented.
+What remains is breadth, not this contract: additional source-specific adapters (see above), and, independently, an update/match identity contract if migrating an already-migrated project ever becomes a requirement.

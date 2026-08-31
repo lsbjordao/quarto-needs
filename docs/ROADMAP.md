@@ -144,9 +144,9 @@ Remaining 5.3 gates:
 
 The terminal artifact for this phase is therefore a reviewable import plan, not automatic mutation.
 
-## 5.4 Migration adapters 🟡
+## 5.4 Migration adapters ✅ (Sphinx-Needs)
 
-**Status: the first Sphinx-Needs adapter is implemented as a deterministic plan-only workflow with a non-mutating, reviewable apply plan; automatic authored-file mutation is deferred.** See `docs/phase-5-migration.md`.
+**Status: the Sphinx-Needs adapter is implemented end to end — deterministic plan, reviewable non-mutating apply plan with a `.need` block content preview, and a create-only, atomic, rollback-protected `--write` step. Additional source adapters remain future work.** See `docs/phase-5-migration.md`.
 
 Implemented capabilities include:
 
@@ -166,13 +166,13 @@ Implemented capabilities include:
 - deterministic, non-mutating `migration-apply-plan-v1` covering destination-file selection/collision policy, canonical-ID collision checks against the current project, type/status validation against `.quarto-needs.toml`, and canonical relation/endpoint resolution;
 - a source-provenance envelope (tool/project/version/source ID) carried through every apply-plan item;
 - installed `quarto-needs migrate sphinx-needs ... --apply-plan` CLI producing a reviewable text/JSON diff, with ready/review-required/blocked status per item and matching exit-code semantics;
-- deterministic, escaped rendering of each ready candidate into authored `.need` block text (`content_preview`), refusing to render (and blocking the item) whenever source content cannot round-trip through the grammar, verified against the real parser rather than the renderer's own assumptions; exposed in the CLI via `--show-content`.
+- deterministic, escaped rendering of each ready candidate into authored `.need` block text (`content_preview`), refusing to render (and blocking the item) whenever source content cannot round-trip through the grammar, verified against the real parser rather than the renderer's own assumptions; exposed in the CLI via `--show-content`;
+- `quarto-needs migrate sphinx-needs ... --apply-plan --write`: create-only (an existing destination file refuses the whole write), atomic per file, all-or-nothing across files with real rollback (verified by forcing an OS-level failure on a later file and confirming an earlier one is deleted), post-write `scan`/`check` re-verification that rolls back on any new structural failure or error finding (verified by injecting a synthetic error), and a refusal-based idempotence contract — a rerun is refused, not silently duplicated, because the canonical IDs it would create already exist.
 
 Next 5.4 slices:
 
-1. execute and harden the existing Sphinx-Needs migration regression/CLI suite locally;
-2. only then implement atomic/idempotent authored-file generation — writing each `ready-create` item's `content_preview` to its destination file, atomic multi-file writes, rollback on failed writes or post-write validation, post-write `scan/check` verification, an idempotence contract for reruns, and explicit handling of fields that cannot be represented canonically;
-3. add additional source-specific adapters such as StrictDoc, Doorstop, and OpenFastTrace after the shared migration-plan/apply contracts stabilize.
+1. add additional source-specific adapters such as StrictDoc, Doorstop, and OpenFastTrace, converging only at the shared migration-plan/apply-plan/write contracts;
+2. an update/match identity contract, if migrating a *changed* upstream source onto an already-migrated project ever becomes a requirement — today an existing canonical ID is always a create-time collision, never an implicit update.
 
 Sphinx-Needs remains one inspiration for Quarto-Needs as well as a supported migration source; compatibility claims are limited to the explicitly implemented adapter behavior.
 
@@ -257,7 +257,7 @@ LSP semantic authoring ✅
           ↓
 Thin VS Code client 🟡 release validation
           ↓
-ReqIF 1.2 ✅ → JSON-LD 🟡 → OSLC RM 🟡 → Sphinx-Needs migration 🟡
+ReqIF 1.2 ✅ → JSON-LD 🟡 → OSLC RM 🟡 → Sphinx-Needs migration ✅
           ↓
 Broader migration / external federation
           ↓
