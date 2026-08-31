@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Mapping, Sequence
+from typing import Mapping, Sequence, cast
 from urllib.parse import quote, urlencode, urlparse
 
 from .github_http import fetch_github_resource
@@ -398,6 +398,51 @@ def _uri_origin(value: str) -> tuple[str, str, int]:
     return (scheme, (parsed.hostname or "").lower(), parsed.port or default_port)
 
 
+def _decode_response_json(result) -> object:  # type: ignore[no-untyped-def]
+    try:
+        return json.loads(result.payload)
+    except json.JSONDecodeError as error:
+        raise GitHubIssueError(f"GitHub response is not valid JSON: {error}") from error
+
+
+def _traverse_discovery_pages(
+    first_uri: str,
+    *,
+    max_pages: int,
+    fetch_page,  # type: ignore[no-untyped-def]
+) -> tuple[tuple[object, ...], bool]:
+    """Follow ``Link: rel="next"`` from ``first_uri`` within a page budget.
+
+    Shared by the list and search discovery traversals. Bounded by design:
+    a next link that exists when the budget runs out sets ``truncated``
+    rather than being silently ignored or unboundedly followed, and a
+    server-provided next URL is followed only within the origin of the
+    first request — GitHub legitimately rewrites its own Link targets, so
+    path equality is deliberately not required, but a cross-origin next is
+    rejected rather than followed.
+    """
+    allowed_origin = _uri_origin(first_uri)
+
+    pages: list[object] = []
+    truncated = False
+    current_uri = first_uri
+    for index in range(max_pages):
+        page, next_uri = fetch_page(current_uri)
+        pages.append(page)
+        if next_uri is None:
+            break
+        if index + 1 >= max_pages:
+            truncated = True
+            break
+        if _uri_origin(next_uri) != allowed_origin:
+            raise GitHubIssueError(
+                f'GitHub Link rel="next" crossed origin and was rejected: {next_uri}'
+            )
+        current_uri = next_uri
+
+    return tuple(pages), truncated
+
+
 def _fetch_issue_list_page(
     resource_uri: str,
     *,
@@ -409,10 +454,7 @@ def _fetch_issue_list_page(
     result = fetch_github_resource(
         resource_uri, fetch_policy=fetch_policy, auth_headers=auth_headers, opener=opener
     )
-    try:
-        payload = json.loads(result.payload)
-    except json.JSONDecodeError as error:
-        raise GitHubIssueError(f"GitHub response is not valid JSON: {error}") from error
+    payload = _decode_response_json(result)
     issue_numbers, pull_request_numbers = _parse_issue_list_payload(payload)
     next_uri = parse_next_link(result.link)
     page = GitHubIssueListResult(
@@ -550,29 +592,269 @@ def fetch_external_github_issue_list_pages(
         direction=direction,
         since=since,
     )
-    allowed_origin = _uri_origin(first_uri)
 
-    pages: list[GitHubIssueListResult] = []
-    truncated = False
-    current_uri = first_uri
-    for index in range(max_pages):
-        page, next_uri = _fetch_issue_list_page(
-            current_uri,
+    def fetch_page(resource_uri: str) -> tuple[GitHubIssueListResult, str | None]:
+        return _fetch_issue_list_page(
+            resource_uri,
             fetched_at=fetched_at,
             fetch_policy=fetch_policy,
             auth_headers=auth_headers,
             opener=opener,
         )
-        pages.append(page)
-        if next_uri is None:
-            break
-        if index + 1 >= max_pages:
-            truncated = True
-            break
-        if _uri_origin(next_uri) != allowed_origin:
-            raise GitHubIssueError(
-                f'GitHub Link rel="next" crossed origin and was rejected: {next_uri}'
-            )
-        current_uri = next_uri
 
-    return GitHubIssueListPages(pages=tuple(pages), max_pages=max_pages, truncated=truncated)
+    pages, truncated = _traverse_discovery_pages(
+        first_uri, max_pages=max_pages, fetch_page=fetch_page
+    )
+    return GitHubIssueListPages(
+        pages=cast("tuple[GitHubIssueListResult, ...]", pages),
+        max_pages=max_pages,
+        truncated=truncated,
+    )
+
+
+_SUPPORTED_SEARCH_SORTS = {"comments", "reactions", "interactions", "created", "updated"}
+
+
+@dataclass(frozen=True, slots=True)
+class GitHubIssueSearchResult:
+    """The outcome of one bounded search-issues query: discovery, not observation.
+
+    Mirrors ``GitHubIssueListResult`` for the search endpoint's different
+    envelope: the response carries ``total_count`` and ``incomplete_results``
+    alongside the inline items, and inline item data is never promoted into
+    an ``ExternalRequirementObservation`` — the same boundary as the list.
+    """
+
+    resource_uri: str
+    fetched_at: str
+    response_digest: str
+    total_count: int
+    incomplete_results: bool
+    issue_numbers: tuple[int, ...]
+    pull_request_numbers: tuple[int, ...]
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "schema": "github-issue-search-v1",
+            "resourceUri": self.resource_uri,
+            "fetchedAt": self.fetched_at,
+            "responseDigest": self.response_digest,
+            "totalCount": self.total_count,
+            "incompleteResults": self.incomplete_results,
+            "issueNumbers": list(self.issue_numbers),
+            "pullRequestNumbers": list(self.pull_request_numbers),
+        }
+
+
+def github_issue_search_resource_uri(
+    query: str,
+    *,
+    per_page: int = 30,
+    page: int = 1,
+    sort: str | None = None,
+    order: str | None = None,
+) -> str:
+    """Build the deterministic URI for one bounded search-issues query page.
+
+    GitHub scopes search through qualifiers inside the query string itself
+    (``repo:owner/name``, ``is:issue``, ``label:...``); the adapter never
+    guesses scoping — the caller's query is sent explicitly, so one URI
+    always identifies exactly one bounded page of one explicit search.
+    """
+    if not isinstance(query, str) or not query.strip():
+        raise GitHubIssueError("query must be a non-empty string")
+    if not (1 <= per_page <= 100):
+        raise GitHubIssueError("per_page must be between 1 and 100")
+    if page < 1:
+        raise GitHubIssueError("page must be a positive integer")
+    if sort is not None and sort not in _SUPPORTED_SEARCH_SORTS:
+        raise GitHubIssueError(f"unsupported search sort: {sort!r}")
+    if order is not None and order not in _SUPPORTED_LIST_DIRECTIONS:
+        raise GitHubIssueError(f"unsupported search order: {order!r}")
+
+    params: dict[str, object] = {"q": query.strip(), "per_page": per_page, "page": page}
+    if sort is not None:
+        params["sort"] = sort
+    if order is not None:
+        params["order"] = order
+    return f"https://api.github.com/search/issues?{urlencode(params)}"
+
+
+def _parse_search_payload(
+    payload: object,
+) -> tuple[tuple[int, ...], tuple[int, ...], int, bool]:
+    if not isinstance(payload, Mapping):
+        raise GitHubIssueError("GitHub search response is not a JSON object")
+    total_count = payload.get("total_count")
+    if not isinstance(total_count, int) or isinstance(total_count, bool) or total_count < 0:
+        raise GitHubIssueError(
+            "GitHub search response is missing a non-negative integer 'total_count'"
+        )
+    incomplete_results = payload.get("incomplete_results")
+    if not isinstance(incomplete_results, bool):
+        raise GitHubIssueError("GitHub search response is missing a boolean 'incomplete_results'")
+    if "items" not in payload:
+        raise GitHubIssueError("GitHub search response is missing an 'items' array")
+    issue_numbers, pull_request_numbers = _parse_issue_list_payload(payload["items"])
+    return issue_numbers, pull_request_numbers, total_count, incomplete_results
+
+
+def _fetch_issue_search_page(
+    resource_uri: str,
+    *,
+    fetched_at: str,
+    fetch_policy: HttpFetchPolicy,
+    auth_headers: Mapping[str, str] | None,
+    opener,
+) -> tuple[GitHubIssueSearchResult, str | None]:
+    result = fetch_github_resource(
+        resource_uri, fetch_policy=fetch_policy, auth_headers=auth_headers, opener=opener
+    )
+    payload = _decode_response_json(result)
+    issue_numbers, pull_request_numbers, total_count, incomplete_results = (
+        _parse_search_payload(payload)
+    )
+    next_uri = parse_next_link(result.link)
+    page = GitHubIssueSearchResult(
+        resource_uri=resource_uri,
+        fetched_at=fetched_at,
+        response_digest=content_digest(result.payload),
+        total_count=total_count,
+        incomplete_results=incomplete_results,
+        issue_numbers=issue_numbers,
+        pull_request_numbers=pull_request_numbers,
+    )
+    return page, next_uri
+
+
+def fetch_external_github_issue_search(
+    query: str,
+    *,
+    fetched_at: str,
+    per_page: int = 30,
+    page: int = 1,
+    sort: str | None = None,
+    order: str | None = None,
+    fetch_policy: HttpFetchPolicy = HttpFetchPolicy(),
+    auth_headers: Mapping[str, str] | None = None,
+    opener=None,
+) -> GitHubIssueSearchResult:
+    """Discover which issue numbers match one explicit search query.
+
+    A single bounded GET of the search endpoint (no follow-your-nose
+    pagination here, exactly like the list call). Pull requests inside the
+    items are reported separately, never silently mixed in or dropped, and
+    inline item data is never promoted into an observation. The search API
+    counts against GitHub's separate search rate-limit class — a 403/429
+    there raises the same distinguished rate-limit error as everywhere else.
+    """
+    resource_uri = github_issue_search_resource_uri(
+        query, per_page=per_page, page=page, sort=sort, order=order
+    )
+    result, _ = _fetch_issue_search_page(
+        resource_uri,
+        fetched_at=fetched_at,
+        fetch_policy=fetch_policy,
+        auth_headers=auth_headers,
+        opener=opener,
+    )
+    return result
+
+
+@dataclass(frozen=True, slots=True)
+class GitHubIssueSearchPages:
+    """The outcome of one bounded multi-page search traversal.
+
+    Still discovery, not observation. ``total_count`` is GitHub's
+    query-level count, read from the first fetched page;
+    ``incomplete_results`` is the conservative union — true if any fetched
+    page reported it — so a potentially incomplete search is never
+    silently presented as complete. ``truncated`` reports an honest stop
+    at the ``max_pages`` budget.
+    """
+
+    pages: tuple[GitHubIssueSearchResult, ...]
+    max_pages: int
+    truncated: bool
+
+    def __post_init__(self) -> None:
+        if not self.pages:
+            raise ValueError("a traversal must contain at least one fetched page")
+
+    @property
+    def total_count(self) -> int:
+        return self.pages[0].total_count
+
+    @property
+    def incomplete_results(self) -> bool:
+        return any(page.incomplete_results for page in self.pages)
+
+    @property
+    def issue_numbers(self) -> tuple[int, ...]:
+        return tuple(sorted({number for page in self.pages for number in page.issue_numbers}))
+
+    @property
+    def pull_request_numbers(self) -> tuple[int, ...]:
+        return tuple(
+            sorted({number for page in self.pages for number in page.pull_request_numbers})
+        )
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "schema": "github-issue-search-pages-v1",
+            "maxPages": self.max_pages,
+            "truncated": self.truncated,
+            "totalCount": self.total_count,
+            "incompleteResults": self.incomplete_results,
+            "issueNumbers": list(self.issue_numbers),
+            "pullRequestNumbers": list(self.pull_request_numbers),
+            "pages": [page.to_dict() for page in self.pages],
+        }
+
+
+def fetch_external_github_issue_search_pages(
+    query: str,
+    *,
+    fetched_at: str,
+    per_page: int = 30,
+    max_pages: int = 1,
+    sort: str | None = None,
+    order: str | None = None,
+    fetch_policy: HttpFetchPolicy = HttpFetchPolicy(),
+    auth_headers: Mapping[str, str] | None = None,
+    opener=None,
+) -> GitHubIssueSearchPages:
+    """Traverse up to ``max_pages`` search pages, following ``Link: rel="next"``.
+
+    Same bounded traversal contract as the list: ``max_pages`` is the hard
+    cap on requests (default 1), truncation is reported honestly, next
+    targets are followed within the request origin only, and malformed
+    Link headers raise rather than silently ending the traversal. Note
+    GitHub's own search cap: only the first 1000 results of any query are
+    addressable, so a budget large enough to reach that boundary stops on
+    a missing next link rather than pretending the query ended.
+    """
+    if not isinstance(max_pages, int) or isinstance(max_pages, bool) or max_pages < 1:
+        raise GitHubIssueError("max_pages must be a positive integer")
+
+    first_uri = github_issue_search_resource_uri(
+        query, per_page=per_page, page=1, sort=sort, order=order
+    )
+
+    def fetch_page(resource_uri: str) -> tuple[GitHubIssueSearchResult, str | None]:
+        return _fetch_issue_search_page(
+            resource_uri,
+            fetched_at=fetched_at,
+            fetch_policy=fetch_policy,
+            auth_headers=auth_headers,
+            opener=opener,
+        )
+
+    pages, truncated = _traverse_discovery_pages(
+        first_uri, max_pages=max_pages, fetch_page=fetch_page
+    )
+    return GitHubIssueSearchPages(
+        pages=cast("tuple[GitHubIssueSearchResult, ...]", pages),
+        max_pages=max_pages,
+        truncated=truncated,
+    )
