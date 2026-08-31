@@ -99,74 +99,81 @@ Current GitHub Actions runs terminate before checkout with no job steps for both
 
 **Status: functionally implemented and locally validated.** See `docs/phase-5-reqif.md` for the detailed contract.
 
-Implemented and validated capabilities include:
-
-- deterministic ReqIF 1.2 projection from the canonical `AnalysisSnapshot`;
-- normative ReqIF 1.2 XSD validation using the official OMG schema;
-- independent parsing through the test-only Python `reqif` implementation;
-- explicit distinction between ReqIF specification revision `1.2` and the normative `REQ-IF-VERSION` header value `1.0`;
-- deterministic XML-ID-safe ReqIF identifiers with authored Quarto-Needs IDs retained as explicit canonical attributes;
-- documented identity mapping, attribute mapping, relation mapping, and loss semantics;
-- deterministic byte output and XML escaping;
-- installed CLI support through `export --format reqif` with `.quarto-needs/requirements.reqif` as the default output.
+Implemented and validated capabilities include deterministic ReqIF 1.2 projection, normative XSD validation, independent parser acceptance, stable identity mapping, loss semantics, deterministic XML output, and installed CLI export.
 
 ReqIF import remains intentionally deferred until conflict policy, typed attribute recovery, provenance handling, and round-trip guarantees are designed explicitly.
 
-Repository-level CI confirmation remains blocked by the external Actions runner condition, but local normative and independent-parser acceptance gates have passed.
-
 ## 5.2 JSON-LD 🟡
 
-**Status: functionally implemented; independent processor execution pending local validation.** See `docs/phase-5-jsonld.md`.
+**Status: functionally implemented; independent processor execution remains an acceptance gate.** See `docs/phase-5-jsonld.md`.
 
-Implemented capabilities include:
-
-- deterministic JSON-LD 1.1 projection from the canonical `AnalysisSnapshot`;
-- one graph node plus typed engineering-object and relation nodes;
-- stable object IRIs and deterministic relation IRIs;
-- versioned public vocabulary namespace `urn:quarto-needs:v1:` with an explicit breaking-change policy;
-- embedded context with no remote-context runtime dependency;
-- canonical relation name, authored name, semantic family, roles, impact direction, source, and target preservation;
-- authored attributes represented as JSON-LD 1.1 `@json` values;
-- installed CLI support through `export --format jsonld` with `.quarto-needs/graph.jsonld` as the default output;
-- deterministic output and atomic writes;
-- test-only independent JSON-LD 1.1 processing through PyLD;
-- RDF/N-Quads verification that canonical relation endpoints survive projection.
-
-Remaining 5.2 acceptance gate: execute `tests/test_export_jsonld.py` and `tests/test_interchange_cli.py` successfully in a real local environment with refreshed test dependencies. If those pass, 5.2 is complete independently of the still-broken Actions runner.
+Implemented capabilities include deterministic JSON-LD 1.1 projection, stable object/relation IRIs, embedded context, canonical relation semantics, authored attributes as `@json`, installed CLI export, deterministic writes, and independent PyLD/RDF verification hooks.
 
 ## 5.3 OSLC Requirements Management 🟡
 
-**Status: the read-only federation foundation is implemented through cache, bounded HTTP, RDF normalization, service discovery, and Resource Shape orchestration; executable validation and user-facing CLI/config remain open.** See `docs/phase-5-oslc.md`.
+**Status: read-only federation is implemented through discovery, query execution, independently provenance-bearing member observations, explicit reconciliation, and reviewed import planning; remote writes remain deferred.** See `docs/phase-5-oslc.md`.
 
 Implemented capabilities include:
 
-- conservative projection of canonical requirements into OSLC RM resources;
-- explicit external resource identity, SHA-256 observed-representation digests, retrieval timestamps, trust state, `ETag`, and `Last-Modified` provenance;
-- deterministic `oslc-cache-v1` persistence with content-addressed blobs and historical observations rather than mutable replacement;
-- explicit fresh/stale cache policy and offline fallback semantics;
-- GET-only HTTP transport with timeout, byte, redirect, and media-type budgets;
-- conditional retrieval through `If-None-Match` / `If-Modified-Since` and deterministic handling of `304 Not Modified`;
-- same-origin redirect enforcement with normalized default ports, preventing authentication material from crossing origins;
-- request-only authentication headers that cannot override transport-controlled headers and have no persistence path;
-- network-free normalization of JSON-LD, Turtle, and RDF/XML into expanded JSON-LD; remote JSON-LD document/context loading is disabled;
-- bounded RM Service / Query Capability discovery over the normalized representation;
-- bounded OSLC Core Resource Shape parsing and advertised-shape retrieval through the same cache/transport policy;
-- one read-only orchestration path (`fetch → normalize → discover → fetch shape → parse`) that does not merge remote objects into the canonical engineering graph;
-- self-hosted traceability from `STK-006` through `SYS-007`, `FUN-010` / `NFR-006`, `ADR-008`, OSLC implementation modules, `TC-015`, and `EVD-015` in English and Brazilian Portuguese.
+- conservative canonical requirement projection into OSLC RM resources;
+- external URI identity and per-representation SHA-256 provenance;
+- deterministic content-addressed cache with historical observations;
+- explicit fresh/stale policy and offline fallback;
+- bounded GET-only HTTP with timeout/byte/redirect/media limits;
+- same-origin redirect enforcement and request-only credentials;
+- network-free JSON-LD/Turtle/RDF/XML normalization with source and expanded-node budgets;
+- RM Service / Query Capability discovery;
+- OSLC Core Resource Shape parsing;
+- named federation profiles inside `.quarto-needs.toml`;
+- deterministic `oslc discover` CLI;
+- bounded one-level Service Provider Catalog inspection;
+- explicit Query Capability execution with member limits and query-response provenance;
+- independently fetched query-member observations with per-resource digest, retrieval time, validators, and trust state;
+- explicit URI-to-canonical-ID reconciliation with no heuristic identity merge;
+- deterministic `oslc-reconciliation-v1`;
+- deterministic, non-mutating `oslc-import-plan-v1` with explicit create/update/ignore/review directives;
+- self-hosted EN/PT-BR requirements, ADRs, implementation modules, tests, and evidence through `TC-018` / `EVD-018`;
+- ten representative executable tests in `make evidence-self-example` after the TC-018 slice.
 
 Remaining 5.3 gates:
 
-1. obtain a real successful execution of the OSLC regression set; current Actions jobs still stop before checkout;
-2. expose named OSLC federation endpoints through bounded `.quarto-needs.toml` configuration and a deterministic CLI discovery report;
-3. add Service Provider Catalog selection if required by real providers, without recursive Linked Data crawling;
-4. design explicit external requirement import/conflict/reconciliation semantics before allowing imports;
-5. keep POST/PUT/PATCH/DELETE and synchronization deferred until conflict, authorization, optimistic-concurrency, and audit contracts are complete.
+1. validate the current self-hosted evidence gate after every newly promoted OSLC test-case;
+2. promote the import-plan regression into modeled `TC-019` / `EVD-019` only after local execution confirms it;
+3. centralize validation of `[federation.oslc.profiles.*]` in ordinary `load_config()` while keeping read-only connectivity outside the canonical configuration fingerprint;
+4. keep canonical import/apply and all POST/PUT/PATCH/DELETE operations deferred until staleness, conflict, authored-file placement, atomicity, rollback, optimistic concurrency, authorization, and audit contracts are explicit.
 
-## 5.4 Migration adapters ⚪
+The terminal artifact for this phase is therefore a reviewable import plan, not automatic mutation.
 
-Provide optional import/migration paths for established requirements/docs-as-code ecosystems, including **Sphinx-Needs as one of the inspirations and migration sources**, while retaining Quarto-native authoring as the primary interface.
+## 5.4 Migration adapters 🟡
 
-Migration adapters must preserve original identity/provenance and emit explicit diagnostics for information that cannot be represented canonically.
+**Status: the first Sphinx-Needs adapter is implemented as a deterministic plan-only workflow; automatic authored-file mutation is deferred.** See `docs/phase-5-migration.md`.
+
+Implemented capabilities include:
+
+- Sphinx-Needs `needs.json` ingestion without executing a Sphinx project or arbitrary Python;
+- deterministic source-version selection with explicit ambiguity failure;
+- support for object-keyed and array need representations;
+- source-ID recovery and duplicate-ID rejection;
+- explicit source-type → Quarto-Needs-type mappings;
+- explicit Sphinx link-field → canonical relation mappings;
+- backlink exclusion as computed/inverse source data rather than duplicate authored authority;
+- preservation of unmapped links and source-specific extra fields;
+- explicit diagnostics for unmapped types, unmapped link fields, conditional links, and external targets;
+- deterministic `sphinx-needs-migration-plan-v1`;
+- installed `quarto-needs migrate sphinx-needs ...` CLI;
+- ready-plan vs unresolved-plan exit semantics;
+- regression coverage for parser, mappings, deterministic serialization, and CLI behavior.
+
+Next 5.4 slices:
+
+1. execute and harden the existing Sphinx-Needs migration regression/CLI suite locally;
+2. define a source-provenance envelope for migration candidates and generated declarations;
+3. define a dry-run apply-plan contract covering destination file, canonical-ID collisions, status/type validation, relation resolution, source-content rendering, and post-apply checks;
+4. require a reviewable diff before any file mutation;
+5. only then implement atomic/idempotent authored-file generation with rollback and post-write `scan/check` validation;
+6. add additional source-specific adapters such as StrictDoc, Doorstop, and OpenFastTrace after the shared migration-plan/apply contracts stabilize.
+
+Sphinx-Needs remains one inspiration for Quarto-Needs as well as a supported migration source; compatibility claims are limited to the explicitly implemented adapter behavior.
 
 ## 5.5 External service adapters ⚪
 
@@ -229,10 +236,10 @@ Git change / review state
     ↓
 editor navigation / safe refactor
     ↓
-interchange projection
+interchange / federation / migration projection
 ```
 
-Deliberately broken teaching fixtures should cover missing evidence, invalid relations, orphan requirements, overdue decisions, localization drift, stale implementations/evidence, suspect-after-change, interchange loss, and editor/refactor failures without contaminating the canonical self-hosted model.
+Deliberately broken teaching fixtures should cover missing evidence, invalid relations, orphan requirements, overdue decisions, localization drift, stale implementations/evidence, suspect-after-change, interchange loss, migration loss, and editor/refactor failures without contaminating the canonical self-hosted model.
 
 ---
 
@@ -249,7 +256,9 @@ LSP semantic authoring ✅
           ↓
 Thin VS Code client 🟡 release validation
           ↓
-ReqIF 1.2 ✅ → JSON-LD 🟡 → OSLC RM 🟡 → migration / broader federation
+ReqIF 1.2 ✅ → JSON-LD 🟡 → OSLC RM 🟡 → Sphinx-Needs migration 🟡
+          ↓
+Broader migration / external federation
           ↓
 Architecture / C4 projections
           ↓
@@ -262,4 +271,4 @@ C4 projection work may advance earlier when it only consumes already-modeled arc
 
 # Definition of success
 
-Quarto-Needs reaches its intended shape when an engineering change can be authored, reviewed, executed, evidenced, compared, explained, navigated, safely refactored, visualized, published, and exchanged without any layer inventing a second interpretation of the project.
+Quarto-Needs reaches its intended shape when an engineering change can be authored, reviewed, executed, evidenced, compared, explained, navigated, safely refactored, visualized, published, federated, migrated, and exchanged without any layer inventing a second interpretation of the project.
