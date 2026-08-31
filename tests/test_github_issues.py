@@ -12,7 +12,7 @@ from quarto_needs.github_issues import (
     github_issue_resource_uri,
     parse_external_github_issue,
 )
-from quarto_needs.oslc_rm import ExternalResourceIdentity
+from quarto_needs.oslc_rm import CachePolicy, ExternalResourceIdentity
 
 
 def _identity(uri: str = "https://api.github.com/repos/acme/widgets/issues/3164") -> ExternalResourceIdentity:
@@ -201,6 +201,65 @@ def test_fetch_external_github_issue_rejects_non_object_json() -> None:
         fetch_external_github_issue(
             "acme", "widgets", 1, fetched_at="2026-08-31T12:00:00Z", opener=opener
         )
+
+
+def test_fetch_external_github_issue_with_cache_root_hits_network_once(tmp_path) -> None:
+    body = json.dumps(_real_shaped_payload()).encode("utf-8")
+    # Only one response queued: a second network call would raise.
+    opener = _Opener(_Response(200, body, **{"Content-Type": "application/json"}))
+
+    first = fetch_external_github_issue(
+        "acme",
+        "widgets",
+        3164,
+        fetched_at="2026-08-31T12:00:00Z",
+        opener=opener,
+        cache_root=tmp_path,
+        cache_policy=CachePolicy(max_age_seconds=3600),
+    )
+    second = fetch_external_github_issue(
+        "acme",
+        "widgets",
+        3164,
+        fetched_at="2026-08-31T12:05:00Z",
+        opener=opener,
+        cache_root=tmp_path,
+        cache_policy=CachePolicy(max_age_seconds=3600),
+    )
+
+    assert len(opener.requests) == 1
+    assert second.title == first.title
+    assert second.identity.digest == first.identity.digest
+
+
+def test_fetch_external_github_issue_refetches_once_cache_is_stale(tmp_path) -> None:
+    body = json.dumps(_real_shaped_payload()).encode("utf-8")
+    opener = _Opener(
+        _Response(200, body, **{"Content-Type": "application/json"}),
+        _Response(200, body, **{"Content-Type": "application/json"}),
+    )
+
+    fetch_external_github_issue(
+        "acme",
+        "widgets",
+        3164,
+        fetched_at="2026-08-31T12:00:00Z",
+        opener=opener,
+        cache_root=tmp_path,
+        cache_policy=CachePolicy(max_age_seconds=60),
+    )
+    fetch_external_github_issue(
+        "acme",
+        "widgets",
+        3164,
+        # Far past the 60s freshness window.
+        fetched_at="2026-08-31T13:00:00Z",
+        opener=opener,
+        cache_root=tmp_path,
+        cache_policy=CachePolicy(max_age_seconds=60),
+    )
+
+    assert len(opener.requests) == 2
 
 
 def test_build_github_issue_identity_accepts_conditional_request_validators() -> None:

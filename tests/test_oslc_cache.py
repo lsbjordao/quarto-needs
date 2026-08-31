@@ -11,6 +11,7 @@ from quarto_needs.oslc_cache import (
     read_cached_payload,
     select_cached_representation,
     store_cached_representation,
+    write_cache_manifest,
 )
 from quarto_needs.oslc_rm import CachePolicy, ExternalResourceIdentity, content_digest
 
@@ -157,3 +158,41 @@ def test_cache_rejects_unknown_schema_duplicate_observations_and_unknown_fields(
     )
     with pytest.raises(ValueError, match="unknown fields"):
         load_cache_manifest(tmp_path)
+
+
+def test_cache_schema_is_a_parameter_not_a_hardcoded_oslc_constant(tmp_path: Path) -> None:
+    """A non-OSLC caller (e.g. the GitHub adapter) stamps and reads its own schema.
+
+    This is what makes reusing store_cached_representation/
+    select_cached_representation for a different external source safe: a
+    cache root written under one schema can never be silently read back (or
+    silently overwritten) under a different one.
+    """
+    payload = b'{"number": 1}'
+    representation = _representation(payload, fetched_at="2026-08-30T20:00:00Z")
+
+    store_cached_representation(tmp_path, representation, payload, schema="github-cache-v1")
+
+    document = json.loads((tmp_path / "manifest.json").read_text(encoding="utf-8"))
+    assert document["schema"] == "github-cache-v1"
+
+    # The default (OSLC) schema must not see entries written under another one.
+    assert load_cache_manifest(tmp_path, schema="github-cache-v1") == (representation,)
+    with pytest.raises(ValueError, match="unsupported OSLC cache schema"):
+        load_cache_manifest(tmp_path)
+
+    selection = select_cached_representation(
+        tmp_path,
+        resource_uri=representation.identity.resource_uri,
+        policy=CachePolicy(max_age_seconds=3600),
+        now="2026-08-30T20:30:00Z",
+        schema="github-cache-v1",
+    )
+    assert selection is not None
+    assert selection.decision == "fresh"
+
+
+def test_write_cache_manifest_stamps_the_requested_schema(tmp_path: Path) -> None:
+    write_cache_manifest(tmp_path, (), schema="github-cache-v1")
+    document = json.loads((tmp_path / "manifest.json").read_text(encoding="utf-8"))
+    assert document == {"schema": "github-cache-v1", "entries": []}
