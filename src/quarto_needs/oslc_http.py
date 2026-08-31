@@ -23,6 +23,12 @@ SUPPORTED_OSLC_MEDIA_TYPES = {
     "text/turtle",
     "application/rdf+xml",
 }
+_PROTECTED_REQUEST_HEADERS = {
+    "accept",
+    "user-agent",
+    "if-none-match",
+    "if-modified-since",
+}
 
 
 class OslcTransportError(RuntimeError):
@@ -64,9 +70,11 @@ def _require_http_uri(value: str, field: str) -> None:
         raise ValueError(f"{field} must be an absolute http(s) URI")
 
 
-def _origin(value: str) -> tuple[str, str, int | None]:
+def _origin(value: str) -> tuple[str, str, int]:
     parsed = urlparse(value)
-    return (parsed.scheme.lower(), (parsed.hostname or "").lower(), parsed.port)
+    scheme = parsed.scheme.lower()
+    default_port = 443 if scheme == "https" else 80
+    return (scheme, (parsed.hostname or "").lower(), parsed.port or default_port)
 
 
 def _media_type(value: str | None) -> str:
@@ -88,6 +96,8 @@ def _read_bounded(response, max_bytes: int) -> bytes:  # type: ignore[no-untyped
             declared = int(content_length)
         except ValueError as error:
             raise OslcTransportError("invalid-response", "invalid Content-Length header") from error
+        if declared < 0:
+            raise OslcTransportError("invalid-response", "negative Content-Length header")
         if declared > max_bytes:
             raise OslcTransportError(
                 "response-too-large",
@@ -111,6 +121,18 @@ def _conditional_headers(cached: CachedRepresentation | None) -> dict[str, str]:
     if cached.identity.last_modified:
         headers["If-Modified-Since"] = cached.identity.last_modified
     return headers
+
+
+def _merge_auth_headers(
+    headers: dict[str, str],
+    auth_headers: Mapping[str, str] | None,
+) -> None:
+    if not auth_headers:
+        return
+    for name, value in auth_headers.items():
+        if name.casefold() in _PROTECTED_REQUEST_HEADERS:
+            raise ValueError(f"authentication adapter must not override transport header {name}")
+        headers[name] = value
 
 
 def _request_once(
@@ -172,8 +194,7 @@ def fetch_oslc_resource(
         "User-Agent": "quarto-needs/0.1 OSLC read-only client",
         **_conditional_headers(latest),
     }
-    if auth_headers:
-        headers.update(auth_headers)
+    _merge_auth_headers(headers, auth_headers)
 
     transport = opener or build_opener(_NoRedirect())
     current_uri = resource_uri
