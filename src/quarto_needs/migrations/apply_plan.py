@@ -8,6 +8,7 @@ from typing import Literal, Mapping
 from ..config import NeedsConfig
 from ..relations import DEFAULT_RELATION_CATALOG
 from ..snapshot import AnalysisSnapshot
+from .render import need_block_problems, render_need_block
 from .sphinx_needs import SphinxNeedCandidate, SphinxNeedsMigrationPlan
 
 ApplyStatus = Literal["ready-create", "blocked", "review-required"]
@@ -27,6 +28,7 @@ class MigrationApplyItem:
     relations: tuple[dict[str, str], ...]
     provenance: Mapping[str, object]
     reasons: tuple[str, ...] = ()
+    content_preview: str | None = None
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -42,6 +44,7 @@ class MigrationApplyItem:
             "relations": [dict(item) for item in self.relations],
             "provenance": dict(self.provenance),
             "reasons": list(self.reasons),
+            "contentPreview": self.content_preview,
         }
 
 
@@ -201,6 +204,36 @@ def build_sphinx_apply_plan(
                 }
             )
 
+        sorted_relations = tuple(
+            sorted(
+                relation_payload,
+                key=lambda item: (item["relation"], item["target"]),
+            )
+        )
+
+        content_preview: str | None = None
+        if candidate.target_type is not None:
+            render_problems = need_block_problems(
+                canonical_id=canonical_id,
+                target_type=candidate.target_type,
+                target_status=candidate.status,
+                title=candidate.title,
+                body=candidate.content,
+                tags=candidate.tags,
+                relations=sorted_relations,
+            )
+            reasons.extend(render_problems)
+            if not render_problems:
+                content_preview = render_need_block(
+                    canonical_id=canonical_id,
+                    target_type=candidate.target_type,
+                    target_status=candidate.status,
+                    title=candidate.title,
+                    body=candidate.content,
+                    tags=candidate.tags,
+                    relations=sorted_relations,
+                )
+
         status: ApplyStatus
         if reasons:
             status = "review-required" if all(
@@ -220,12 +253,7 @@ def build_sphinx_apply_plan(
                 title=candidate.title,
                 content=candidate.content,
                 tags=candidate.tags,
-                relations=tuple(
-                    sorted(
-                        relation_payload,
-                        key=lambda item: (item["relation"], item["target"]),
-                    )
-                ),
+                relations=sorted_relations,
                 provenance={
                     "tool": "Sphinx-Needs",
                     "project": migration.source_project,
@@ -233,6 +261,7 @@ def build_sphinx_apply_plan(
                     "sourceId": candidate.source_id,
                 },
                 reasons=tuple(reasons),
+                content_preview=content_preview,
             )
         )
 

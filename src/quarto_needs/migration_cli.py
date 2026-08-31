@@ -80,6 +80,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--destination", action="append", default=[], metavar="SOURCE=PATH")
     parser.add_argument("--id-map", action="append", default=[], metavar="SOURCE=CANONICAL")
     parser.add_argument("--apply-output", default=DEFAULT_SPHINX_APPLY_PLAN)
+    parser.add_argument("--show-content", action="store_true")
     return parser
 
 
@@ -194,6 +195,10 @@ def run_migration_action(root: Path, argv: Sequence[str], source: str) -> int:
                     print(f"  relations: {rendered}")
                 if item.reasons:
                     print(f"  reasons: {'; '.join(item.reasons)}")
+                if args.show_content and item.content_preview is not None:
+                    print("  content preview:")
+                    for line in item.content_preview.splitlines():
+                        print(f"    {line}")
 
     # A plan with unresolved semantics or an apply plan that is not fully
     # ready-to-create is useful output but not migration-ready.
