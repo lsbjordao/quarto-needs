@@ -88,6 +88,68 @@ def test_installed_cli_discovers_oslc_as_deterministic_json(
     assert captured["fetch_shapes"] is False
 
 
+def test_oslc_cli_reads_named_profile_and_allows_explicit_override(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    (tmp_path / ".quarto-needs-oslc.toml").write_text(
+        """
+[profiles.production]
+service-provider-uri = "https://provider.test/oslc/sp/1"
+cache-dir = ".quarto-needs/oslc/production"
+max-age-seconds = 900
+allow-stale = true
+timeout-seconds = 3.5
+max-bytes = 250000
+max-redirects = 1
+max-nodes = 700
+fetch-shapes = false
+bearer-token-env = "QUARTO_NEEDS_OSLC_TOKEN"
+""".strip()
+        + "\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("QUARTO_NEEDS_OSLC_TOKEN", "profile-secret")
+    captured = {}
+
+    def fake_discover(**kwargs):
+        captured.update(kwargs)
+        return _result()
+
+    monkeypatch.setattr("quarto_needs.oslc_cli.discover_oslc_rm", fake_discover)
+
+    assert (
+        main(
+            [
+                "--root",
+                str(tmp_path),
+                "oslc",
+                "discover",
+                "--profile",
+                "production",
+                "--max-bytes",
+                "4096",
+                "--shapes",
+                "--format",
+                "json",
+            ]
+        )
+        == 0
+    )
+    output = capsys.readouterr()
+    assert "profile-secret" not in output.out
+    assert "profile-secret" not in output.err
+    assert captured["service_provider_uri"] == "https://provider.test/oslc/sp/1"
+    assert captured["cache_root"] == tmp_path / ".quarto-needs" / "oslc" / "production"
+    assert captured["cache_policy"].max_age_seconds == 900
+    assert captured["cache_policy"].allow_stale is True
+    assert captured["fetch_policy"].timeout_seconds == 3.5
+    assert captured["fetch_policy"].max_bytes == 4096
+    assert captured["fetch_policy"].max_redirects == 1
+    assert captured["max_nodes"] == 700
+    assert captured["fetch_shapes"] is True
+    assert captured["auth_headers"] == {"Authorization": "Bearer profile-secret"}
+
+
 def test_oslc_cli_reads_bearer_token_from_environment_without_printing_it(
     tmp_path: Path, monkeypatch, capsys
 ) -> None:
@@ -141,6 +203,24 @@ def test_oslc_cli_rejects_missing_secret_environment_variable(
         == 2
     )
     assert "unset or empty" in capsys.readouterr().err
+
+
+def test_oslc_cli_rejects_profile_and_uri_together(tmp_path: Path, capsys) -> None:
+    assert (
+        main(
+            [
+                "--root",
+                str(tmp_path),
+                "oslc",
+                "discover",
+                "https://provider.test/oslc/sp/1",
+                "--profile",
+                "production",
+            ]
+        )
+        == 2
+    )
+    assert "either a Service Provider URI or --profile" in capsys.readouterr().err
 
 
 def test_oslc_cli_rejects_unknown_action(tmp_path: Path, capsys) -> None:
