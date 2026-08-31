@@ -134,11 +134,33 @@ Implemented capabilities include:
 
 Remaining 5.2 acceptance gate: execute `tests/test_export_jsonld.py` and `tests/test_interchange_cli.py` successfully in a real local environment with refreshed test dependencies. If those pass, 5.2 is complete independently of the still-broken Actions runner.
 
-## 5.3 OSLC Requirements Management ⚪
+## 5.3 OSLC Requirements Management 🟡
 
-Federation begins only after authentication, caching, provenance, identity, conflict, offline behavior, and trust boundaries have explicit contracts.
+**Status: the read-only federation foundation is implemented through cache, bounded HTTP, RDF normalization, service discovery, and Resource Shape orchestration; executable validation and user-facing CLI/config remain open.** See `docs/phase-5-oslc.md`.
 
-The first OSLC slice should be **read-only and projection-first**: define canonical resource identity, local-to-external URI mapping, provenance/trust metadata, shape discovery, cache/digest policy, and failure behavior before adding network writes or synchronization.
+Implemented capabilities include:
+
+- conservative projection of canonical requirements into OSLC RM resources;
+- explicit external resource identity, SHA-256 observed-representation digests, retrieval timestamps, trust state, `ETag`, and `Last-Modified` provenance;
+- deterministic `oslc-cache-v1` persistence with content-addressed blobs and historical observations rather than mutable replacement;
+- explicit fresh/stale cache policy and offline fallback semantics;
+- GET-only HTTP transport with timeout, byte, redirect, and media-type budgets;
+- conditional retrieval through `If-None-Match` / `If-Modified-Since` and deterministic handling of `304 Not Modified`;
+- same-origin redirect enforcement with normalized default ports, preventing authentication material from crossing origins;
+- request-only authentication headers that cannot override transport-controlled headers and have no persistence path;
+- network-free normalization of JSON-LD, Turtle, and RDF/XML into expanded JSON-LD; remote JSON-LD document/context loading is disabled;
+- bounded RM Service / Query Capability discovery over the normalized representation;
+- bounded OSLC Core Resource Shape parsing and advertised-shape retrieval through the same cache/transport policy;
+- one read-only orchestration path (`fetch → normalize → discover → fetch shape → parse`) that does not merge remote objects into the canonical engineering graph;
+- self-hosted traceability from `STK-006` through `SYS-007`, `FUN-010` / `NFR-006`, `ADR-008`, OSLC implementation modules, `TC-015`, and `EVD-015` in English and Brazilian Portuguese.
+
+Remaining 5.3 gates:
+
+1. obtain a real successful execution of the OSLC regression set; current Actions jobs still stop before checkout;
+2. expose named OSLC federation endpoints through bounded `.quarto-needs.toml` configuration and a deterministic CLI discovery report;
+3. add Service Provider Catalog selection if required by real providers, without recursive Linked Data crawling;
+4. design explicit external requirement import/conflict/reconciliation semantics before allowing imports;
+5. keep POST/PUT/PATCH/DELETE and synchronization deferred until conflict, authorization, optimistic-concurrency, and audit contracts are complete.
 
 ## 5.4 Migration adapters ⚪
 
@@ -227,7 +249,7 @@ LSP semantic authoring ✅
           ↓
 Thin VS Code client 🟡 release validation
           ↓
-ReqIF 1.2 ✅ → JSON-LD 🟡 → OSLC / migration / federation
+ReqIF 1.2 ✅ → JSON-LD 🟡 → OSLC RM 🟡 → migration / broader federation
           ↓
 Architecture / C4 projections
           ↓
