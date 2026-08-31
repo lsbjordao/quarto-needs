@@ -5,6 +5,7 @@ from types import MappingProxyType
 from quarto_needs.config import Gates, NeedsConfig
 from quarto_needs.migrations.apply_plan import build_sphinx_apply_plan
 from quarto_needs.migrations.sphinx_needs import build_migration_plan
+from quarto_needs.parser import parse_qmd_text_declarations
 from quarto_needs.snapshot import AnalysisSnapshot, ObjectRecord
 
 
@@ -55,7 +56,9 @@ def _snapshot(*objects: ObjectRecord) -> AnalysisSnapshot:
     )
 
 
-def _migration(*, status: str = "approved", target: str = "TC_001"):
+def _migration(
+    *, status: str = "approved", target: str = "TC_001", content: str = "The system shall authenticate users."
+):
     document = {
         "project": "Legacy engineering docs",
         "current_version": "1.0",
@@ -70,7 +73,7 @@ def _migration(*, status: str = "approved", target: str = "TC_001"):
                     "REQ_001": {
                         "type": "req",
                         "title": "Authenticate users",
-                        "content": "The system shall authenticate users.",
+                        "content": content,
                         "status": status,
                         "tags": ["security"],
                         "tests": [target],
@@ -201,3 +204,48 @@ def test_unresolved_external_relation_target_blocks_apply_plan() -> None:
     assert req.status == "blocked"
     assert any("EXTERNAL_LINK_TARGET" in reason for reason in req.reasons)
     assert any("does not resolve" in reason for reason in req.reasons)
+
+
+def test_ready_item_carries_a_content_preview_that_round_trips_through_the_parser() -> None:
+    plan = build_sphinx_apply_plan(
+        _migration(),
+        _snapshot(),
+        _config(),
+        destinations={
+            "REQ_001": "requirements/authentication.qmd",
+            "TC_001": "verification/authentication.qmd",
+        },
+    )
+
+    req = plan.items[0]
+    assert req.status == "ready-create"
+    assert req.content_preview is not None
+
+    batch = parse_qmd_text_declarations(req.content_preview, "generated.qmd")
+    assert batch.findings == ()
+    declaration = batch.declarations[0]
+    assert declaration.id == "REQ_001"
+    assert declaration.type == "system-requirement"
+    assert declaration.status == "approved"
+    assert declaration.title == "Authenticate users"
+    assert declaration.body == "The system shall authenticate users."
+    assert [(r.authored_name, r.target) for r in declaration.relations] == [
+        ("verified-by", "TC_001"),
+    ]
+
+
+def test_unrenderable_source_content_blocks_the_item_and_omits_content_preview() -> None:
+    plan = build_sphinx_apply_plan(
+        _migration(content="line one\n:::\nline three"),
+        _snapshot(),
+        _config(),
+        destinations={
+            "REQ_001": "requirements/authentication.qmd",
+            "TC_001": "verification/authentication.qmd",
+        },
+    )
+
+    req = plan.items[0]
+    assert req.status == "blocked"
+    assert req.content_preview is None
+    assert any("prematurely close" in reason for reason in req.reasons)

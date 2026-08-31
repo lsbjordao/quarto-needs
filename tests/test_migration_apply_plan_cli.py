@@ -111,6 +111,44 @@ def test_apply_plan_cli_reports_review_required_without_destination(
     assert payload["ready"] is False
 
 
+def test_apply_plan_cli_show_content_prints_the_rendered_need_block(
+    tmp_path: Path, capsys
+) -> None:
+    exit_code = _run(
+        tmp_path,
+        "--apply-plan",
+        "--destination",
+        "REQ_001=requirements/authentication.qmd",
+        "--destination",
+        "TC_001=verification/authentication.qmd",
+        "--format",
+        "text",
+        "--show-content",
+    )
+
+    assert exit_code == 0
+    stdout = capsys.readouterr().out
+    assert "::: {.need #REQ_001" in stdout
+    assert "## Authenticate users" in stdout
+
+
+def test_apply_plan_cli_hides_content_by_default(tmp_path: Path, capsys) -> None:
+    exit_code = _run(
+        tmp_path,
+        "--apply-plan",
+        "--destination",
+        "REQ_001=requirements/authentication.qmd",
+        "--destination",
+        "TC_001=verification/authentication.qmd",
+        "--format",
+        "text",
+    )
+
+    assert exit_code == 0
+    stdout = capsys.readouterr().out
+    assert "::: {.need" not in stdout
+
+
 def test_plan_only_invocation_is_unaffected_by_apply_plan_support(
     tmp_path: Path, capsys
 ) -> None:
