@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import hashlib
+import json
+
 import pytest
 
 from quarto_needs.github_issues import (
     GitHubIssueError,
     build_github_issue_identity,
+    fetch_external_github_issue,
     github_issue_resource_uri,
     parse_external_github_issue,
 )
@@ -130,10 +134,73 @@ def test_build_github_issue_identity_uses_resource_uri_and_content_digest() -> N
     assert identity.resource_uri == "https://api.github.com/repos/acme/widgets/issues/3164"
     assert identity.service_provider_uri == "https://api.github.com/repos/acme/widgets"
     assert identity.trust_state == "unverified"
-
-    import hashlib
-
     assert identity.digest == "sha256:" + hashlib.sha256(payload_bytes).hexdigest()
+
+
+class _Headers(dict[str, str]):
+    def get(self, key: str, default=None):  # type: ignore[override]
+        for name, value in self.items():
+            if name.lower() == key.lower():
+                return value
+        return default
+
+
+class _Response:
+    def __init__(self, status: int, payload: bytes = b"", **headers: str) -> None:
+        self.status = status
+        self.code = status
+        self._payload = payload
+        self.headers = _Headers(headers)
+
+    def read(self, amount: int = -1) -> bytes:
+        if amount < 0:
+            return self._payload
+        return self._payload[:amount]
+
+
+class _Opener:
+    def __init__(self, *responses) -> None:
+        self.responses = list(responses)
+        self.requests: list = []
+
+    def open(self, request, timeout: float):  # type: ignore[no-untyped-def]
+        self.requests.append(request)
+        if not self.responses:
+            raise AssertionError("unexpected HTTP request")
+        response = self.responses.pop(0)
+        if isinstance(response, BaseException):
+            raise response
+        return response
+
+
+def test_fetch_external_github_issue_composes_transport_identity_and_parsing() -> None:
+    body = json.dumps(_real_shaped_payload()).encode("utf-8")
+    opener = _Opener(
+        _Response(
+            200,
+            body,
+            **{"Content-Type": "application/json", "ETag": '"etag-1"'},
+        )
+    )
+
+    observation = fetch_external_github_issue(
+        "acme", "widgets", 3164, fetched_at="2026-08-31T12:00:00Z", opener=opener
+    )
+
+    assert observation.title == "Feature: Allow custom link text for [LINK: ...]"
+    assert observation.identity.resource_uri == (
+        "https://api.github.com/repos/acme/widgets/issues/3164"
+    )
+    assert observation.identity.digest == "sha256:" + hashlib.sha256(body).hexdigest()
+    assert observation.identity.etag == '"etag-1"'
+
+
+def test_fetch_external_github_issue_rejects_non_object_json() -> None:
+    opener = _Opener(_Response(200, b"[1, 2, 3]", **{"Content-Type": "application/json"}))
+    with pytest.raises(GitHubIssueError, match="JSON object"):
+        fetch_external_github_issue(
+            "acme", "widgets", 1, fetched_at="2026-08-31T12:00:00Z", opener=opener
+        )
 
 
 def test_build_github_issue_identity_accepts_conditional_request_validators() -> None:
