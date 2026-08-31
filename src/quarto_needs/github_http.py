@@ -25,6 +25,9 @@ class GitHubFetchResult:
     payload: bytes | None
     etag: str | None
     last_modified: str | None
+    # Raw Link header, surfaced for callers (e.g. list pagination) that need
+    # response-level navigation facts; the transport itself never follows it.
+    link: str | None = None
 
 
 class _NoRedirect(HTTPRedirectHandler):
@@ -158,6 +161,7 @@ def fetch_github_resource(
                 payload=None,
                 etag=response.headers.get("ETag"),
                 last_modified=response.headers.get("Last-Modified"),
+                link=response.headers.get("Link"),
             )
 
         if status in {401, 403}:
@@ -173,6 +177,7 @@ def fetch_github_resource(
             payload=payload,
             etag=response.headers.get("ETag"),
             last_modified=response.headers.get("Last-Modified"),
+            link=response.headers.get("Link"),
         )
 
     raise GitHubTransportError("redirect-limit", "GitHub redirect limit exceeded")

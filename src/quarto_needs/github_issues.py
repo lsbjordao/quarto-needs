@@ -3,8 +3,8 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Mapping
-from urllib.parse import quote, urlencode
+from typing import Mapping, Sequence
+from urllib.parse import quote, urlencode, urlparse
 
 from .github_http import fetch_github_resource
 from .oslc_cache import (
@@ -20,6 +20,8 @@ from .oslc_rm import CachePolicy, ExternalResourceIdentity, TrustState, content_
 
 _SUPPORTED_STATES = {"open", "closed"}
 _SUPPORTED_LIST_STATES = {"open", "closed", "all"}
+_SUPPORTED_LIST_SORTS = {"created", "updated", "comments"}
+_SUPPORTED_LIST_DIRECTIONS = {"asc", "desc"}
 GITHUB_ISSUES_CACHE_SCHEMA = "github-issues-cache-v1"
 
 
@@ -275,8 +277,18 @@ def github_issue_list_resource_uri(
     state: str = "open",
     per_page: int = 30,
     page: int = 1,
+    labels: Sequence[str] | None = None,
+    sort: str | None = None,
+    direction: str | None = None,
+    since: str | None = None,
 ) -> str:
-    """Build the deterministic GitHub REST API URL for one bounded issue-list page."""
+    """Build the deterministic GitHub REST API URL for one bounded issue-list page.
+
+    ``labels``/``since``/``sort``/``direction`` are the list endpoint's own
+    documented filter parameters (never the separate search API); every
+    filter is explicit in the resulting URL, so one URI always identifies
+    exactly one bounded page.
+    """
     if not owner.strip():
         raise GitHubIssueError("owner must be non-empty")
     if not repo.strip():
@@ -287,7 +299,29 @@ def github_issue_list_resource_uri(
         raise GitHubIssueError("per_page must be between 1 and 100")
     if page < 1:
         raise GitHubIssueError("page must be a positive integer")
-    query = urlencode({"state": state, "per_page": per_page, "page": page})
+    if sort is not None and sort not in _SUPPORTED_LIST_SORTS:
+        raise GitHubIssueError(f"unsupported issue list sort: {sort!r}")
+    if direction is not None and direction not in _SUPPORTED_LIST_DIRECTIONS:
+        raise GitHubIssueError(f"unsupported issue list direction: {direction!r}")
+    if since is not None and (not isinstance(since, str) or not since.strip()):
+        raise GitHubIssueError("since must be a non-empty timestamp string when present")
+    if labels is not None:
+        if isinstance(labels, str) or not isinstance(labels, Sequence):
+            raise GitHubIssueError("labels must be a sequence of label names, not a string")
+        for label in labels:
+            if not isinstance(label, str) or not label.strip():
+                raise GitHubIssueError("every label must be a non-empty string")
+
+    params: dict[str, object] = {"state": state, "per_page": per_page, "page": page}
+    if labels:
+        params["labels"] = ",".join(labels)
+    if sort is not None:
+        params["sort"] = sort
+    if direction is not None:
+        params["direction"] = direction
+    if since is not None:
+        params["since"] = since.strip()
+    query = urlencode(params)
     return f"https://api.github.com/repos/{quote(owner)}/{quote(repo)}/issues?{query}"
 
 
@@ -311,6 +345,86 @@ def _parse_issue_list_payload(payload: object) -> tuple[tuple[int, ...], tuple[i
     return tuple(sorted(set(issue_numbers))), tuple(sorted(set(pull_request_numbers)))
 
 
+def _split_link_header(link_header: str) -> list[str]:
+    """Split an RFC 5988 Link header into entries at commas outside ``<...>``."""
+    entries: list[str] = []
+    current: list[str] = []
+    inside_target = False
+    for char in link_header:
+        if char == "<":
+            inside_target = True
+        elif char == ">":
+            inside_target = False
+        if char == "," and not inside_target:
+            entries.append("".join(current))
+            current = []
+            continue
+        current.append(char)
+    entries.append("".join(current))
+    return [entry.strip() for entry in entries if entry.strip()]
+
+
+def parse_next_link(link_header: str | None) -> str | None:
+    """Extract the ``rel="next"`` target from a GitHub ``Link`` header.
+
+    Strict by design: a present-but-malformed header raises rather than
+    silently reading as "no next page" — a silent stop would misreport a
+    truncated traversal as a complete one.
+    """
+    if link_header is None:
+        return None
+    next_uri: str | None = None
+    for entry in _split_link_header(link_header):
+        if not entry.startswith("<") or ">" not in entry:
+            raise GitHubIssueError(f"malformed GitHub Link header entry: {entry!r}")
+        target, _, params = entry[1:].partition(">")
+        for param in params.split(";"):
+            name, _, value = param.strip().partition("=")
+            if name.casefold() == "rel" and value.strip().strip('"').casefold() == "next":
+                if next_uri is not None:
+                    raise GitHubIssueError(
+                        'GitHub Link header declares more than one rel="next" target'
+                    )
+                next_uri = target.strip()
+    return next_uri
+
+
+def _uri_origin(value: str) -> tuple[str, str, int]:
+    # Same check as github_http's private redirect-origin guard, duplicated
+    # rather than reaching into that module's underscore internals.
+    parsed = urlparse(value)
+    scheme = parsed.scheme.lower()
+    default_port = 443 if scheme == "https" else 80
+    return (scheme, (parsed.hostname or "").lower(), parsed.port or default_port)
+
+
+def _fetch_issue_list_page(
+    resource_uri: str,
+    *,
+    fetched_at: str,
+    fetch_policy: HttpFetchPolicy,
+    auth_headers: Mapping[str, str] | None,
+    opener,
+) -> tuple[GitHubIssueListResult, str | None]:
+    result = fetch_github_resource(
+        resource_uri, fetch_policy=fetch_policy, auth_headers=auth_headers, opener=opener
+    )
+    try:
+        payload = json.loads(result.payload)
+    except json.JSONDecodeError as error:
+        raise GitHubIssueError(f"GitHub response is not valid JSON: {error}") from error
+    issue_numbers, pull_request_numbers = _parse_issue_list_payload(payload)
+    next_uri = parse_next_link(result.link)
+    page = GitHubIssueListResult(
+        resource_uri=resource_uri,
+        fetched_at=fetched_at,
+        response_digest=content_digest(result.payload),
+        issue_numbers=issue_numbers,
+        pull_request_numbers=pull_request_numbers,
+    )
+    return page, next_uri
+
+
 def fetch_external_github_issue_list(
     owner: str,
     repo: str,
@@ -319,6 +433,10 @@ def fetch_external_github_issue_list(
     state: str = "open",
     per_page: int = 30,
     page: int = 1,
+    labels: Sequence[str] | None = None,
+    sort: str | None = None,
+    direction: str | None = None,
+    since: str | None = None,
     fetch_policy: HttpFetchPolicy = HttpFetchPolicy(),
     auth_headers: Mapping[str, str] | None = None,
     opener=None,
@@ -331,21 +449,130 @@ def fetch_external_github_issue_list(
     reported separately rather than silently mixed in or silently dropped.
     """
     resource_uri = github_issue_list_resource_uri(
-        owner, repo, state=state, per_page=per_page, page=page
+        owner,
+        repo,
+        state=state,
+        per_page=per_page,
+        page=page,
+        labels=labels,
+        sort=sort,
+        direction=direction,
+        since=since,
     )
-    result = fetch_github_resource(
-        resource_uri, fetch_policy=fetch_policy, auth_headers=auth_headers, opener=opener
-    )
-    try:
-        payload = json.loads(result.payload)
-    except json.JSONDecodeError as error:
-        raise GitHubIssueError(f"GitHub response is not valid JSON: {error}") from error
-    issue_numbers, pull_request_numbers = _parse_issue_list_payload(payload)
-
-    return GitHubIssueListResult(
-        resource_uri=resource_uri,
+    result, _ = _fetch_issue_list_page(
+        resource_uri,
         fetched_at=fetched_at,
-        response_digest=content_digest(result.payload),
-        issue_numbers=issue_numbers,
-        pull_request_numbers=pull_request_numbers,
+        fetch_policy=fetch_policy,
+        auth_headers=auth_headers,
+        opener=opener,
     )
+    return result
+
+
+@dataclass(frozen=True, slots=True)
+class GitHubIssueListPages:
+    """The outcome of one bounded multi-page issue-list traversal.
+
+    Still discovery, not observation: like ``GitHubIssueListResult``, this
+    carries numbers only. ``truncated`` is an honest report that the
+    ``max_pages`` budget ran out while GitHub still offered a next page —
+    never conflated with "the list ended".
+    """
+
+    pages: tuple[GitHubIssueListResult, ...]
+    max_pages: int
+    truncated: bool
+
+    def __post_init__(self) -> None:
+        if not self.pages:
+            raise ValueError("a traversal must contain at least one fetched page")
+
+    @property
+    def issue_numbers(self) -> tuple[int, ...]:
+        return tuple(sorted({number for page in self.pages for number in page.issue_numbers}))
+
+    @property
+    def pull_request_numbers(self) -> tuple[int, ...]:
+        return tuple(
+            sorted({number for page in self.pages for number in page.pull_request_numbers})
+        )
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "schema": "github-issue-list-pages-v1",
+            "maxPages": self.max_pages,
+            "truncated": self.truncated,
+            "issueNumbers": list(self.issue_numbers),
+            "pullRequestNumbers": list(self.pull_request_numbers),
+            "pages": [page.to_dict() for page in self.pages],
+        }
+
+
+def fetch_external_github_issue_list_pages(
+    owner: str,
+    repo: str,
+    *,
+    fetched_at: str,
+    state: str = "open",
+    per_page: int = 30,
+    max_pages: int = 1,
+    labels: Sequence[str] | None = None,
+    sort: str | None = None,
+    direction: str | None = None,
+    since: str | None = None,
+    fetch_policy: HttpFetchPolicy = HttpFetchPolicy(),
+    auth_headers: Mapping[str, str] | None = None,
+    opener=None,
+) -> GitHubIssueListPages:
+    """Traverse up to ``max_pages`` list pages, following ``Link: rel="next"``.
+
+    Bounded by design: ``max_pages`` is the hard cap on requests (default 1,
+    i.e. no traversal unless the caller asks for one), and a next link that
+    exists when the budget runs out sets ``truncated`` rather than being
+    silently ignored or unboundedly followed. The next URL is taken from
+    GitHub's own Link header and followed only within the origin the caller
+    asked for — GitHub legitimately rewrites ``/repos/{owner}/{repo}`` to
+    ``/repositories/{id}`` in Link targets, so path equality is deliberately
+    not required, but a cross-origin next is rejected rather than followed
+    (the same boundary the transport enforces for redirects).
+    """
+    if not isinstance(max_pages, int) or isinstance(max_pages, bool) or max_pages < 1:
+        raise GitHubIssueError("max_pages must be a positive integer")
+
+    first_uri = github_issue_list_resource_uri(
+        owner,
+        repo,
+        state=state,
+        per_page=per_page,
+        page=1,
+        labels=labels,
+        sort=sort,
+        direction=direction,
+        since=since,
+    )
+    allowed_origin = _uri_origin(first_uri)
+
+    pages: list[GitHubIssueListResult] = []
+    truncated = False
+    current_uri = first_uri
+    for index in range(max_pages):
+        page, next_uri = _fetch_issue_list_page(
+            current_uri,
+            fetched_at=fetched_at,
+            fetch_policy=fetch_policy,
+            auth_headers=auth_headers,
+            opener=opener,
+        )
+        pages.append(page)
+        if next_uri is None:
+            break
+        if index + 1 >= max_pages:
+            truncated = True
+            break
+        if _uri_origin(next_uri) != allowed_origin:
+            raise GitHubIssueError(
+                f'GitHub Link rel="next" crossed origin and was rejected: {next_uri}'
+            )
+        current_uri = next_uri
+
+    return GitHubIssueListPages(pages=tuple(pages), max_pages=max_pages, truncated=truncated)
