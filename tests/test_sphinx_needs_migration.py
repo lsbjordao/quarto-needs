@@ -121,7 +121,7 @@ def test_migration_plan_maps_only_explicit_types_and_link_fields() -> None:
     ]
     assert req.unmapped_links == {"tests": ("TC_002[status=='passed']",)}
     issue_codes = [issue.code for issue in plan.issues]
-    assert issue_codes == ["EXTERNAL_LINK_TARGET", "CONDITIONAL_LINK"]
+    assert issue_codes == ["CONDITIONAL_LINK", "EXTERNAL_LINK_TARGET"]
 
 
 def test_object_keyed_need_id_is_recovered_from_dictionary_key() -> None:
