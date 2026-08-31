@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from quarto_needs.config import load_config
+import pytest
+
+from quarto_needs.config import ConfigurationError, load_config
 from quarto_needs.oslc_profiles import load_oslc_profiles
 
 
@@ -35,3 +37,28 @@ def test_federation_profiles_share_project_toml_without_changing_graph_config(
     profiles = load_oslc_profiles(federated)
     assert profiles["production"].service_provider_uri == "https://provider.test/oslc/sp/1"
     assert profiles["production"].bearer_token_env == "QUARTO_NEEDS_OSLC_TOKEN"
+
+
+def test_load_config_rejects_invalid_federation_profile_in_ordinary_commands(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / ".quarto-needs.toml").write_text(
+        "[federation.oslc.profiles.production]\n"
+        'service-provider-uri = "https://provider.test/oslc/sp/1"\n'
+        "max-bytes = 0\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ConfigurationError, match="max-bytes"):
+        load_config(tmp_path)
+
+
+def test_load_config_rejects_unknown_federation_keys(tmp_path: Path) -> None:
+    (tmp_path / ".quarto-needs.toml").write_text(
+        "[federation]\n"
+        'unknown = "value"\n',
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ConfigurationError, match="unknown keys"):
+        load_config(tmp_path)
