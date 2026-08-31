@@ -180,7 +180,7 @@ Sphinx-Needs, Doorstop, and StrictDoc remain supported migration sources and ins
 
 ## 5.5 External service adapters 🟡 (ten slices in)
 
-**Status: a read-only GitHub issue projection is implemented end to end — external identity, content-digest provenance, normalization into the same observation shape OSLC federation already uses, a bounded GET-only HTTP transport with rate-limit exhaustion distinguished from auth failures, a persistent content-addressed cache, conditional requests, bounded issue-list discovery, bounded multi-page traversal of that discovery, search-API discovery on the same bounded contract, reconciliation + import planning through OSLC's own source-agnostic contracts (zero new reconciliation code — proven, not assumed), and a fully traced self-hosted example slice with five real pytest bindings in the attested evidence artifact — all run against the real GitHub API including a real HTTP 304, a real list-then-fetch handoff, and a real two-page traversal across GitHub's rewritten Link targets. Remaining deferred: an apply step, trust-state transitions, and a caller-side rate-limit retry policy.** See `docs/phase-5-external-adapters.md`.
+**Status: a read-only GitHub issue projection is implemented end to end — external identity, content-digest provenance, normalization into the same observation shape OSLC federation already uses, a bounded GET-only HTTP transport with rate-limit exhaustion distinguished from auth failures, a persistent content-addressed cache, conditional requests, bounded issue-list discovery, bounded multi-page traversal of that discovery, search-API discovery on the same bounded contract, reconciliation + import planning through OSLC's own source-agnostic contracts (zero new reconciliation code — proven, not assumed), explicit reviewer trust-state transitions over a closed allowlist, and a fully traced self-hosted example slice with five real pytest bindings in the attested evidence artifact — all run against the real GitHub API including a real HTTP 304, a real list-then-fetch handoff, and a real two-page traversal across GitHub's rewritten Link targets. Remaining deferred: an apply step and a caller-side rate-limit retry policy.** See `docs/phase-5-external-adapters.md`.
 
 Read-only/cacheable adapters may target GitHub issues or lifecycle-management systems. Every imported object must preserve external identity, origin, digest/version, retrieval policy, and trust state.
 
@@ -204,11 +204,12 @@ Implemented capabilities include:
 
 - search-API discovery: `fetch_external_github_issue_search`/`_search_pages` — the same bounded discovery contract on `GET /search/issues`'s different envelope (`total_count`, `incomplete_results`, `items` reusing the list parser's issue/pull-request separation), scoping left to the caller's explicit qualifier string, the multi-page traversal being the *same machine* as the list's (extracted into one shared bounded loop rather than a fork), a conservative `incomplete_results` union across pages, and GitHub's separate search rate-limit class raising the same distinguished error; falsified on envelope validation and on the union flag; live-checked with a real query (`total_count=81`), a real two-page truncated traversal, and a discovered-number handoff;
 
+- explicit trust-state transitions: `external_trust.py` — `apply_trust_decision` turns an immutable, substantive reviewer decision (`action`/`decided_by`/`reason`/`decided_at`) into a new observation plus an auditable record, over a closed allowlist of `(from, action) → to` transitions; the input is never mutated, the observed-bytes digest and retrieval provenance carry over unchanged (a trust decision is about the reviewer's judgement, not the remote representation), and a rejected observation must pass an explicit `reset` before it can be trusted again — trust can never directly follow rejection; the transitioned state flows into reconciliation unchanged (rejected blocks, reset unbinds, trust matches); falsified by bypassing the allowlist;
+
 Next 5.5 work (each its own reviewed contract, exactly as above):
 
 1. an apply step consuming an accepted import plan (both OSLC and GitHub stop at the plan today);
-2. trust-state transitions for external observations;
-3. a caller-side rate-limit retry policy built on the transport's retry facts.
+2. a caller-side rate-limit retry policy built on the transport's retry facts.
 
 ---
 
