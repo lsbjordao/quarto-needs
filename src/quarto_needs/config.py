@@ -678,6 +678,17 @@ def load_config(root: Path) -> NeedsConfig:
     if not isinstance(profile, str) or profile not in PROFILES:
         raise _fail(f"profile must be one of: {', '.join(PROFILES)}")
 
+    # Federation is operational/read-only configuration, so validate it here
+    # without adding it to NeedsConfig.canonical_document(). This makes every
+    # ordinary command reject malformed OSLC profiles while endpoint/cache
+    # changes remain outside the canonical engineering fingerprint.
+    from .oslc_profiles import OslcProfileError, parse_oslc_profiles
+
+    try:
+        parse_oslc_profiles(document.get("federation"))
+    except OslcProfileError as error:
+        raise _fail(str(error)) from error
+
     governance = _parse_governance(document.get("governance"))
     gates = _parse_gates(document.get("gates"))
     queries = document.get("queries")
