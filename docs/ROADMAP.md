@@ -143,9 +143,9 @@ Remaining 5.3 gate:
 
 The terminal artifact for this phase is therefore a reviewable import plan, not automatic mutation.
 
-## 5.4 Migration adapters ✅ (Sphinx-Needs)
+## 5.4 Migration adapters ✅ (Sphinx-Needs, Doorstop)
 
-**Status: the Sphinx-Needs adapter is implemented end to end — deterministic plan, reviewable non-mutating apply plan with a `.need` block content preview, and a create-only, atomic, rollback-protected `--write` step. Additional source adapters remain future work.** See `docs/phase-5-migration.md`.
+**Status: Sphinx-Needs and Doorstop adapters are both implemented end to end on one shared contract — deterministic plan, reviewable non-mutating apply plan with a `.need` block content preview, and a create-only, atomic, rollback-protected `--write` step. Additional source adapters remain future work.** See `docs/phase-5-migration.md`.
 
 Implemented capabilities include:
 
@@ -166,14 +166,16 @@ Implemented capabilities include:
 - a source-provenance envelope (tool/project/version/source ID) carried through every apply-plan item;
 - installed `quarto-needs migrate sphinx-needs ... --apply-plan` CLI producing a reviewable text/JSON diff, with ready/review-required/blocked status per item and matching exit-code semantics;
 - deterministic, escaped rendering of each ready candidate into authored `.need` block text (`content_preview`), refusing to render (and blocking the item) whenever source content cannot round-trip through the grammar, verified against the real parser rather than the renderer's own assumptions; exposed in the CLI via `--show-content`;
-- `quarto-needs migrate sphinx-needs ... --apply-plan --write`: create-only (an existing destination file refuses the whole write), atomic per file, all-or-nothing across files with real rollback (verified by forcing an OS-level failure on a later file and confirming an earlier one is deleted), post-write `scan`/`check` re-verification that rolls back on any new structural failure or error finding (verified by injecting a synthetic error), and a refusal-based idempotence contract — a rerun is refused, not silently duplicated, because the canonical IDs it would create already exist.
+- `quarto-needs migrate sphinx-needs ... --apply-plan --write`: create-only (an existing destination file refuses the whole write), atomic per file, all-or-nothing across files with real rollback (verified by forcing an OS-level failure on a later file and confirming an earlier one is deleted), post-write `scan`/`check` re-verification that rolls back on any new structural failure or error finding (verified by injecting a synthetic error), and a refusal-based idempotence contract — a rerun is refused, not silently duplicated, because the canonical IDs it would create already exist;
+- a second adapter, `quarto-needs migrate doorstop ...`, converging on that exact same apply-plan/render/write implementation without changing it: reads nested `.doorstop.yml` document trees (prefix-keyed type/relation mapping, since Doorstop items have no per-item type or status field), preserves `active`/`derived`/`normative`/`ref`/`level` as extras, and emits explicit `TYPE_UNMAPPED`/`RELATION_UNMAPPED`/`EXTERNAL_LINK_TARGET` diagnostics plus fail-closed duplicate-UID rejection, each with its own default artifact paths independent of Sphinx-Needs';
+- the shared migration-plan artifact's `tool`/`schema` are now parameters (`SphinxNeedsMigrationPlan.tool`/`.schema`, defaulting to the original Sphinx-Needs values) rather than a hardcoded literal, so a second adapter's provenance is never mislabeled.
 
 Next 5.4 slices:
 
-1. add additional source-specific adapters such as StrictDoc, Doorstop, and OpenFastTrace, converging only at the shared migration-plan/apply-plan/write contracts;
+1. add further source-specific adapters such as StrictDoc and OpenFastTrace, converging only at the shared migration-plan/apply-plan/write contracts (as Doorstop did, with no change to that shared code);
 2. an update/match identity contract, if migrating a *changed* upstream source onto an already-migrated project ever becomes a requirement — today an existing canonical ID is always a create-time collision, never an implicit update.
 
-Sphinx-Needs remains one inspiration for Quarto-Needs as well as a supported migration source; compatibility claims are limited to the explicitly implemented adapter behavior.
+Sphinx-Needs and Doorstop remain supported migration sources and inspirations for Quarto-Needs; compatibility claims are limited to the explicitly implemented adapter behavior for each.
 
 ## 5.5 External service adapters ⚪
 
@@ -256,7 +258,7 @@ LSP semantic authoring ✅
           ↓
 Thin VS Code client 🟡 release validation
           ↓
-ReqIF 1.2 ✅ → JSON-LD 🟡 → OSLC RM ✅ (read-only) → Sphinx-Needs migration ✅
+ReqIF 1.2 ✅ → JSON-LD 🟡 → OSLC RM ✅ (read-only) → Sphinx-Needs/Doorstop migration ✅
           ↓
 Broader migration / external federation
           ↓

@@ -1,10 +1,10 @@
 # Phase 5.4 — Migration adapters
 
-Status: **the first Sphinx-Needs migration adapter is implemented end to end: a deterministic plan, a reviewable non-mutating apply plan with a `.need` block content preview, and a create-only, atomic, rollback-protected `--write` step that generates authored files.**
+Status: **two migration adapters — Sphinx-Needs and Doorstop — are implemented end to end on a shared contract: a source-specific deterministic plan, a reviewable non-mutating apply plan with a `.need` block content preview, and a create-only, atomic, rollback-protected `--write` step that generates authored files.**
 
 Quarto-Needs treats migration as a reviewed interoperability operation, not as a parser shortcut. A migration source may have its own type system, relation semantics, computed fields, conditional links, backlinks, dynamic functions, rendering behavior, and identity conventions. Those concepts must not be silently reinterpreted as canonical Quarto-Needs semantics.
 
-Sphinx-Needs is one of the inspirations for Quarto-Needs and is also the first migration source supported by this phase.
+Sphinx-Needs is one of the inspirations for Quarto-Needs and was the first migration source supported by this phase; Doorstop followed, converging on the same apply-plan/write contract without either adapter guessing the other's semantics.
 
 ## Architectural rule
 
@@ -180,7 +180,42 @@ quarto-needs migrate sphinx-needs needs.json \
 
 `--write` without `--apply-plan` is a usage error (exit code `2`). If any item is not `ready-create`, or a destination file already exists on disk, `--write` refuses and creates nothing.
 
-The CLI currently supports Sphinx-Needs as the explicit source identifier. Unknown migration sources fail rather than selecting an adapter heuristically.
+The CLI dispatches on an explicit source identifier (`sphinx-needs` or `doorstop`). Unknown migration sources fail rather than selecting an adapter heuristically.
+
+## Doorstop adapter
+
+Doorstop stores each item as its own YAML file (`<PREFIX><NNN>.yml`) inside a directory anchored by a `.doorstop.yml` document-settings file (`settings.prefix`, optionally `settings.parent`). A subdirectory with its own `.doorstop.yml` forms a child document — e.g. `reqs/tutorial/.doorstop.yml` with `settings.parent: REQ` traces up into `reqs/.doorstop.yml`'s `REQ` items. `src/quarto_needs/migrations/doorstop.py` reads only this on-disk tree; it never executes Doorstop or arbitrary Python.
+
+Doorstop items carry no `type` or free-text `status` field the way a Sphinx-Needs need does. The document's `prefix` is the only source-type signal an item has, so `--type-map`/`--relation-map` are keyed by prefix rather than by an authored field name, and every migrated candidate's `status` is left `None` (the written `.need` block simply carries no `status` attribute) unless the destination project's own defaults supply one. `links` is Doorstop's only relation concept, always meaning "this item traces up to its parent document's item"; the SHA-based value paired with each link entry is Doorstop's own review-integrity marker, not migrated.
+
+```bash
+quarto-needs migrate doorstop reqs \
+  --type-map REQ=system-requirement \
+  --type-map TUT=test-case \
+  --relation-map TUT=derives-from
+```
+
+A document prefix without an explicit `--type-map` entry produces `TYPE_UNMAPPED` for every one of its items, exactly like Sphinx-Needs. A *child* document prefix without an explicit `--relation-map` entry produces `RELATION_UNMAPPED`, and its links are preserved under `unmappedLinks` rather than silently dropped — the same fail-explicit treatment Sphinx-Needs gives `LINK_FIELD_UNMAPPED`. A link whose target UID is absent from the loaded document tree produces `EXTERNAL_LINK_TARGET`. Two documents that produce the same item UID (a prefix reused across directories by misconfiguration) fail closed with `DoorstopMigrationError` rather than one silently shadowing the other.
+
+Each migrated candidate preserves Doorstop's `active`, `derived`, `normative`, `ref`, and `level` fields as `extras`. `header` becomes the title, falling back to the item's UID when the header is empty — which is the common case in real Doorstop trees, where most of an item's meaning lives in `text` rather than in a short heading. `text` becomes the body verbatim.
+
+The apply-plan, `.need` block content-preview rendering, and `--write` contracts described above are not reimplemented per adapter: Doorstop's parser produces the same candidate/plan shape Sphinx-Needs' parser does (`SphinxNeedCandidate`/`SphinxNeedsMigrationPlan` in `migrations/sphinx_needs.py`, reused as the shared shape — the name is a holdover from being the first adapter, not a Sphinx-Needs-specific type), carrying its own `tool`/`schema` (`"Doorstop"` / `"doorstop-migration-plan-v1"`) through to every downstream artifact's provenance. Default paths are independent of the Sphinx-Needs adapter's, so both can run against the same project without colliding:
+
+```text
+.quarto-needs/migrations/doorstop-plan.json
+.quarto-needs/migrations/doorstop-apply-plan.json
+```
+
+```bash
+quarto-needs migrate doorstop reqs \
+  --type-map REQ=system-requirement \
+  --type-map TUT=test-case \
+  --relation-map TUT=derives-from \
+  --apply-plan \
+  --destination REQ001=requirements/assets.qmd \
+  --destination TUT008=verification/tree.qmd \
+  --write
+```
 
 ## Non-mutating apply-plan artifact
 
@@ -237,6 +272,8 @@ tests/test_migration_apply_plan.py
 tests/test_migration_apply_plan_cli.py
 tests/test_migration_need_render.py
 tests/test_migration_apply_write.py
+tests/test_doorstop_migration.py
+tests/test_doorstop_migration_cli.py
 ```
 
 Current tests protect:
@@ -257,15 +294,17 @@ Current tests protect:
 - apply-plan destination/collision/type/status/relation validation and status classification;
 - apply-plan CLI wiring, ready/review-required exit contracts, and default artifact path;
 - `.need` block content-preview rendering, its unrepresentable-content guard, and `--show-content` CLI output, verified by round-tripping through the real parser;
-- `--apply-plan --write`: create-only, atomic-per-file, all-or-nothing-with-rollback authored-file generation, with post-write `scan`/`check` re-verification and a refusal-based idempotence contract.
+- `--apply-plan --write`: create-only, atomic-per-file, all-or-nothing-with-rollback authored-file generation, with post-write `scan`/`check` re-verification and a refusal-based idempotence contract;
+- the apply-plan contract carrying a non-Sphinx `tool`/`schema` through provenance and the plan artifact, proven directly rather than only through Doorstop;
+- Doorstop document/item discovery across nested `.doorstop.yml` document boundaries, prefix-keyed type/relation mapping, unmapped-type/unmapped-relation/external-link diagnostics (falsified, not just asserted, for duplicate-UID rejection), and the same CLI plan/apply-plan/write contract end to end with independent default artifact paths.
 
 ## What is intentionally not implemented
 
-`migrate sphinx-needs ... --apply-plan --write` (see above) now covers all twelve items originally listed for the apply contract: destination selection/collision policy, canonical-ID collision checks, type/status validation, relation/endpoint resolution, source-provenance retention, escaped `.need` block rendering, atomic multi-file writes, rollback on failed writes or post-write validation, post-write `scan`/`check` verification, a refusal-based idempotence contract, upstream handling of unrepresentable fields, and a reviewable dry-run diff before mutation.
+`--apply-plan --write` (see above) covers all twelve items originally listed for the apply contract: destination selection/collision policy, canonical-ID collision checks, type/status validation, relation/endpoint resolution, source-provenance retention, escaped `.need` block rendering, atomic multi-file writes, rollback on failed writes or post-write validation, post-write `scan`/`check` verification, a refusal-based idempotence contract, upstream handling of unrepresentable fields, and a reviewable dry-run diff before mutation. This holds for both adapters, since they converge on the same `build_sphinx_apply_plan`/`apply_migration_plan` implementation.
 
 What is still explicitly out of scope for this phase:
 
-- **update/match semantics.** `build_sphinx_apply_plan` is create-only by design (see its docstring): an existing canonical ID is always a collision, never an implicit update. Migrating a *changed* upstream Sphinx-Needs project onto an already-migrated Quarto-Needs project needs its own reviewed identity/merge contract, not an extension of this one.
+- **update/match semantics.** `build_sphinx_apply_plan` is create-only by design (see its docstring): an existing canonical ID is always a collision, never an implicit update. Migrating a *changed* upstream project (Sphinx-Needs or Doorstop) onto an already-migrated Quarto-Needs project needs its own reviewed identity/merge contract, not an extension of this one.
 - **multi-file/partial-batch review.** A plan is applied whole or not at all; there is no "apply only the ready subset and leave the rest for later" mode.
 - **additional source-specific adapters** (StrictDoc, Doorstop, OpenFastTrace, …) beyond Sphinx-Needs.
 
@@ -273,18 +312,19 @@ Automatic migration writes now existing for Sphinx-Needs does not change the ter
 
 ## Candidate next adapters
 
-After the Sphinx-Needs path is hardened, additional adapters may target other requirements/docs-as-code ecosystems such as StrictDoc, Doorstop, and OpenFastTrace.
+Additional adapters may target other requirements/docs-as-code ecosystems such as StrictDoc and OpenFastTrace.
 
-Each adapter must remain source-specific at the parsing boundary and converge only at a shared migration-plan contract. The project should not build a generic heuristic importer that guesses semantics across unrelated source ecosystems.
+Each adapter must remain source-specific at the parsing boundary and converge only at a shared migration-plan contract, exactly as Doorstop converged onto Sphinx-Needs' apply-plan/render/write implementation rather than reimplementing it. The project should not build a generic heuristic importer that guesses semantics across unrelated source ecosystems.
 
 ## Phase 5.4 acceptance direction
 
-The Sphinx-Needs adapter is considered functionally complete for its first source now that:
+The Sphinx-Needs and Doorstop adapters are considered functionally complete for their sources now that:
 
-- its regression and CLI suites pass locally;
-- the plan, apply-plan, and apply-result schemas/contracts are documented and stable;
-- a representative real-world `needs.json` can be processed without hidden source execution;
+- their regression and CLI suites pass locally;
+- the plan, apply-plan, and apply-result schemas/contracts are documented, stable, and shared across both adapters (each carrying its own `tool`/`schema` provenance);
+- a representative real-world source tree can be processed without hidden source execution (no Sphinx project, no Doorstop invocation, no arbitrary Python);
 - unresolved semantics are surfaced explicitly rather than silently dropped;
-- the apply contract was specified (this document, and the roadmap) before any mutation code was introduced, and every one of its explicit requirements — atomicity, rollback, post-write verification, idempotence, create-only identity, unrepresentable-content refusal — is exercised by a test that fails when the corresponding behavior is removed.
+- the apply contract was specified (this document, and the roadmap) before any mutation code was introduced, and every one of its explicit requirements — atomicity, rollback, post-write verification, idempotence, create-only identity, unrepresentable-content refusal — is exercised by a test that fails when the corresponding behavior is removed;
+- adding the second adapter required no change to the apply-plan/render/write contract itself, only to the source-specific parser — evidence that the contract, not just the first adapter, is what was actually built.
 
-What remains is breadth, not this contract: additional source-specific adapters (see above), and, independently, an update/match identity contract if migrating an already-migrated project ever becomes a requirement.
+What remains is further breadth (StrictDoc, OpenFastTrace), and, independently, an update/match identity contract if migrating an already-migrated project ever becomes a requirement.
