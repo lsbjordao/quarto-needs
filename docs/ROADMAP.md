@@ -178,9 +178,9 @@ Next 5.4 slices:
 
 Sphinx-Needs, Doorstop, and StrictDoc remain supported migration sources and inspirations for Quarto-Needs; compatibility claims are limited to the explicitly implemented adapter behavior for each.
 
-## 5.5 External service adapters 🟡 (four slices in)
+## 5.5 External service adapters 🟡 (five slices in)
 
-**Status: a read-only GitHub issue projection is implemented end to end — external identity, content-digest provenance, normalization into the same observation shape OSLC federation already uses, a bounded GET-only HTTP transport, a persistent content-addressed cache, and conditional requests, all run against the real GitHub API including a real HTTP 304. No query/listing or reconciliation yet.** See `docs/phase-5-external-adapters.md`.
+**Status: a read-only GitHub issue projection is implemented end to end — external identity, content-digest provenance, normalization into the same observation shape OSLC federation already uses, a bounded GET-only HTTP transport, a persistent content-addressed cache, conditional requests, and bounded issue-list discovery, all run against the real GitHub API including a real HTTP 304 and a real list-then-fetch handoff. No reconciliation or import plan yet.** See `docs/phase-5-external-adapters.md`.
 
 Read-only/cacheable adapters may target GitHub issues or lifecycle-management systems. Every imported object must preserve external identity, origin, digest/version, retrieval policy, and trust state.
 
@@ -192,11 +192,12 @@ Implemented capabilities include:
 - `fetch_github_resource` (`github_http.py`): a bounded, GET-only HTTP transport (byte/time/redirect limits, same-origin redirect enforcement so an `Authorization` header cannot leak cross-host, request-only auth headers, `application/json`-only media type) — an independent, small implementation rather than reusing `oslc_http.py`'s RDF-media-type-specific one, sharing only the fully generic `HttpFetchPolicy` dataclass; tested against a fake, injectable opener with the cross-origin-redirect and byte-limit checks falsified, not just asserted;
 - `oslc_cache.py`'s persistence functions gained an optional `schema` parameter (default preserves the original hardcoded OSLC behavior for every existing caller) instead of forking a parallel cache implementation — its one OSLC-specific coupling was a single hardcoded schema-string constant, the same class of fix already applied once this phase to `SphinxNeedsMigrationPlan.tool`/`.schema`; a new test proves a cache root written under one schema is never silently read or overwritten under another;
 - conditional requests: `fetch_github_resource` gained `if_none_match`/`if_modified_since` parameters and returns `payload=None` on a `304` (never media-type/byte-checking a bodyless response); `fetch_external_github_issue` builds those headers from a stale cache entry's own validators and, on `304`, reuses the cached body under a refreshed identity (new `fetched_at`, same digest) instead of re-downloading — verified with a real HTTP 304 from GitHub itself, not only the fake-opener suite;
-- `fetch_external_github_issue`, composing transport + identity + parser + the now-shared cache + conditional requests into one read-only fetch-and-normalize call (`cache_root` opt-in; a fresh hit skips the network entirely), run live against a real GitHub issue, a real pull request (confirming PR-rejection fires for real), a real two-call cache run measuring ~0.4s live / 0.0s cache hit, and a real conditional-request round trip receiving an actual `304`.
+- `fetch_external_github_issue`, composing transport + identity + parser + the now-shared cache + conditional requests into one read-only fetch-and-normalize call (`cache_root` opt-in; a fresh hit skips the network entirely), run live against a real GitHub issue, a real pull request (confirming PR-rejection fires for real), a real two-call cache run measuring ~0.4s live / 0.0s cache hit, and a real conditional-request round trip receiving an actual `304`;
+- `fetch_external_github_issue_list`, one bounded GET-only page of `GET /repos/{owner}/{repo}/issues` returning discovered issue/pull-request numbers (explicitly separated, neither mixed in nor silently dropped) plus the list response's own digest — deliberately discovery-only, never promoting a list entry's inline data into an `ExternalRequirementObservation`, the same query-then-independently-observe boundary `oslc_query.py`'s own design note argues for around inline query-container data; run live against a real 5-issue page (3 issues / 2 pull requests) with one discovered number handed off to a real full-observation fetch.
 
 Next 5.5 slices, each its own reviewed contract exactly as OSLC's discovery/cache/HTTP/RDF/query/observe/reconcile/import-plan were:
 
-1. listing/query support beyond one issue at a time;
+1. multi-page traversal (`Link: rel="next"`) and search-style filters beyond the list endpoint's own `state` parameter;
 2. an explicit, non-heuristic reconciliation step and a reviewed, non-mutating import plan, mirroring `oslc_reconcile.py`/`oslc_import_plan.py`;
 3. rate-limit handling distinguished from generic auth/availability errors (GitHub's `403`/`429` + `X-RateLimit-*` on exhaustion);
 4. self-hosted example integration.
