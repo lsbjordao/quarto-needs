@@ -77,7 +77,7 @@ def _requirement(uri: str, *, title: str = "Remote requirement") -> bytes:
     ).encode("utf-8")
 
 
-@pytest.mark.requirement("SYS-007", "FUN-011", "FUN-012", "NFR-006")
+@pytest.mark.requirement("SYS-007", "FUN-013", "NFR-006")
 @pytest.mark.quarto_need_test_case("TC-018")
 def test_materialization_fetches_each_member_and_preserves_individual_provenance(tmp_path: Path) -> None:
     first_uri = "https://provider.test/oslc/rm/1"
