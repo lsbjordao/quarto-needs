@@ -178,9 +178,9 @@ Next 5.4 slices:
 
 Sphinx-Needs, Doorstop, and StrictDoc remain supported migration sources and inspirations for Quarto-Needs; compatibility claims are limited to the explicitly implemented adapter behavior for each.
 
-## 5.5 External service adapters 🟡 (ten slices in — apply step and trust transitions close the deferred list)
+## 5.5 External service adapters ✅ (ten slices plus trust transitions, apply step, and retry policy)
 
-**Status: a read-only GitHub issue projection is implemented end to end — external identity, content-digest provenance, normalization into the same observation shape OSLC federation already uses, a bounded GET-only HTTP transport with rate-limit exhaustion distinguished from auth failures, a persistent content-addressed cache, conditional requests, bounded issue-list discovery, bounded multi-page traversal of that discovery, search-API discovery on the same bounded contract, reconciliation + import planning through OSLC's own source-agnostic contracts (zero new reconciliation code — proven, not assumed), explicit reviewer trust-state transitions over a closed allowlist, an apply step that writes accepted plans into authored files with all-or-nothing preflight and post-write rollback, and a fully traced self-hosted example slice with five real pytest bindings in the attested evidence artifact — all run against the real GitHub API including a real HTTP 304, a real list-then-fetch handoff, and a real two-page traversal across GitHub's rewritten Link targets. Remaining deferred: a caller-side rate-limit retry policy.** See `docs/phase-5-external-adapters.md`.
+**Status: complete — the read-only GitHub issue projection is implemented end to end: external identity, content-digest provenance, normalization into the same observation shape OSLC federation already uses, a bounded GET-only HTTP transport with rate-limit exhaustion distinguished from auth failures, a persistent content-addressed cache, conditional requests, bounded issue-list discovery, bounded multi-page traversal of that discovery, search-API discovery on the same bounded contract, reconciliation + import planning through OSLC's own source-agnostic contracts (zero new reconciliation code — proven, not assumed), explicit reviewer trust-state transitions over a closed allowlist, an apply step that writes accepted plans into authored files with all-or-nothing preflight and post-write rollback, a caller-side rate-limit retry policy honoring the server's own Retry-After/reset facts, and a fully traced self-hosted example slice with five real pytest bindings in the attested evidence artifact — all run against the real GitHub API including a real HTTP 304, a real list-then-fetch handoff, and a real two-page traversal across GitHub's rewritten Link targets.** See `docs/phase-5-external-adapters.md`.
 
 Read-only/cacheable adapters may target GitHub issues or lifecycle-management systems. Every imported object must preserve external identity, origin, digest/version, retrieval policy, and trust state.
 
@@ -208,9 +208,9 @@ Implemented capabilities include:
 
 - an apply step (`import_apply.py`): the first write path downstream of the reviewed plan, inheriting the migration apply's safety contracts and adding updates — every applicable item is preflighted against a fresh scan (created IDs must not exist yet; update `from` values must still match the authored file, and the plan's target file must be where the object is authored), writes are atomic per file with the project re-scanned afterwards and rolled back on any error finding, a second apply refuses idempotently, and non-applicable dispositions (blocked/review-required/ignored/no-change) are reported as skipped with the plan's own reason, never half-applied;
 
-Next 5.5 work (each its own reviewed contract, exactly as above):
+- a caller-side rate-limit retry policy (`github_retry.py`): the transport's retry facts become a decision — `Retry-After` wins, then `X-RateLimit-Reset` when the caller supplies a clock, then bounded exponential backoff; `max_attempts` counts total attempts including the first, and giving up re-raises the server's own error with its facts intact; only rate limits are ever retried — other failures propagate immediately as facts to act on.
 
-1. a caller-side rate-limit retry policy built on the transport's retry facts.
+Phase 5.5's planned scope is complete; the next milestone is Phase 6.
 
 ---
 
