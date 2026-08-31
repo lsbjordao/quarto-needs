@@ -1,6 +1,6 @@
 # Quarto-Needs visual identity
 
-The canonical visual identity lives in `docs/assets/branding/`. The project distinguishes **vector masters** from **raster derivatives** so repository documentation, editor packaging, and future releases do not drift into separate visual identities.
+The canonical visual identity lives in `docs/assets/branding/`. The project distinguishes **vector masters** from the small set of **raster derivatives required by application packaging**, so repository documentation and editor integrations do not drift into separate visual identities.
 
 ## Canonical masters
 
@@ -11,18 +11,29 @@ The canonical visual identity lives in `docs/assets/branding/`. The project dist
 | `quarto-needs-app-icon.svg` | Canonical square application / extension icon artwork |
 | `quarto-needs-roadmap-infographic.svg` | Editable presentation snapshot of the capability roadmap |
 
-SVG is the source of truth for reusable artwork. These files are resolution-independent, transparent where appropriate, and use the shared palette directly rather than baking the identity into a low-resolution raster.
+SVG is the source of truth for reusable artwork. These files are resolution-independent, transparent where appropriate, and use the shared palette directly rather than baking the identity into low-resolution presentation files.
 
 ## Raster derivatives
 
+Raster derivatives exist only where a consumer requires them:
+
 | Asset | Intended use |
 |---|---|
-| `quarto-needs-logo.webp` | Lightweight fallback / presentation derivative of the primary mark |
-| `quarto-needs-symbol.webp` | Lightweight fallback / presentation derivative of the compact symbol |
-| `quarto-needs-app-icon-256.png` | Packaged application / VS Code extension icon derivative |
-| `quarto-needs-roadmap-infographic.webp` | Raster fallback / preview of the vector roadmap |
+| `quarto-needs-app-icon-256.png` | Canonical packaged 256 px application / VS Code extension derivative |
+| `quarto-needs-app-icon-512.png` | Higher-resolution application / marketplace derivative |
+| `editors/vscode/icon.png` | Byte-identical copy of the 256 px derivative used by the VS Code package |
 
-Raster files are **derived assets**, not independent masters. When the artwork changes, the SVG source should change first and the raster derivatives should be regenerated from it. `editors/vscode/icon.png` must remain visually equivalent to `quarto-needs-app-icon-256.png` rather than becoming a separate icon design.
+Documentation surfaces should use the SVG masters directly. The old logo/symbol/roadmap WebP fallbacks were retired rather than maintained as unnecessary parallel artwork.
+
+The derivatives are generated from `quarto-needs-app-icon.svg` by `tools/render_branding.py`. To regenerate or verify them:
+
+```bash
+make setup-branding
+make branding-assets
+make branding-check
+```
+
+`branding-check` renders fresh temporary derivatives and compares their bytes with the committed files. A stale packaged icon therefore fails explicitly instead of silently diverging from the brand master.
 
 ## Palette
 
@@ -51,8 +62,8 @@ The compact symbol deliberately keeps these ideas recognizable without relying o
 
 1. Prefer `quarto-needs-logo.svg` for README, website, Quarto, and scalable documentation surfaces.
 2. Prefer `quarto-needs-symbol.svg` where the full wordmark is too wide.
-3. Use the app icon artwork only for application / editor-extension contexts.
-4. Use `quarto-needs-roadmap-infographic.svg` as the editable roadmap artwork; treat the WebP as a derived preview.
+3. Use `quarto-needs-app-icon.svg` as the source for application/editor-extension artwork; use committed PNG derivatives only where raster input is required.
+4. Use `quarto-needs-roadmap-infographic.svg` as the roadmap artwork.
 5. Do not stretch artwork non-proportionally or recolor individual elements ad hoc.
 6. Keep sufficient clear space around the mark; do not place body text over the symbol or orbital path.
 7. Do not treat generated raster variants as new source artwork.
