@@ -8,9 +8,9 @@ from quarto_needs.oslc_profiles import OslcProfileError, load_oslc_profiles
 
 
 def test_load_named_oslc_profile_with_bounded_secret_free_settings(tmp_path: Path) -> None:
-    (tmp_path / ".quarto-needs-oslc.toml").write_text(
+    (tmp_path / ".quarto-needs.toml").write_text(
         """
-[profiles.production]
+[federation.oslc.profiles.production]
 service-provider-uri = "https://provider.test/oslc/sp/1"
 cache-dir = ".quarto-needs/oslc/production"
 max-age-seconds = 7200
@@ -43,12 +43,12 @@ bearer-token-env = "QUARTO_NEEDS_OSLC_PROD_TOKEN"
 
 
 def test_oslc_profiles_are_sorted_and_defaults_are_deterministic(tmp_path: Path) -> None:
-    (tmp_path / ".quarto-needs-oslc.toml").write_text(
+    (tmp_path / ".quarto-needs.toml").write_text(
         """
-[profiles.zeta]
+[federation.oslc.profiles.zeta]
 service-provider-uri = "https://zeta.test/oslc/sp"
 
-[profiles.alpha]
+[federation.oslc.profiles.alpha]
 service-provider-uri = "https://alpha.test/oslc/sp"
 """.strip()
         + "\n",
@@ -63,10 +63,10 @@ service-provider-uri = "https://alpha.test/oslc/sp"
 
 
 def test_oslc_profile_rejects_unknown_keys_and_secret_values(tmp_path: Path) -> None:
-    path = tmp_path / ".quarto-needs-oslc.toml"
+    path = tmp_path / ".quarto-needs.toml"
     path.write_text(
         """
-[profiles.bad]
+[federation.oslc.profiles.bad]
 service-provider-uri = "https://provider.test/oslc/sp"
 bearer-token = "must-never-be-stored-here"
 """.strip()
@@ -77,11 +77,11 @@ bearer-token = "must-never-be-stored-here"
         load_oslc_profiles(tmp_path)
 
 
-def test_oslc_profile_rejects_invalid_budgets_and_top_level_keys(tmp_path: Path) -> None:
-    path = tmp_path / ".quarto-needs-oslc.toml"
+def test_oslc_profile_rejects_invalid_budgets_and_federation_keys(tmp_path: Path) -> None:
+    path = tmp_path / ".quarto-needs.toml"
     path.write_text(
         """
-[profiles.bad]
+[federation.oslc.profiles.bad]
 service-provider-uri = "https://provider.test/oslc/sp"
 max-bytes = 0
 """.strip()
@@ -93,14 +93,30 @@ max-bytes = 0
 
     path.write_text(
         """
-[profiles.good]
+[federation.oslc.profiles.good]
 service-provider-uri = "https://provider.test/oslc/sp"
 
-[credentials]
+[federation.credentials]
 token = "secret"
 """.strip()
         + "\n",
         encoding="utf-8",
     )
-    with pytest.raises(OslcProfileError, match="unknown top-level keys: credentials"):
+    with pytest.raises(OslcProfileError, match="unknown keys: credentials"):
         load_oslc_profiles(tmp_path)
+
+
+def test_legacy_parallel_oslc_config_is_rejected_with_migration_guidance(tmp_path: Path) -> None:
+    (tmp_path / ".quarto-needs-oslc.toml").write_text(
+        """
+[profiles.production]
+service-provider-uri = "https://provider.test/oslc/sp"
+""".strip()
+        + "\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(OslcProfileError, match="is retired") as caught:
+        load_oslc_profiles(tmp_path)
+    assert "[federation.oslc.profiles.*]" in str(caught.value)
+    assert ".quarto-needs.toml" in str(caught.value)
