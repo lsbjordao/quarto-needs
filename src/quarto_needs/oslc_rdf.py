@@ -62,6 +62,64 @@ def _rdf_to_jsonld(payload: bytes, *, media_type: str) -> object:
         raise OslcRdfError("RDF normalization produced invalid JSON-LD") from error
 
 
+def _context_uses_remote_document(value: object) -> bool:
+    """Return whether a JSON-LD context requires loading another document."""
+    if isinstance(value, str):
+        # A string context is an IRI reference to another context document,
+        # including relative references resolved against a base URL.
+        return True
+    if isinstance(value, list):
+        return any(_context_uses_remote_document(item) for item in value)
+    if isinstance(value, Mapping):
+        imported = value.get("@import")
+        return isinstance(imported, str)
+    return False
+
+
+def _reject_remote_contexts(value: object) -> None:
+    """Fail before PyLD can wrap or attempt a remote context/document load."""
+    if isinstance(value, list):
+        for item in value:
+            _reject_remote_contexts(item)
+        return
+    if not isinstance(value, Mapping):
+        return
+
+    if "@context" in value and _context_uses_remote_document(value["@context"]):
+        raise OslcRdfError(
+            "remote JSON-LD context/document loading is disabled for OSLC normalization"
+        )
+
+    for key, item in value.items():
+        if key != "@context":
+            _reject_remote_contexts(item)
+
+
+def _source_node_count(value: object) -> int:
+    """Count JSON-LD node objects before expansion can discard identity-only nodes.
+
+    PyLD is allowed to remove top-level node references that contain only an
+    ``@id``. Those objects still consume input/model budget and must not bypass
+    Quarto-Needs' explicit node limit. Value/list/set objects without identity
+    or ordinary properties are not counted as graph nodes.
+    """
+    if isinstance(value, list):
+        return sum(_source_node_count(item) for item in value)
+    if not isinstance(value, Mapping):
+        return 0
+
+    is_value_object = "@value" in value
+    has_identity = isinstance(value.get("@id"), str)
+    has_graph_properties = any(not str(key).startswith("@") for key in value)
+    count = 0 if is_value_object else int(has_identity or has_graph_properties)
+
+    for key, item in value.items():
+        if key in {"@context", "@value"}:
+            continue
+        count += _source_node_count(item)
+    return count
+
+
 def normalize_rdf_representation(
     payload: bytes,
     *,
@@ -72,6 +130,8 @@ def normalize_rdf_representation(
 
     No remote JSON-LD contexts/documents are dereferenced. The HTTP transport
     owns network access; RDF normalization is deterministic and network-free.
+    Node budgets are enforced both before and after expansion so identity-only
+    source nodes cannot disappear in PyLD and evade the configured limit.
     """
     if max_nodes <= 0:
         raise ValueError("max_nodes must be positive")
@@ -85,6 +145,13 @@ def normalize_rdf_representation(
         raise OslcTransportError(
             "unsupported-media-type",
             f"unsupported RDF normalization media type: {normalized_media_type!r}",
+        )
+
+    _reject_remote_contexts(document)
+    source_nodes = _source_node_count(document)
+    if source_nodes > max_nodes:
+        raise OslcRdfError(
+            f"OSLC representation contains {source_nodes} source nodes, limit is {max_nodes}"
         )
 
     jsonld = _load_pyld()
