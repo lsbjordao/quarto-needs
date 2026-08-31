@@ -107,6 +107,36 @@ def _complete_pytest_payload() -> dict[str, object]:
                 "requirements": ["SYS-007", "FUN-011", "FUN-013", "NFR-006"],
                 "testCases": ["TC-019"],
             },
+            {
+                "nodeid": "tests/test_github_issues.py::test_fetch_external_github_issue_composes_transport_identity_and_parsing",
+                "outcome": "passed",
+                "requirements": ["SYS-008", "FUN-014", "NFR-007"],
+                "testCases": ["TC-020"],
+            },
+            {
+                "nodeid": "tests/test_github_issues.py::test_fetch_external_github_issue_sends_conditional_request_when_cache_is_stale",
+                "outcome": "passed",
+                "requirements": ["SYS-008", "FUN-015", "NFR-007"],
+                "testCases": ["TC-021"],
+            },
+            {
+                "nodeid": "tests/test_github_issues.py::test_fetch_external_github_issue_list_pages_follows_rel_next_across_pages",
+                "outcome": "passed",
+                "requirements": ["SYS-008", "FUN-016", "NFR-007"],
+                "testCases": ["TC-022"],
+            },
+            {
+                "nodeid": "tests/test_github_reconcile.py::test_github_issue_number_stays_data_even_when_it_equals_a_canonical_id",
+                "outcome": "passed",
+                "requirements": ["SYS-008", "FUN-017"],
+                "testCases": ["TC-023"],
+            },
+            {
+                "nodeid": "tests/test_github_http.py::test_fetch_github_resource_403_with_exhausted_rate_limit_is_rate_limited",
+                "outcome": "passed",
+                "requirements": ["SYS-008", "NFR-007"],
+                "testCases": ["TC-024"],
+            },
         ],
         provider_version="8.0",
     )
@@ -184,7 +214,7 @@ def test_dispatch_delegates_raw_pytest_evidence_to_legacy_cli(tmp_path: Path, ca
     report = json.loads(capsys.readouterr().out)
     assert exit_code == 0
     assert report["provider"] == "pytest"
-    assert report["tests"] == 11
+    assert report["tests"] == 16
     assert report["valid"] is True
 
 
@@ -230,7 +260,7 @@ def test_attest_wraps_pytest_payload_and_result_is_checkable(
     assert exit_code == 0
     assert checked["valid"] is True
     assert checked["attested"] is True
-    assert checked["tests"] == 11
+    assert checked["tests"] == 16
 
 
 def test_attest_wraps_generic_check_payload(tmp_path: Path, capsys) -> None:

@@ -131,6 +131,11 @@ def _self_hosted_records() -> list[dict[str, object]]:
         {"nodeid": "tests/test_oslc_query.py::test_execute_oslc_query_uses_existing_bounded_fetch_and_reports_response_provenance", "outcome": "passed", "requirements": ["SYS-007", "FUN-012", "NFR-006"], "testCases": ["TC-017"]},
         {"nodeid": "tests/test_oslc_observe.py::test_materialization_fetches_each_member_and_preserves_individual_provenance", "outcome": "passed", "requirements": ["SYS-007", "FUN-013", "NFR-006"], "testCases": ["TC-018"]},
         {"nodeid": "tests/test_oslc_import_plan.py::test_unbound_observation_requires_explicit_create_directive", "outcome": "passed", "requirements": ["SYS-007", "FUN-011", "FUN-013", "NFR-006"], "testCases": ["TC-019"]},
+        {"nodeid": "tests/test_github_issues.py::test_fetch_external_github_issue_composes_transport_identity_and_parsing", "outcome": "passed", "requirements": ["SYS-008", "FUN-014", "NFR-007"], "testCases": ["TC-020"]},
+        {"nodeid": "tests/test_github_issues.py::test_fetch_external_github_issue_sends_conditional_request_when_cache_is_stale", "outcome": "passed", "requirements": ["SYS-008", "FUN-015", "NFR-007"], "testCases": ["TC-021"]},
+        {"nodeid": "tests/test_github_issues.py::test_fetch_external_github_issue_list_pages_follows_rel_next_across_pages", "outcome": "passed", "requirements": ["SYS-008", "FUN-016", "NFR-007"], "testCases": ["TC-022"]},
+        {"nodeid": "tests/test_github_reconcile.py::test_github_issue_number_stays_data_even_when_it_equals_a_canonical_id", "outcome": "passed", "requirements": ["SYS-008", "FUN-017"], "testCases": ["TC-023"]},
+        {"nodeid": "tests/test_github_http.py::test_fetch_github_resource_403_with_exhausted_rate_limit_is_rate_limited", "outcome": "passed", "requirements": ["SYS-008", "NFR-007"], "testCases": ["TC-024"]},
     ]
 
 
@@ -185,4 +190,4 @@ def test_evidence_check_cli_validates_against_current_graph(tmp_path: Path, caps
     assert exit_code == 0
     assert report["valid"] is True
     assert report["issues"] == []
-    assert report["tests"] == 11
+    assert report["tests"] == 16
