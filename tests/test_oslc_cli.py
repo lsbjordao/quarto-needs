@@ -42,22 +42,10 @@ def test_installed_cli_discovers_oslc_as_deterministic_json(
 
     exit_code = main(
         [
-            "--root",
-            str(tmp_path),
-            "oslc",
-            "discover",
-            "https://provider.test/oslc/sp/1",
-            "--format",
-            "json",
-            "--now",
-            "2026-08-30T21:00:00Z",
-            "--max-age-seconds",
-            "7200",
-            "--max-bytes",
-            "4096",
-            "--max-nodes",
-            "200",
-            "--no-shapes",
+            "--root", str(tmp_path), "oslc", "discover",
+            "https://provider.test/oslc/sp/1", "--format", "json",
+            "--now", "2026-08-30T21:00:00Z", "--max-age-seconds", "7200",
+            "--max-bytes", "4096", "--max-nodes", "200", "--no-shapes",
         ]
     )
 
@@ -68,18 +56,14 @@ def test_installed_cli_discovers_oslc_as_deterministic_json(
         "resourceShapes": [],
         "schema": "oslc-discovery-v1",
         "serviceProviderUri": "https://provider.test/oslc/sp/1",
-        "services": [
-            {
-                "queryCapabilities": [
-                    {
-                        "queryBaseUri": "https://provider.test/oslc/rm/requirements",
-                        "resourceShapeUri": None,
-                        "resourceTypes": ["http://open-services.net/ns/rm#Requirement"],
-                    }
-                ],
-                "serviceId": "https://provider.test/oslc/service/rm",
-            }
-        ],
+        "services": [{
+            "queryCapabilities": [{
+                "queryBaseUri": "https://provider.test/oslc/rm/requirements",
+                "resourceShapeUri": None,
+                "resourceTypes": ["http://open-services.net/ns/rm#Requirement"],
+            }],
+            "serviceId": "https://provider.test/oslc/service/rm",
+        }],
     }
     assert captured["service_provider_uri"] == "https://provider.test/oslc/sp/1"
     assert captured["cache_root"] == tmp_path / ".quarto-needs" / "oslc-cache"
@@ -92,9 +76,9 @@ def test_installed_cli_discovers_oslc_as_deterministic_json(
 def test_oslc_cli_reads_named_profile_and_allows_explicit_override(
     tmp_path: Path, monkeypatch, capsys
 ) -> None:
-    (tmp_path / ".quarto-needs-oslc.toml").write_text(
+    (tmp_path / ".quarto-needs.toml").write_text(
         """
-[profiles.production]
+[federation.oslc.profiles.production]
 service-provider-uri = "https://provider.test/oslc/sp/1"
 cache-dir = ".quarto-needs/oslc/production"
 max-age-seconds = 900
@@ -105,8 +89,7 @@ max-redirects = 1
 max-nodes = 700
 fetch-shapes = false
 bearer-token-env = "QUARTO_NEEDS_OSLC_TOKEN"
-""".strip()
-        + "\n",
+""".strip() + "\n",
         encoding="utf-8",
     )
     monkeypatch.setenv("QUARTO_NEEDS_OSLC_TOKEN", "profile-secret")
@@ -118,24 +101,10 @@ bearer-token-env = "QUARTO_NEEDS_OSLC_TOKEN"
 
     monkeypatch.setattr("quarto_needs.oslc_cli.discover_oslc_rm", fake_discover)
 
-    assert (
-        main(
-            [
-                "--root",
-                str(tmp_path),
-                "oslc",
-                "discover",
-                "--profile",
-                "production",
-                "--max-bytes",
-                "4096",
-                "--shapes",
-                "--format",
-                "json",
-            ]
-        )
-        == 0
-    )
+    assert main([
+        "--root", str(tmp_path), "oslc", "discover", "--profile", "production",
+        "--max-bytes", "4096", "--shapes", "--format", "json",
+    ]) == 0
     output = capsys.readouterr()
     assert "profile-secret" not in output.out
     assert "profile-secret" not in output.err
@@ -170,24 +139,11 @@ def test_oslc_cli_catalog_reports_one_level_without_recursive_follow(
 
     monkeypatch.setattr("quarto_needs.oslc_cli.discover_oslc_catalog", fake_catalog)
 
-    assert (
-        main(
-            [
-                "--root",
-                str(tmp_path),
-                "oslc",
-                "catalog",
-                "https://provider.test/oslc/catalog",
-                "--format",
-                "json",
-                "--max-providers",
-                "10",
-                "--max-nested-catalogs",
-                "2",
-            ]
-        )
-        == 0
-    )
+    assert main([
+        "--root", str(tmp_path), "oslc", "catalog",
+        "https://provider.test/oslc/catalog", "--format", "json",
+        "--max-providers", "10", "--max-nested-catalogs", "2",
+    ]) == 0
     payload = json.loads(capsys.readouterr().out)
     assert payload == {
         "catalogUri": "https://provider.test/oslc/catalog",
@@ -216,20 +172,11 @@ def test_oslc_cli_reads_bearer_token_from_environment_without_printing_it(
 
     monkeypatch.setattr("quarto_needs.oslc_cli.discover_oslc_rm", fake_discover)
 
-    assert (
-        main(
-            [
-                "--root",
-                str(tmp_path),
-                "oslc",
-                "discover",
-                "https://provider.test/oslc/sp/1",
-                "--bearer-token-env",
-                "QUARTO_NEEDS_OSLC_TOKEN",
-            ]
-        )
-        == 0
-    )
+    assert main([
+        "--root", str(tmp_path), "oslc", "discover",
+        "https://provider.test/oslc/sp/1", "--bearer-token-env",
+        "QUARTO_NEEDS_OSLC_TOKEN",
+    ]) == 0
     output = capsys.readouterr()
     assert captured["auth_headers"] == {"Authorization": f"Bearer {secret}"}
     assert secret not in output.out
@@ -240,39 +187,18 @@ def test_oslc_cli_rejects_missing_secret_environment_variable(
     tmp_path: Path, monkeypatch, capsys
 ) -> None:
     monkeypatch.delenv("MISSING_OSLC_TOKEN", raising=False)
-
-    assert (
-        main(
-            [
-                "--root",
-                str(tmp_path),
-                "oslc",
-                "discover",
-                "https://provider.test/oslc/sp/1",
-                "--bearer-token-env",
-                "MISSING_OSLC_TOKEN",
-            ]
-        )
-        == 2
-    )
+    assert main([
+        "--root", str(tmp_path), "oslc", "discover",
+        "https://provider.test/oslc/sp/1", "--bearer-token-env", "MISSING_OSLC_TOKEN",
+    ]) == 2
     assert "unset or empty" in capsys.readouterr().err
 
 
 def test_oslc_cli_rejects_profile_and_uri_together(tmp_path: Path, capsys) -> None:
-    assert (
-        main(
-            [
-                "--root",
-                str(tmp_path),
-                "oslc",
-                "discover",
-                "https://provider.test/oslc/sp/1",
-                "--profile",
-                "production",
-            ]
-        )
-        == 2
-    )
+    assert main([
+        "--root", str(tmp_path), "oslc", "discover",
+        "https://provider.test/oslc/sp/1", "--profile", "production",
+    ]) == 2
     assert "either a Service Provider URI or --profile" in capsys.readouterr().err
 
 
