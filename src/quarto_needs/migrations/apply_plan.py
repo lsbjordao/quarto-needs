@@ -1,0 +1,244 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+from pathlib import PurePosixPath
+from typing import Literal, Mapping
+
+from ..config import NeedsConfig
+from ..relations import DEFAULT_RELATION_CATALOG
+from ..snapshot import AnalysisSnapshot
+from .sphinx_needs import SphinxNeedCandidate, SphinxNeedsMigrationPlan
+
+ApplyStatus = Literal["ready-create", "blocked", "review-required"]
+
+
+@dataclass(frozen=True, slots=True)
+class MigrationApplyItem:
+    source_id: str
+    canonical_id: str
+    destination_file: str | None
+    status: ApplyStatus
+    target_type: str | None
+    target_status: str | None
+    title: str
+    content: str
+    tags: tuple[str, ...]
+    relations: tuple[dict[str, str], ...]
+    provenance: Mapping[str, object]
+    reasons: tuple[str, ...] = ()
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "sourceId": self.source_id,
+            "canonicalId": self.canonical_id,
+            "destinationFile": self.destination_file,
+            "status": self.status,
+            "targetType": self.target_type,
+            "targetStatus": self.target_status,
+            "title": self.title,
+            "content": self.content,
+            "tags": list(self.tags),
+            "relations": [dict(item) for item in self.relations],
+            "provenance": dict(self.provenance),
+            "reasons": list(self.reasons),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class MigrationApplyPlan:
+    source_tool: str
+    source_project: str | None
+    source_version: str
+    semantic_graph_fingerprint: str
+    items: tuple[MigrationApplyItem, ...]
+
+    @property
+    def ready(self) -> bool:
+        return all(item.status == "ready-create" for item in self.items)
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "schema": "migration-apply-plan-v1",
+            "source": {
+                "tool": self.source_tool,
+                "project": self.source_project,
+                "version": self.source_version,
+            },
+            "semanticGraphFingerprint": self.semantic_graph_fingerprint,
+            "ready": self.ready,
+            "items": [item.to_dict() for item in self.items],
+        }
+
+
+def _destination(value: str | None) -> tuple[str | None, str | None]:
+    if value is None:
+        return None, "destination file requires explicit review"
+    text = value.strip().replace("\\", "/")
+    if not text:
+        return None, "destination file must be non-empty"
+    path = PurePosixPath(text)
+    if path.is_absolute() or ".." in path.parts:
+        return None, "destination file must be project-relative"
+    if path.suffix.casefold() not in {".qmd", ".md"}:
+        return None, "destination file must use .qmd or .md"
+    return str(path), None
+
+
+def _candidate_issue_messages(
+    plan: SphinxNeedsMigrationPlan,
+) -> dict[str, list[str]]:
+    result: dict[str, list[str]] = {}
+    for issue in plan.issues:
+        if issue.need_id is not None:
+            result.setdefault(issue.need_id, []).append(f"{issue.code}: {issue.message}")
+    return result
+
+
+def _validate_type_and_status(
+    candidate: SphinxNeedCandidate,
+    config: NeedsConfig,
+) -> list[str]:
+    reasons: list[str] = []
+    target_type = candidate.target_type
+    if target_type is None:
+        reasons.append("source type has no explicit Quarto-Needs type mapping")
+        return reasons
+
+    configured_types = (
+        set(config.required_attributes)
+        | set(config.id_prefixes)
+        | set(config.type_roles)
+        | set(config.allowed_statuses)
+        | set(config.attribute_schemas)
+    )
+    if configured_types and target_type not in configured_types:
+        reasons.append(f"target type {target_type!r} is not configured in this project")
+
+    allowed = config.allowed_statuses.get(target_type)
+    if allowed and candidate.status is not None and candidate.status not in allowed:
+        reasons.append(
+            f"status {candidate.status!r} is not allowed for target type {target_type!r}"
+        )
+    return reasons
+
+
+def build_sphinx_apply_plan(
+    migration: SphinxNeedsMigrationPlan,
+    snapshot: AnalysisSnapshot,
+    config: NeedsConfig,
+    *,
+    destinations: Mapping[str, str],
+    id_map: Mapping[str, str] | None = None,
+) -> MigrationApplyPlan:
+    """Build a reviewed Sphinx-Needs create plan without mutating authored files.
+
+    Source identity is preserved by default: a source ID becomes the proposed
+    canonical ID unless an explicit ``id_map`` says otherwise. Existing local
+    IDs are conflicts, never implicit updates. This slice is create-only; an
+    update/match workflow must have its own reviewed identity contract.
+    """
+    mapped_ids = dict(id_map or {})
+    source_ids = {candidate.source_id for candidate in migration.candidates}
+    unknown_destinations = sorted(set(destinations) - source_ids)
+    if unknown_destinations:
+        raise ValueError(
+            "destinations reference unknown source IDs: " + ", ".join(unknown_destinations)
+        )
+    unknown_mappings = sorted(set(mapped_ids) - source_ids)
+    if unknown_mappings:
+        raise ValueError(
+            "id_map references unknown source IDs: " + ", ".join(unknown_mappings)
+        )
+
+    proposed_ids: dict[str, str] = {}
+    for candidate in migration.candidates:
+        canonical_id = mapped_ids.get(candidate.source_id, candidate.source_id).strip()
+        if not canonical_id:
+            raise ValueError(f"canonical ID for {candidate.source_id} must be non-empty")
+        proposed_ids[candidate.source_id] = canonical_id
+    if len(set(proposed_ids.values())) != len(proposed_ids):
+        raise ValueError("migration apply plan contains duplicate proposed canonical IDs")
+
+    issue_messages = _candidate_issue_messages(migration)
+    all_future_ids = set(snapshot.objects_by_id) | set(proposed_ids.values())
+    items: list[MigrationApplyItem] = []
+
+    for candidate in sorted(
+        migration.candidates, key=lambda item: (item.source_id.casefold(), item.source_id)
+    ):
+        canonical_id = proposed_ids[candidate.source_id]
+        reasons = list(issue_messages.get(candidate.source_id, ()))
+        if canonical_id in snapshot.objects_by_id:
+            reasons.append(
+                f"canonical ID {canonical_id!r} already exists; migration does not imply update identity"
+            )
+        reasons.extend(_validate_type_and_status(candidate, config))
+
+        destination_file, destination_problem = _destination(
+            destinations.get(candidate.source_id)
+        )
+        if destination_problem:
+            reasons.append(destination_problem)
+
+        relation_payload: list[dict[str, str]] = []
+        for relation in candidate.relations:
+            try:
+                canonical_relation = DEFAULT_RELATION_CATALOG.resolve(relation.relation).v1_name
+            except ValueError as error:
+                reasons.append(str(error))
+                continue
+            target = proposed_ids.get(relation.target, relation.target)
+            if target not in all_future_ids:
+                reasons.append(
+                    f"relation target {relation.target!r} does not resolve to a local or proposed canonical ID"
+                )
+            relation_payload.append(
+                {
+                    "relation": canonical_relation,
+                    "target": target,
+                    "sourceField": relation.source_field,
+                }
+            )
+
+        status: ApplyStatus
+        if reasons:
+            status = "review-required" if all(
+                reason == "destination file requires explicit review" for reason in reasons
+            ) else "blocked"
+        else:
+            status = "ready-create"
+
+        items.append(
+            MigrationApplyItem(
+                source_id=candidate.source_id,
+                canonical_id=canonical_id,
+                destination_file=destination_file,
+                status=status,
+                target_type=candidate.target_type,
+                target_status=candidate.status,
+                title=candidate.title,
+                content=candidate.content,
+                tags=candidate.tags,
+                relations=tuple(
+                    sorted(
+                        relation_payload,
+                        key=lambda item: (item["relation"], item["target"]),
+                    )
+                ),
+                provenance={
+                    "tool": "Sphinx-Needs",
+                    "project": migration.source_project,
+                    "version": migration.source_version,
+                    "sourceId": candidate.source_id,
+                },
+                reasons=tuple(reasons),
+            )
+        )
+
+    return MigrationApplyPlan(
+        source_tool="Sphinx-Needs",
+        source_project=migration.source_project,
+        source_version=migration.source_version,
+        semantic_graph_fingerprint=snapshot.semantic_graph_fingerprint,
+        items=tuple(items),
+    )
