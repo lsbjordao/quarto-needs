@@ -84,10 +84,10 @@ Already implemented:
 - installation/package metadata;
 - CI steps for install, type-check, compile, Extension Host smoke, VSIX packaging, and artifact upload.
 
-Remaining release gates:
+Progress on the release gates:
 
-1. generate and commit a real npm `package-lock.json` rather than fabricating one;
-2. obtain at least one real successful Actions execution of the TypeScript/Extension Host/VSIX pipeline.
+1. **done** — `package-lock.json` is now a real, committed `npm install` output (`lockfileVersion: 3`), not a fabricated one. Resolving real dependencies for the first time surfaced a genuine type error in `documentSelector`/`LanguageClientOptions` (vscode's own `DocumentSelector`/`RelativePattern` types are not the ones `vscode-languageclient` actually wants) that had never been caught, because nothing had ever `npm install`ed and type-checked this extension for real before. Fixed; `npm run check` and `npm run compile` both pass locally against the committed lockfile.
+2. **still open** — a real successful Actions execution of the TypeScript/Extension Host/VSIX pipeline. Locally, `npm run test:extension` (the Extension Host smoke fixture) downloads a real VS Code build but then fails before any test runs, with a Node `MODULE_NOT_FOUND` on the test workspace path — a separate, likely environment-specific (sandboxed/headless Electron launch) failure than the type error above, not yet root-caused. This still needs either a real desktop/CI environment to run the Extension Host smoke test in, or further investigation of why `@vscode/test-electron` fails to launch here.
 
 Current GitHub Actions runs terminate before checkout with no job steps for both the Python matrix and VS Code job. That infrastructure condition is therefore not treated as a repository test failure or as successful release evidence.
 
