@@ -2,92 +2,92 @@
 
 A rastreabilidade fica incompleta quando os requisitos terminam no design. Este capítulo modela verificação como objetos de engenharia de primeira classe e conecta testes bem-sucedidos a evidências explícitas.
 
-Os casos de teste abaixo correspondem a classes reais de verificações de regressão do repositório. Sete vínculos executáveis representativos agora cobrem decisões de arquitetura, paridade semântica multilíngue, segurança do grafo público, views nomeadas, impacto de mudanças, usabilidade do índice lateral e orquestração da federação OSLC. `make evidence-self-example` executa esses testes, grava a saída determinística do provider, atesta essa saída contra o snapshot de engenharia atual e valida `.quarto-needs/evidence/pytest.json` antes da renderização do livro autocontido.
+Os casos de teste abaixo correspondem a classes reais de verificações de regressão do repositório. Oito vínculos executáveis representativos agora cobrem decisões de arquitetura, paridade semântica multilíngue, segurança do grafo público, views nomeadas, impacto de mudanças, usabilidade do índice lateral, orquestração da federação OSLC e identidade explícita na reconciliação OSLC. `make evidence-self-example` executa esses testes, grava a saída determinística do provider, atesta essa saída contra o snapshot de engenharia atual e valida `.quarto-needs/evidence/pytest.json` antes da renderização do livro autocontido.
 
 ## Casos de teste
 
 ::: {.need #TC-001 type="test-case" status="passed" tags="snapshot;graph;semantics" evidenced-by="EVD-001"}
 ## Regressão do grafo e snapshot canônicos
 
-Analisar um projeto representativo duas vezes e verificar objetos, relações, metadados semânticos e saída canônica do snapshot.
+Analisa um projeto representativo duas vezes e verifica objetos, relações, metadados semânticos e saída canônica do snapshot estáveis.
 :::
 
 ::: {.need #TC-002 type="test-case" status="passed" tags="quarto;render;accessibility" evidenced-by="EVD-002"}
 ## Regressão de renderização progressiva do Quarto
 
-Renderizar o exemplo e verificar que saída estática do grafo, rastreabilidade acessível e assets HTML progressivos são produzidos a partir da mesma projeção de engenharia.
+Renderiza o exemplo e verifica que saída estática do grafo, rastreabilidade acessível e assets HTML progressivos são produzidos a partir da mesma projeção de engenharia.
 :::
 
 ::: {.need #TC-003 type="test-case" status="passed" tags="governance;rules;gates" evidenced-by="EVD-003"}
 ## Regressão de governança estrita
 
-Executar o motor de regras configurado e os quality gates sobre um projeto conforme e verificar um veredito determinístico bem-sucedido.
+Executa o motor de regras e os quality gates configurados contra um projeto conforme e verifica um veredito determinístico bem-sucedido.
 :::
 
 ::: {.need #TC-004 type="test-case" status="passed" tags="adr;decision;governance" pytest-nodeid="tests/test_architecture_decisions.py::test_accepted_decision_passes_decision_governance" evidenced-by="EVD-004"}
-## Regressão de governança de decisões de arquitetura
+## Regressão de governança de decisões arquiteturais
 
-Verificar regras de driver, escopo, confirmação, linhagem, ciclo de vida e data de revisão para decisões aceitas.
+Verifica direcionadores, escopo, confirmação, linhagem, ciclo de vida e data de revisão de decisões aceitas.
 :::
 
 ::: {.need #TC-005 type="test-case" status="passed" tags="localization;i18n;parity" pytest-nodeid="tests/test_localization.py::test_localized_source_semantic_parity_rejects_model_drift" evidenced-by="EVD-005"}
-## Regressão de paridade semântica das fontes localizadas
+## Regressão de paridade semântica de fontes localizadas
 
-Comparar declarações canônicas e pt-BR e rejeitar mudanças de IDs, tipos, estados, atributos ou relações, permitindo a tradução do texto de apresentação.
+Compara lotes de declarações canônicas e pt-BR e rejeita qualquer mudança em IDs, tipos, status, atributos ou relações, permitindo texto de apresentação traduzido.
 :::
 
 ::: {.need #TC-006 type="test-case" status="passed" tags="graph;schema;security;limits" pytest-nodeid="tests/test_graph_semantics.py::test_public_projection_publishes_catalog_semantics" evidenced-by="EVD-006"}
 ## Regressão do contrato e segurança do grafo público
 
-Validar o JSON público do grafo contra seu schema, impor limites do grafo e verificar que caminhos de origem inseguros não são publicados como proveniência.
+Valida o JSON do grafo público contra seu schema, impõe limites do grafo e verifica que caminhos de origem inseguros não são publicados como proveniência.
 :::
 
 ::: {.need #TC-007 type="test-case" status="passed" tags="parser;qmd;authoring" evidenced-by="EVD-007"}
 ## Regressão de parsing de declarações QMD
 
-Interpretar blocos `.need` representativos e verificar identidade estável, atributos, relações, justificativa e localizações de origem.
+Analisa blocos `.need` representativos e verifica identidade, atributos, relações, justificativa e localizações de origem estáveis.
 :::
 
 ::: {.need #TC-008 type="test-case" status="passed" tags="relations;catalog;semantics" evidenced-by="EVD-008"}
 ## Regressão semântica do catálogo de relações
 
-Verificar nomes canônicos de relações, famílias semânticas, papéis dos extremos, direção de impacto e direção de travessia.
+Verifica nomes canônicos de relações, famílias semânticas, papéis dos endpoints, direção de impacto e direção de travessia.
 :::
 
 ::: {.need #TC-009 type="test-case" status="passed" tags="query;graph;views" pytest-nodeid="tests/test_graph_semantics.py::test_named_query_is_materialized_as_reusable_graph_view" evidenced-by="EVD-009"}
-## Regressão de visão de grafo por consulta nomeada
+## Regressão de view do grafo por query nomeada
 
-Avaliar uma consulta nomeada no núcleo, materializar a projeção correspondente e resolvê-la por meio do manifesto de views.
+Avalia uma query nomeada no core, materializa a projeção correspondente do grafo e a resolve pelo manifesto de views.
 :::
 
 ::: {.need #TC-010 type="test-case" status="passed" tags="graph;cytoscape;exploration" evidenced-by="EVD-010"}
 ## Regressão dos assets de exploração interativa do grafo
 
-Verificar módulos de exploração distribuídos, marcadores de travessia semântica, suporte a caminho até a raiz, filtros e paridade entre assets canônicos e do showcase.
+Verifica módulos de exploração distribuídos, marcadores semânticos de travessia, suporte a root-path, filtros e paridade entre assets canônicos e de demonstração.
 :::
 
 ::: {.need #TC-011 type="test-case" status="passed" tags="baseline;diff;impact" pytest-nodeid="tests/test_impact.py::test_editing_a_requirement_impacts_its_verification" evidenced-by="EVD-011"}
 ## Regressão de baseline, diff e impacto
 
-Construir um baseline, modificar o modelo de engenharia e verificar mudanças determinísticas de campos, relocação, relações e propagação de impacto.
+Cria um baseline, altera o modelo de engenharia e verifica mudanças determinísticas de campos, realocação, relações e propagação de impacto.
 :::
 
 ::: {.need #TC-012 type="test-case" status="passed" tags="extension;distribution;quarto" evidenced-by="EVD-012"}
 ## Regressão de sincronização da extensão canônica
 
-Sincronizar a extensão canônica em um projeto de exemplo e verificar que assets copiados obsoletos não podem se tornar uma implementação independente.
+Sincroniza a extensão canônica em um projeto de exemplo e verifica que assets copiados e obsoletos não podem se tornar uma implementação independente.
 :::
 
 ::: {.need #TC-013 type="test-case" status="passed" tags="determinism;reproducibility;fingerprint" evidenced-by="EVD-013"}
 ## Regressão de saída determinística
 
-Repetir entradas de análise e renderização e verificar saídas de engenharia estáveis em bytes ou fingerprints onde o contrato exige determinismo.
+Repete entradas de análise e renderização e verifica saídas byte-stable ou fingerprint-stable onde o contrato exige determinismo.
 :::
 
 ::: {.need #TC-014 type="test-case" status="passed" tags="quarto;toc;sidebar;usability;progressive-enhancement" pytest-nodeid="tests/test_graph_assets.py::test_margin_sidebar_toggle_stays_entirely_outside_page_toc" evidenced-by="EVD-014"}
-## Regressão de posicionamento do controle do índice lateral
+## Regressão de posicionamento do controle do TOC lateral
 
-Verificar persistência do estado recolhido, comportamento temporário de `fullcontent` e o contrato explícito de posicionamento que mantém o controle expandido inteiramente fora do índice da página, com espaçamento de 8 px.
+Verifica estado persistente de recolhimento, comportamento temporário `fullcontent` e o contrato explícito de posicionamento que mantém o controle expandido totalmente fora do TOC da página com uma distância de 8 px.
 :::
 
 ## Evidências
@@ -95,43 +95,43 @@ Verificar persistência do estado recolhido, comportamento temporário de `fullc
 ::: {.need #EVD-001 type="evidence" status="verified" tags="pytest;snapshot;analysis"}
 ## Suíte de regressão de análise e exportação
 
-Testes versionados que cobrem snapshots canônicos, exports, semântica do grafo e comportamento estável da análise.
+Testes versionados cobrindo snapshots canônicos, exports, semântica do grafo e comportamento estável da análise.
 :::
 
 ::: {.need #EVD-002 type="evidence" status="verified" tags="quarto;render;static-equivalence"}
-## Superfícies de smoke test de renderização do grafo e multilíngue
+## Superfícies de smoke de renderização do grafo e multilíngue
 
-Testes de renderização estática do grafo e o fluxo Quarto/BabelQuarto demonstram apresentação progressiva a partir do modelo resolvido.
+Testes de renderização estática do grafo mais o workflow de Quarto/BabelQuarto demonstram apresentação progressiva a partir do modelo resolvido.
 :::
 
 ::: {.need #EVD-003 type="evidence" status="verified" tags="pytest;rules;gates"}
 ## Suíte de testes de regras e quality gates
 
-Testes de regressão exercitam regras estruturais, governança configurável, coverage e avaliação de gates.
+Testes de regressão exercitam regras estruturais, governança configurável, cobertura e avaliação de gates.
 :::
 
 ::: {.need #EVD-004 type="evidence" status="verified" tags="pytest;adr;decision;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
-## Evidência de máquina da governança de ADR
+## Evidência de máquina da governança ADR
 
-O `TC-004` modelado está vinculado a um nó pytest real. O alvo de evidência do exemplo autocontido registra seu resultado no artefato pytest atestado.
+O `TC-004` modelado está ligado a um nó pytest real. O target de evidência self-hosted registra seu resultado de execução no artefato de evidência pytest atestado.
 :::
 
 ::: {.need #EVD-005 type="evidence" status="verified" tags="pytest;i18n;babelquarto;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
 ## Evidência de máquina da paridade de localização
 
-O `TC-005` modelado está vinculado à regressão de paridade de localização do core. Ela comprova que texto de apresentação traduzido é aceito enquanto desvios semânticos de IDs, tipos, estados, atributos ou relações são rejeitados.
+O `TC-005` modelado está ligado à regressão central de paridade de localização. Ele prova que texto de apresentação traduzido é aceito enquanto deriva semântica em IDs, tipos, status, atributos ou relações é rejeitada.
 :::
 
 ::: {.need #EVD-006 type="evidence" status="verified" tags="jsonschema;graph;security;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
 ## Evidência de máquina do grafo público
 
-O `TC-006` modelado está vinculado à regressão executável do schema e do contrato semântico da projeção pública, executada pelo alvo de evidência do exemplo autocontido.
+O `TC-006` modelado está ligado à regressão do schema da projeção pública e do contrato semântico executada pelo target de evidência self-hosted.
 :::
 
 ::: {.need #EVD-007 type="evidence" status="verified" tags="pytest;parser;qmd"}
 ## Suíte de regressão do parser
 
-Fixtures do parser cobrem declarações QMD, formas de relações, localizações de origem, justificativa e normalização das declarações.
+Fixtures do parser cobrem declarações QMD, formas de relação, localizações de origem, justificativa e normalização de declarações.
 :::
 
 ::: {.need #EVD-008 type="evidence" status="verified" tags="pytest;relations;catalog"}
@@ -141,42 +141,42 @@ Testes do catálogo cobrem nomes de autoria, formas inversas, papéis, famílias
 :::
 
 ::: {.need #EVD-009 type="evidence" status="verified" tags="pytest;query;views;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
-## Evidência de máquina de consulta nomeada e view de grafo
+## Evidência de máquina da view de grafo por query nomeada
 
-O `TC-009` modelado está vinculado à regressão executável que materializa uma consulta nomeada como view reutilizável de grafo e verifica sua entrada no manifesto.
+O `TC-009` modelado está ligado à regressão executável que materializa uma query nomeada como view reutilizável do grafo e verifica sua entrada no manifesto.
 :::
 
 ::: {.need #EVD-010 type="evidence" status="verified" tags="javascript;cytoscape;assets"}
 ## Testes de integridade dos assets do grafo interativo
 
-Regressões estáticas dos assets verificam capacidades de exploração e impedem que tabelas de relações semânticas sejam reintroduzidas no código de apresentação.
+Regressões estáticas de assets verificam capacidades de exploração e impedem que tabelas semânticas de relações sejam reintroduzidas no código de apresentação.
 :::
 
 ::: {.need #EVD-011 type="evidence" status="verified" tags="pytest;baseline;impact;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
 ## Evidência de máquina de baseline e impacto
 
-O `TC-011` modelado está vinculado à regressão executável de impacto que modifica um requisito e verifica o caminho explícito até sua verificação a jusante.
+O `TC-011` modelado está ligado à regressão executável de impacto que altera um requisito e verifica o caminho explícito até a verificação a jusante.
 :::
 
 ::: {.need #EVD-012 type="evidence" status="verified" tags="python;extension;sync"}
-## Fluxo canônico de sincronização no pre-render
+## Workflow canônico de sincronização pré-renderização
 
 `tools/quarto_needs_pre_render.py` instala a extensão canônica nos exemplos preparados antes da análise e renderização.
 :::
 
 ::: {.need #EVD-013 type="evidence" status="verified" tags="pytest;determinism;fingerprint"}
-## Suíte de regressão de determinismo e fingerprint
+## Suíte de regressão de determinismo e fingerprints
 
-Testes de análise repetida e fixtures canônicas demonstram fingerprints estáveis e saída em bytes onde exigido.
+Testes de análise repetida e fixtures canônicas demonstram fingerprints estáveis e saída em nível de bytes quando exigido.
 :::
 
 ::: {.need #EVD-014 type="evidence" status="verified" tags="pytest;quarto;toc;sidebar;usability;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
-## Evidência de máquina da usabilidade do índice lateral
+## Evidência de máquina da usabilidade do TOC lateral
 
-O `TC-014` modelado está vinculado à regressão que protege o comportamento persistente de recolhimento e o contrato de posicionamento sem sobreposição introduzido pela correção histórica de `margin-sidebar.js`.
+O `TC-014` modelado está ligado à regressão que protege o comportamento persistente de recolhimento e o contrato de posicionamento sem sobreposição introduzido pela correção histórica da barra lateral.
 :::
 
-## Visualizações de verificação
+## Views de verificação
 
 {{< need-table types="test-case" columns="id;title;status;pytest-nodeid" sort="id" >}}
 
