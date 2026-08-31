@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import Literal, Mapping
 
@@ -25,7 +25,7 @@ class ExternalRequirementObservation:
     title: str
     description: str = ""
     external_identifier: str | None = None
-    attributes: object = MappingProxyType({})
+    attributes: Mapping[str, object] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if not isinstance(self.title, str):
@@ -37,8 +37,10 @@ class ExternalRequirementObservation:
             or not self.external_identifier.strip()
         ):
             raise ValueError("external_identifier must be a non-empty string when present")
-        # Validate that adapter-supplied attributes can enter deterministic reports.
-        freeze_json(self.attributes)
+        frozen = freeze_json(dict(self.attributes))
+        if not isinstance(frozen, Mapping):
+            raise TypeError("attributes must be a JSON object")
+        object.__setattr__(self, "attributes", frozen)
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -46,7 +48,7 @@ class ExternalRequirementObservation:
             "title": self.title,
             "description": self.description,
             "externalIdentifier": self.external_identifier,
-            "attributes": thaw_json(freeze_json(self.attributes)),
+            "attributes": thaw_json(self.attributes),
         }
 
 
