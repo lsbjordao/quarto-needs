@@ -178,9 +178,9 @@ Next 5.4 slices:
 
 Sphinx-Needs, Doorstop, and StrictDoc remain supported migration sources and inspirations for Quarto-Needs; compatibility claims are limited to the explicitly implemented adapter behavior for each.
 
-## 5.5 External service adapters 🟡 (first slice)
+## 5.5 External service adapters 🟡 (two slices in)
 
-**Status: a read-only, network-free GitHub issue projection is implemented — external identity, content-digest provenance, and normalization into the same observation shape OSLC federation already uses. No HTTP transport, cache, query, or reconciliation yet.** See `docs/phase-5-external-adapters.md`.
+**Status: a read-only GitHub issue projection is implemented end to end — external identity, content-digest provenance, normalization into the same observation shape OSLC federation already uses, and a bounded GET-only HTTP transport run against the real GitHub API. No cache, query/listing, or reconciliation yet.** See `docs/phase-5-external-adapters.md`.
 
 Read-only/cacheable adapters may target GitHub issues or lifecycle-management systems. Every imported object must preserve external identity, origin, digest/version, retrieval policy, and trust state.
 
@@ -188,15 +188,17 @@ Implemented capabilities include:
 
 - `github_issue_resource_uri`/`build_github_issue_identity`, reusing OSLC's `ExternalResourceIdentity`/`content_digest` directly rather than a parallel identity model — those turned out to already be source-agnostic;
 - `parse_external_github_issue`, normalizing a fetched issue payload into OSLC's own `ExternalRequirementObservation` shape, validated against a real payload fetched live from a public GitHub repository, not only synthetic fixtures;
-- explicit pull-request rejection (GitHub's issues endpoint also returns pull requests) and explicit, non-guessed handling of `state`, `null` bodies, and missing labels.
+- explicit pull-request rejection (GitHub's issues endpoint also returns pull requests) and explicit, non-guessed handling of `state`, `null` bodies, and missing labels;
+- `fetch_github_resource` (`github_http.py`): a bounded, GET-only HTTP transport (byte/time/redirect limits, same-origin redirect enforcement so an `Authorization` header cannot leak cross-host, request-only auth headers, `application/json`-only media type) — an independent, small implementation rather than reusing `oslc_http.py`'s RDF-media-type-specific one, sharing only the fully generic `HttpFetchPolicy` dataclass; tested against a fake, injectable opener with the cross-origin-redirect and byte-limit checks falsified, not just asserted;
+- `fetch_external_github_issue`, composing transport + identity + parser into one read-only fetch-and-normalize call, run live against a real GitHub issue and a real pull request (to confirm the PR-rejection path fires for real) — no caching yet, so every call is a fresh network fetch.
 
 Next 5.5 slices, each its own reviewed contract exactly as OSLC's discovery/cache/HTTP/RDF/query/observe/reconcile/import-plan were:
 
-1. bounded GET-only HTTP transport to actually fetch an issue, with conditional requests and the same byte/time/redirect budgets OSLC's transport enforces;
-2. a persistent, content-addressed cache with historical observations;
+1. a persistent, content-addressed cache with historical observations, so repeated fetches stop hitting the network every time;
+2. conditional requests (`If-None-Match`/`If-Modified-Since`) — naturally follows the cache, since there is nothing to condition against without one;
 3. listing/query support beyond one issue at a time;
 4. an explicit, non-heuristic reconciliation step and a reviewed, non-mutating import plan, mirroring `oslc_reconcile.py`/`oslc_import_plan.py`;
-5. authentication handling for a real fetch;
+5. rate-limit handling distinguished from generic auth/availability errors (GitHub's `403`/`429` + `X-RateLimit-*` on exhaustion);
 6. self-hosted example integration.
 
 ---
