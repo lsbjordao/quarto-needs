@@ -40,6 +40,10 @@ oslc = [
   "PyLD>=3.2,<4",
   "rdflib>=7.1,<8",
 ]
+branding = [
+  "CairoSVG>=2.7,<3",
+  "Pillow>=10,<12",
+]
 # Release tooling only. Never a runtime dependency, and installed inside CI
 # rather than by contributors.
 release = [
