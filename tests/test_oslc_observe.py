@@ -84,7 +84,9 @@ def test_materialization_fetches_each_member_and_preserves_individual_provenance
     second_uri = "https://provider.test/oslc/rm/2"
     first = _requirement(first_uri, title="First")
     second = _requirement(second_uri, title="Second")
-    opener = _Opener(_Response(first), _Response(second))
+    # The query asks for /2 before /1, so fake transport responses must follow
+    # that request order. Identity validation intentionally rejects mismatches.
+    opener = _Opener(_Response(second), _Response(first))
 
     result = materialize_query_observations(
         _query(second_uri, first_uri),
