@@ -13,9 +13,10 @@ def read(root: Path, name: str) -> str:
 def test_exploration_client_is_loaded_after_base_graph() -> None:
     views = read(EXTENSION, "views.lua")
 
-    assert 'version = "0.1.5"' in views
+    assert 'version = "0.1.6"' in views
     assert views.index('"graph-context.js"') < views.index('"graph.js"')
     assert views.index('"graph.js"') < views.index('"graph-explore.js"')
+    assert views.index('"graph-explore.js"') < views.index('"graph-modes.js"')
 
 
 def test_exploration_client_consumes_published_semantics() -> None:
@@ -39,6 +40,49 @@ def test_exploration_client_consumes_published_semantics() -> None:
     assert "allowedFamilies && allowedFamilies.size &&" not in explore
 
 
+def test_modes_client_consumes_published_annotations_only() -> None:
+    modes = read(EXTENSION, "graph-modes.js")
+    explore = read(EXTENSION, "graph-explore.js")
+
+    assert "data-need-graph-overlays" in modes
+    assert "need-graph-overlays-v1" in modes
+
+    # It presents published values; it never classifies by itself. Changes to
+    # live elements must read the artifact's maps — the only hardcoded change
+    # value is the ghosts' published removal, presented inside their element
+    # data exactly as the projection pipeline already ships it.
+    assert 'data("change", "modified")' not in modes
+    assert 'data("change", "added")' not in modes
+    assert 'data("change", "removed")' not in modes
+    assert 'change: "removed"' in modes
+
+    assert 't("Catalog", "Catálogo")' in modes
+    assert 't("Changes", "Mudanças")' in modes
+
+    # The overlay's forced-visibility slot is composed by the explore
+    # predicate's owner, never written by two features independently:
+    assert "__needGraphOverlayForcedNodes" in modes
+    assert "__needGraphOverlayForcedNodes" in explore
+
+
 def test_showcase_graph_clients_match_canonical_extension() -> None:
     assert read(SHOWCASE, "graph-context.js") == read(EXTENSION, "graph-context.js")
     assert read(SHOWCASE, "graph-explore.js") == read(EXTENSION, "graph-explore.js")
+    assert read(SHOWCASE, "graph-modes.js") == read(EXTENSION, "graph-modes.js")
+
+
+def test_impact_mode_composes_through_the_existing_predicates() -> None:
+    modes = read(EXTENSION, "graph-modes.js")
+    explore = read(EXTENSION, "graph-explore.js")
+
+    assert "__needGraphAffectedOnly" in modes
+    assert "__needGraphAffectedOnly" in explore
+    # The empty-set rule the other slots already honor: a non-null set filters,
+    # null never does.
+    assert "affectedOnly && !affectedOnly.has(node.id())" in explore
+    # The predicate owner re-derives; the modes client only flips slots:
+    assert "__needGraphReapplyPredicates" in modes
+    assert "__needGraphReapplyPredicates" in explore
+    assert "pathMember" in modes
+    assert "impactDistance" in modes
+    assert 't("Affected only", "Somente afetados")' in modes

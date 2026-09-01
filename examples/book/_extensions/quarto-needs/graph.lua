@@ -316,9 +316,23 @@ function M.render_shortcode(args, kwargs)
     '<button type="button" class="need-graph-reset">' .. views.tr("Reset", "Redefinir") .. '</button></div>')
   local canvas = pandoc.RawBlock("html", '<div class="need-graph-canvas" data-need-graph-canvas="' .. instance_id .. '" role="img" aria-label="' .. views.tr("Interactive traceability graph", "Grafo de rastreabilidade interativo") .. '"><div class="need-graph-loading">' .. views.tr("Loading interactive graph…", "Carregando grafo interativo…") .. '</div></div>')
   local data_script = pandoc.RawBlock("html", '<script type="application/json" data-need-graph-data="' .. instance_id .. '">' .. json_payload .. '</script>')
+  -- The overlay annotation artifact (written by write_graph_overlays when the
+  -- project has a comparison baseline) rides along when it exists; its script
+  -- tag's presence is the browser-side availability signal.
+  local overlays_script = nil
+  local overlays_full = pandoc.path.join({root, ".quarto-needs", "graphs", projection_id .. "-overlays.json"})
+  local overlays_file = io.open(overlays_full, "rb")
+  if overlays_file then
+    local overlays_contents = overlays_file:read("*a"); overlays_file:close()
+    local overlays_ok, overlays_decoded = pcall(pandoc.json.decode, overlays_contents)
+    if overlays_ok and type(overlays_decoded) == "table" and type(overlays_decoded.schemaVersion) == "string" then
+      overlays_script = pandoc.RawBlock("html", '<script type="application/json" data-need-graph-overlays="' .. instance_id .. '">' .. overlays_contents .. '</script>')
+    end
+  end
   local status = pandoc.RawBlock("html", '<div class="need-graph-status visually-hidden" role="status" data-need-graph-status="' .. instance_id .. '"></div>')
   table.insert(blocks, pandoc.RawBlock("html", '<div class="need-graph-container">'))
   table.insert(blocks, controls); table.insert(blocks, canvas); table.insert(blocks, status); table.insert(blocks, data_script)
+  if overlays_script then table.insert(blocks, overlays_script) end
   table.insert(blocks, pandoc.RawBlock("html", "</div>"))
   return pandoc.Div(blocks, pandoc.Attr(instance_id, {"need-graph", "need-graph-progressive"}, {["data-need-graph"]=instance_id}))
 end

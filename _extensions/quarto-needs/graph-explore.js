@@ -266,10 +266,16 @@
       const statusValue = statusField.select.value;
       const family = familyField.select.value;
       const incident = familyIncidentNodes();
-      container.__needGraphForcedNodes = pathNodes;
+      const overlayForced = container.__needGraphOverlayForcedNodes;
+      const forced = overlayForced instanceof Set && overlayForced.size
+        ? new Set([...pathNodes, ...overlayForced])
+        : pathNodes;
+      const affectedOnly = container.__needGraphAffectedOnly;
+      container.__needGraphForcedNodes = forced;
       container.__needGraphTraversalFamilies = activeProfileFamilies();
       container.__needGraphNodeAllowed = (node) => {
-        if (pathNodes.has(node.id())) return true;
+        if (forced.has(node.id())) return true;
+        if (affectedOnly && !affectedOnly.has(node.id())) return false;
         if (type && String(node.data("type") || "") !== type) return false;
         if (statusValue && String(node.data("status") || "") !== statusValue) return false;
         if (incident && !incident.has(node.id())) return false;
@@ -280,6 +286,11 @@
         return !family || familyFor(edge, semantics) === family;
       };
     };
+
+    // The modes client flips its slots and asks this module — the predicate
+    // owner — to re-derive them, so forced/affected state can never diverge
+    // from the filters composed here.
+    container.__needGraphReapplyPredicates = () => { installPredicates(); };
 
     const refresh = () => {
       installPredicates();
