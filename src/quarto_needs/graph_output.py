@@ -327,3 +327,53 @@ def write_default_projection(
         ) + "\n",
     )
     return target
+
+
+def write_c4_projections(root: Path, snapshot: AnalysisSnapshot) -> None:
+    """Pre-render every system's Context/Container view and every
+    container's Component view (plus each component's Code-level table).
+
+    Unlike named-query views, C4 views need no project configuration: the
+    full set is derived directly from which objects exist as `system`/
+    `container`/`component` types, so there is nothing for a project to
+    declare and nothing that can drift out of sync with the graph.
+    """
+    from .c4_projection import C4ViewError, build_c4_view
+    from .c4_render import c4_code_table_markdown, c4_mermaid_source
+
+    graph_dir = root / ".quarto-needs" / "graphs"
+    for stale in graph_dir.glob("c4-*.json"):
+        stale.unlink()
+
+    def _write(view_id: str, kind: str, source: str) -> None:
+        graph_dir.mkdir(parents=True, exist_ok=True)
+        _atomic_text(
+            graph_dir / f"{view_id}.json",
+            json.dumps(
+                {"schemaVersion": "c4-view-v1", "kind": kind, "source": source},
+                ensure_ascii=False,
+                indent=2,
+                sort_keys=True,
+            )
+            + "\n",
+        )
+
+    for record in snapshot.objects:
+        if record.type == "system":
+            for level in ("context", "container"):
+                try:
+                    projection = build_c4_view(snapshot, focus_id=record.id, level=level)
+                except (C4ViewError, GraphLimitExceeded):
+                    continue
+                source = c4_mermaid_source(projection, focus_id=record.id, level=level)
+                _write(f"c4-{level}-{record.id}", "mermaid", source)
+        elif record.type == "container":
+            try:
+                projection = build_c4_view(snapshot, focus_id=record.id, level="component")
+            except (C4ViewError, GraphLimitExceeded):
+                continue
+            source = c4_mermaid_source(projection, focus_id=record.id, level="component")
+            _write(f"c4-component-{record.id}", "mermaid", source)
+        elif record.type == "component":
+            table = c4_code_table_markdown(snapshot, focus_id=record.id)
+            _write(f"c4-code-{record.id}", "table", table)

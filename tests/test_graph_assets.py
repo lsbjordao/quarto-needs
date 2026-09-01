@@ -128,3 +128,72 @@ def test_default_projection_is_written_and_embeds_projection(tmp_path) -> None:
     assert payload["schemaVersion"] == "graph-public-v1"
     assert payload["view"]["mode"] == "catalog"
     assert [node["id"] for node in payload["nodes"]] == ["ADV-1", "ADV-2"]
+
+
+def test_write_c4_projections_writes_one_file_per_system_and_container_level(tmp_path) -> None:
+    (tmp_path / "arch.qmd").write_text(
+        '::: {.need #SYS-1 type="system" status="draft"}\n## System\n:::\n\n'
+        '::: {.need #CONTAINER-1 type="container" status="draft" '
+        'part-of="SYS-1" technology="Python"}\n## Container\n:::\n',
+        encoding="utf-8",
+    )
+    result = analyze_project(tmp_path)
+    assert result.snapshot is not None
+
+    graph_output.write_c4_projections(tmp_path, result.snapshot)
+
+    graph_dir = tmp_path / ".quarto-needs" / "graphs"
+    context_path = graph_dir / "c4-context-SYS-1.json"
+    container_path = graph_dir / "c4-container-SYS-1.json"
+    component_path = graph_dir / "c4-component-CONTAINER-1.json"
+    assert context_path.is_file()
+    assert container_path.is_file()
+    assert component_path.is_file()
+
+    context_payload = json.loads(context_path.read_text(encoding="utf-8"))
+    assert context_payload["schemaVersion"] == "c4-view-v1"
+    assert context_payload["kind"] == "mermaid"
+    assert context_payload["source"].splitlines()[0] == "C4Context"
+
+    container_payload = json.loads(container_path.read_text(encoding="utf-8"))
+    assert "System_Boundary(" in container_payload["source"]
+
+    component_payload = json.loads(component_path.read_text(encoding="utf-8"))
+    assert component_payload["kind"] == "mermaid"
+    assert component_payload["source"].splitlines()[0] == "C4Component"
+
+
+def test_write_c4_projections_writes_a_code_table_for_every_component(tmp_path) -> None:
+    (tmp_path / "arch.qmd").write_text(
+        '::: {.need #CONTAINER-1 type="container" status="draft"}\n## Container\n:::\n\n'
+        '::: {.need #COMPONENT-1 type="component" status="draft" '
+        'part-of="CONTAINER-1"}\n## Component\n:::\n',
+        encoding="utf-8",
+    )
+    result = analyze_project(tmp_path)
+    assert result.snapshot is not None
+
+    graph_output.write_c4_projections(tmp_path, result.snapshot)
+
+    graph_dir = tmp_path / ".quarto-needs" / "graphs"
+    code_path = graph_dir / "c4-code-COMPONENT-1.json"
+    assert code_path.is_file()
+
+    code_payload = json.loads(code_path.read_text(encoding="utf-8"))
+    assert code_payload["schemaVersion"] == "c4-view-v1"
+    assert code_payload["kind"] == "table"
+    assert code_payload["source"].splitlines()[0].startswith("|")
+
+
+def test_write_c4_projections_is_a_no_op_when_there_are_no_systems_or_containers(tmp_path) -> None:
+    (tmp_path / "arch.qmd").write_text(
+        '::: {.need #REQ-1 type="functional-requirement" status="draft"}\n## Req\n:::\n',
+        encoding="utf-8",
+    )
+    result = analyze_project(tmp_path)
+    assert result.snapshot is not None
+
+    graph_output.write_c4_projections(tmp_path, result.snapshot)
+
+    graph_dir = tmp_path / ".quarto-needs" / "graphs"
+    assert not graph_dir.exists() or list(graph_dir.glob("c4-*.json")) == []

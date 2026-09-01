@@ -99,6 +99,10 @@ def build(root: Path, quiet: bool = False) -> int:
         from .graph_output import write_default_projection
 
         write_default_projection(root, result.snapshot, config)
+
+        from .graph_output import write_c4_projections
+
+        write_c4_projections(root, result.snapshot)
     except OSError as error:
         # Reading the project or writing either artifact failed; both are
         # operational, not validation, failures.
