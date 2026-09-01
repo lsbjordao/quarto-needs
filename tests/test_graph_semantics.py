@@ -78,7 +78,7 @@ def test_public_projection_publishes_catalog_semantics(tmp_path: Path) -> None:
     payload = json.loads(render_public_projection(projection, config, snapshot=snapshot))
     validate_public(payload)
 
-    assert payload["relationCatalogVersion"] == "3"
+    assert payload["relationCatalogVersion"] == "4"
     derives = payload["relationSemantics"]["derives-from"]
     assert derives["family"] == "derivation"
     assert derives["sourceRole"] == "derived"

@@ -9,12 +9,13 @@ def test_default_catalog_covers_legacy_and_decision_authoring_names() -> None:
         "conflicts-with", "constrains", "decomposes", "depends-on",
         "derived-from", "derives-from", "evidenced-by", "evidences",
         "implemented-by", "implements", "justified-by", "mitigates",
+        "part-of",
         "references", "refines", "validated-by", "verified-by", "verifies",
         "addresses", "addressed-by", "applies-to", "confirmed-by", "confirms",
         "supersedes", "superseded-by",
     }
     assert set(DEFAULT_RELATION_CATALOG.names) == expected
-    assert DEFAULT_RELATION_CATALOG.version == "3"
+    assert DEFAULT_RELATION_CATALOG.version == "4"
 
 
 def test_inverse_authoring_forms_share_semantic_families_and_swap_roles() -> None:
@@ -31,6 +32,20 @@ def test_inverse_authoring_forms_share_semantic_families_and_swap_roles() -> Non
         "implementation-artifact",
     )
     assert implements.inverse_label == implemented_by.direct_label
+
+
+def test_part_of_is_decomposes_own_missing_inverse() -> None:
+    decomposes = DEFAULT_RELATION_CATALOG.resolve("decomposes")
+    part_of = DEFAULT_RELATION_CATALOG.resolve("part-of")
+
+    assert decomposes.v1_name == part_of.v1_name == "decomposes"
+    assert decomposes.semantic_family == part_of.semantic_family == "decomposition"
+    assert (decomposes.source_role, decomposes.target_role) == ("whole", "part")
+    assert (part_of.source_role, part_of.target_role) == ("part", "whole")
+    assert decomposes.inverse_label == part_of.direct_label
+    assert part_of.inverse_label == decomposes.direct_label
+    assert DEFAULT_RELATION_CATALOG.inverse_v1_name("decomposes") == "decomposes"
+    assert DEFAULT_RELATION_CATALOG.inverse_v1_name("part-of") == "decomposes"
 
 
 def test_decision_relations_define_roles_and_impact_directions() -> None:

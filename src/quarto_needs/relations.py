@@ -77,12 +77,13 @@ class RelationCatalog:
 
 
 DEFAULT_RELATION_CATALOG = RelationCatalog.create(
-    "3",
+    "4",
     (
         RelationKind("derives-from", "derives-from", "derives-from", "derivation", "Derives from", "Source for", "derived", "source", "target_to_source", "target_to_source"),
         RelationKind("derived-from", "derives-from", "derives-from", "derivation", "Derives from", "Source for", "derived", "source", "target_to_source", "target_to_source"),
         RelationKind("refines", "refines", "refines", "refinement", "Refines", "Refined by", "refinement", "subject", "target_to_source", "target_to_source"),
         RelationKind("decomposes", "decomposes", "decomposes", "decomposition", "Decomposes", "Part of", "whole", "part", "none", "source_to_target"),
+        RelationKind("part-of", "decomposes", "decomposes", "decomposition", "Part of", "Decomposes", "part", "whole", "source_to_target", "source_to_target"),
         RelationKind("depends-on", "depends-on", "depends-on", "dependency", "Depends on", "Depended on by", "dependent", "dependency", "target_to_source", "target_to_source"),
         RelationKind("conflicts-with", "conflicts-with", "conflicts-with", "conflict", "Conflicts with", "Conflicts with", "subject", "subject", "both", "none"),
         RelationKind("constrains", "constrains", "constrains", "constraint", "Constrains", "Constrained by", "constraint", "subject", "none", "source_to_target"),
