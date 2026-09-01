@@ -15,7 +15,7 @@ import pytest
 
 from quarto_needs.analysis import analyze_project
 from quarto_needs.config import load_config
-from quarto_needs.import_apply import ImportApplyError, apply_import_plan
+from quarto_needs.import_apply import ImportApplyError, _locate_need_block, apply_import_plan
 from quarto_needs.oslc_import_plan import ImportDirective, build_oslc_import_plan
 from quarto_needs.oslc_reconcile import (
     ExternalRequirementObservation,
@@ -244,3 +244,82 @@ def test_empty_plan_refuses(tmp_path: Path) -> None:
     empty = OslcImportPlan(semantic_graph_fingerprint="graph", items=())
     with pytest.raises(ImportApplyError, match="no items"):
         apply_import_plan(tmp_path, empty, snapshot_of(tmp_path), config=load_config(tmp_path))
+
+
+def test_two_items_resolving_to_the_same_file_refuse_instead_of_silently_dropping_one(
+    tmp_path: Path,
+) -> None:
+    """Two distinct target_path spellings can still resolve to one file.
+
+    ``ImportDirective`` normalizes redundant ``./`` segments, but nothing
+    stops two *already differently-spelled* strings (e.g. a doubled slash)
+    from resolving to the same filesystem path once joined to ``root``.
+    The apply step's own duplicate-target guard is string-keyed and would
+    miss this; the write loop must not silently skip the second item — the
+    module's docstring promises items are never half-applied.
+    """
+    from quarto_needs.oslc_import_plan import ImportPlanItem, OslcImportPlan
+
+    write_project(tmp_path)
+    snapshot = snapshot_of(tmp_path)
+
+    def item(target_path: str, canonical_id: str) -> ImportPlanItem:
+        return ImportPlanItem(
+            external_uri=f"https://api.github.com/repos/acme/widgets/issues/{canonical_id}",
+            disposition="ready-create",
+            canonical_id=canonical_id,
+            canonical_type="documentation-requirement",
+            canonical_status="draft",
+            target_path=target_path,
+            source_digest="sha256:" + "a" * 64,
+            fetched_at="2026-08-31T12:00:00Z",
+            changes={
+                "title": {"from": None, "to": f"Imported {canonical_id}"},
+                "body": {"from": None, "to": ""},
+            },
+        )
+
+    plan = OslcImportPlan(
+        semantic_graph_fingerprint=snapshot.semantic_graph_fingerprint,
+        items=(
+            item("docs/extra.qmd", "REQ-2067"),
+            item("docs//extra.qmd", "REQ-2068"),
+        ),
+    )
+
+    with pytest.raises(ImportApplyError, match="resolves to the same file"):
+        apply_import_plan(tmp_path, plan, snapshot, config=load_config(tmp_path))
+
+    assert not (tmp_path / "docs" / "extra.qmd").exists()
+
+
+def test_locate_need_block_does_not_stop_at_a_nested_divs_opening_fence() -> None:
+    """A nested fenced div's own opener also starts with ``:::``.
+
+    ``_locate_need_block`` must not mistake an opening marker for the
+    block's closer: it must reach at least past the nested div's own body,
+    matching the exact-line ``:::`` rule the canonical parser itself uses
+    to find a close. (The parser is not nesting-aware either — a nested
+    div's own closer reads as the outer block's close, a pre-existing
+    grammar limitation this helper deliberately mirrors rather than
+    silently disagreeing with the parser about where the block ends.)
+    """
+    text = (
+        '::: {.need #REQ-1 type="system-requirement" status="approved"}\n'
+        "## Title\n"
+        "\n"
+        "Some intro.\n"
+        "\n"
+        "::: {.callout-note}\n"
+        "A nested callout.\n"
+        ":::\n"
+        "\n"
+        "More body after the callout.\n"
+        ":::\n"
+    )
+
+    start, end = _locate_need_block(text, "REQ-1")
+
+    located = text[start:end]
+    assert "A nested callout." in located
+    assert located.rstrip("\n").endswith(":::")

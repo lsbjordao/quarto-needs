@@ -103,7 +103,16 @@ def _render_create_block(item: ImportPlanItem) -> str:
 
 
 def _locate_need_block(text: str, object_id: str) -> tuple[int, int]:
-    """Return the [start, end) character span of one .need block."""
+    """Return the [start, end) character span of one .need block.
+
+    Mirrors the canonical parser's own closing-fence rule exactly (only a
+    line whose stripped content is ``:::`` closes the block) so this never
+    diverges from what ``parse_qmd_text_declarations`` considers the
+    block's body. A naive substring search for ``"\\n:::"`` would instead
+    match the *opening* line of any nested fenced div (e.g. a callout),
+    since that line also starts with ``:::`` — truncating the located span
+    before the block's real closer.
+    """
     marker = f"::: {{.need #{object_id} "
     alternative = f"::: {{.need #{object_id}}}"
     start = text.find(marker)
@@ -112,10 +121,16 @@ def _locate_need_block(text: str, object_id: str) -> tuple[int, int]:
     if start == -1:
         raise ImportApplyError(f"authored block for {object_id} was not found in its file")
     line_start = text.rfind("\n", 0, start) + 1
-    close = text.find("\n:::", start)
-    if close == -1:
+    lines = text[line_start:].split("\n")
+    close_index: int | None = None
+    for index, line in enumerate(lines[1:], start=1):
+        if line.strip() == ":::":
+            close_index = index
+            break
+    if close_index is None:
         raise ImportApplyError(f"authored block for {object_id} is not closed")
-    end = text.index("\n", close + 1) + 1 if "\n" in text[close + 1:] else len(text)
+    end = line_start + len("\n".join(lines[: close_index + 1]))
+    end = end + 1 if end < len(text) else end
     return line_start, end
 
 
@@ -198,7 +213,10 @@ def apply_import_plan(
     try:
         for item, path in applicable:
             if path in originals:
-                continue
+                raise ImportApplyError(
+                    f"target path {item.target_path!r} resolves to the same file as "
+                    "another item in this plan; split the plan"
+                )
             if item.disposition == "ready-create":
                 assert item.canonical_id is not None
                 if item.canonical_id in snapshot.objects_by_id:

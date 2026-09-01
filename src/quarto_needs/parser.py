@@ -27,7 +27,7 @@ LOCALIZED_QMD_RE = re.compile(
 )
 
 RELATION_KEYS = set(DEFAULT_RELATION_CATALOG.names)
-RATIONALE_HEADING_RE = re.compile(r'^###\s+Rationale\s*$')
+RATIONALE_HEADING_RE = re.compile(r'^###\s+(?:Rationale|Justificativa)\s*$')
 
 
 def _parse_attrs(raw: str) -> dict[str, str]:
@@ -153,6 +153,8 @@ def parse_qmd_text_declarations(text: str, source_file: str) -> DeclarationBatch
         title_index: int | None = None
         if not title:
             for index, line in enumerate(block[body_start:], start=body_start):
+                if RATIONALE_HEADING_RE.match(line):
+                    continue
                 heading_match = HEADING_RE.match(line)
                 if heading_match:
                     title = heading_match.group("title").strip()

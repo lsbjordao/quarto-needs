@@ -56,6 +56,10 @@ As equipes precisam de visibilidade somente leitura do estado de issues do GitHu
 ## Federar issues do GitHub como observações somente leitura com proveniência
 
 O Quarto-Needs deverá buscar issues do GitHub por HTTP limitado e somente GET, normalizá-las na mesma forma de observação externa que a federação OSLC usa, descobrir e percorrer páginas de listagem de issues dentro de orçamentos explícitos, e reconciliar issues observadas por vínculos explícitos de URI-de-API para ID canônico — nunca promovendo números de issue, URLs HTML ou dados inline de listagem a identidade canônica.
+
+### Justificativa
+
+Issues do GitHub carregam estado relevante para a engenharia, mas o rastreador é mutável, paginado, sujeito a limites de taxa, e mistura pull requests em suas listagens de issues — a federação, portanto, precisa de orçamentos limitados, proveniência exata em nível de byte, e separação explícita entre descoberta e observação.
 :::
 
 ::: {.need #FUN-014 type="functional-requirement" status="approved" priority="high" tags="github;issues;identity;projection;provenance" derives-from="SYS-008" implemented-by="COMP-GHISSUES" verified-by="TC-020" mitigates="RISK-005;RISK-012"}

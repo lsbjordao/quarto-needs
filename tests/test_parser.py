@@ -251,3 +251,56 @@ def test_bodies_without_a_rationale_heading_keep_an_empty_rationale(
 
     assert declaration.rationale == ""
     assert declaration.body == "Body."
+
+
+def test_rationale_heading_recognizes_the_established_portuguese_heading(
+    tmp_path: Path,
+) -> None:
+    """``### Justificativa`` is this project's own pre-existing pt-BR heading.
+
+    ``requirements.pt-BR.qmd`` and ``drivers.pt-BR.qmd`` already use
+    "Justificativa" throughout (predating rationale-heading indexing);
+    recognizing only the English word would silently leave the entire
+    pt-BR corpus's rationale sections unindexed.
+    """
+    source = tmp_path / "rationale-pt-br.qmd"
+    source.write_text(
+        "::: {.need #REQ-R type=\"system-requirement\" status=\"approved\"}\n"
+        "\n## Autenticar\n"
+        "O serviço deve autenticar usuários.\n"
+        "\n### Justificativa\n"
+        "Proteger operações privilegiadas.\n"
+        ":::\n",
+        encoding="utf-8",
+    )
+
+    declaration = parse_qmd_declarations(source, tmp_path).declarations[0]
+
+    assert declaration.rationale == "Proteger operações privilegiadas."
+    assert "### Justificativa" in declaration.body
+
+
+def test_rationale_heading_is_not_mistaken_for_the_title_when_no_title_heading_exists(
+    tmp_path: Path,
+) -> None:
+    """A ``### Rationale`` heading must never be consumed as the block's title.
+
+    Title detection scans for the first ``##+`` heading with no level
+    restriction; without an exclusion, a block whose only heading is
+    ``### Rationale`` had that heading stripped from the body as the
+    "title" before rationale extraction ran, leaving rationale empty.
+    """
+    source = tmp_path / "rationale-only-heading.qmd"
+    source.write_text(
+        "::: {.need #REQ-R type=\"system-requirement\" status=\"approved\"}\n"
+        "The service shall authenticate users.\n"
+        "\n### Rationale\n"
+        "Protect privileged operations.\n"
+        ":::\n",
+        encoding="utf-8",
+    )
+
+    declaration = parse_qmd_declarations(source, tmp_path).declarations[0]
+
+    assert declaration.title == "REQ-R"
+    assert declaration.rationale == "Protect privileged operations."

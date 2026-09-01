@@ -61,7 +61,7 @@ class ImportDirective:
                 raise ValueError(
                     "update identity/type/status comes from the reconciled canonical object"
                 )
-            _validate_target_path(self.target_path)
+            object.__setattr__(self, "target_path", _validate_target_path(self.target_path))
             return
 
         for value, field in (
@@ -71,7 +71,12 @@ class ImportDirective:
         ):
             if not isinstance(value, str) or not value.strip():
                 raise ValueError(f"create directive {field} must be a non-empty string")
-        _validate_target_path(self.target_path)
+            if '"' in value or "}" in value or "\n" in value:
+                raise ValueError(
+                    f'create directive {field} must not contain \'"\', "}}", or a newline '
+                    "(it is written verbatim into a .need block's attribute list)"
+                )
+        object.__setattr__(self, "target_path", _validate_target_path(self.target_path))
 
 
 @dataclass(frozen=True, slots=True)
@@ -153,7 +158,11 @@ def _validate_target_path(value: str | None) -> str:
         raise ValueError("target_path must be a normalized project-relative path")
     if path.suffix not in {".qmd", ".md"}:
         raise ValueError("target_path must identify an authored .qmd or .md file")
-    return normalized
+    # Collapse redundant mid-path "./" segments so two directives that
+    # resolve to the same file always compare equal as strings — the apply
+    # step's duplicate-target-path guard is string-keyed and would
+    # otherwise miss this collision.
+    return str(path)
 
 
 def _observation_index(

@@ -202,6 +202,44 @@ def test_import_directive_rejects_unsafe_or_incomplete_target_metadata() -> None
         ImportDirective(action="update", target_path="requirements/system.txt")
 
 
+def test_import_directive_rejects_type_or_status_that_would_break_out_of_the_need_block_attrs() -> None:
+    """canonical_type/status become raw ``key="value"`` attribute text on write.
+
+    A value containing ``"`` or ``}`` would let attacker- or upstream-
+    controlled content (e.g. a GitHub issue's own labels feeding a
+    reviewer's directive) inject extra attributes into the rendered .need
+    block instead of staying confined to the one attribute value it names.
+    """
+    with pytest.raises(ValueError, match="canonical_type"):
+        ImportDirective(
+            action="create",
+            canonical_id="SYS-008",
+            canonical_type='defect" status="approved',
+            canonical_status="draft",
+            target_path="requirements/new.qmd",
+        )
+    with pytest.raises(ValueError, match="canonical_status"):
+        ImportDirective(
+            action="create",
+            canonical_id="SYS-008",
+            canonical_type="defect",
+            canonical_status="draft}",
+            target_path="requirements/new.qmd",
+        )
+
+
+def test_import_directive_collapses_redundant_dot_segments_in_target_path() -> None:
+    """A mid-path ``./`` segment must normalize identically to its plain form.
+
+    Two directives targeting ``"docs/extra.qmd"`` and ``"docs/./extra.qmd"``
+    resolve to the same file on disk; if validation left them as distinct
+    strings, the apply step's own duplicate-target-path guard (string-keyed)
+    would never catch the collision.
+    """
+    directive = ImportDirective(action="update", target_path="docs/./extra.qmd")
+    assert directive.target_path == "docs/extra.qmd"
+
+
 def test_import_plan_projection_is_deterministic_and_provenance_bound() -> None:
     uri = "https://provider.test/oslc/rm/requirements/7"
     observation = _observation(uri)
