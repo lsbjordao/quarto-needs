@@ -319,3 +319,11 @@ The static document remains usable without JavaScript, while HTML readers gain a
 {{< need-table query="architecture-decisions" columns="id;title;status" sort="id" >}}
 
 {{< need-graph view="architecture-decisions" id="decision-view" >}}
+
+## Generated C4 views
+
+{{< need-c4 root="SYS-QUARTO-NEEDS" level="context" >}}
+
+{{< need-c4 root="SYS-QUARTO-NEEDS" level="container" >}}
+
+{{< need-c4 root="CONTAINER-PYTHON-PKG" level="component" >}}

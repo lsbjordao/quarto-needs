@@ -319,3 +319,11 @@ O documento estático continua utilizável sem JavaScript, enquanto leitores HTM
 {{< need-table query="architecture-decisions" columns="id;title;status" sort="id" >}}
 
 {{< need-graph view="architecture-decisions" id="decision-view" >}}
+
+## Visões C4 geradas
+
+{{< need-c4 root="SYS-QUARTO-NEEDS" level="context" >}}
+
+{{< need-c4 root="SYS-QUARTO-NEEDS" level="container" >}}
+
+{{< need-c4 root="CONTAINER-PYTHON-PKG" level="component" >}}
