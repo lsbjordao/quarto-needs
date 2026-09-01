@@ -321,6 +321,7 @@ def test_default_allowlist_is_the_catalogs_public_relations() -> None:
         "implements",
         "justified-by",
         "mitigates",
+        "part-of",
         "references",
         "refines",
         "superseded-by",
