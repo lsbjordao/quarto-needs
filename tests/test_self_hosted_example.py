@@ -82,6 +82,51 @@ def test_self_hosted_example_is_a_valid_engineering_graph() -> None:
     } <= ids
 
 
+def test_self_hosted_c4_part_of_ownership_is_complete_and_exact() -> None:
+    architecture = parse_qmd_declarations(EXAMPLE / "architecture.qmd", EXAMPLE)
+    implementation = parse_qmd_declarations(EXAMPLE / "implementation.qmd", EXAMPLE)
+    declarations = {
+        item.id: item
+        for item in (*architecture.declarations, *implementation.declarations)
+    }
+
+    expected_part_of = {
+        "COMP-PARSER": ("CONTAINER-PYTHON-PKG",),
+        "COMP-ANALYSIS": ("CONTAINER-PYTHON-PKG",),
+        "COMP-RULES": ("CONTAINER-PYTHON-PKG",),
+        "COMP-CLI": ("CONTAINER-PYTHON-PKG",),
+        "COMP-EXTENSION": ("CONTAINER-QUARTO-EXT",),
+        "COMP-GRAPH": ("CONTAINER-PYTHON-PKG",),
+        "COMP-BASELINE": ("CONTAINER-PYTHON-PKG",),
+        "COMP-I18N": ("CONTAINER-PYTHON-PKG",),
+        "SRC-PARSER": ("COMP-PARSER",),
+        "SRC-RELATIONS": ("COMP-ANALYSIS",),
+        "SRC-ANALYSIS": ("COMP-ANALYSIS",),
+        "SRC-RULES": ("COMP-RULES",),
+        "SRC-QUALITY": ("COMP-RULES",),
+        "SRC-QUERIES": ("COMP-ANALYSIS",),
+        "SRC-GRAPH-OUTPUT": ("COMP-GRAPH",),
+        "SRC-GRAPH-PROJECTION": ("COMP-GRAPH",),
+        "SRC-GRAPH-CONTEXT": ("COMP-GRAPH",),
+        "SRC-GRAPH-EXPLORE": ("COMP-GRAPH",),
+        "SRC-MARGIN-SIDEBAR": ("COMP-EXTENSION",),
+        "SRC-BASELINE": ("COMP-BASELINE",),
+        "SRC-DIFF": ("COMP-BASELINE",),
+        "SRC-IMPACT": ("COMP-BASELINE",),
+        "SRC-PRE-RENDER": ("COMP-I18N",),
+    }
+    actual_part_of = {
+        object_id: tuple(
+            relation.target
+            for relation in declarations[object_id].relations
+            if relation.authored_name == "part-of"
+        )
+        for object_id in expected_part_of
+    }
+
+    assert actual_part_of == expected_part_of
+
+
 def test_self_hosted_example_passes_strict_quality_gates() -> None:
     report = build_quality_report(EXAMPLE)
 
