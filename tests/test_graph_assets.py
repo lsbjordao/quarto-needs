@@ -353,3 +353,13 @@ def test_write_graph_overlays_honors_the_configured_baseline_path(tmp_path: Path
         is not None
     )
     assert (tmp_path / ".quarto-needs" / "graphs" / "need-graph-1-overlays.json").is_file()
+
+
+def test_graph_lua_embeds_the_overlay_artifact_when_present() -> None:
+    lua = (ROOT / "_extensions" / "quarto-needs" / "graph.lua").read_text(encoding="utf-8")
+
+    assert "data-need-graph-overlays" in lua
+    assert '-overlays.json"' in lua
+    # The sibling file is validated as JSON before being embedded, never
+    # interpolated unvalidated:
+    assert "pandoc.json.decode" in lua
