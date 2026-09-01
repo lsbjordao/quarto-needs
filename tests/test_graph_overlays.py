@@ -366,3 +366,57 @@ def test_graph_settings_change_trips_neither_guard(tmp_path: Path) -> None:
         node_ids=("STK-1",), view_id="g",
     )
     assert {entry.id for entry in overlay.impact} == {"SYS-1", "TC-9"}
+
+
+def test_diff_overlay_surfaces_technology_attribute(tmp_path: Path) -> None:
+    """Verify technology attribute flows through diff overlay construction."""
+    # V1: Need with technology attribute
+    v1_needs = (
+        "::: {.need #REQ-1 type=container status=approved technology=\"Python 3.12\"}\n"
+        "\n## Backend\nThe backend service.\n:::\n"
+    )
+    v1(tmp_path)
+    (tmp_path / "a.qmd").write_text(v1_needs, encoding="utf-8")
+    (tmp_path / "b.qmd").unlink(missing_ok=True)
+    payload = baseline_of(tmp_path)
+
+    # V2: Same need, to verify it's preserved
+    v2_needs = (
+        "::: {.need #REQ-1 type=container status=approved technology=\"Python 3.13\"}\n"
+        "\n## Backend\nThe backend service (upgraded).\n:::\n"
+    )
+    (tmp_path / "a.qmd").write_text(v2_needs, encoding="utf-8")
+    snapshot = snapshot_of(tmp_path)
+
+    overlay = graph_projection.build_diff_overlay(
+        payload, snapshot, load_config(tmp_path),
+        node_ids=("REQ-1",), view_id="test-tech"
+    )
+    node_dict = json.loads(graph_projection.render_projection(overlay))["nodes"][0]
+    assert node_dict["technology"] == "Python 3.13"
+
+
+def test_impact_overlay_surfaces_technology_attribute(tmp_path: Path) -> None:
+    """Verify technology attribute flows through impact overlay construction."""
+    chain_v1_tech = (
+        "::: {.need #STK-1 type=need status=approved}\n"
+        "\n## Stake\nStakeholder concern.\n:::\n"
+        "\n"
+        "::: {.need #SYS-1 type=system-requirement status=approved technology=\"Go 1.21\" "
+        'derives-from="STK-1"}\n'
+        "\n## System\nThe system shall do it.\n:::\n"
+    )
+    (tmp_path / "chain.qmd").write_text(chain_v1_tech, encoding="utf-8")
+    payload = baseline_of(tmp_path)
+    snapshot = snapshot_of(tmp_path)
+    config = load_config(tmp_path)
+
+    overlay = graph_projection.build_impact_overlay(
+        payload, snapshot, config, node_ids=("STK-1", "SYS-1"), view_id="test-impact-tech"
+    )
+
+    # Verify the node in the impact overlay has technology
+    rendered = json.loads(graph_projection.render_projection(overlay))
+    sys_node = next((n for n in rendered["nodes"] if n["id"] == "SYS-1"), None)
+    assert sys_node is not None
+    assert sys_node["technology"] == "Go 1.21"

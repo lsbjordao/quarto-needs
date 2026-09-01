@@ -243,3 +243,26 @@ def test_public_node_surfaces_a_containers_technology_attribute() -> None:
     assert by_id["SYS-1"].technology is None
     assert by_id["CONTAINER-1"].to_dict()["technology"] == "Python 3.12"
     assert "technology" not in by_id["SYS-1"].to_dict()
+
+
+def test_ghost_node_surfaces_technology_from_baseline() -> None:
+    """Test that _ghost_node correctly extracts technology from baseline data."""
+    ghost_entry = {
+        "id": "CONTAINER-1",
+        "title": "Python package",
+        "type": "container",
+        "status": "implemented",
+        "priority": "high",
+        "tags": ["backend"],
+        "attributes": {"technology": "Python 3.12"},
+    }
+    ghost = graph_projection._ghost_node(ghost_entry)
+    assert ghost.technology == "Python 3.12"
+    assert ghost.to_dict()["technology"] == "Python 3.12"
+
+    # Verify technology is None when not in baseline
+    ghost_entry_no_tech = dict(ghost_entry)
+    ghost_entry_no_tech["attributes"] = {}
+    ghost_no_tech = graph_projection._ghost_node(ghost_entry_no_tech)
+    assert ghost_no_tech.technology is None
+    assert "technology" not in ghost_no_tech.to_dict()

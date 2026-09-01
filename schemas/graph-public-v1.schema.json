@@ -81,7 +81,8 @@
           "priority": {"type": ["string", "null"]},
           "tags": {"type": "array", "items": {"type": "string"}},
           "href": {"type": "string"},
-          "change": {"enum": ["added", "removed", "modified", "relocated", "unchanged"]}
+          "change": {"enum": ["added", "removed", "modified", "relocated", "unchanged"]},
+          "technology": {"type": ["string", "null"]}
         }
       }
     },
