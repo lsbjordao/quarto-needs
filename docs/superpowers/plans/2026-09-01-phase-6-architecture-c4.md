@@ -1112,8 +1112,8 @@ def test_write_c4_projections_writes_one_file_per_system_and_container_level(
     assert "System_Boundary(" in container_payload["source"]
 
     component_payload = json.loads(component_path.read_text(encoding="utf-8"))
-    assert component_payload["kind"] == "table"
-    assert component_payload["source"].splitlines()[0].startswith("|")
+    assert component_payload["kind"] == "mermaid"
+    assert "Container_Boundary(" in component_payload["source"]
 
 
 def test_write_c4_projections_is_a_no_op_when_there_are_no_systems_or_containers(
@@ -1133,6 +1133,8 @@ def test_write_c4_projections_is_a_no_op_when_there_are_no_systems_or_containers
 ```
 
 Add the necessary imports at the top of the test file if not already present: `import json`, `from quarto_needs.graph_output import write_c4_projections`.
+
+Note the fixture above never authors a `type="component"` object, so it never exercises the actual `c4-code-<component-id>.json` table path (`kind == "table"`) at all — `c4-component-CONTAINER-1.json` is a *container's* Component view (a Mermaid diagram showing its child components inside a `Container_Boundary`), a different file from a *component's* own Code-level table. Add one more test authoring a `type="component"` object (with a `part-of` pointing at a container, and optionally a `type="source-module"` child of its own) and asserting its `c4-code-<id>.json` file has `kind == "table"` and a Markdown table as `source` — this is the only place in Task 6's tests that actually proves the Code-level file gets written at all.
 
 - [ ] **Step 3: Run tests to verify they fail**
 
@@ -1347,14 +1349,22 @@ function M.render_shortcode(args, kwargs)
   end
 
   local description = views.tr("Architecture diagram", "Diagrama de arquitetura")
-  local svg = views.mermaid_inline_svg(decoded.source, description, "need-c4-figure")
-  if not svg then
-    return views.warning(views.tr(
-      "need-c4 could not render the diagram.",
-      "need-c4 não conseguiu renderizar o diagrama."
-    ))
+  if views.is_html_format() then
+    local svg = views.mermaid_inline_svg(decoded.source, description, "need-c4-figure")
+    if svg then
+      return pandoc.RawBlock("html", svg)
+    end
   end
-  return svg
+  local image_name = views.render_mermaid_asset(decoded.source, "quarto-needs-c4")
+  if image_name then
+    return pandoc.Para({
+      pandoc.Image({pandoc.Str(description)}, image_name, "", pandoc.Attr("", {"need-c4-figure"}, {role="img"}))
+    })
+  end
+  return views.warning(views.tr(
+    "need-c4 could not render the diagram.",
+    "need-c4 não conseguiu renderizar o diagrama."
+  ))
 end
 
 return M
