@@ -326,11 +326,21 @@ def github_issue_list_resource_uri(
 
 
 def _parse_issue_list_payload(payload: object) -> tuple[tuple[int, ...], tuple[int, ...]]:
+    """Split one page's entries into issues and pull requests.
+
+    Preserves GitHub's own response order (only dropping exact repeats)
+    rather than re-sorting numerically — the list/search endpoints' own
+    ``sort``/``direction``/``order`` parameters exist precisely so a caller
+    can request an ordering other than ascending issue number, and a
+    forced re-sort here would silently discard that ordering.
+    """
     if not isinstance(payload, list):
         raise GitHubIssueError("GitHub issue list response is not a JSON array")
 
     issue_numbers: list[int] = []
     pull_request_numbers: list[int] = []
+    seen_issues: set[int] = set()
+    seen_pull_requests: set[int] = set()
     for entry in payload:
         if not isinstance(entry, Mapping):
             raise GitHubIssueError("GitHub issue list entry is not a JSON object")
@@ -338,11 +348,14 @@ def _parse_issue_list_payload(payload: object) -> tuple[tuple[int, ...], tuple[i
         if not isinstance(number, int) or isinstance(number, bool):
             raise GitHubIssueError("GitHub issue list entry is missing an integer 'number'")
         if "pull_request" in entry:
-            pull_request_numbers.append(number)
-        else:
+            if number not in seen_pull_requests:
+                seen_pull_requests.add(number)
+                pull_request_numbers.append(number)
+        elif number not in seen_issues:
+            seen_issues.add(number)
             issue_numbers.append(number)
 
-    return tuple(sorted(set(issue_numbers))), tuple(sorted(set(pull_request_numbers)))
+    return tuple(issue_numbers), tuple(pull_request_numbers)
 
 
 def _split_link_header(link_header: str) -> list[str]:

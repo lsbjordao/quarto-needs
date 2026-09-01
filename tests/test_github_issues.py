@@ -398,10 +398,30 @@ def test_fetch_external_github_issue_list_separates_issues_from_pull_requests() 
         "acme", "widgets", fetched_at="2026-08-31T12:00:00Z", opener=opener
     )
 
-    assert result.issue_numbers == (3157, 3164)
+    assert result.issue_numbers == (3164, 3157)
     assert result.pull_request_numbers == (3166,)
     assert result.resource_uri == github_issue_list_resource_uri("acme", "widgets")
     assert result.response_digest == "sha256:" + hashlib.sha256(body).hexdigest()
+
+
+def test_fetch_external_github_issue_list_preserves_githubs_own_requested_order() -> None:
+    """A page's issue_numbers must reflect GitHub's own order, not a re-sort.
+
+    ``sort``/``direction`` (list) and ``sort``/``order`` (search) exist so a
+    caller can request e.g. most-recently-updated-first; silently
+    re-sorting numerically ascending inside this module would defeat that
+    ordering regardless of what the caller asked GitHub for.
+    """
+    body = json.dumps(
+        [_list_entry(3164), _list_entry(3166, is_pull_request=True), _list_entry(3157)]
+    ).encode("utf-8")
+    opener = _Opener(_Response(200, body, **{"Content-Type": "application/json"}))
+
+    result = fetch_external_github_issue_list(
+        "acme", "widgets", fetched_at="2026-08-31T12:00:00Z", opener=opener
+    )
+
+    assert result.issue_numbers == (3164, 3157)
 
 
 def test_fetch_external_github_issue_list_rejects_non_array_response() -> None:
