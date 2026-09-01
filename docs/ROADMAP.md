@@ -228,11 +228,18 @@ deployment projections, relation-attribute authoring syntax).
 
 ---
 
-# Phase 7 — Interactive graph workbench ⚪
+# Phase 7 — Interactive graph workbench ✅ (first slice: overlay annotation artifact, Catalog/Changes/Impact mode switcher, affected-only toggle)
 
 Extend Cytoscape from visualization into bounded engineering analysis: shortest paths, baseline/current comparison, affected-only views, semantic clustering, breadcrumbs, deep-linkable state, saved exploration state, fullscreen mode, SVG/PNG export, mini-map, keyboard navigation, and accessibility.
 
 Interactive operations must consume published canonical semantics and bounded projections.
+
+See `docs/phase-7-interactive-workbench.md` for what is implemented (baseline
+comparison made interactive through a pre-rendered overlay annotation
+artifact applied in place by the browser), the planning-time descope of the
+two-node shortest path to the phase's next slice, and the named
+simplifications (static table stays catalog-only; default-view-only
+overlays; impact popup enrichment deferred).
 
 ---
 

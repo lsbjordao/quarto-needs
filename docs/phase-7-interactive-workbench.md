@@ -1,0 +1,52 @@
+# Phase 7 — Interactive graph workbench (first slice)
+
+Status: **complete for the planned first slice — the explorer's baseline comparison is now an interactive operation. The build publishes one compact overlay annotation artifact when a project has a comparison baseline; the `need-graph` page embeds it next to the projection; and a new `graph-modes.js` client gives the reader a Catalog/Changes/Impact mode switcher plus an *Affected only* visibility toggle, all applied in place on the live graph. Every classification is Python's, pre-rendered into the artifact — the browser only presents. Proven on this project's own self-hosted example with a tracked historical baseline captured at the commit immediately before the Phase 6 C4 retrofit, so the Changes mode shows the model's real, recent evolution (the system and both containers appear as additions), verified in both languages through the full multilingual render gate and exercised live in a browser.**
+
+The two-node semantic shortest path from the design spec was **descoped at planning time** (recorded in the plan header): re-reading `build_impact_overlay` showed the impact view is already "affected-only by construction" — it publishes exactly the propagation subgraph — so the mode switcher delivers the analysis value with far less new client surface. The shortest path remains this phase's next slice.
+
+## Why this reuses the overlay machinery instead of new derivation
+
+Diff and impact overlays already existed as *build-time projection modes*: `build_diff_overlay`/`build_impact_overlay` annotate a bounded projection with `change` fields and explanation-path membership, and `graph.js` already colors added/removed/modified/relocated nodes and styles `pathMember` edges. What was missing was interactivity: `config.graph.mode` decided once per build which single view a reader ever saw.
+
+The new artifact therefore adds **zero new derivation**. `build_graph_overlays` builds the *same* overlay projections the diff/impact modes would produce (same selection, limits, layout, seed) and extracts their annotations: diff change maps plus ghost nodes/edges, impact entries (id/origin/distance/path/classification) plus path-edge pairs plus ghosts. The artifact cannot disagree with what the overlays themselves show, because it is what they show — pinned by a falsification step that hardcodes a classification and watches the extraction test fail. Size is proportional to *what changed*, not to the graph (the self-hosted example's artifact is ~3 KB against a ~146 KB projection).
+
+Transport is embed-not-fetch, the same choice the projection itself already made: `graph.lua` reads the sibling `<view-id>-overlays.json` file when it exists, validates it as JSON, and emits a second `<script type="application/json" data-need-graph-overlays>` tag. Its presence is the availability signal — no marker attribute to drift, no `resources` config, works over `file://`. No baseline means no artifact, no tag, no mode UI: graceful degradation verbatim from `build_default_projection`'s existing missing-baseline rule.
+
+## What is implemented
+
+- **`[graph] baseline` config key** — points the overlay artifact at a project's curated, tracked comparison baseline (default stays `.quarto-needs/baseline.json`). Deliberately fingerprint-neutral like every other `[graph]` key: it names a presentation artifact, not semantics.
+- **The overlay artifact** (`need-graph-1-overlays.json`, `need-graph-overlays-v1`) — extracted from the built overlay projections, written atomically by `write_graph_overlays` from the same CLI step that writes the default projection. Ghost entries carry full public-node shapes and stay out of the live change maps.
+- **The embed** — `graph.lua` emits the overlays script tag when the sibling file exists for the requested projection. Default view only: pages requesting named-query projections correctly get no tag (a declared non-goal).
+- **`graph-modes.js`** (extension version 0.1.6, loaded after `graph-explore.js`) — the mode switcher, applied entirely in place: no dataset rebuild, no re-initialization of the context/explore enhancements.
+  - **Changes mode** applies the published change maps to live elements, adds ghost nodes/edges (a ghost's cy id is its published id whenever free, so labels stay readable; ids are prefixed only on collision), forces ghosts visible through a dedicated slot, and drives the existing color-by-change facet. Announces counts ("Changes mode: 3 changed, 0 removed").
+  - **Impact mode** marks explanation-path edges via the published path-edge pairs, annotates impacted nodes with distance/origin data, adds impact ghosts, and announces the impacted count. Distances and origins are announced on selection; popup-body enrichment is a named follow-on.
+  - **Affected only** narrows visibility to the impacted set through the *existing* predicate owner: `graph-explore.js`'s `installPredicates` remains the single writer of `__needGraphNodeAllowed`/`__needGraphForcedNodes`, now composing two new slots (`__needGraphOverlayForcedNodes`, `__needGraphAffectedOnly`) that the modes client only flips, asking the owner to re-derive via an exposed `__needGraphReapplyPredicates` hook. Filters, root paths, and overlays intersect instead of clobbering each other.
+  - **Empty-set discipline:** an empty impacted set means "nothing to filter", never "hide the whole graph" — the toggle disables itself when impact propagation is empty, and the affected-only slot is only ever published non-empty or null. Found during the live browser verification of this slice (the self-hosted example's part-of-only evolution legitimately has zero impact propagation) and pinned by its own contract test.
+  - The "presents, never classifies" contract is pinned by a source test that fails if the client hardcodes any change classification; falsified by mutation.
+- **Self-hosted adoption** — `examples/quarto-needs/baselines/quarto-needs.json` is a tracked historical baseline: the engineering graph exactly as it stood at `73c5ea0`, immediately before the C4 retrofit, following the Aegis book's curated change-intelligence precedent (README documents provenance; regeneration from the same commit with the same `SOURCE_DATE_EPOCH` is byte-identical, verified before committing). `[graph] baseline` points the artifact at it. The rendered Overview page's mode switcher shows the model's real Phase 6 evolution in both languages.
+
+## What was learned
+
+- The live browser verification earned its keep: exercising the switcher on the real example exposed the empty-impacted edge case (a part-of-only evolution has real Changes but legitimately zero Impact propagation) — checking "Affected only" there would have blanked the whole graph. The guard is now a contract test plus a visible disabled state.
+- The artifact-from-built-projections design proved its worth immediately: when the extraction initially mapped ghosts into the live change maps too, the distinction (live annotations vs. ghost elements) was corrected in one place with the tests reading the built views, not re-specifying diff semantics.
+- The fixture grammar detail worth remembering: relation attributes are authored as `verified-by: TC-1` preamble lines or quoted opening-line attributes — a `verified-by="TC-2"` *body* line parses as neither and silently produces no relation.
+
+## Known limitations (explicit, not silent)
+
+1. **The static `.need-graph-table` stays the catalog table in every mode.** Rather than duplicate the Lua table builder in JS, non-catalog modes label honestly via announcements; popups carry live annotations. A JS table re-render is the named follow-on.
+2. **Overlays cover the default view only** — named-query projections have no variants and their pages show no switcher. Follow-on if needed.
+3. **Impact-mode node popups are not enriched** with distance/path/classification rows; the data is on the node and announced on selection. Follow-on.
+4. **Two-node shortest path was descoped** at planning (see Status); it heads the next slice's scope, with breadcrumbs/deep-linking/fullscreen/export/mini-map/keyboard-depth after it.
+5. **Verification boundary, stated honestly:** mode switching, announcements, recoloring, and the empty-impact disabled state were exercised live in a browser; synthetic clicks on the small checkboxes do not register in this automation environment (pre-existing controls such as "Fixed spacing" behave identically), so the affected-only *checked* path is pinned by source contracts and the rendered disabled/enabled states rather than an automated end-to-end click.
+
+## Regression coverage
+
+```text
+tests/test_graph_selection.py  (extended — [graph] baseline parsing, rejection, fingerprint neutrality)
+tests/test_graph_assets.py  (extended — artifact extraction, no-baseline no-op, config-path honoring, Lua embed contract)
+tests/test_graph_exploration_assets.py  (extended — load order 0.1.6, presents-never-classifies, predicate composition, empty-impacted guard, showcase sync)
+tests/test_quarto_views.py  (extended — real-render embed with a stale baseline, real annotations, absence without baseline)
+tests/fixtures/overlays/  (new — fixture project with a stale comparison baseline)
+```
+
+`test_graph_selection.py` extends the parse-every-key, invalid-values (empty string rejected), and fingerprint-neutrality tests with the new key. `test_graph_assets.py` proves the artifact's diff extraction (modified/added live maps exactly, ghosts separate, ghost edges bounded by the overlay's own universe), impact extraction (entry shape with path and classification, path-edge pairs in both orientations), the no-baseline no-op, emission through `write_default_projection`, and the configured-baseline path honored in both directions; the Lua embed contract pins the tag, the sibling naming, and validate-before-embed. `test_graph_exploration_assets.py` pins the load order under version 0.1.6, the presents-never-classifies rule (mutation-falsified), the predicate-owner composition of both new slots, the empty-impacted guard, and byte-identical showcase copies. `test_quarto_views.py` renders the overlay fixture through the real `quarto` binary: with its stale baseline the HTML carries the tag plus real published annotations (`"REQ-1": "modified"`, `"classification": "direct"`); without a baseline, no tag at all.
