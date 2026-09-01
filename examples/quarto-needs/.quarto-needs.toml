@@ -275,6 +275,7 @@ max-edges = 500
 depth = 3
 layout = "hierarchical"
 seed = 17
+baseline = "baselines/quarto-needs.json"
 
 [gates]
 scope = "approved-requirements"
