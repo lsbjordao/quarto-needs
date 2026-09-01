@@ -67,14 +67,23 @@ function M.render_shortcode(args, kwargs)
   end
 
   local description = views.tr("Architecture diagram", "Diagrama de arquitetura")
-  local svg = views.mermaid_inline_svg(decoded.source, description, "need-c4-figure")
-  if not svg then
-    return views.warning(views.tr(
-      "need-c4 could not render the diagram.",
-      "need-c4 não conseguiu renderizar o diagrama."
-    ))
+  if views.is_html_format() then
+    local svg = views.mermaid_inline_svg(decoded.source, description, "need-c4-figure")
+    if svg then
+      return pandoc.RawBlock("html", svg)
+    end
   end
-  return pandoc.RawBlock("html", svg)
+  local image_name, render_error = views.render_mermaid_asset(decoded.source, "quarto-needs-c4")
+  if image_name then
+    return pandoc.Para({
+      pandoc.Image({pandoc.Str(description)}, image_name, "", pandoc.Attr("", {"need-c4-figure"}, {role="img"}))
+    })
+  end
+  quarto.log.warning(render_error or "c4 render failed")
+  return views.warning(views.tr(
+    "need-c4 could not render the diagram.",
+    "need-c4 não conseguiu renderizar o diagrama."
+  ))
 end
 
 return M
