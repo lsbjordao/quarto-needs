@@ -51,6 +51,7 @@ def test_fingerprint_is_stable_across_severity_changes() -> None:
 
 def test_registry_covers_legacy_and_governance_codes() -> None:
     assert tuple(sorted(RULES)) == (
+        "ARC001",
         "DEC001", "DEC002", "DEC003", "DEC004", "DEC005", "DEC006",
         "ID001", "OBJ001", "OBJ002",
         "REQ002", "REQ004", "REQ005", "REQ006",
@@ -243,3 +244,105 @@ def test_enabled_rules_do_not_invalidate_snapshots(tmp_path: Path) -> None:
     assert result.snapshot is not None
     codes = {finding.code for finding in result.snapshot.findings}
     assert {"REQ011", "REQ013"} <= codes
+
+
+# --- architecture layer adjacency (ARC001) ------------------------------------
+
+
+def test_arc001_flags_a_part_of_edge_that_skips_a_layer(tmp_path: Path) -> None:
+    config = make_config(tmp_path, "")
+    snapshot = snapshot_with(
+        obj("SYS-1", type="system"),
+        obj(
+            "COMP-1",
+            type="component",
+            relations=[Relation("part-of", "COMP-1", "SYS-1")],
+        ),
+    )
+    findings = [f for f in run_rules(snapshot, config) if f.code == "ARC001"]
+    assert [f.object_id for f in findings] == ["COMP-1"]
+    assert findings[0].severity == "error"
+    assert findings[0].properties == {
+        "sourceType": "component",
+        "targetType": "system",
+    }
+
+
+def test_arc001_flags_a_same_layer_part_of_edge(tmp_path: Path) -> None:
+    config = make_config(tmp_path, "")
+    snapshot = snapshot_with(
+        obj("CONTAINER-1", type="container"),
+        obj(
+            "CONTAINER-2",
+            type="container",
+            relations=[Relation("part-of", "CONTAINER-2", "CONTAINER-1")],
+        ),
+    )
+    findings = [f for f in run_rules(snapshot, config) if f.code == "ARC001"]
+    assert [f.object_id for f in findings] == ["CONTAINER-2"]
+
+
+def test_arc001_allows_a_valid_adjacent_layer_part_of_edge(tmp_path: Path) -> None:
+    config = make_config(tmp_path, "")
+    snapshot = snapshot_with(
+        obj("SYS-1", type="system"),
+        obj(
+            "CONTAINER-1",
+            type="container",
+            relations=[Relation("part-of", "CONTAINER-1", "SYS-1")],
+        ),
+    )
+    findings = [f for f in run_rules(snapshot, config) if f.code == "ARC001"]
+    assert findings == []
+
+
+def test_arc001_ignores_part_of_edges_with_an_unrecognized_layer_type(tmp_path: Path) -> None:
+    """A part-of edge outside the fixed C4 layer set (e.g. two unrelated
+    custom types someone reuses part-of for) is not this rule's concern —
+    it neither passes nor fails a layer check that doesn't apply to it."""
+    config = make_config(tmp_path, "")
+    snapshot = snapshot_with(
+        obj("A", type="widget"),
+        obj("B", type="widget", relations=[Relation("part-of", "B", "A")]),
+    )
+    findings = [f for f in run_rules(snapshot, config) if f.code == "ARC001"]
+    assert findings == []
+
+
+def test_part_of_max_cardinality_uses_the_existing_generic_policy_mechanism(
+    tmp_path: Path,
+) -> None:
+    """No new cardinality code: part-of's 'at most one parent' half is just
+    the existing REQ010 maximum-per-source policy, configured.
+
+    Only the maximum half is exercised here, deliberately: REQ010's
+    minimum-per-source check only inspects objects that already have at
+    least one edge of the policy's relation (its `counts` dict is built
+    solely from existing `snapshot.relations`, so an object with *zero*
+    part-of edges never becomes a `counts` key and the minimum check never
+    sees it — confirmed by reading `_cardinality` directly, rules.py lines
+    140-162, before writing this test). "Exactly one parent" is therefore
+    only half-enforced by the existing generic mechanism: a component with
+    two parents is caught; a component with none is not. This gap is real
+    and pre-existing (not introduced here) — Task 14's docs must name it
+    explicitly rather than overselling "exactly one parent" as fully
+    enforced.
+    """
+    config = make_config(
+        tmp_path,
+        '[relations."part-of"]\nmaximum-per-source = 1\n',
+    )
+    snapshot = snapshot_with(
+        obj("SYS-1", type="system"),
+        obj("CONTAINER-1", type="container"),
+        obj(
+            "DOUBLE-PARENTED",
+            type="component",
+            relations=[
+                Relation("part-of", "DOUBLE-PARENTED", "SYS-1"),
+                Relation("part-of", "DOUBLE-PARENTED", "CONTAINER-1"),
+            ],
+        ),
+    )
+    findings = [f for f in run_rules(snapshot, config) if f.code == "REQ010"]
+    assert [f.object_id for f in findings] == ["DOUBLE-PARENTED"]

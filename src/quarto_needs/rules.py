@@ -311,6 +311,55 @@ def _decision_successor(ctx: RuleContext) -> Iterable[Finding]:
             )
 
 
+_C4_LAYER_ORDER = ("system", "container", "component", "source-module")
+_C4_LAYER_INDEX = {name: index for index, name in enumerate(_C4_LAYER_ORDER)}
+
+
+def _architecture_layer_adjacency(ctx: RuleContext) -> Iterable[Finding]:
+    """part-of/decomposes must connect a layer to the one exactly above it.
+
+    part-of and decomposes are a genuine inverse-direction pair (like
+    implements/implemented-by, not like derives-from/derived-from's same-
+    direction synonym pair) — Task 1 gives them distinct v1_names for
+    exactly this reason: a per-direction relation_policies entry must be
+    able to target one authoring direction without silently also matching
+    the other. This rule handles both authored directions explicitly
+    rather than assuming only one is ever used: a part-of edge's source is
+    the child (deeper layer) and target is the parent (shallower layer); a
+    decomposes edge is the reverse. Types outside the fixed C4 layer set
+    (actor, external-system, or any project-specific type never meant to
+    participate in this hierarchy) are not this rule's concern — they
+    simply never match the layer table.
+    """
+    for edge in ctx.snapshot.relations:
+        if edge.authored_name == "part-of":
+            child_id, parent_id = edge.source, edge.target
+        elif edge.authored_name == "decomposes":
+            child_id, parent_id = edge.target, edge.source
+        else:
+            continue
+        child = ctx.snapshot.objects_by_id.get(child_id)
+        parent = ctx.snapshot.objects_by_id.get(parent_id)
+        if child is None or parent is None:
+            continue
+        child_index = _C4_LAYER_INDEX.get(child.type)
+        parent_index = _C4_LAYER_INDEX.get(parent.type)
+        if child_index is None or parent_index is None:
+            continue
+        if child_index != parent_index + 1:
+            yield Finding(
+                "ARC001",
+                RULES["ARC001"].default_severity,
+                f"{child_id} ({child.type}) may not be a child of "
+                f"{parent_id} ({parent.type}): part-of/decomposes must "
+                "connect a layer to the layer exactly above it "
+                f"({' > '.join(_C4_LAYER_ORDER)})",
+                child_id,
+                edge.provenance[0] if edge.provenance else None,
+                {"sourceType": child.type, "targetType": parent.type},
+            )
+
+
 def _decision_cycle(ctx: RuleContext) -> Iterable[Finding]:
     graph: dict[str, set[str]] = {obj.id: set() for obj in _decs(ctx)}
     for edge in ctx.snapshot.relations:
@@ -397,8 +446,9 @@ RULES = {spec.code: spec for spec in (
     RuleSpec("DEC004", "Superseded decision without successor", "Superseded decisions need explicit lineage to another decision.", "warning", evaluator=_decision_successor),
     RuleSpec("DEC005", "Decision supersession cycle", "Supersession lineage must remain acyclic.", "error", supported_severities=("error",), evaluator=_decision_cycle),
     RuleSpec("DEC006", "Accepted decision overdue for review", "Accepted decisions with revisit-after dates should be reviewed when due.", "warning", evaluator=_decision_revisit),
+    RuleSpec("ARC001", "Architecture layer skipped", "part-of must connect adjacent C4 layers (system > container > component > source-module).", "error", supported_severities=("error",), evaluator=_architecture_layer_adjacency, auto_activates=lambda config: True),
 )}
-RULE_SET_VERSION = "6"
+RULE_SET_VERSION = "7"
 
 for _spec in RULES.values():
     if _spec.evaluator is None and _spec.code not in LEGACY_CODES:
