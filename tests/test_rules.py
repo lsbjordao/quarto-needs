@@ -268,6 +268,27 @@ def test_arc001_flags_a_part_of_edge_that_skips_a_layer(tmp_path: Path) -> None:
     }
 
 
+def test_arc001_flags_a_decomposes_edge_that_skips_a_layer(tmp_path: Path) -> None:
+    """Same check, other authored direction: a parent declares its children
+    via decomposes rather than a child declaring its parent via part-of."""
+    config = make_config(tmp_path, "")
+    snapshot = snapshot_with(
+        obj(
+            "SYS-1",
+            type="system",
+            relations=[Relation("decomposes", "SYS-1", "COMP-1")],
+        ),
+        obj("COMP-1", type="component"),
+    )
+    findings = [f for f in run_rules(snapshot, config) if f.code == "ARC001"]
+    assert [f.object_id for f in findings] == ["COMP-1"]
+    assert findings[0].severity == "error"
+    assert findings[0].properties == {
+        "sourceType": "component",
+        "targetType": "system",
+    }
+
+
 def test_arc001_flags_a_same_layer_part_of_edge(tmp_path: Path) -> None:
     config = make_config(tmp_path, "")
     snapshot = snapshot_with(
