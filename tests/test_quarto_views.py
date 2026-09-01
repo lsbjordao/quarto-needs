@@ -20,6 +20,19 @@ def copy_fixture_project(tmp_path: Path, name: str) -> Path:
     return project
 
 
+def build_c4_fixture_project(tmp_path: Path) -> Path:
+    """Scan C4 source before Quarto consumes the generated projections."""
+    project = copy_fixture_project(tmp_path, "c4")
+    subprocess.run(
+        [".venv/bin/quarto-needs", "--root", str(project), "scan"],
+        cwd=ROOT,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    return project
+
+
 def render_views(tmp_path: Path) -> str:
     project = copy_fixture_project(tmp_path, "views")
     subprocess.run(
@@ -519,8 +532,11 @@ def test_inspector_is_static_content_in_pdf(tmp_path: Path):
 
 @pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
 def test_need_c4_renders_a_context_diagram(tmp_path: Path):
-    """need-c4 reads the pre-rendered C4 view JSON and inlines it as a real SVG."""
-    project = copy_fixture_project(tmp_path, "c4")
+    """The CLI writes C4 JSON which need-c4 renders as an inline SVG."""
+    project = build_c4_fixture_project(tmp_path)
+    assert (
+        project / ".quarto-needs" / "graphs" / "c4-context-SYS-1.json"
+    ).is_file()
     subprocess.run(
         ["quarto", "render", str(project)],
         cwd=ROOT,
@@ -540,7 +556,8 @@ def test_need_c4_renders_a_context_diagram(tmp_path: Path):
 @pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
 def test_need_c4_warns_on_an_unknown_root(tmp_path: Path):
     """An unknown root warns loudly instead of failing the whole render."""
-    project = copy_fixture_project(tmp_path, "c4")
+    project = build_c4_fixture_project(tmp_path)
+    assert (project / ".quarto-needs" / "needs.json").is_file()
     subprocess.run(
         ["quarto", "render", str(project)],
         cwd=ROOT,

@@ -1,5 +1,0 @@
-{
-  "kind": "mermaid",
-  "schemaVersion": "c4-view-v1",
-  "source": "C4Context\n  System(c4_5359532d31, \"Fixture system\")\n  Person(c4_4143544f522d31, \"Fixture actor\")\n  Rel(c4_4143544f522d31, c4_5359532d31, \"Depends on\")\n"
-}
