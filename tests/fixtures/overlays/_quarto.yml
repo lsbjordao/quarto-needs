@@ -1,0 +1,12 @@
+project:
+  type: website
+  output-dir: _site
+
+website:
+  title: "Quarto Needs overlay fixture"
+
+format:
+  html: default
+
+filters:
+  - quarto-needs

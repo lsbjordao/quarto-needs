@@ -1,0 +1,199 @@
+{
+  "configurationFingerprint": "e8010bb290e5ba4aa86c70d7ca1a66fd03fa83610a1e96d8bfe30393e84e91b9",
+  "findings": [],
+  "generator": {
+    "name": "quarto-needs",
+    "version": "0.1.0"
+  },
+  "objects": [
+    {
+      "attributes": {},
+      "body": "Original body.",
+      "contentFingerprint": "038eb9cbf900ae40424b9ff4e29f6aa4b1fc0cd81646edc952ef9efa0dc69045",
+      "id": "REQ-1",
+      "location": {
+        "anchor": "REQ-1",
+        "file": "index.qmd",
+        "line": 5
+      },
+      "rationale": "",
+      "status": "approved",
+      "title": "Authenticate",
+      "type": "functional-requirement"
+    },
+    {
+      "attributes": {},
+      "body": "Signs a user in.",
+      "contentFingerprint": "dcc077366d89ccd832f1dd626850770eb66f0b95b2b005e04702c2162cb4a915",
+      "id": "TC-1",
+      "location": {
+        "anchor": "TC-1",
+        "file": "index.qmd",
+        "line": 12
+      },
+      "rationale": "",
+      "status": "passed",
+      "title": "Login",
+      "type": "test-case"
+    }
+  ],
+  "referenceDate": "2026-09-01",
+  "relationCatalogVersion": "4",
+  "relations": [
+    {
+      "attributes": {},
+      "authoredFingerprint": "c9edb14831b95d975e755da133191a8e5b78f6a37db68311f7accdc1f958decd",
+      "authoredName": "verified-by",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "verification",
+      "semanticFingerprint": "99c5e4ddf13691bd4825ee3f7d6387a3fe19a6a5525e69c3d53cc302d7477541",
+      "source": "REQ-1",
+      "sourceRole": "requirement",
+      "target": "TC-1",
+      "targetRole": "test"
+    }
+  ],
+  "report": {
+    "configurationPresent": true,
+    "findings": {
+      "byCode": {},
+      "counts": {
+        "error": 0,
+        "info": 0,
+        "total": 0,
+        "warning": 0
+      }
+    },
+    "gates": [
+      {
+        "actual": 0,
+        "denominator": null,
+        "name": "max-errors",
+        "passed": true,
+        "scope": "project",
+        "threshold": 0
+      }
+    ],
+    "generator": {
+      "name": "quarto-needs",
+      "version": "0.1.0"
+    },
+    "profile": "default",
+    "referenceDate": "2026-09-01",
+    "schemaVersion": "1",
+    "scopes": {
+      "approved-requirements": {
+        "breakdowns": {
+          "priority": {
+            "unspecified": 1
+          },
+          "status": {
+            "approved": 1
+          },
+          "type": {
+            "functional-requirement": 1
+          }
+        },
+        "coverage": {
+          "evidence": {
+            "covered": 0,
+            "percent": 0.0,
+            "total": 1
+          },
+          "implementation-effective": {
+            "covered": 0,
+            "percent": 0.0,
+            "total": 1
+          },
+          "implementation-trace": {
+            "covered": 0,
+            "percent": 0.0,
+            "total": 1
+          },
+          "verification-successful": {
+            "covered": 1,
+            "percent": 100.0,
+            "total": 1
+          },
+          "verification-trace": {
+            "covered": 1,
+            "percent": 100.0,
+            "total": 1
+          }
+        },
+        "denominator": 1,
+        "gaps": {
+          "evidence": [
+            "REQ-1"
+          ],
+          "implementation-effective": [
+            "REQ-1"
+          ],
+          "verification-successful": []
+        },
+        "name": "approved-requirements"
+      },
+      "catalog": {
+        "breakdowns": {
+          "priority": {
+            "unspecified": 1
+          },
+          "status": {
+            "approved": 1
+          },
+          "type": {
+            "functional-requirement": 1
+          }
+        },
+        "coverage": {
+          "evidence": {
+            "covered": 0,
+            "percent": 0.0,
+            "total": 1
+          },
+          "implementation-effective": {
+            "covered": 0,
+            "percent": 0.0,
+            "total": 1
+          },
+          "implementation-trace": {
+            "covered": 0,
+            "percent": 0.0,
+            "total": 1
+          },
+          "verification-successful": {
+            "covered": 1,
+            "percent": 100.0,
+            "total": 1
+          },
+          "verification-trace": {
+            "covered": 1,
+            "percent": 100.0,
+            "total": 1
+          }
+        },
+        "denominator": 1,
+        "gaps": {
+          "evidence": [
+            "REQ-1"
+          ],
+          "implementation-effective": [
+            "REQ-1"
+          ],
+          "verification-successful": []
+        },
+        "name": "catalog"
+      }
+    },
+    "summary": {
+      "exitCode": 0,
+      "gateFailures": 0,
+      "structuralErrors": false
+    }
+  },
+  "representationFingerprint": "c07595502f532ad8c56c47fca3593bb5a64749f51c6c89ec59066e7173fa31f3",
+  "ruleSetVersion": "7",
+  "schemaVersion": "1",
+  "semanticGraphFingerprint": "2eaf9b9894bcbcaca02d1f8591dbe42f9d4c4196af5b046d0a7279c160509104",
+  "valid": true
+}

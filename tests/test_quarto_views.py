@@ -569,3 +569,56 @@ def test_need_c4_warns_on_an_unknown_root(tmp_path: Path):
 
     assert "C4 view not found" in html
     assert 'class="need-view-warning"' in html
+
+
+def build_overlays_fixture_project(tmp_path: Path, *, with_baseline: bool = True) -> Path:
+    """Copy the overlay fixture, optionally stripping its comparison baseline,
+    then run the CLI scan so the build artifacts exist before Quarto renders."""
+    project = copy_fixture_project(tmp_path, "overlays")
+    if not with_baseline:
+        shutil.rmtree(project / "baselines")
+        config = project / ".quarto-needs.toml"
+        config.write_text(
+            config.read_text(encoding="utf-8").replace(
+                '[graph]\nbaseline = "baselines/quarto-needs.json"\n', ""
+            ),
+            encoding="utf-8",
+        )
+    subprocess.run(
+        [".venv/bin/quarto-needs", "--root", str(project), "scan"],
+        cwd=ROOT,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    return project
+
+
+def test_need_graph_embeds_the_overlay_artifact_when_a_baseline_exists(tmp_path: Path) -> None:
+    project = build_overlays_fixture_project(tmp_path)
+    subprocess.run(
+        ["quarto", "render", str(project)],
+        cwd=ROOT,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    html = (project / "_site" / "index.html").read_text(encoding="utf-8")
+    assert "data-need-graph-overlays" in html
+    assert "need-graph-overlays-v1" in html
+    # Real published annotations from the stale baseline, not an empty shell:
+    assert '"REQ-1": "modified"' in html
+    assert '"classification": "direct"' in html
+
+
+def test_need_graph_omits_the_overlay_artifact_without_a_baseline(tmp_path: Path) -> None:
+    project = build_overlays_fixture_project(tmp_path, with_baseline=False)
+    subprocess.run(
+        ["quarto", "render", str(project)],
+        cwd=ROOT,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    html = (project / "_site" / "index.html").read_text(encoding="utf-8")
+    assert "data-need-graph-overlays" not in html
