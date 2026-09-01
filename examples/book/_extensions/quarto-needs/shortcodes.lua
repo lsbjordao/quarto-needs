@@ -7,6 +7,7 @@ local relations=dofile(script_dir().."relations.lua")
 local inspector=dofile(script_dir().."inspector.lua")
 local dashboard=dofile(script_dir().."dashboard.lua")
 local graph=dofile(script_dir().."graph.lua")
+local c4=dofile(script_dir().."c4.lua")
 local function L(en,pt) return views.tr(en,pt) end
 local function graph_or_warning() views.ensure_assets(); local graph_data,message=views.load(); if not graph_data then return nil,views.warning(message) end; return graph_data end
 local function project_dir() local ok,directory=pcall(function() return quarto.project.directory end); if ok and type(directory)=="string" and directory~="" then return directory end; local input=PANDOC_STATE.input_files and PANDOC_STATE.input_files[1]; return input and input:match("(.*/)") or "." end
@@ -26,6 +27,7 @@ local function render_need_graph(args,kwargs)
   local effective={}; for key,value in pairs(kwargs or {}) do effective[key]=value end; effective.projection=projection; effective.query=nil; effective.view=nil
   return graph.render_shortcode(args,effective)
 end
+local function render_need_c4(args,kwargs) return c4.render_shortcode(args,kwargs) end
 local function object_cell(graph_data,object,column)
   if column=="id" then return {views.link(object)} end
   if column=="title" then return {pandoc.Str(pandoc.utils.stringify(object.title))} end
@@ -68,5 +70,5 @@ end
 local function render_need_dashboard(args,kwargs) local graph_data,warning=graph_or_warning(); if not graph_data then return warning end; local blocks,message=dashboard.render(graph_data,kwargs); if not blocks then if message then return views.warning(message) end; return views.empty(L("Dashboard report unavailable.","Relatório do painel indisponível.")) end; local id=views.reserve_view_id("need-dashboard",views.kwarg(kwargs,"id")); return pandoc.Div(blocks,pandoc.Attr(id,{"need-dashboard"},{role="region"})) end
 return {
   need=function(args,kwargs,meta) local id=pandoc.utils.stringify(args[1] or ""); if id=="" then return pandoc.Str(L("[missing need id]","[id ausente]")) end; local graph_data,message=views.load(); if not graph_data then return pandoc.Span({pandoc.Str(id)},pandoc.Attr("",{"need-ref","need-ref-missing"})) end; local object=views.get(graph_data,id); if not object then return pandoc.Span({pandoc.Str(id)},pandoc.Attr("",{"need-ref","need-ref-missing"})) end; local label=id; if kwargs and kwargs["title"] and pandoc.utils.stringify(kwargs["title"])=="true" then label=id.." — "..pandoc.utils.stringify(object.title) end; return views.link(object,label) end,
-  ["need-table"]=render_need_table,["need-list"]=render_need_list,["need-count"]=render_need_count,["need-matrix"]=render_need_matrix,["need-backlinks"]=render_need_backlinks,["need-inspector"]=render_need_inspector,["need-flow"]=render_need_flow,["need-dashboard"]=render_need_dashboard,["need-graph"]=render_need_graph,
+  ["need-table"]=render_need_table,["need-list"]=render_need_list,["need-count"]=render_need_count,["need-matrix"]=render_need_matrix,["need-backlinks"]=render_need_backlinks,["need-inspector"]=render_need_inspector,["need-flow"]=render_need_flow,["need-dashboard"]=render_need_dashboard,["need-graph"]=render_need_graph,["need-c4"]=render_need_c4,
 }

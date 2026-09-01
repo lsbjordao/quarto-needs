@@ -1,0 +1,13 @@
+---
+title: "C4 fixture"
+---
+
+::: {.need #SYS-1 type="system" status="draft"}
+## Fixture system
+:::
+
+::: {.need #ACTOR-1 type="actor" status="draft" depends-on="SYS-1"}
+## Fixture actor
+:::
+
+{{< need-c4 root="SYS-1" level="context" >}}

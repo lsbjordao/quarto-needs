@@ -1,0 +1,107 @@
+{
+  "backlinks": {
+    "ACTOR-1": [],
+    "SYS-1": [
+      {
+        "source": "ACTOR-1",
+        "type": "depends-on"
+      }
+    ],
+    "SYS-2": []
+  },
+  "coverage": {
+    "approved": 0,
+    "implementation_coverage": 100.0,
+    "implemented": 0,
+    "requirements": 0,
+    "verification_coverage": 100.0,
+    "verified": 0
+  },
+  "extensions": {
+    "quartoNeeds": {
+      "generator": {
+        "name": "quarto-needs",
+        "version": "0.1.0"
+      },
+      "relationCatalog": {
+        "depends-on": {
+          "directLabel": "Depends on",
+          "impactDirection": "target_to_source",
+          "inverseLabel": "Depended on by",
+          "public": true,
+          "semanticFamily": "dependency",
+          "sourceRole": "dependent",
+          "targetRole": "dependency"
+        }
+      },
+      "relationCatalogVersion": "4"
+    }
+  },
+  "objects": [
+    {
+      "attributes": {},
+      "body": "",
+      "href": "index.html#ACTOR-1",
+      "id": "ACTOR-1",
+      "rationale": "",
+      "relations": [
+        {
+          "attributes": {},
+          "source": "ACTOR-1",
+          "target": "SYS-1",
+          "type": "depends-on"
+        }
+      ],
+      "source": {
+        "anchor": "ACTOR-1",
+        "file": "index.qmd",
+        "line": 9
+      },
+      "status": "draft",
+      "title": "Fixture actor",
+      "type": "actor"
+    },
+    {
+      "attributes": {},
+      "body": "",
+      "href": "index.html#SYS-1",
+      "id": "SYS-1",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "SYS-1",
+        "file": "index.qmd",
+        "line": 5
+      },
+      "status": "draft",
+      "title": "Fixture system",
+      "type": "system"
+    },
+    {
+      "attributes": {},
+      "body": "",
+      "href": "missing.html#SYS-2",
+      "id": "SYS-2",
+      "rationale": "",
+      "relations": [],
+      "source": {
+        "anchor": "SYS-2",
+        "file": "missing.qmd",
+        "line": 5
+      },
+      "status": "draft",
+      "title": "Another fixture system",
+      "type": "system"
+    }
+  ],
+  "relations": [
+    {
+      "attributes": {},
+      "source": "ACTOR-1",
+      "target": "SYS-1",
+      "type": "depends-on"
+    }
+  ],
+  "schemaVersion": "1",
+  "validation": []
+}

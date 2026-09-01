@@ -515,3 +515,40 @@ def test_inspector_is_static_content_in_pdf(tmp_path: Path):
 
     assert "Inspector: REQ-APPROVED" in text
     assert "Requirement has no rationale" in text
+
+
+@pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
+def test_need_c4_renders_a_context_diagram(tmp_path: Path):
+    """need-c4 reads the pre-rendered C4 view JSON and inlines it as a real SVG."""
+    project = copy_fixture_project(tmp_path, "c4")
+    subprocess.run(
+        ["quarto", "render", str(project)],
+        cwd=ROOT,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    html = (project / "_site" / "index.html").read_text(encoding="utf-8")
+
+    assert "need-c4-figure" in html
+    assert "<svg" in html.lower()
+    assert "C4Context" not in html
+    assert "Fixture system" in html
+    assert "Fixture actor" in html
+
+
+@pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
+def test_need_c4_warns_on_an_unknown_root(tmp_path: Path):
+    """An unknown root warns loudly instead of failing the whole render."""
+    project = copy_fixture_project(tmp_path, "c4")
+    subprocess.run(
+        ["quarto", "render", str(project)],
+        cwd=ROOT,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    html = (project / "_site" / "missing.html").read_text(encoding="utf-8")
+
+    assert "C4 view not found" in html
+    assert 'class="need-view-warning"' in html

@@ -1,0 +1,9 @@
+---
+title: "C4 missing root"
+---
+
+::: {.need #SYS-2 type="system" status="draft"}
+## Another fixture system
+:::
+
+{{< need-c4 root="MISSING" level="context" >}}
