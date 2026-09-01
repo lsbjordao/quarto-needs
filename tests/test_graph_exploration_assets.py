@@ -86,3 +86,13 @@ def test_impact_mode_composes_through_the_existing_predicates() -> None:
     assert "pathMember" in modes
     assert "impactDistance" in modes
     assert 't("Affected only", "Somente afetados")' in modes
+
+
+def test_affected_only_never_publishes_an_empty_filter() -> None:
+    """An empty impacted set must mean 'nothing to filter', never 'hide the
+    whole graph' — the toggle disables itself and the slot stays null."""
+    modes = read(EXTENSION, "graph-modes.js")
+
+    assert "affected.input.checked && impacted instanceof Set && impacted.size" in modes
+    assert "affected.input.disabled = mode !== \"impact\" || !hasImpacted" in modes
+    assert 't("No impacted objects to filter", "Nenhum objeto afetado para filtrar")' in modes

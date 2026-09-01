@@ -233,7 +233,7 @@
       });
       container.__needGraphOverlayForcedNodes = ghostIds;
       container.__needGraphImpactedNodes = impacted;
-      if (affected.input && affected.input.checked) {
+      if (affected.input && affected.input.checked && impacted.size) {
         container.__needGraphAffectedOnly = impacted;
       }
       reapplyPredicates();
@@ -254,13 +254,20 @@
       if (mode === "changes") applyChanges();
       else if (mode === "impact") applyImpact();
       else announce(t("Catalog mode", "Modo catálogo"));
-      affected.input.disabled = mode !== "impact";
+      const impactedNow = container.__needGraphImpactedNodes;
+      const hasImpacted = impactedNow instanceof Set && impactedNow.size > 0;
+      affected.input.disabled = mode !== "impact" || !hasImpacted;
+      if (affected.input.disabled) affected.input.checked = false;
       syncSlots();
     });
 
     affected.input.addEventListener("change", () => {
       const impacted = container.__needGraphImpactedNodes;
-      container.__needGraphAffectedOnly = affected.input.checked && impacted instanceof Set
+      if (affected.input.checked && !(impacted instanceof Set && impacted.size)) {
+        announce(t("No impacted objects to filter", "Nenhum objeto afetado para filtrar"));
+        return;
+      }
+      container.__needGraphAffectedOnly = affected.input.checked && impacted instanceof Set && impacted.size
         ? new Set(impacted)
         : null;
       reapplyPredicates();
