@@ -24,8 +24,10 @@ class GitHubRateLimitError(GitHubTransportError):
     """GitHub's rate limiting, distinguished from auth/availability failures.
 
     Raised for a ``429`` (GitHub uses it for both primary and secondary
-    limits) or a ``403`` carrying ``X-RateLimit-Remaining: 0`` (GitHub's
-    primary-exhaustion shape). A ``403`` without that header is *not* a rate
+    limits) or a ``403`` carrying either ``X-RateLimit-Remaining: 0``
+    (GitHub's primary-exhaustion shape) or a ``Retry-After`` header (the
+    secondary/abuse-limit shape, which does not necessarily zero the
+    primary quota header). A ``403`` with neither signal is *not* a rate
     limit and keeps raising the generic ``authentication-required`` error.
     The transport reports the server's retry facts and never sleeps on its
     own; ``retry_after_seconds`` comes from ``Retry-After`` (integer-seconds
@@ -219,7 +221,10 @@ def fetch_github_resource(
 
         if status == 429 or (
             status == 403
-            and (response.headers.get("X-RateLimit-Remaining") or "").strip() == "0"
+            and (
+                (response.headers.get("X-RateLimit-Remaining") or "").strip() == "0"
+                or response.headers.get("Retry-After") is not None
+            )
         ):
             raise _rate_limit_error(status, response.headers)
         if status in {401, 403}:
@@ -230,7 +235,10 @@ def fetch_github_resource(
             raise GitHubTransportError("unavailable", f"GitHub returned HTTP {status}")
 
         _media_type(response.headers.get("Content-Type"))
-        payload = _read_bounded(response, fetch_policy.max_bytes)
+        try:
+            payload = _read_bounded(response, fetch_policy.max_bytes)
+        except TimeoutError as error:
+            raise GitHubTransportError("timeout", "GitHub request timed out") from error
         return GitHubFetchResult(
             payload=payload,
             etag=response.headers.get("ETag"),

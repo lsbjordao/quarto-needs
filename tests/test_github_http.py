@@ -187,6 +187,21 @@ def test_fetch_github_resource_403_without_exhaustion_stays_authentication_requi
         assert not isinstance(excinfo.value, GitHubRateLimitError)
 
 
+def test_fetch_github_resource_403_secondary_limit_with_retry_after_is_rate_limited() -> None:
+    # GitHub's documented secondary/abuse rate limit: 403 with Retry-After,
+    # but X-RateLimit-Remaining tracks only the *primary* per-hour quota and
+    # is not necessarily zeroed. Discarding Retry-After here would silently
+    # drop the server's own back-off instruction.
+    opener = _Opener(
+        _Response(403, b"", **{"Retry-After": "20", "X-RateLimit-Remaining": "42"})
+    )
+
+    with pytest.raises(GitHubRateLimitError) as excinfo:
+        fetch_github_resource(URI, opener=opener)
+
+    assert excinfo.value.retry_after_seconds == 20
+
+
 def test_fetch_github_resource_429_is_rate_limited_with_retry_after() -> None:
     opener = _Opener(_Response(429, b"", **{"Retry-After": "30"}))
 
@@ -212,6 +227,26 @@ def test_fetch_github_resource_rejects_non_integer_retry_facts() -> None:
     with pytest.raises(GitHubTransportError) as excinfo:
         fetch_github_resource(URI, opener=opener)
     assert excinfo.value.code == "invalid-response"
+
+
+def test_fetch_github_resource_wraps_a_timeout_that_occurs_while_reading_the_body() -> None:
+    """A stalled read after headers arrive must not escape as a raw TimeoutError.
+
+    ``transport.open()`` succeeding only means headers arrived; the actual
+    body read happens later and can still time out. The transport's
+    contract is to only ever raise GitHubTransportError.
+    """
+
+    class _StallingResponse(_Response):
+        def read(self, amount: int = -1) -> bytes:
+            raise TimeoutError("stalled while reading the response body")
+
+    opener = _Opener(_StallingResponse(200, b"{}", **{"Content-Type": "application/json"}))
+
+    with pytest.raises(GitHubTransportError) as excinfo:
+        fetch_github_resource(URI, opener=opener)
+
+    assert excinfo.value.code == "timeout"
 
 
 def test_fetch_github_resource_reports_not_found() -> None:

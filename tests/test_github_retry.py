@@ -104,7 +104,31 @@ def test_giving_up_re_raises_the_server_error() -> None:
         fetch_with_retry(fetch, sleep=lambda _: None, policy=RetryPolicy(max_attempts=2))
 
     assert excinfo.value is error
-    assert len(attempts) == 2
+    # max_attempts=2 permits 2 retries (matching wait_before_attempt's own
+    # attempt=1/attempt=2 contract), plus the initial call: 3 total.
+    assert len(attempts) == 3
+
+
+def test_fetch_with_retry_uses_the_first_retrys_own_backoff_not_the_seconds() -> None:
+    """The wait before retry #1 must be wait_before_attempt(attempt=1, ...).
+
+    Passing ``attempt=2`` for the first retry would double every computed
+    backoff wait and give up one retry earlier than the policy allows.
+    """
+    policy = RetryPolicy(max_attempts=5, backoff_base_seconds=2.0, max_wait_seconds=100.0)
+    outcomes = [_error(), _error(), "result"]
+    waits: list[float] = []
+
+    def fetch():
+        outcome = outcomes.pop(0)
+        if isinstance(outcome, GitHubRateLimitError):
+            raise outcome
+        return outcome
+
+    result = fetch_with_retry(fetch, sleep=waits.append, policy=policy)
+
+    assert result == "result"
+    assert waits == [2.0, 4.0]
 
 
 def test_non_rate_limit_errors_propagate_immediately() -> None:

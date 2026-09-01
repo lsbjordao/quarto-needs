@@ -65,16 +65,15 @@ def fetch_with_retry(
     Any other error propagates immediately — a 404 or an authentication
     failure is a fact to act on, not something to wait out.
     """
-    attempt = 1
+    retry_number = 1
     while True:
         try:
             return fetch()
         except GitHubRateLimitError as error:
-            next_attempt = attempt + 1
             wait = wait_before_attempt(
-                error, attempt=next_attempt, policy=policy, now_epoch=now()
+                error, attempt=retry_number, policy=policy, now_epoch=now()
             )
             if wait is None:
                 raise
             sleep(wait)
-            attempt = next_attempt
+            retry_number += 1
