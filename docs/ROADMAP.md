@@ -214,13 +214,17 @@ Phase 5.5's planned scope is complete; the next milestone is Phase 6.
 
 ---
 
-# Phase 6 — Architecture model and C4 projections ⚪
+# Phase 6 — Architecture model and C4 projections ✅ (first slice: actor/external-system/system/container types, Context/Container/Component views, self-hosted retrofit)
 
 C4-like views must be **projections of the same engineering graph**, not a second architecture database.
 
 Planned work includes actors/people, external systems, system boundaries, hierarchical software-system/container/component/code roles, interfaces/interactions, and generated System Context, Container, Component, and Code views. Dynamic/deployment projections follow only after the static hierarchy is stable.
 
 Every architecture projection remains traceable to requirements, decisions, risks, implementation, tests, and evidence.
+
+See `docs/phase-6-architecture-c4.md` for what is implemented, the two
+deliberate first-slice simplifications, and what remains (dynamic/
+deployment projections, relation-attribute authoring syntax).
 
 ---
 
