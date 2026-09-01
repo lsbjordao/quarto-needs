@@ -84,6 +84,7 @@ class GraphSettings:
     layout: str = "hierarchical"
     seed: int = 1
     relations: tuple[str, ...] = ()
+    baseline: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -498,7 +499,8 @@ def _parse_graph(raw: object) -> GraphSettings:
     if not isinstance(raw, dict):
         raise _fail("[graph] must be a table")
     unknown = set(raw) - {
-        "max-nodes", "max-edges", "depth", "mode", "layout", "seed", "relations"
+        "max-nodes", "max-edges", "depth", "mode", "layout", "seed", "relations",
+        "baseline"
     }
     if unknown:
         raise _fail(f"[graph] has unknown keys: {', '.join(sorted(unknown))}")
@@ -527,6 +529,9 @@ def _parse_graph(raw: object) -> GraphSettings:
     seed = raw.get("seed", 1)
     if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
         raise _fail("[graph] seed must be a non-negative integer")
+    baseline = raw.get("baseline")
+    if baseline is not None and (not isinstance(baseline, str) or not baseline.strip()):
+        raise _fail("[graph] baseline must be a non-empty string when present")
 
     relations_raw = raw.get("relations")
     if relations_raw is not None:
@@ -552,6 +557,7 @@ def _parse_graph(raw: object) -> GraphSettings:
         layout=layout,
         seed=seed,
         relations=relations,
+        baseline=baseline,
     )
 
 

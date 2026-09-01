@@ -81,6 +81,7 @@ def test_graph_section_parses_every_key(tmp_path: Path) -> None:
             "[graph]\nmax-nodes = 25\nmax-edges = 50\ndepth = 2\n"
             'mode = "impact"\nlayout = "radial"\nseed = 9\n'
             'relations = ["verified-by", "verifies"]\n'
+            'baseline = "baselines/custom.json"\n'
         ),
     )
     graph = load_config(tmp_path).graph
@@ -91,6 +92,7 @@ def test_graph_section_parses_every_key(tmp_path: Path) -> None:
     assert graph.layout == "radial"
     assert graph.seed == 9
     assert graph.relations == ("verified-by", "verifies")
+    assert graph.baseline == "baselines/custom.json"
 
 
 def test_graph_rejects_unknown_keys(tmp_path: Path) -> None:
@@ -112,6 +114,7 @@ def test_graph_rejects_unknown_keys(tmp_path: Path) -> None:
         "[graph]\nrelations = []\n",
         '[graph]\nrelations = ["no-such-relation"]\n',
         '[graph]\nrelations = "verified-by"\n',
+        '[graph]\nbaseline = ""\n',
     ],
 )
 def test_graph_rejects_invalid_values(tmp_path: Path, config: str) -> None:
@@ -123,7 +126,11 @@ def test_graph_rejects_invalid_values(tmp_path: Path, config: str) -> None:
 def test_graph_settings_do_not_change_the_configuration_fingerprint(tmp_path: Path) -> None:
     write_project(tmp_path, SPARSE)
     plain = load_config(tmp_path).canonical_document()
-    write_project(tmp_path, SPARSE, config="[graph]\nmax-nodes = 5\n")
+    write_project(
+        tmp_path,
+        SPARSE,
+        config='[graph]\nmax-nodes = 5\nbaseline = "baselines/pinned.json"\n',
+    )
     limited = load_config(tmp_path).canonical_document()
 
     assert "graph" not in limited
