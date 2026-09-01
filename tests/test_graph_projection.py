@@ -266,3 +266,28 @@ def test_ghost_node_surfaces_technology_from_baseline() -> None:
     ghost_no_tech = graph_projection._ghost_node(ghost_entry_no_tech)
     assert ghost_no_tech.technology is None
     assert "technology" not in ghost_no_tech.to_dict()
+
+
+def test_projection_with_technology_validates_against_schema() -> None:
+    """Validate that technology-bearing nodes pass JSON schema validation."""
+    snapshot = _snapshot(
+        ObjectRecord(
+            id="CONTAINER-1",
+            type="container",
+            title="Python backend",
+            status="implemented",
+            body="",
+            rationale="",
+            attributes={"technology": "Python 3.12"},
+            locations=(),
+        ),
+    )
+    projection = graph_projection.build_projection(
+        snapshot, node_ids=("CONTAINER-1",), view_id="test-tech-schema"
+    )
+    schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
+    Draft202012Validator.check_schema(schema)
+    # This will raise an exception if the projection doesn't validate
+    Draft202012Validator(schema).validate(
+        json.loads(graph_projection.render_projection(projection))
+    )
