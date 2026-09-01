@@ -97,3 +97,56 @@ def test_code_level_renders_a_plain_markdown_table_not_mermaid() -> None:
     assert "C4Component" not in table
     assert "src/quarto_needs/parser.py" in table
     assert "Python" in table
+
+
+def test_code_table_finds_children_authored_via_decomposes_too() -> None:
+    """A component that declares its source-modules via `decomposes`
+    (parent declares child, source=focus/target=child) must show up in the
+    table exactly like a `part-of`-authored one does — mirrors
+    `_is_child_edge`'s dual-direction handling, which `c4_code_table_markdown`
+    must match via its own `_child_id_if_matches` helper.
+    """
+    snapshot = _snapshot(
+        _obj(
+            "COMP-1", type="component", title="Declaration parser",
+            # A relation's source is always the id of the declaring object
+            # (analysis.py builds RelationToken/RelationRecord from
+            # `declaration.id`, ignoring `Relation.source`) — so the
+            # `decomposes` edge must be authored here, on the parent, not on
+            # SRC-1 below.
+            relations=[Relation("decomposes", "COMP-1", "SRC-1")],
+        ),
+        _obj(
+            "SRC-1", type="source-module", title="QMD declaration parser module",
+            attributes={"path": "src/quarto_needs/parser.py", "language": "Python"},
+        ),
+    )
+    table = c4_code_table_markdown(snapshot, focus_id="COMP-1")
+    assert "src/quarto_needs/parser.py" in table
+    assert "Python" in table
+
+
+def test_container_diagram_finds_children_authored_via_decomposes_too() -> None:
+    """`_is_child_edge`'s `decomposes` branch (parent declares child,
+    source=focus/target=child), exercised end to end through
+    `c4_mermaid_source` — every other diagram test in this file uses
+    `part-of` only.
+    """
+    snapshot = _snapshot(
+        _obj(
+            "SYS-1", type="system", title="Quarto-Needs",
+            # See the analogous comment in the code-table test above: the
+            # relation's source is the declaring object's id, so this must
+            # be authored on SYS-1 (the parent), not on CONTAINER-1.
+            relations=[Relation("decomposes", "SYS-1", "CONTAINER-1")],
+        ),
+        _obj("CONTAINER-1", type="container", title="Python package"),
+    )
+    projection = build_c4_view(snapshot, focus_id="SYS-1", level="container")
+    source = c4_mermaid_source(projection, focus_id="SYS-1", level="container")
+    assert "System_Boundary(" in source
+    assert "Container(" in source
+    # The child renders inside the boundary block, not as a top-level box
+    # alongside it.
+    boundary_block = source.split("System_Boundary(", 1)[1].split("}", 1)[0]
+    assert "Container(" in boundary_block

@@ -10,7 +10,7 @@ module's underscore-prefixed internals.
 from __future__ import annotations
 
 from .graph_projection import GraphProjection, PublicEdge, PublicNode
-from .snapshot import AnalysisSnapshot
+from .snapshot import AnalysisSnapshot, RelationRecord
 
 NODE_PREFIX = "c4_"
 
@@ -111,6 +111,24 @@ def c4_mermaid_source(projection: GraphProjection, *, focus_id: str, level: str)
     return "\n".join(lines) + "\n"
 
 
+def _child_id_if_matches(relation: RelationRecord, *, focus_id: str) -> str | None:
+    """The child's id if `relation` declares it a direct child of `focus_id`.
+
+    Mirrors `_is_child_edge`'s dual-direction handling above: a `part-of`
+    edge runs child→parent (source=child, target=focus), a `decomposes`
+    edge runs parent→child (source=focus, target=child). Checking only
+    `part-of` would silently drop any component whose source-modules were
+    authored from the parent's side via `decomposes` instead — the exact
+    failure shape this function's own sibling, `_is_child_edge`, exists to
+    avoid.
+    """
+    if relation.authored_name == "part-of" and relation.target == focus_id:
+        return relation.source
+    if relation.authored_name == "decomposes" and relation.source == focus_id:
+        return relation.target
+    return None
+
+
 def c4_code_table_markdown(snapshot: AnalysisSnapshot, *, focus_id: str) -> str:
     """A plain Markdown table of one component's direct source-module children.
 
@@ -118,15 +136,15 @@ def c4_code_table_markdown(snapshot: AnalysisSnapshot, *, focus_id: str) -> str:
     source-module objects have no interaction arrows to draw (their only
     relation today is `implements`, to a requirement, not to each other).
     """
+    child_ids = {
+        child_id
+        for relation in snapshot.relations
+        if (child_id := _child_id_if_matches(relation, focus_id=focus_id)) is not None
+        and child_id in snapshot.objects_by_id
+        and snapshot.objects_by_id[child_id].type == "source-module"
+    }
     children = sorted(
-        (
-            snapshot.objects_by_id[relation.source]
-            for relation in snapshot.relations
-            if relation.authored_name == "part-of"
-            and relation.target == focus_id
-            and relation.source in snapshot.objects_by_id
-            and snapshot.objects_by_id[relation.source].type == "source-module"
-        ),
+        (snapshot.objects_by_id[child_id] for child_id in child_ids),
         key=lambda record: record.id,
     )
     lines = ["| ID | Path | Language | Implements |", "| --- | --- | --- | --- |"]
