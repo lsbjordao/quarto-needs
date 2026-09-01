@@ -10,6 +10,7 @@ from jsonschema import Draft202012Validator
 
 from quarto_needs import graph_projection
 from quarto_needs.analysis import analyze_project
+from quarto_needs.snapshot import AnalysisSnapshot, ObjectRecord
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "tests" / "fixtures" / "graph" / "adversarial.qmd"
@@ -23,6 +24,22 @@ CANARIES = (
 )
 
 FIXTURE_FILENAME = "adversarial.qmd"
+
+
+def _snapshot(*objects: ObjectRecord) -> AnalysisSnapshot:
+    """Construct a minimal AnalysisSnapshot for unit testing."""
+    return AnalysisSnapshot(
+        objects=objects,
+        relations=(),
+        findings=(),
+        metrics={},
+        objects_by_id={obj.id: obj for obj in objects},
+        outgoing={},
+        incoming={},
+        generator_name="test",
+        generator_version="1.0",
+        relation_catalog_version="1.0",
+    )
 
 
 def projection_of(tmp_path: Path):
@@ -193,3 +210,36 @@ def test_impact_cannot_smuggle_undeclared_keys_via_a_raw_mapping() -> None:
     )
     with pytest.raises(AttributeError):
         graph_projection.render_projection(projection)
+
+
+def test_public_node_surfaces_a_containers_technology_attribute() -> None:
+    snapshot = _snapshot(
+        ObjectRecord(
+            id="CONTAINER-1",
+            type="container",
+            title="Python package",
+            status="implemented",
+            body="",
+            rationale="",
+            attributes={"technology": "Python 3.12"},
+            locations=(),
+        ),
+        ObjectRecord(
+            id="SYS-1",
+            type="system",
+            title="Quarto-Needs",
+            status="implemented",
+            body="",
+            rationale="",
+            attributes={},
+            locations=(),
+        ),
+    )
+    projection = graph_projection.build_projection(
+        snapshot, node_ids=("CONTAINER-1", "SYS-1"), view_id="test-view"
+    )
+    by_id = {node.id: node for node in projection.nodes}
+    assert by_id["CONTAINER-1"].technology == "Python 3.12"
+    assert by_id["SYS-1"].technology is None
+    assert by_id["CONTAINER-1"].to_dict()["technology"] == "Python 3.12"
+    assert "technology" not in by_id["SYS-1"].to_dict()

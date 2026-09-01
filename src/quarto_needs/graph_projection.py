@@ -20,7 +20,7 @@ from .snapshot import AnalysisSnapshot, ObjectRecord, RelationRecord
 
 SCHEMA_VERSION = "graph-public-v1"
 
-PUBLIC_NODE_FIELDS = ("id", "title", "type", "status", "priority", "tags", "href", "change")
+PUBLIC_NODE_FIELDS = ("id", "title", "type", "status", "priority", "tags", "href", "change", "technology")
 PUBLIC_EDGE_FIELDS = ("source", "target", "relation", "label", "change", "pathMember")
 PUBLIC_LIMIT_FIELDS = ("nodes", "edges")
 
@@ -43,6 +43,7 @@ class PublicNode:
     tags: tuple[str, ...]
     href: str
     change: str | None = None
+    technology: str | None = None
 
     def to_dict(self) -> dict[str, object]:
         payload: dict[str, object] = {
@@ -56,6 +57,8 @@ class PublicNode:
         }
         if self.change is not None:
             payload["change"] = self.change
+        if self.technology is not None:
+            payload["technology"] = self.technology
         return payload
 
 
@@ -162,6 +165,11 @@ def _label_for(relation: RelationRecord) -> str:
         return DEFAULT_RELATION_CATALOG.resolve(relation.authored_name).direct_label
     except ValueError:
         return relation.authored_name
+
+
+def _technology_of(record: ObjectRecord) -> str | None:
+    value = record.attributes.get("technology")
+    return value if isinstance(value, str) and value.strip() else None
 
 
 class GraphLimitExceeded(Exception):
@@ -333,6 +341,7 @@ def build_projection(
             priority=record.priority,
             tags=record.tags,
             href=_public_href(record),
+            technology=_technology_of(record),
         )
         for record in snapshot.objects
         if record.id in selected
@@ -408,6 +417,8 @@ def _ghost_node(entry: Mapping[str, object]) -> PublicNode:
             for item in str(tags_value).replace(";", ",").split(",")
             if item.strip()
         )
+    technology_value = attributes.get("technology") if isinstance(attributes, Mapping) else None
+    technology = technology_value if isinstance(technology_value, str) and technology_value.strip() else None
     identifier = str(entry["id"])
     return PublicNode(
         id=identifier,
@@ -418,6 +429,7 @@ def _ghost_node(entry: Mapping[str, object]) -> PublicNode:
         tags=tags,
         href="#" + identifier,
         change="removed",
+        technology=technology,
     )
 
 
@@ -498,6 +510,7 @@ def build_diff_overlay(
             tags=record.tags,
             href=_public_href(record),
             change=changes.get(record.id, "unchanged"),
+            technology=_technology_of(record),
         )
         for record in snapshot.objects
         if record.id in selected
@@ -620,6 +633,7 @@ def build_impact_overlay(
             priority=record.priority,
             tags=record.tags,
             href=_public_href(record),
+            technology=_technology_of(record),
         )
         for record in snapshot.objects
         if record.id in path_ids
