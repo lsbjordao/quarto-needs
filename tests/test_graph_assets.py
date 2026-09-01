@@ -15,6 +15,7 @@ import pytest
 
 from quarto_needs import graph_output
 from quarto_needs.analysis import analyze_project
+from quarto_needs.baseline import build_baseline, load_baseline, write_baseline
 from quarto_needs.config import load_config
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -197,3 +198,158 @@ def test_write_c4_projections_is_a_no_op_when_there_are_no_systems_or_containers
 
     graph_dir = tmp_path / ".quarto-needs" / "graphs"
     assert not graph_dir.exists() or list(graph_dir.glob("c4-*.json")) == []
+
+
+# --- the overlay annotation artifact ---------------------------------------------
+
+CHAIN_V1 = (
+    "::: {.need #STK-1 type=need status=approved priority=high}\n"
+    "\n## Stake\nStakeholder concern.\n:::\n"
+    "\n"
+    "::: {.need #SYS-1 type=system-requirement status=approved priority=high "
+    'derives-from="STK-1" verified-by="TC-9"}\n'
+    "\n## System\nThe system shall do it.\n:::\n"
+    "\n"
+    "::: {.need #TC-9 type=test-case status=passed}\n\n## Verify\nChecks the system.\n:::\n"
+)
+
+CHAIN_V2 = CHAIN_V1.replace("Stakeholder concern.", "Stakeholder concern, revised.")
+
+DIFF_V1 = (
+    '::: {.need #REQ-1 type="functional-requirement" status="approved"}\n'
+    "verified-by:\n  - TC-1\n  - TC-2\n  - TC-3\n\n## Authenticate\nOriginal body.\n:::\n"
+    "\n"
+    '::: {.need #REQ-2 type="functional-requirement" status="draft"}\n\n## Legacy\nOnly in the baseline.\n:::\n'
+    "\n"
+    '::: {.need #TC-1 type="test-case" status="passed"}\n\n## Login test\nSigns a user in.\n:::\n'
+    "\n"
+    '::: {.need #TC-2 type="test-case" status="passed"}\n\n## Logout test\nSigns a user out.\n:::\n'
+    "\n"
+    '::: {.need #TC-3 type="test-case" status="passed"}\n\n## Session test\nChecks the session.\n:::\n'
+)
+
+DIFF_V2 = (
+    '::: {.need #REQ-1 type="functional-requirement" status="approved"}\n'
+    "verified-by: TC-2\n\n## Authenticate\nEdited body.\n:::\n"
+    "\n"
+    '::: {.need #REQ-3 type="functional-requirement" status="approved"}\n'
+    "verified-by: TC-2\n\n## Fresh\nA brand-new requirement.\n:::\n"
+    "\n"
+    '::: {.need #TC-1 type="test-case" status="passed"}\n\n## Login test\nSigns a user in.\n:::\n'
+    "\n"
+    '::: {.need #TC-2 type="test-case" status="passed"}\n\n## Logout test\nSigns a user out.\n:::\n'
+)
+
+DEFAULT_BASELINE_FILE = Path(".quarto-needs") / "baseline.json"
+
+
+def _analyze(root: Path):
+    result = analyze_project(root, config=load_config(root))
+    assert result.snapshot is not None
+    return result
+
+
+def _write_baseline(root: Path, body: str) -> None:
+    (root / "graph.qmd").write_text(body, encoding="utf-8")
+    result = _analyze(root)
+    write_baseline(root / DEFAULT_BASELINE_FILE, build_baseline(result.snapshot, load_config(root)), force=True)
+
+
+def test_write_graph_overlays_extracts_diff_annotations_from_the_built_overlays(
+    tmp_path: Path,
+) -> None:
+    _write_baseline(tmp_path, DIFF_V1)
+    (tmp_path / "graph.qmd").write_text(DIFF_V2, encoding="utf-8")
+    result = _analyze(tmp_path)
+
+    overlays = graph_output.build_graph_overlays(
+        result.snapshot,
+        load_config(tmp_path),
+        baseline_payload=load_baseline(tmp_path / DEFAULT_BASELINE_FILE),
+    )
+
+    assert overlays["schemaVersion"] == "need-graph-overlays-v1"
+    assert overlays["view"] == "need-graph-1"
+    diff = overlays["diff"]
+    assert diff["nodes"] == {"REQ-1": "modified", "REQ-3": "added"}
+    ghosts = {ghost["id"]: ghost for ghost in diff["ghostNodes"]}
+    assert set(ghosts) == {"REQ-2", "TC-3"}
+    assert ghosts["REQ-2"]["change"] == "removed"
+    assert ["REQ-3", "verified-by", "TC-2", "added"] in diff["edges"]
+    removed_edge = [
+        edge
+        for edge in diff["ghostEdges"]
+        if edge["source"] == "REQ-1" and edge["target"] == "TC-3"
+    ]
+    assert removed_edge and removed_edge[0]["change"] == "removed"
+
+
+def test_write_graph_overlays_extracts_impact_annotations_from_the_built_overlays(
+    tmp_path: Path,
+) -> None:
+    _write_baseline(tmp_path, CHAIN_V1)
+    (tmp_path / "graph.qmd").write_text(CHAIN_V2, encoding="utf-8")
+    result = _analyze(tmp_path)
+
+    overlays = graph_output.build_graph_overlays(
+        result.snapshot,
+        load_config(tmp_path),
+        baseline_payload=load_baseline(tmp_path / DEFAULT_BASELINE_FILE),
+    )
+
+    impact = overlays["impact"]
+    entries = {entry["id"]: entry for entry in impact["entries"]}
+    assert entries["SYS-1"] == {
+        "id": "SYS-1",
+        "origin": "STK-1",
+        "distance": 1,
+        "path": ["STK-1", "SYS-1"],
+        "classification": "direct",
+    }
+    assert entries["TC-9"]["distance"] == 2
+    assert ("SYS-1", "derives-from", "STK-1") in [
+        (source, relation, target) for source, relation, target in impact["pathEdges"]
+    ]
+    assert ("SYS-1", "verified-by", "TC-9") in [
+        (source, relation, target) for source, relation, target in impact["pathEdges"]
+    ]
+
+
+def test_write_graph_overlays_is_a_no_op_without_a_baseline(tmp_path: Path) -> None:
+    _write_baseline(tmp_path, CHAIN_V1)
+    (tmp_path / ".quarto-needs" / "baseline.json").unlink()
+    result = _analyze(tmp_path)
+
+    assert graph_output.write_graph_overlays(tmp_path, result.snapshot, load_config(tmp_path)) is None
+    assert not (tmp_path / ".quarto-needs" / "graphs" / "need-graph-1-overlays.json").exists()
+
+
+def test_write_default_projection_writes_the_overlays_artifact_when_a_baseline_exists(
+    tmp_path: Path,
+) -> None:
+    _write_baseline(tmp_path, CHAIN_V1)
+    (tmp_path / "graph.qmd").write_text(CHAIN_V2, encoding="utf-8")
+    result = _analyze(tmp_path)
+
+    target = graph_output.write_default_projection(tmp_path, result.snapshot, load_config(tmp_path))
+
+    overlays_path = target.parent / "need-graph-1-overlays.json"
+    assert overlays_path.is_file()
+    payload = json.loads(overlays_path.read_text(encoding="utf-8"))
+    assert payload["schemaVersion"] == "need-graph-overlays-v1"
+
+
+def test_write_graph_overlays_honors_the_configured_baseline_path(tmp_path: Path) -> None:
+    (tmp_path / "baselines").mkdir()
+    _write_baseline(tmp_path, CHAIN_V1)
+    baseline_path = tmp_path / DEFAULT_BASELINE_FILE
+    baseline_path.rename(tmp_path / "baselines" / "quarto-needs.json")
+    config_text = '[graph]\nbaseline = "baselines/quarto-needs.json"\n'
+    (tmp_path / ".quarto-needs.toml").write_text(config_text, encoding="utf-8")
+    result = _analyze(tmp_path)
+
+    assert (
+        graph_output.write_graph_overlays(tmp_path, result.snapshot, load_config(tmp_path))
+        is not None
+    )
+    assert (tmp_path / ".quarto-needs" / "graphs" / "need-graph-1-overlays.json").is_file()

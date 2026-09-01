@@ -14,6 +14,7 @@ import os
 import re
 import tempfile
 from pathlib import Path
+from typing import Mapping
 
 from .baseline import BaselineError, load_baseline
 from .config import NeedsConfig
@@ -285,13 +286,14 @@ def write_default_projection(
         stale.unlink()
 
     projection = build_default_projection(
-        snapshot, config, baseline_path=root / DEFAULT_BASELINE_PATH
+        snapshot, config, baseline_path=_baseline_path(root, config)
     )
     target = graph_dir / f"{DEFAULT_VIEW_ID}.json"
     _atomic_text(
         target,
         render_public_projection(projection, config, snapshot=snapshot),
     )
+    write_graph_overlays(root, snapshot, config)
 
     manifest: dict[str, str] = {}
     errors: dict[str, str] = {}
@@ -325,6 +327,106 @@ def write_default_projection(
             indent=2,
             sort_keys=True,
         ) + "\n",
+    )
+    return target
+
+
+def _baseline_path(root: Path, config: NeedsConfig) -> Path:
+    if config.graph.baseline:
+        return root / config.graph.baseline
+    return root / DEFAULT_BASELINE_PATH
+
+
+OVERLAYS_SCHEMA = "need-graph-overlays-v1"
+
+
+def build_graph_overlays(
+    snapshot: AnalysisSnapshot,
+    config: NeedsConfig,
+    *,
+    baseline_payload: Mapping[str, object],
+) -> dict[str, object]:
+    """The browser-facing annotation artifact, extracted from the *built*
+    overlay projections — never re-derived. Whatever the diff/impact builders
+    compute is exactly what this artifact carries, so the browser can never
+    present annotations that disagree with the overlays themselves.
+    """
+    selection = _selection(snapshot, config)
+    common: dict[str, object] = dict(
+        view_id=DEFAULT_VIEW_ID,
+        recompute=True,
+        relations=config.graph.relations,
+        limits=_limits(config),
+        layout=config.graph.layout,
+        seed=config.graph.seed,
+    )
+    diff_view = build_diff_overlay(
+        baseline_payload, snapshot, config, node_ids=selection.node_ids, **common
+    )
+    impact_view = build_impact_overlay(
+        baseline_payload, snapshot, config, node_ids=selection.node_ids, **common
+    )
+
+    return {
+        "schemaVersion": OVERLAYS_SCHEMA,
+        "view": DEFAULT_VIEW_ID,
+        "diff": {
+            "nodes": {
+                node.id: node.change
+                for node in diff_view.nodes
+                if node.change not in (None, "unchanged", "removed")
+            },
+            "edges": [
+                [edge.source, edge.relation, edge.target, edge.change]
+                for edge in diff_view.edges
+                if edge.change not in (None, "unchanged", "removed")
+            ],
+            "ghostNodes": [
+                node.to_dict() for node in diff_view.nodes if node.change == "removed"
+            ],
+            "ghostEdges": [
+                edge.to_dict() for edge in diff_view.edges if edge.change == "removed"
+            ],
+        },
+        "impact": {
+            "entries": [entry.to_dict() for entry in impact_view.impact],
+            "pathEdges": [
+                [edge.source, edge.relation, edge.target]
+                for edge in impact_view.edges
+                if edge.path_member
+            ],
+            "ghostNodes": [
+                node.to_dict() for node in impact_view.nodes if node.change == "removed"
+            ],
+            "ghostEdges": [
+                edge.to_dict() for edge in impact_view.edges if edge.change == "removed"
+            ],
+        },
+    }
+
+
+def write_graph_overlays(
+    root: Path,
+    snapshot: AnalysisSnapshot,
+    config: NeedsConfig,
+) -> Path | None:
+    """Write the overlay annotation artifact when a comparison baseline exists.
+
+    Optional presentation artifact with the same contract as the named-query
+    projections: no baseline means no artifact and no failed build — the
+    browser simply never sees a mode switcher.
+    """
+    try:
+        baseline_payload = load_baseline(_baseline_path(root, config))
+    except BaselineError:
+        return None
+    overlays = build_graph_overlays(snapshot, config, baseline_payload=baseline_payload)
+    graph_dir = root / ".quarto-needs" / "graphs"
+    graph_dir.mkdir(parents=True, exist_ok=True)
+    target = graph_dir / f"{DEFAULT_VIEW_ID}-overlays.json"
+    _atomic_text(
+        target,
+        json.dumps(overlays, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
     )
     return target
 
