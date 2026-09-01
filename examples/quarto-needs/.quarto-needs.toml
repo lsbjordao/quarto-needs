@@ -45,6 +45,23 @@ role = "architecture-element"
 allowed-statuses = ["planned", "implemented", "deprecated"]
 required-attributes = ["tags"]
 
+[types.actor]
+role = "architecture-element"
+allowed-statuses = ["draft", "approved", "deprecated"]
+
+[types.external-system]
+role = "architecture-element"
+allowed-statuses = ["draft", "approved", "deprecated"]
+
+[types.system]
+role = "architecture-element"
+allowed-statuses = ["draft", "approved", "deprecated"]
+
+[types.container]
+role = "architecture-element"
+allowed-statuses = ["draft", "approved", "deprecated"]
+required-attributes = ["technology"]
+
 [types.source-module]
 id-prefix = "SRC-"
 role = "implementation-artifact"
@@ -96,6 +113,12 @@ allowed-target-types = ["component", "interface"]
 [relations."implements"]
 allowed-source-types = ["source-module"]
 allowed-target-types = ["system-requirement", "functional-requirement", "non-functional-requirement"]
+
+[relations."part-of"]
+allowed-source-types = ["container", "component", "source-module"]
+allowed-target-types = ["system", "container", "component"]
+minimum-per-source = 1
+maximum-per-source = 1
 
 [relations."verified-by"]
 allowed-source-types = ["system-requirement", "functional-requirement", "non-functional-requirement"]
