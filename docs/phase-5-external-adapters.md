@@ -84,6 +84,21 @@ Nothing is left deferred from the planned scope. Natural follow-ons, each its ow
 
 None of that is guessed at here — each is deferred exactly because OSLC took each as its own reviewed, independently tested slice, and there is no reason to expect a GitHub-specific query/reconciliation/import-plan design to be simpler or safe to rush.
 
+## Post-implementation review and fixes
+
+The ten-slice implementation above was reviewed end to end after landing (an 8-angle parallel review across correctness, removed-behavior, reuse, and evidence-chain, each claim independently re-verified by direct repro or mutation before being trusted). Seven real, reproducible defects were found and fixed, each via its own failing-test-first cycle:
+
+- `_locate_need_block` (`import_apply.py`) searched for a block's closing fence with a raw `"\n:::"` substring match, which stops at a *nested* fenced div's own opening line (e.g. a `::: {.callout-note}` inside the body) rather than the block's real close — worse than the canonical parser's own exact-line-match rule, which it now mirrors exactly.
+- `ImportDirective.__post_init__` validated `target_path` but discarded the normalized return value, so a redundant mid-path `./` segment (e.g. `docs/./extra.qmd`) survived as a string distinct from `docs/extra.qmd` — defeating the plan's own duplicate-target-path guard. `_validate_target_path` now returns (and `__post_init__` now stores) the fully normalized path; the apply step's write loop also now refuses outright (rather than silently dropping the second item) if two items ever still resolve to the same file.
+- `canonical_type`/`canonical_status` were interpolated unescaped into the rendered block's attribute line; a value containing `"` or `}` could inject or corrupt adjacent attributes. `ImportDirective` now rejects those characters at construction.
+- `github_retry.fetch_with_retry` called `wait_before_attempt` one attempt ahead of the retry it was actually about to make, doubling every computed backoff wait and giving up one retry earlier than `RetryPolicy.max_attempts` promises.
+- A `403` carrying `Retry-After` but not a zeroed `X-RateLimit-Remaining` (GitHub's documented secondary/abuse rate-limit shape) was misclassified as `authentication-required`, silently discarding the server's own back-off instruction; `fetch_github_resource` now treats either signal as rate-limited.
+- A timeout during body-read (after `transport.open()` already succeeded) escaped as a raw `TimeoutError` instead of `GitHubTransportError`; the read is now inside its own `try`/`except`.
+- `_parse_issue_list_payload` force-sorted issue numbers ascending at the per-page level, silently defeating the list/search endpoints' own `sort`/`direction`/`order` parameters and contradicting this document's "keeps its raw per-page truth" claim above (now actually true); it now preserves GitHub's own response order and only drops exact repeats.
+- `RATIONALE_HEADING_RE` recognized only the English `### Rationale` heading, so the project's own established Portuguese heading (`### Justificativa`, already used throughout `requirements.pt-BR.qmd`/`drivers.pt-BR.qmd` before this phase) was silently never indexed; the regex now recognizes both, and `interoperability.pt-BR.qmd`'s SYS-008 gained the `### Justificativa` section its English counterpart already had.
+
+Also confirmed, not fixed (pre-existing, out of this phase's scope): the canonical parser's own closing-fence detection (`parser.py`, unchanged by this phase) is not nesting-aware — a `.need` block body containing any nested fenced div silently loses everything after that div's own closer, with no error raised. `_locate_need_block` was brought in line with this existing behavior rather than diverging from it further; fixing the underlying grammar limitation would mean giving the parser real fenced-div depth tracking, a separate, larger change.
+
 ## Regression coverage
 
 ```text
