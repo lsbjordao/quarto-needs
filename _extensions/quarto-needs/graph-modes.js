@@ -91,7 +91,7 @@
 
     // Everything one mode application touches, so leaving a mode restores
     // exactly what it changed — no more, no less.
-    const touched = { changes: new Set(), edges: [], pathEdges: [], impacts: [], ghosts: new Set(), ghostEdgeIds: new Set() };
+    const touched = { changes: new Set(), edges: [], pathEdges: [], impacts: [], ghosts: new Set() };
     let ghostEdgeSequence = 0;
 
     function resetChangeData() {
@@ -125,7 +125,6 @@
       touched.pathEdges.length = 0;
       touched.impacts.length = 0;
       touched.ghosts.clear();
-      touched.ghostEdgeIds.clear();
       container.__needGraphOverlayForcedNodes = null;
       container.__needGraphAffectedOnly = null;
       if (affected.input) affected.input.checked = false;
@@ -198,7 +197,7 @@
         });
         (diff.edges || []).forEach((entry) => {
           const edge = findEdge(entry[0], entry[1], entry[2]);
-          if (!edge.length) return;
+          if (!edge) return;
           edge.data("change", String(entry[3]));
           touched.edges.push(edge.id());
         });
@@ -226,7 +225,7 @@
         });
         (impact.pathEdges || []).forEach((entry) => {
           const edge = findEdge(entry[0], entry[1], entry[2]);
-          if (!edge.length) return;
+          if (!edge) return;
           edge.data("pathMember", true);
           touched.pathEdges.push(edge.id());
         });
@@ -270,7 +269,7 @@
       container.__needGraphAffectedOnly = affected.input.checked && impacted instanceof Set && impacted.size
         ? new Set(impacted)
         : null;
-      reapplyPredicates();
+      syncSlots();
       announce(affected.input.checked
         ? t("Showing affected objects only", "Exibindo somente os afetados")
         : t("Showing the whole graph", "Exibindo o grafo inteiro"));

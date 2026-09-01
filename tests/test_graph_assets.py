@@ -339,6 +339,30 @@ def test_write_default_projection_writes_the_overlays_artifact_when_a_baseline_e
     assert payload["schemaVersion"] == "need-graph-overlays-v1"
 
 
+def test_write_graph_overlays_degrades_gracefully_when_the_overlay_exceeds_budget(
+    tmp_path: Path,
+) -> None:
+    """A too-large diff/impact traversal must not crash the build.
+
+    write_graph_overlays already treats a missing baseline as "no artifact,
+    not a failed build" — the same optional-presentation-artifact contract
+    the named-query loop in write_default_projection already honors for
+    GraphLimitExceeded. The overlay's own traversal (diff AND impact, over
+    the full baseline-union graph) can exceed the configured budget even
+    when the plain catalog view comfortably fits, since it isn't the same
+    selection.
+    """
+    _write_baseline(tmp_path, CHAIN_V1)
+    (tmp_path / "graph.qmd").write_text(CHAIN_V2, encoding="utf-8")
+    (tmp_path / ".quarto-needs.toml").write_text(
+        "[graph]\nmax-nodes = 1\n", encoding="utf-8"
+    )
+    result = _analyze(tmp_path)
+
+    assert graph_output.write_graph_overlays(tmp_path, result.snapshot, load_config(tmp_path)) is None
+    assert not (tmp_path / ".quarto-needs" / "graphs" / "need-graph-1-overlays.json").exists()
+
+
 def test_write_graph_overlays_honors_the_configured_baseline_path(tmp_path: Path) -> None:
     (tmp_path / "baselines").mkdir()
     _write_baseline(tmp_path, CHAIN_V1)

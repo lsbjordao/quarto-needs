@@ -96,3 +96,39 @@ def test_affected_only_never_publishes_an_empty_filter() -> None:
     assert "affected.input.checked && impacted instanceof Set && impacted.size" in modes
     assert "affected.input.disabled = mode !== \"impact\" || !hasImpacted" in modes
     assert 't("No impacted objects to filter", "Nenhum objeto afetado para filtrar")' in modes
+
+
+def test_affected_only_toggle_refreshes_visibility_not_just_predicates() -> None:
+    """Toggling the checkbox must actually re-render node visibility.
+
+    Every other place that mutates __needGraphAffectedOnly (the mode-select
+    handler, the context-reset handler) calls syncSlots(), which both
+    re-derives the predicate closures AND calls contextApi.refresh() (the
+    function that actually calls setVisible() on the canvas). The checkbox's
+    own change handler previously called only reapplyPredicates() — the
+    slot updated but the graph kept showing every node until an unrelated
+    action happened to trigger a refresh.
+    """
+    modes = read(EXTENSION, "graph-modes.js")
+
+    handler_start = modes.index('affected.input.addEventListener("change"')
+    handler_end = modes.index("});", handler_start)
+    handler_body = modes[handler_start:handler_end]
+
+    assert "syncSlots();" in handler_body
+    assert "reapplyPredicates();" not in handler_body
+
+
+def test_find_edge_miss_is_skipped_not_crashed() -> None:
+    """findEdge returns null (not an empty Cytoscape collection) on a miss.
+
+    diff.edges/impact.pathEdges entries can reference a source/relation/
+    target triple absent from the live catalog graph (the overlay is built
+    from a separate traversal than the rendered projection) — checking
+    `.length` on a null throws inside cy.batch() and aborts the whole
+    apply, leaving ghosts added but predicates never reapplied.
+    """
+    modes = read(EXTENSION, "graph-modes.js")
+
+    assert "if (!edge.length) return;" not in modes
+    assert modes.count("if (!edge) return;") == 2

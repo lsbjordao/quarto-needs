@@ -414,13 +414,19 @@ def write_graph_overlays(
 
     Optional presentation artifact with the same contract as the named-query
     projections: no baseline means no artifact and no failed build — the
-    browser simply never sees a mode switcher.
+    browser simply never sees a mode switcher. The same graceful-degradation
+    contract applies when the diff/impact traversal itself exceeds the
+    configured budget (it is not the same selection as the plain catalog
+    view, so it can exceed budget even when the catalog comfortably fits).
     """
     try:
         baseline_payload = load_baseline(_baseline_path(root, config))
     except BaselineError:
         return None
-    overlays = build_graph_overlays(snapshot, config, baseline_payload=baseline_payload)
+    try:
+        overlays = build_graph_overlays(snapshot, config, baseline_payload=baseline_payload)
+    except GraphLimitExceeded:
+        return None
     graph_dir = root / ".quarto-needs" / "graphs"
     graph_dir.mkdir(parents=True, exist_ok=True)
     target = graph_dir / f"{DEFAULT_VIEW_ID}-overlays.json"
