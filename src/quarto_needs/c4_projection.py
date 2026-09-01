@@ -1,0 +1,67 @@
+"""One C4 view: a focus object plus one level of its part-of/depends-on
+neighborhood.
+
+Reuses graph_projection.py's existing bounded selection (select_graph) and
+projection builder (build_projection) unchanged — Context, Container, and
+Component views are all the same operation (focus + depth 1 over
+decomposes/depends-on), differing only in which relations are allowed and
+what type the focus must be. No new selection algorithm.
+"""
+from __future__ import annotations
+
+from typing import Mapping
+
+from .graph_projection import GraphProjection, build_projection, select_graph
+from .snapshot import AnalysisSnapshot
+
+
+class C4ViewError(Exception):
+    """Raised when a C4 view is requested for an invalid focus/level pair."""
+
+
+_LEVEL_FOCUS_TYPE: Mapping[str, str] = {
+    "context": "system",
+    "container": "system",
+    "component": "container",
+}
+
+_LEVEL_RELATIONS: Mapping[str, tuple[str, ...]] = {
+    "context": ("depends-on",),
+    "container": ("part-of", "decomposes", "depends-on"),
+    "component": ("part-of", "decomposes", "depends-on"),
+}
+
+
+def build_c4_view(
+    snapshot: AnalysisSnapshot,
+    *,
+    focus_id: str,
+    level: str,
+    limits: Mapping[str, int] | None = None,
+) -> GraphProjection:
+    if level not in _LEVEL_FOCUS_TYPE:
+        raise C4ViewError(
+            f"unsupported C4 level: {level!r} (expected one of "
+            f"{', '.join(sorted(_LEVEL_FOCUS_TYPE))})"
+        )
+    focus = snapshot.objects_by_id.get(focus_id)
+    if focus is None:
+        raise C4ViewError(f"{focus_id!r} is not a known object")
+    expected_type = _LEVEL_FOCUS_TYPE[level]
+    if focus.type != expected_type:
+        raise C4ViewError(
+            f"level={level!r} requires a {expected_type!r} focus, "
+            f"but {focus_id!r} is {focus.type!r}"
+        )
+    relations = _LEVEL_RELATIONS[level]
+    selection = select_graph(
+        snapshot, seeds=(focus_id,), relations=relations, depth=1, limits=limits
+    )
+    return build_projection(
+        snapshot,
+        node_ids=selection.node_ids,
+        view_id=f"c4-{level}-{focus_id}",
+        mode="c4",
+        relations=relations,
+        limits=limits,
+    )
