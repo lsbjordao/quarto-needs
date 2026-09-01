@@ -46,7 +46,7 @@ def test_self_hosted_example_is_a_valid_engineering_graph() -> None:
 
     assert result.snapshot is not None
     assert result.findings == ()
-    assert len(result.snapshot.objects) == 145
+    assert len(result.snapshot.objects) == 151
 
     ids = {item.id for item in result.snapshot.objects}
     assert {
@@ -56,6 +56,12 @@ def test_self_hosted_example_is_a_valid_engineering_graph() -> None:
         "NFR-005",
         "ADR-001",
         "COMP-GRAPH",
+        "SYS-QUARTO-NEEDS",
+        "ACTOR-ENGINEER",
+        "EXT-GITHUB",
+        "EXT-OSLC",
+        "CONTAINER-PYTHON-PKG",
+        "CONTAINER-QUARTO-EXT",
         "IF-003",
         "SRC-GRAPH-OUTPUT",
         "SRC-GRAPH-EXPLORE",

@@ -2,51 +2,91 @@
 
 Requirements describe obligations; architecture explains how the product is organized to satisfy them. Quarto-Needs keeps those concerns distinct and links them explicitly.
 
+## System and its context
+
+::: {.need #SYS-QUARTO-NEEDS type="system" status="approved" tags="architecture;c4"}
+## Quarto-Needs
+
+The engineering-traceability tool this case study documents: a requirements/decisions/risk/test/evidence graph authored in Quarto Markdown, analyzed by a Python core, and presented through a Quarto extension.
+:::
+
+::: {.need #ACTOR-ENGINEER type="actor" status="approved" tags="architecture;c4" depends-on="SYS-QUARTO-NEEDS"}
+## Requirements engineer
+
+Authors, reviews, and approves engineering objects; reads generated views to understand traceability and coverage.
+:::
+
+::: {.need #EXT-GITHUB type="external-system" status="approved" tags="architecture;c4;github" depends-on="SYS-QUARTO-NEEDS"}
+## GitHub
+
+Hosts the project's issues, which Quarto-Needs federates as read-only, provenance-bound external observations (see `interoperability.qmd`).
+:::
+
+::: {.need #EXT-OSLC type="external-system" status="approved" tags="architecture;c4;oslc" depends-on="SYS-QUARTO-NEEDS"}
+## OSLC-compliant requirements management tool
+
+An external OSLC Requirements Management provider Quarto-Needs federates from as a read-only, provenance-bound source (see `interoperability.qmd`).
+:::
+
+## Containers
+
+::: {.need #CONTAINER-PYTHON-PKG type="container" status="approved" tags="architecture;c4" technology="Python 3.12" part-of="SYS-QUARTO-NEEDS"}
+## Python package
+
+The installable `quarto-needs` library and CLI: parsing, analysis, governance rules, graph projection, baselines, and localization checks.
+:::
+
+::: {.need #CONTAINER-QUARTO-EXT type="container" status="approved" tags="architecture;c4" technology="Quarto/Pandoc Lua filters" part-of="SYS-QUARTO-NEEDS"}
+## Quarto presentation extension
+
+The `_extensions/quarto-needs/` bundle: build-time Lua filters and the browser-side JavaScript they ship, together as one installed Quarto extension.
+:::
+
 ## Components
 
-::: {.need #COMP-PARSER type="component" status="implemented" tags="python;parser;authoring"}
+::: {.need #COMP-PARSER type="component" status="implemented" tags="python;parser;authoring" part-of="CONTAINER-PYTHON-PKG"}
 ## Declaration parser
 
 Reads QMD declarations and produces structured declaration batches with source locations.
 :::
 
-::: {.need #COMP-ANALYSIS type="component" status="implemented" tags="python;semantics;graph"}
+::: {.need #COMP-ANALYSIS type="component" status="implemented" tags="python;semantics;graph" part-of="CONTAINER-PYTHON-PKG"}
 ## Semantic analysis core
 
 Builds the canonical engineering graph, resolves relation semantics, and produces immutable analysis snapshots.
 :::
 
-::: {.need #COMP-RULES type="component" status="implemented" tags="python;governance;validation"}
+::: {.need #COMP-RULES type="component" status="implemented" tags="python;governance;validation" part-of="CONTAINER-PYTHON-PKG"}
 ## Governance rule engine
 
 Evaluates structural, requirement, decision, risk, and evidence governance against the canonical snapshot.
 :::
 
-::: {.need #COMP-CLI type="component" status="implemented" tags="python;cli;ci"}
+::: {.need #COMP-CLI type="component" status="implemented" tags="python;cli;ci" part-of="CONTAINER-PYTHON-PKG"}
 ## Command-line interface
 
 Exposes scan, check, coverage, baseline, diff, impact, and related engineering workflows to local and CI execution.
 :::
 
-::: {.need #COMP-EXTENSION type="component" status="implemented" tags="quarto;lua;documentation"}
+::: {.need #COMP-EXTENSION type="component" status="implemented" tags="quarto;lua;documentation" part-of="CONTAINER-QUARTO-EXT"}
 ## Quarto presentation extension
 
 Turns the resolved engineering model into cards, tables, matrices, dashboards, inspectors, diagrams, and progressive HTML views.
 :::
 
-::: {.need #COMP-GRAPH type="component" status="implemented" tags="graph;cytoscape;projection"}
+::: {.need #COMP-GRAPH type="component" status="implemented" tags="graph;cytoscape;projection" part-of="CONTAINER-PYTHON-PKG"}
 ## Graph projection and exploration subsystem
 
 Publishes bounded public graph projections and enhances them with Cytoscape-based semantic exploration.
 :::
 
-::: {.need #COMP-BASELINE type="component" status="implemented" tags="baseline;diff;impact"}
+::: {.need #COMP-BASELINE type="component" status="implemented" tags="baseline;diff;impact" part-of="CONTAINER-PYTHON-PKG"}
 ## Baseline and comparison subsystem
 
 Captures reproducible engineering states and computes structured changes and impact paths between states.
 :::
 
-::: {.need #COMP-I18N type="component" status="implemented" tags="localization;i18n;babelquarto"}
+::: {.need #COMP-I18N type="component" status="implemented" tags="localization;i18n;babelquarto" part-of="CONTAINER-PYTHON-PKG"}
 ## Localization projection subsystem
 
 Validates translated sources against the canonical engineering graph and emits presentation-only localized title projections.

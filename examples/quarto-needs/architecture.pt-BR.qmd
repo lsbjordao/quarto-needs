@@ -2,51 +2,91 @@
 
 Requisitos descrevem obrigações; a arquitetura explica como o produto é organizado para satisfazê-las. O Quarto-Needs mantém essas preocupações distintas e as conecta explicitamente.
 
+## Sistema e seu contexto
+
+::: {.need #SYS-QUARTO-NEEDS type="system" status="approved" tags="architecture;c4"}
+## Quarto-Needs
+
+A ferramenta de rastreabilidade de engenharia documentada por este estudo de caso: um grafo de requisitos/decisões/riscos/testes/evidências autorado em Quarto Markdown, analisado por um núcleo em Python, e apresentado por meio de uma extensão do Quarto.
+:::
+
+::: {.need #ACTOR-ENGINEER type="actor" status="approved" tags="architecture;c4" depends-on="SYS-QUARTO-NEEDS"}
+## Engenheiro de requisitos
+
+Autora, revisa e aprova objetos de engenharia; lê as visões geradas para entender rastreabilidade e cobertura.
+:::
+
+::: {.need #EXT-GITHUB type="external-system" status="approved" tags="architecture;c4;github" depends-on="SYS-QUARTO-NEEDS"}
+## GitHub
+
+Hospeda as issues do projeto, que o Quarto-Needs federa como observações externas somente leitura e com proveniência (ver `interoperability.qmd`).
+:::
+
+::: {.need #EXT-OSLC type="external-system" status="approved" tags="architecture;c4;oslc" depends-on="SYS-QUARTO-NEEDS"}
+## Ferramenta de gestão de requisitos compatível com OSLC
+
+Um provedor externo de OSLC Requirements Management do qual o Quarto-Needs federa como fonte somente leitura e com proveniência (ver `interoperability.qmd`).
+:::
+
+## Containers
+
+::: {.need #CONTAINER-PYTHON-PKG type="container" status="approved" tags="architecture;c4" technology="Python 3.12" part-of="SYS-QUARTO-NEEDS"}
+## Pacote Python
+
+A biblioteca e CLI instaláveis `quarto-needs`: parsing, análise, regras de governança, projeção de grafo, baselines e verificações de localização.
+:::
+
+::: {.need #CONTAINER-QUARTO-EXT type="container" status="approved" tags="architecture;c4" technology="Quarto/Pandoc Lua filters" part-of="SYS-QUARTO-NEEDS"}
+## Extensão de apresentação do Quarto
+
+O pacote `_extensions/quarto-needs/`: filtros Lua executados em tempo de build e o JavaScript de navegador que eles distribuem, juntos como uma única extensão Quarto instalada.
+:::
+
 ## Componentes
 
-::: {.need #COMP-PARSER type="component" status="implemented" tags="python;parser;authoring"}
+::: {.need #COMP-PARSER type="component" status="implemented" tags="python;parser;authoring" part-of="CONTAINER-PYTHON-PKG"}
 ## Parser de declarações
 
 Lê declarações em QMD e produz lotes estruturados de declarações com localização de origem.
 :::
 
-::: {.need #COMP-ANALYSIS type="component" status="implemented" tags="python;semantics;graph"}
+::: {.need #COMP-ANALYSIS type="component" status="implemented" tags="python;semantics;graph" part-of="CONTAINER-PYTHON-PKG"}
 ## Núcleo de análise semântica
 
 Constrói o grafo canônico de engenharia, resolve a semântica das relações e produz snapshots imutáveis de análise.
 :::
 
-::: {.need #COMP-RULES type="component" status="implemented" tags="python;governance;validation"}
+::: {.need #COMP-RULES type="component" status="implemented" tags="python;governance;validation" part-of="CONTAINER-PYTHON-PKG"}
 ## Motor de regras de governança
 
 Avalia governança estrutural, de requisitos, decisões, riscos e evidências contra o snapshot canônico.
 :::
 
-::: {.need #COMP-CLI type="component" status="implemented" tags="python;cli;ci"}
+::: {.need #COMP-CLI type="component" status="implemented" tags="python;cli;ci" part-of="CONTAINER-PYTHON-PKG"}
 ## Interface de linha de comando
 
 Expõe scan, check, coverage, baseline, diff, impact e outros fluxos de engenharia para execução local e em CI.
 :::
 
-::: {.need #COMP-EXTENSION type="component" status="implemented" tags="quarto;lua;documentation"}
+::: {.need #COMP-EXTENSION type="component" status="implemented" tags="quarto;lua;documentation" part-of="CONTAINER-QUARTO-EXT"}
 ## Extensão de apresentação Quarto
 
 Transforma o modelo de engenharia resolvido em cartões, tabelas, matrizes, dashboards, inspetores, diagramas e visualizações HTML progressivas.
 :::
 
-::: {.need #COMP-GRAPH type="component" status="implemented" tags="graph;cytoscape;projection"}
+::: {.need #COMP-GRAPH type="component" status="implemented" tags="graph;cytoscape;projection" part-of="CONTAINER-PYTHON-PKG"}
 ## Subsistema de projeção e exploração do grafo
 
 Publica projeções públicas e limitadas do grafo e as aprimora com exploração semântica baseada em Cytoscape.
 :::
 
-::: {.need #COMP-BASELINE type="component" status="implemented" tags="baseline;diff;impact"}
+::: {.need #COMP-BASELINE type="component" status="implemented" tags="baseline;diff;impact" part-of="CONTAINER-PYTHON-PKG"}
 ## Subsistema de baseline e comparação
 
 Captura estados reproduzíveis de engenharia e calcula mudanças estruturadas e caminhos de impacto entre estados.
 :::
 
-::: {.need #COMP-I18N type="component" status="implemented" tags="localization;i18n;babelquarto"}
+::: {.need #COMP-I18N type="component" status="implemented" tags="localization;i18n;babelquarto" part-of="CONTAINER-PYTHON-PKG"}
 ## Subsistema de projeção de localização
 
 Valida fontes traduzidas contra o grafo canônico de engenharia e emite projeções localizadas apenas para apresentação.

@@ -6,37 +6,37 @@ Os objetos `source-module` abaixo apontam para arquivos reais deste repositório
 
 ## Núcleo semântico em Python
 
-::: {.need #SRC-PARSER type="source-module" status="implemented" path="src/quarto_needs/parser.py" language="Python" layer="semantic-core" tags="parser;authoring;qmd" implements="FUN-001"}
+::: {.need #SRC-PARSER type="source-module" status="implemented" path="src/quarto_needs/parser.py" language="Python" layer="semantic-core" tags="parser;authoring;qmd" implements="FUN-001" part-of="COMP-PARSER"}
 ## Módulo parser de declarações QMD
 
 Interpreta declarações de engenharia, localizações de origem, atributos, justificativas e tokens de relações escritos em Quarto Markdown.
 :::
 
-::: {.need #SRC-RELATIONS type="source-module" status="implemented" path="src/quarto_needs/relations.py" language="Python" layer="semantic-core" tags="relations;semantics;graph" implements="FUN-002;NFR-005"}
+::: {.need #SRC-RELATIONS type="source-module" status="implemented" path="src/quarto_needs/relations.py" language="Python" layer="semantic-core" tags="relations;semantics;graph" implements="FUN-002;NFR-005" part-of="COMP-ANALYSIS"}
 ## Módulo do catálogo canônico de relações
 
 Define famílias de relações, rótulos, papéis dos extremos, direção de impacto, direção de travessia e perfis canônicos de travessia.
 :::
 
-::: {.need #SRC-ANALYSIS type="source-module" status="implemented" path="src/quarto_needs/analysis.py" language="Python" layer="semantic-core" tags="analysis;snapshot;graph;semantics" implements="SYS-001;FUN-002;NFR-001;NFR-005"}
+::: {.need #SRC-ANALYSIS type="source-module" status="implemented" path="src/quarto_needs/analysis.py" language="Python" layer="semantic-core" tags="analysis;snapshot;graph;semantics" implements="SYS-001;FUN-002;NFR-001;NFR-005" part-of="COMP-ANALYSIS"}
 ## Módulo de análise canônica
 
 Transforma declarações no snapshot imutável de engenharia usado por validação, consultas, cobertura, exports e projeções de grafo.
 :::
 
-::: {.need #SRC-RULES type="source-module" status="implemented" path="src/quarto_needs/rules.py" language="Python" layer="governance" tags="rules;governance;adr;risk" implements="SYS-003;SYS-004"}
+::: {.need #SRC-RULES type="source-module" status="implemented" path="src/quarto_needs/rules.py" language="Python" layer="governance" tags="rules;governance;adr;risk" implements="SYS-003;SYS-004" part-of="COMP-RULES"}
 ## Módulo de regras de governança
 
 Avalia governança de requisitos, decisões, riscos, evidências, ciclo de vida e datas de revisão contra o snapshot canônico.
 :::
 
-::: {.need #SRC-QUALITY type="source-module" status="implemented" path="src/quarto_needs/quality.py" language="Python" layer="governance" tags="quality;gates;coverage;ci" implements="SYS-003"}
+::: {.need #SRC-QUALITY type="source-module" status="implemented" path="src/quarto_needs/quality.py" language="Python" layer="governance" tags="quality;gates;coverage;ci" implements="SYS-003" part-of="COMP-RULES"}
 ## Módulo de quality gates
 
 Constrói relatórios de qualidade determinísticos e avalia gates de engenharia configurados sobre escopos resolvidos do projeto.
 :::
 
-::: {.need #SRC-QUERIES type="source-module" status="implemented" path="src/quarto_needs/queries.py" language="Python" layer="semantic-core" tags="query;views;graph" implements="FUN-003;NFR-005"}
+::: {.need #SRC-QUERIES type="source-module" status="implemented" path="src/quarto_needs/queries.py" language="Python" layer="semantic-core" tags="query;views;graph" implements="FUN-003;NFR-005" part-of="COMP-ANALYSIS"}
 ## Módulo de consultas nomeadas
 
 Compila e avalia a linguagem limitada de consultas no núcleo semântico, e não nos clientes de renderização.
@@ -44,25 +44,25 @@ Compila e avalia a linguagem limitada de consultas no núcleo semântico, e não
 
 ## Projeção e exploração do grafo
 
-::: {.need #SRC-GRAPH-OUTPUT type="source-module" status="implemented" path="src/quarto_needs/graph_output.py" language="Python" layer="projection" tags="graph;projection;provenance;security" implements="SYS-006;FUN-003;FUN-008;NFR-002;NFR-004"}
+::: {.need #SRC-GRAPH-OUTPUT type="source-module" status="implemented" path="src/quarto_needs/graph_output.py" language="Python" layer="projection" tags="graph;projection;provenance;security" implements="SYS-006;FUN-003;FUN-008;NFR-002;NFR-004" part-of="COMP-GRAPH"}
 ## Módulo de saída pública do grafo
 
 Publica JSON limitado do grafo, metadados semânticos de relações, perfis de travessia, views de consultas nomeadas, papéis de tipos e proveniência segura de declarações.
 :::
 
-::: {.need #SRC-GRAPH-PROJECTION type="source-module" status="implemented" path="src/quarto_needs/graph_projection.py" language="Python" layer="projection" tags="graph;selection;projection" implements="SYS-006;FUN-004;NFR-004"}
+::: {.need #SRC-GRAPH-PROJECTION type="source-module" status="implemented" path="src/quarto_needs/graph_projection.py" language="Python" layer="projection" tags="graph;selection;projection" implements="SYS-006;FUN-004;NFR-004" part-of="COMP-GRAPH"}
 ## Módulo de seleção e projeção do grafo
 
 Seleciona vizinhanças limitadas do grafo e constrói projeções determinísticas consumidas por renderizadores estáticos e interativos.
 :::
 
-::: {.need #SRC-GRAPH-CONTEXT type="source-module" status="implemented" path="_extensions/quarto-needs/graph-context.js" language="JavaScript" layer="presentation" tags="graph;cytoscape;traversal" implements="FUN-004"}
+::: {.need #SRC-GRAPH-CONTEXT type="source-module" status="implemented" path="_extensions/quarto-needs/graph-context.js" language="JavaScript" layer="presentation" tags="graph;cytoscape;traversal" implements="FUN-004" part-of="COMP-GRAPH"}
 ## Módulo de contexto semântico do Cytoscape
 
 Consome a direção de travessia publicada para implementar pais/filhos recursivos, estado de colapso, caminhos forçados até a raiz e atualização da hierarquia.
 :::
 
-::: {.need #SRC-GRAPH-EXPLORE type="source-module" status="implemented" path="_extensions/quarto-needs/graph-explore.js" language="JavaScript" layer="presentation" tags="graph;cytoscape;exploration;filters" implements="FUN-004"}
+::: {.need #SRC-GRAPH-EXPLORE type="source-module" status="implemented" path="_extensions/quarto-needs/graph-explore.js" language="JavaScript" layer="presentation" tags="graph;cytoscape;exploration;filters" implements="FUN-004" part-of="COMP-GRAPH"}
 ## Módulo de exploração do Cytoscape
 
 Fornece filtros de tipo/status/família, perfis de travessia, análise de caminho até a raiz e inspeção semântica de arestas sem redefinir o significado das relações.
@@ -70,7 +70,7 @@ Fornece filtros de tipo/status/família, perfis de travessia, análise de caminh
 
 ## Ergonomia de apresentação
 
-::: {.need #SRC-MARGIN-SIDEBAR type="source-module" status="implemented" path="_extensions/quarto-needs/margin-sidebar.js" language="JavaScript" layer="presentation" tags="quarto;toc;sidebar;usability;progressive-enhancement" implements="FUN-009"}
+::: {.need #SRC-MARGIN-SIDEBAR type="source-module" status="implemented" path="_extensions/quarto-needs/margin-sidebar.js" language="JavaScript" layer="presentation" tags="quarto;toc;sidebar;usability;progressive-enhancement" implements="FUN-009" part-of="COMP-EXTENSION"}
 ## Módulo do controle do índice lateral
 
 Adiciona o controle opcional e persistente de recolher/restaurar o índice da página, coordena o estado temporário `fullcontent` e posiciona o controle expandido inteiramente fora da barra lateral.
@@ -78,19 +78,19 @@ Adiciona o controle opcional e persistente de recolher/restaurar o índice da p�
 
 ## Análise de mudanças
 
-::: {.need #SRC-BASELINE type="source-module" status="implemented" path="src/quarto_needs/baseline.py" language="Python" layer="comparison" tags="baseline;reproducibility;change" implements="FUN-005;NFR-001"}
+::: {.need #SRC-BASELINE type="source-module" status="implemented" path="src/quarto_needs/baseline.py" language="Python" layer="comparison" tags="baseline;reproducibility;change" implements="FUN-005;NFR-001" part-of="COMP-BASELINE"}
 ## Módulo de baseline
 
 Captura estado autoral reproduzível, fingerprint de configuração, versão do conjunto de regras e data de referência para comparação posterior.
 :::
 
-::: {.need #SRC-DIFF type="source-module" status="implemented" path="src/quarto_needs/diff.py" language="Python" layer="comparison" tags="diff;baseline;change" implements="FUN-005"}
+::: {.need #SRC-DIFF type="source-module" status="implemented" path="src/quarto_needs/diff.py" language="Python" layer="comparison" tags="diff;baseline;change" implements="FUN-005" part-of="COMP-BASELINE"}
 ## Módulo de diff de engenharia
 
 Compara baseline e estado atual e relata de forma determinística mudanças de campos, relações, relocação, adições e remoções.
 :::
 
-::: {.need #SRC-IMPACT type="source-module" status="implemented" path="src/quarto_needs/impact.py" language="Python" layer="comparison" tags="impact;baseline;change;graph" implements="FUN-005"}
+::: {.need #SRC-IMPACT type="source-module" status="implemented" path="src/quarto_needs/impact.py" language="Python" layer="comparison" tags="impact;baseline;change;graph" implements="FUN-005" part-of="COMP-BASELINE"}
 ## Módulo de travessia de impacto
 
 Percorre a união dos grafos do baseline e do estado atual e retorna caminhos explícitos e auditáveis de impacto em vez de uma pontuação opaca de risco.
@@ -98,7 +98,7 @@ Percorre a união dos grafos do baseline e do estado atual e retorna caminhos ex
 
 ## Localização e renderização preparada
 
-::: {.need #SRC-PRE-RENDER type="source-module" status="implemented" path="tools/quarto_needs_pre_render.py" language="Python" layer="integration" tags="localization;i18n;extension;render" implements="FUN-006;FUN-007;SYS-005"}
+::: {.need #SRC-PRE-RENDER type="source-module" status="implemented" path="tools/quarto_needs_pre_render.py" language="Python" layer="integration" tags="localization;i18n;extension;render" implements="FUN-006;FUN-007;SYS-005" part-of="COMP-I18N"}
 ## Módulo canônico de integração no pre-render
 
 Sincroniza assets da extensão, constrói o grafo de engenharia, verifica paridade semântica das fontes localizadas e emite projeções de títulos apenas para apresentação.

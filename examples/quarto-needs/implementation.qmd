@@ -6,37 +6,37 @@ The `source-module` objects below point to real files in this repository. Their 
 
 ## Python semantic core
 
-::: {.need #SRC-PARSER type="source-module" status="implemented" path="src/quarto_needs/parser.py" language="Python" layer="semantic-core" tags="parser;authoring;qmd" implements="FUN-001"}
+::: {.need #SRC-PARSER type="source-module" status="implemented" path="src/quarto_needs/parser.py" language="Python" layer="semantic-core" tags="parser;authoring;qmd" implements="FUN-001" part-of="COMP-PARSER"}
 ## QMD declaration parser module
 
 Parses authored engineering declarations, source locations, attributes, rationale, and relation tokens from Quarto Markdown.
 :::
 
-::: {.need #SRC-RELATIONS type="source-module" status="implemented" path="src/quarto_needs/relations.py" language="Python" layer="semantic-core" tags="relations;semantics;graph" implements="FUN-002;NFR-005"}
+::: {.need #SRC-RELATIONS type="source-module" status="implemented" path="src/quarto_needs/relations.py" language="Python" layer="semantic-core" tags="relations;semantics;graph" implements="FUN-002;NFR-005" part-of="COMP-ANALYSIS"}
 ## Canonical relation catalog module
 
 Defines relation families, labels, endpoint roles, impact direction, traversal direction, and canonical traversal profiles.
 :::
 
-::: {.need #SRC-ANALYSIS type="source-module" status="implemented" path="src/quarto_needs/analysis.py" language="Python" layer="semantic-core" tags="analysis;snapshot;graph;semantics" implements="SYS-001;FUN-002;NFR-001;NFR-005"}
+::: {.need #SRC-ANALYSIS type="source-module" status="implemented" path="src/quarto_needs/analysis.py" language="Python" layer="semantic-core" tags="analysis;snapshot;graph;semantics" implements="SYS-001;FUN-002;NFR-001;NFR-005" part-of="COMP-ANALYSIS"}
 ## Canonical analysis module
 
 Turns declarations into the immutable engineering snapshot used by validation, queries, coverage, exports, and graph projections.
 :::
 
-::: {.need #SRC-RULES type="source-module" status="implemented" path="src/quarto_needs/rules.py" language="Python" layer="governance" tags="rules;governance;adr;risk" implements="SYS-003;SYS-004"}
+::: {.need #SRC-RULES type="source-module" status="implemented" path="src/quarto_needs/rules.py" language="Python" layer="governance" tags="rules;governance;adr;risk" implements="SYS-003;SYS-004" part-of="COMP-RULES"}
 ## Governance rule module
 
 Evaluates requirement, decision, risk, evidence, lifecycle, and review-date governance against the canonical snapshot.
 :::
 
-::: {.need #SRC-QUALITY type="source-module" status="implemented" path="src/quarto_needs/quality.py" language="Python" layer="governance" tags="quality;gates;coverage;ci" implements="SYS-003"}
+::: {.need #SRC-QUALITY type="source-module" status="implemented" path="src/quarto_needs/quality.py" language="Python" layer="governance" tags="quality;gates;coverage;ci" implements="SYS-003" part-of="COMP-RULES"}
 ## Quality-gate module
 
 Builds deterministic quality reports and evaluates configured engineering gates over resolved project scopes.
 :::
 
-::: {.need #SRC-QUERIES type="source-module" status="implemented" path="src/quarto_needs/queries.py" language="Python" layer="semantic-core" tags="query;views;graph" implements="FUN-003;NFR-005"}
+::: {.need #SRC-QUERIES type="source-module" status="implemented" path="src/quarto_needs/queries.py" language="Python" layer="semantic-core" tags="query;views;graph" implements="FUN-003;NFR-005" part-of="COMP-ANALYSIS"}
 ## Named-query module
 
 Compiles and evaluates the bounded query language in the semantic core rather than in rendering clients.
@@ -44,25 +44,25 @@ Compiles and evaluates the bounded query language in the semantic core rather th
 
 ## Graph projection and exploration
 
-::: {.need #SRC-GRAPH-OUTPUT type="source-module" status="implemented" path="src/quarto_needs/graph_output.py" language="Python" layer="projection" tags="graph;projection;provenance;security" implements="SYS-006;FUN-003;FUN-008;NFR-002;NFR-004"}
+::: {.need #SRC-GRAPH-OUTPUT type="source-module" status="implemented" path="src/quarto_needs/graph_output.py" language="Python" layer="projection" tags="graph;projection;provenance;security" implements="SYS-006;FUN-003;FUN-008;NFR-002;NFR-004" part-of="COMP-GRAPH"}
 ## Public graph output module
 
 Publishes bounded graph JSON, semantic relation metadata, traversal profiles, named-query views, type roles, and safe declaration provenance.
 :::
 
-::: {.need #SRC-GRAPH-PROJECTION type="source-module" status="implemented" path="src/quarto_needs/graph_projection.py" language="Python" layer="projection" tags="graph;selection;projection" implements="SYS-006;FUN-004;NFR-004"}
+::: {.need #SRC-GRAPH-PROJECTION type="source-module" status="implemented" path="src/quarto_needs/graph_projection.py" language="Python" layer="projection" tags="graph;selection;projection" implements="SYS-006;FUN-004;NFR-004" part-of="COMP-GRAPH"}
 ## Graph selection and projection module
 
 Selects bounded graph neighborhoods and builds deterministic projections consumed by static and interactive renderers.
 :::
 
-::: {.need #SRC-GRAPH-CONTEXT type="source-module" status="implemented" path="_extensions/quarto-needs/graph-context.js" language="JavaScript" layer="presentation" tags="graph;cytoscape;traversal" implements="FUN-004"}
+::: {.need #SRC-GRAPH-CONTEXT type="source-module" status="implemented" path="_extensions/quarto-needs/graph-context.js" language="JavaScript" layer="presentation" tags="graph;cytoscape;traversal" implements="FUN-004" part-of="COMP-GRAPH"}
 ## Cytoscape semantic context module
 
 Consumes published traversal direction to implement recursive parents/children, collapse state, forced root paths, and hierarchy refresh.
 :::
 
-::: {.need #SRC-GRAPH-EXPLORE type="source-module" status="implemented" path="_extensions/quarto-needs/graph-explore.js" language="JavaScript" layer="presentation" tags="graph;cytoscape;exploration;filters" implements="FUN-004"}
+::: {.need #SRC-GRAPH-EXPLORE type="source-module" status="implemented" path="_extensions/quarto-needs/graph-explore.js" language="JavaScript" layer="presentation" tags="graph;cytoscape;exploration;filters" implements="FUN-004" part-of="COMP-GRAPH"}
 ## Cytoscape exploration module
 
 Provides type/status/family filters, traversal profiles, path-to-root analysis, and semantic edge inspection without redefining relation meaning.
@@ -70,7 +70,7 @@ Provides type/status/family filters, traversal profiles, path-to-root analysis, 
 
 ## Presentation ergonomics
 
-::: {.need #SRC-MARGIN-SIDEBAR type="source-module" status="implemented" path="_extensions/quarto-needs/margin-sidebar.js" language="JavaScript" layer="presentation" tags="quarto;toc;sidebar;usability;progressive-enhancement" implements="FUN-009"}
+::: {.need #SRC-MARGIN-SIDEBAR type="source-module" status="implemented" path="_extensions/quarto-needs/margin-sidebar.js" language="JavaScript" layer="presentation" tags="quarto;toc;sidebar;usability;progressive-enhancement" implements="FUN-009" part-of="COMP-EXTENSION"}
 ## Margin TOC toggle module
 
 Adds the optional persistent page-TOC collapse/restore control, coordinates temporary `fullcontent` state, and positions the expanded control entirely outside the margin sidebar.
@@ -78,19 +78,19 @@ Adds the optional persistent page-TOC collapse/restore control, coordinates temp
 
 ## Change analysis
 
-::: {.need #SRC-BASELINE type="source-module" status="implemented" path="src/quarto_needs/baseline.py" language="Python" layer="comparison" tags="baseline;reproducibility;change" implements="FUN-005;NFR-001"}
+::: {.need #SRC-BASELINE type="source-module" status="implemented" path="src/quarto_needs/baseline.py" language="Python" layer="comparison" tags="baseline;reproducibility;change" implements="FUN-005;NFR-001" part-of="COMP-BASELINE"}
 ## Baseline module
 
 Captures reproducible authored state, configuration fingerprint, ruleset version, and reference date for later comparison.
 :::
 
-::: {.need #SRC-DIFF type="source-module" status="implemented" path="src/quarto_needs/diff.py" language="Python" layer="comparison" tags="diff;baseline;change" implements="FUN-005"}
+::: {.need #SRC-DIFF type="source-module" status="implemented" path="src/quarto_needs/diff.py" language="Python" layer="comparison" tags="diff;baseline;change" implements="FUN-005" part-of="COMP-BASELINE"}
 ## Engineering diff module
 
 Compares baseline and current states and reports field, relation, relocation, addition, and removal changes deterministically.
 :::
 
-::: {.need #SRC-IMPACT type="source-module" status="implemented" path="src/quarto_needs/impact.py" language="Python" layer="comparison" tags="impact;baseline;change;graph" implements="FUN-005"}
+::: {.need #SRC-IMPACT type="source-module" status="implemented" path="src/quarto_needs/impact.py" language="Python" layer="comparison" tags="impact;baseline;change;graph" implements="FUN-005" part-of="COMP-BASELINE"}
 ## Impact traversal module
 
 Traverses the union of baseline and current graphs and returns explicit auditable impact paths rather than an opaque risk score.
@@ -98,7 +98,7 @@ Traverses the union of baseline and current graphs and returns explicit auditabl
 
 ## Localization and staged rendering
 
-::: {.need #SRC-PRE-RENDER type="source-module" status="implemented" path="tools/quarto_needs_pre_render.py" language="Python" layer="integration" tags="localization;i18n;extension;render" implements="FUN-006;FUN-007;SYS-005"}
+::: {.need #SRC-PRE-RENDER type="source-module" status="implemented" path="tools/quarto_needs_pre_render.py" language="Python" layer="integration" tags="localization;i18n;extension;render" implements="FUN-006;FUN-007;SYS-005" part-of="COMP-I18N"}
 ## Canonical pre-render integration module
 
 Synchronizes extension assets, builds the engineering graph, checks localized semantic parity, and emits presentation-only title projections.
