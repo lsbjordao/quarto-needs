@@ -625,10 +625,10 @@ def test_need_graph_omits_the_overlay_artifact_without_a_baseline(tmp_path: Path
 
 
 def test_need_graph_static_table_lists_node_attributes_not_just_edges(tmp_path: Path) -> None:
-    """The interactive canvas is deliberately aria-hidden — the static
-    table is the primary operable representation for keyboard/screen-reader
-    readers. It must show a node's own type/status, not just edges, or that
-    audience has no non-visual way to know either at all."""
+    """The static table is the primary operable representation for
+    keyboard/screen-reader readers, independent of whether the canvas's own
+    JS ever loads. It must show a node's own type/status, not just edges, or
+    that audience has no non-visual way to know either at all."""
     project = build_overlays_fixture_project(tmp_path, with_baseline=False)
     subprocess.run(
         ["quarto", "render", str(project)],

@@ -4,8 +4,9 @@
   // It initializes only after the static fallback is present and the embedded
   // projection decodes and validates. The fallback (edge table) is hidden only
   // after a successful render, so a script failure leaves the accessible table
-  // visible. The canvas is hidden from assistive technology because the
-  // synchronized semantic table already represents the same information.
+  // visible. The synchronized semantic table remains the primary operable
+  // representation, but the canvas itself is keyboard-focusable too (arrow
+  // keys cycle nodes, Enter/Space activates) once it successfully builds.
   const VALID_MODES = new Set(["catalog", "diff", "impact"]);
   const CHANGE_COLORS = {
     added: "#166534",
@@ -210,6 +211,10 @@
       {
         selector: ":selected",
         style: { "border-width": 4, "border-color": "#2563eb" },
+      },
+      {
+        selector: "node.keyboard-focus-node",
+        style: { "border-width": 4, "border-color": "#2563eb", "border-style": "dashed" },
       },
     ];
   }
@@ -604,13 +609,17 @@
       if (event.key === "Escape") hidePopup();
     });
 
-    // Keyboard-focus the canvas is handled by Cytoscape's own tabindex; keep
-    // the semantic table as the primary operable representation.
+    // The static table remains the primary accessible path, but the canvas
+    // is no longer aria-hidden: it is genuinely keyboard-operable below, and
+    // a focusable-but-aria-hidden element is a real WCAG anti-pattern (a
+    // screen reader user could tab into it and get nothing at all).
     if (table) {
       table.setAttribute("aria-hidden", "false");
     }
     if (canvasRoot) {
-      canvasRoot.setAttribute("aria-hidden", "true");
+      canvasRoot.removeAttribute("aria-hidden");
+      canvasRoot.setAttribute("role", "group");
+      canvasRoot.setAttribute("tabindex", "0");
       clearLoading(canvasRoot);
       // Prevent wheel/trackpad/pinch gestures over the graph from scrolling the
       // page underneath while zooming. Cytoscape consumes the wheel for its own
@@ -619,6 +628,63 @@
       const blockPageScroll = (event) => event.preventDefault();
       canvasRoot.addEventListener("wheel", blockPageScroll, { passive: false });
       canvasRoot.addEventListener("touchmove", blockPageScroll, { passive: false });
+
+      // Keyboard cursor: a fully reversible linear cycle through every
+      // visible node in stable id order (Right/Down then Left/Up always
+      // returns to where you started) — not the graph's own topology, which
+      // has no stable "next/previous" once you've moved (each node has a
+      // different neighbor list, so there's no guaranteed way back). Enter/
+      // Space re-emits the real tap event so both existing tap listeners
+      // (this one, and graph-context.js's shared quarto-needs-node-focus
+      // dispatch) run unchanged — no duplicated logic. Arrow movement alone
+      // deliberately never fires that shared event: during "Path between…"
+      // picking, any focus event completes the pick, so a keyboard user
+      // needs to be able to browse before committing with Enter/Space.
+      let keyboardCursor = null;
+
+      const visibleNodesSorted = () =>
+        cy.nodes(":visible").sort((a, b) => a.id().localeCompare(b.id()));
+
+      const setKeyboardCursor = (node) => {
+        if (keyboardCursor) keyboardCursor.removeClass("keyboard-focus-node");
+        keyboardCursor = node || null;
+        if (keyboardCursor) {
+          keyboardCursor.addClass("keyboard-focus-node");
+          announce(status, `${keyboardCursor.id()}: ${keyboardCursor.data("title") || ""}`);
+        } else {
+          announce(status, "No objects to navigate");
+        }
+      };
+
+      const ensureCursor = () => {
+        if (keyboardCursor && keyboardCursor.visible()) return keyboardCursor;
+        const focusedId = container.__needGraphFocusNode;
+        const focused = focusedId && cy.getElementById(focusedId);
+        const fallback = focused && focused.length && focused.visible() ? focused : visibleNodesSorted()[0];
+        setKeyboardCursor(fallback || null);
+        return keyboardCursor;
+      };
+
+      canvasRoot.addEventListener("focus", ensureCursor);
+
+      canvasRoot.addEventListener("keydown", (event) => {
+        if (!["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp", "Enter", " "].includes(event.key)) return;
+        event.preventDefault();
+        const current = ensureCursor();
+        if (!current) return;
+
+        if (event.key === "Enter" || event.key === " ") {
+          current.emit("tap");
+          return;
+        }
+
+        const nodes = visibleNodesSorted();
+        const currentIndex = nodes.findIndex((n) => n.id() === current.id());
+        const forward = event.key === "ArrowRight" || event.key === "ArrowDown";
+        const step = forward ? 1 : -1;
+        const nextIndex = (currentIndex + step + nodes.length) % nodes.length;
+        setKeyboardCursor(nodes[nextIndex]);
+      });
     }
 
     announce(status, `Interactive graph ready (${projection.nodes.length} nodes, ${projection.edges.length} edges)`);

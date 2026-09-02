@@ -198,9 +198,7 @@
   border: 1px solid currentColor;
 }
 
-/* Hide the canvas from assistive technology: the synchronized semantic table
-   already carries nodes, edges, change states, and impact explanations. */
-.need-graph-canvas[aria-hidden="true"] { outline: none; }
+.need-graph-canvas:focus-visible { outline: 2px solid #2563eb; outline-offset: -2px; }
 
 @media (prefers-reduced-motion: reduce) {
   .need-graph-canvas { transition: none; }

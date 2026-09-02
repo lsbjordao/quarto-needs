@@ -153,6 +153,58 @@ def test_graph_css_ships_the_progressive_canvas() -> None:
     assert "var(--bs-body-bg" in source
 
 
+def test_graph_canvas_becomes_keyboard_focusable_not_aria_hidden() -> None:
+    """A focusable element left aria-hidden is a real WCAG anti-pattern
+    (phantom focus a screen reader user can tab into but gets nothing
+    from) — once the canvas gets a tabindex, aria-hidden must go, and
+    role="img" (implying static, non-interactive content) must go too."""
+    source = GRAPH_JS.read_text(encoding="utf-8")
+    assert 'canvasRoot.setAttribute("tabindex", "0")' in source
+    assert 'canvasRoot.removeAttribute("aria-hidden")' in source
+    assert 'canvasRoot.setAttribute("role", "group")' in source
+    assert 'canvasRoot.setAttribute("aria-hidden", "true")' not in source
+
+
+def test_graph_js_defines_a_visible_keyboard_cursor_style() -> None:
+    source = GRAPH_JS.read_text(encoding="utf-8")
+    assert "keyboard-focus-node" in source
+    # Cytoscape classes need a style rule to render at all — a bare
+    # .addClass() with no matching selector is a silent no-op.
+    assert '"node.keyboard-focus-node"' in source
+
+
+def test_graph_js_arrow_keys_cycle_all_visible_nodes_not_topology() -> None:
+    """Neighbor-based 'next/previous' has no stable meaning once you've
+    moved (each node has a different neighbor list, so there's no
+    guaranteed way back) — a linear cycle through every visible node in
+    stable id order is fully reversible instead."""
+    source = GRAPH_JS.read_text(encoding="utf-8")
+    keydown_start = source.index('canvasRoot.addEventListener("keydown"')
+    keydown_end = source.index("\n      });\n", keydown_start)
+    block = source[keydown_start:keydown_end]
+
+    assert "ArrowRight" in block
+    assert "ArrowLeft" in block
+    assert "visibleNodesSorted()" in block
+    assert 'cy.nodes(":visible")' in source
+    assert ".emit(\"tap\")" in block
+
+
+def test_graph_js_enter_activates_via_the_real_tap_event() -> None:
+    """Re-emitting the real tap event (rather than duplicating its body)
+    means both existing tap listeners — this file's popup/highlight, and
+    graph-context.js's shared quarto-needs-node-focus dispatch — run
+    unchanged for a keyboard activation exactly as they do for a mouse
+    tap, with zero duplicated logic."""
+    source = GRAPH_JS.read_text(encoding="utf-8")
+    keydown_start = source.index('canvasRoot.addEventListener("keydown"')
+    keydown_end = source.index("\n      });\n", keydown_start)
+    block = source[keydown_start:keydown_end]
+
+    assert '"Enter"' in block
+    assert '" "' in block
+
+
 def test_graph_theme_sync_uses_the_registered_cytoscape_instance() -> None:
     source = NEEDS_JS.read_text(encoding="utf-8")
     assert "canvas.__quartoNeedsCy" in source

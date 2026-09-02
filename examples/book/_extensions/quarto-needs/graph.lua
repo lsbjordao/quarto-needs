@@ -99,12 +99,12 @@ local function edge_table_rows(projection)
   return rows
 end
 
--- One row per node's own attributes and change state. The interactive
--- canvas is deliberately aria-hidden (an earlier milestone's own decision:
--- the static table is the primary operable representation for keyboard/
--- screen-reader readers); until this, that table only ever listed edges,
--- so a node's own type/status/priority/tags were only visible on the
--- canvas a non-visual reader can't reach at all.
+-- One row per node's own attributes and change state. The static table is
+-- the primary operable representation for keyboard/screen-reader readers,
+-- independent of whether the canvas's own JS ever loads; until this, that
+-- table only ever listed edges, so a node's own type/status/priority/tags
+-- were only visible on the canvas — which a non-visual reader, or one whose
+-- JS failed, could not reach at all.
 local function node_table_rows(projection)
   local rows = {}
   for _, node in ipairs(projection.nodes) do
