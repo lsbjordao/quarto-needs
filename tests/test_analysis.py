@@ -356,6 +356,74 @@ def test_findings_and_snapshot_are_equivalent_under_file_order_permutation(
     ]
 
 
+def test_snapshot_indexes_cover_every_object_with_canonical_relations(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "req.qmd"
+    source.write_text(
+        '::: {.need #REQ-1 type="need" verified-by="TC-1"}\n\n## REQ-1\nBody.\n:::\n'
+        '::: {.need #TC-1 type="need"}\n\n## TC-1\nBody.\n:::\n'
+        '::: {.need #REQ-2 type="need"}\n\n## REQ-2\nBody.\n:::\n',
+        encoding="utf-8",
+    )
+
+    result = analyze_project(tmp_path, files=[source])
+
+    assert result.snapshot is not None
+    snapshot = result.snapshot
+    assert set(snapshot.outgoing) == {"REQ-1", "TC-1", "REQ-2"}
+    assert set(snapshot.incoming) == {"REQ-1", "TC-1", "REQ-2"}
+    assert snapshot.outgoing["REQ-2"] == ()
+    assert snapshot.outgoing["TC-1"] == ()
+    assert snapshot.incoming["REQ-1"] == ()
+    assert snapshot.incoming["REQ-2"] == ()
+    edge = snapshot.relations[0]
+    assert snapshot.outgoing["REQ-1"] == (edge,)
+    assert snapshot.incoming["TC-1"] == (edge,)
+    assert all(
+        relation in snapshot.relations
+        for group in (*snapshot.outgoing.values(), *snapshot.incoming.values())
+        for relation in group
+    )
+
+
+def test_snapshot_index_construction_is_linear(tmp_path: Path) -> None:
+    """Regression guard against the removed O(V*E) construction pattern.
+
+    4,000 objects with 16,000 relations must analyze in a few seconds at
+    most; the replaced pattern (one full relation scan per object) costs
+    four scans worth of comparisons per object and takes tens of seconds at
+    this size. The bound is deliberately generous — the AST contract in
+    ``test_semantic_kernel_contract.py`` guards the pattern deterministically,
+    this only proves the construction stays practical at scale.
+    """
+    import time
+
+    blocks = []
+    for index in range(4_000):
+        targets = "; ".join(
+            f"OBJ-{(index + offset) % 4_000:05d}" for offset in range(1, 5)
+        )
+        blocks.append(
+            f'::: {{.need #OBJ-{index:05d} type="need"}}\n'
+            f"derives-from: {targets}\n"
+            f"\n## OBJ-{index:05d}\n"
+            "Body.\n"
+            ":::\n"
+        )
+    source = tmp_path / "scale.qmd"
+    source.write_text("\n".join(blocks), encoding="utf-8")
+
+    started = time.monotonic()
+    result = analyze_project(tmp_path, files=[source])
+    elapsed = time.monotonic() - started
+
+    assert result.snapshot is not None
+    assert len(result.snapshot.objects) == 4_000
+    assert len(result.snapshot.relations) == 16_000
+    assert elapsed < 3.0, f"analysis took {elapsed:.2f}s"
+
+
 def test_finding_order_includes_anchor_and_canonical_properties() -> None:
     legacy = EngineeringObject("REQ-1", "need", "Canonical findings")
     findings = [

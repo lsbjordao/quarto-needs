@@ -133,6 +133,16 @@ def test_analyze_batch_is_declaration_native_and_bridge_free() -> None:
     )
 
 
+def test_snapshot_indexes_are_not_built_by_scanning_relations_per_object() -> None:
+    # Guards the O(V + E) single-pass index construction. The two strings
+    # below are the exact signatures of the removed pattern (one full
+    # relation scan per object); their return would reintroduce O(V * E)
+    # construction. Matched textually because the pattern is unambiguous.
+    source = (SRC / "analysis.py").read_text(encoding="utf-8")
+    assert "if relation.source == " not in source
+    assert "if relation.target == " not in source
+
+
 def test_kernel_modules_do_not_import_the_legacy_model_at_runtime() -> None:
     kernel = (
         "rules.py",

@@ -253,15 +253,20 @@ def _analyze_batch(
 
     objects, relations = _records(declarations)
     objects_by_id = {item.id: item for item in objects}
-    outgoing: dict[str, tuple[RelationRecord, ...]] = {}
-    incoming: dict[str, tuple[RelationRecord, ...]] = {}
-    for item in objects:
-        outgoing[item.id] = tuple(
-            relation for relation in relations if relation.source == item.id
-        )
-        incoming[item.id] = tuple(
-            relation for relation in relations if relation.target == item.id
-        )
+    # Single-pass index construction, O(V + E): bucket every relation once.
+    # Relations arrive sorted by relation_key, so each bucket preserves the
+    # canonical deterministic ordering.
+    outgoing_lists: dict[str, list[RelationRecord]] = {
+        item.id: [] for item in objects
+    }
+    incoming_lists: dict[str, list[RelationRecord]] = {
+        item.id: [] for item in objects
+    }
+    for relation in relations:
+        outgoing_lists[relation.source].append(relation)
+        incoming_lists[relation.target].append(relation)
+    outgoing = {key: tuple(value) for key, value in outgoing_lists.items()}
+    incoming = {key: tuple(value) for key, value in incoming_lists.items()}
     metrics = legacy_coverage(objects, relations)
     configuration = fingerprints.configuration_fingerprint(
         effective_config, relation_catalog_version=DEFAULT_RELATION_CATALOG.version
