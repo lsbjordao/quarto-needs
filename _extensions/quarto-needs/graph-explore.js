@@ -91,6 +91,71 @@
     return found;
   }
 
+  // Unlike directParents/edgeBetween, this ignores each relation's own
+  // declared traversalDirection — a two-node connectivity question ("are
+  // these connected at all") is answered over every edge in an allowed
+  // family, traversable both ways, including "none"-direction relations
+  // (e.g. references) that a parent-walk never follows.
+  function neighbors(cy, semantics, nodeId, allowedFamilies) {
+    const result = [];
+    cy.edges().forEach((edge) => {
+      const relation = String(edge.data("relation") || "");
+      const definition = semantics[relation] || {};
+      const family = String(definition.family || "");
+      if (allowedFamilies && !allowedFamilies.has(family)) return;
+      const source = edge.source().id();
+      const target = edge.target().id();
+      if (source === nodeId) result.push(target);
+      else if (target === nodeId) result.push(source);
+    });
+    return result;
+  }
+
+  function undirectedEdgeBetween(cy, semantics, aId, bId, allowedFamilies) {
+    let found = null;
+    cy.edges().forEach((edge) => {
+      if (found) return;
+      const relation = String(edge.data("relation") || "");
+      const definition = semantics[relation] || {};
+      const family = String(definition.family || "");
+      if (allowedFamilies && !allowedFamilies.has(family)) return;
+      const source = edge.source().id();
+      const target = edge.target().id();
+      if ((source === aId && target === bId) || (source === bId && target === aId)) found = edge;
+    });
+    return found;
+  }
+
+  function shortestPath(cy, semantics, startId, endId, allowedFamilies) {
+    if (startId === endId) return { nodes: [startId], edges: [] };
+    const queue = [startId];
+    const previous = new Map([[startId, null]]);
+    let found = false;
+    while (queue.length) {
+      const current = queue.shift();
+      if (current === endId) { found = true; break; }
+      neighbors(cy, semantics, current, allowedFamilies).forEach((next) => {
+        if (!previous.has(next)) {
+          previous.set(next, current);
+          queue.push(next);
+        }
+      });
+    }
+    if (!found) return null;
+    const path = [endId];
+    let cursor = endId;
+    while (cursor !== startId) {
+      cursor = previous.get(cursor);
+      path.unshift(cursor);
+    }
+    const edgeIds = [];
+    for (let i = 0; i < path.length - 1; i += 1) {
+      const edge = undirectedEdgeBetween(cy, semantics, path[i], path[i + 1], allowedFamilies);
+      if (edge) edgeIds.push(edge.id());
+    }
+    return { nodes: path, edges: edgeIds };
+  }
+
   function pathToRoot(cy, semantics, startId, allowedFamilies) {
     const queue = [startId];
     const previous = new Map([[startId, null]]);
@@ -229,12 +294,19 @@
     pathButton.className = "need-graph-root-path";
     pathButton.textContent = t("Path to root", "Caminho até a raiz");
     pathButton.disabled = true;
-    wrapper.append(typeField.label, statusField.label, familyField.label, profileField.label, pathButton);
+    const betweenButton = document.createElement("button");
+    betweenButton.type = "button";
+    betweenButton.className = "need-graph-shortest-path";
+    betweenButton.textContent = t("Path between…", "Caminho entre…");
+    betweenButton.disabled = true;
+    wrapper.append(typeField.label, statusField.label, familyField.label, profileField.label, pathButton, betweenButton);
     controls.appendChild(wrapper);
 
     let pathNodes = new Set();
     let pathEdges = new Set();
     let pathActive = false;
+    let activePathKind = null;
+    let pickingSecondEndpoint = null;
 
     const announce = (message) => { if (status) status.textContent = message; };
     const activeProfileFamilies = () => {
@@ -303,9 +375,12 @@
       pathNodes = new Set();
       pathEdges = new Set();
       pathActive = false;
+      activePathKind = null;
+      pickingSecondEndpoint = null;
       container.__needGraphForcedNodes = pathNodes;
       cy.elements().removeClass("need-root-path-node need-root-path-edge");
       pathButton.textContent = t("Path to root", "Caminho até a raiz");
+      betweenButton.textContent = t("Path between…", "Caminho entre…");
       installPredicates();
     };
 
@@ -318,20 +393,56 @@
     });
 
     container.addEventListener("quarto-needs-node-focus", (event) => {
-      clearPath();
       const nodeId = event.detail && event.detail.nodeId;
+      // A focus change is normally the "clear any active path" signal — but
+      // while picking the second endpoint for a between-path, this same
+      // event IS the second pick, and must not be swallowed by that clear.
+      if (pickingSecondEndpoint) {
+        const startId = pickingSecondEndpoint;
+        pickingSecondEndpoint = null;
+        if (!nodeId) {
+          betweenButton.textContent = t("Path between…", "Caminho entre…");
+          pathButton.disabled = true;
+          betweenButton.disabled = true;
+          return;
+        }
+        const result = shortestPath(cy, semantics, startId, nodeId, activeProfileFamilies());
+        if (!result) {
+          betweenButton.textContent = t("Path between…", "Caminho entre…");
+          announce(t("No semantic path was found between the two objects", "Nenhum caminho semântico foi encontrado entre os dois objetos"));
+          pathButton.disabled = false;
+          betweenButton.disabled = false;
+          return;
+        }
+        pathNodes = new Set(result.nodes);
+        pathEdges = new Set(result.edges);
+        pathActive = true;
+        activePathKind = "between";
+        installPredicates();
+        contextApi.refresh();
+        result.nodes.forEach((id) => cy.getElementById(id).addClass("need-root-path-node"));
+        result.edges.forEach((id) => cy.getElementById(id).addClass("need-root-path-edge"));
+        betweenButton.textContent = t("Clear path", "Remover caminho");
+        pathButton.disabled = false;
+        betweenButton.disabled = false;
+        announce(`${result.nodes.length - 1} ${t("hops", "saltos")}`);
+        return;
+      }
+      clearPath();
       pathButton.disabled = !nodeId;
+      betweenButton.disabled = !nodeId;
     });
 
     pathButton.addEventListener("click", () => {
       const focus = container.__needGraphFocusNode;
       if (!focus) return;
-      if (pathActive) {
+      if (activePathKind === "root") {
         clearPath();
         refresh();
         announce(t("Root path cleared", "Caminho até a raiz removido"));
         return;
       }
+      clearPath();
       const result = pathToRoot(cy, semantics, focus, activeProfileFamilies());
       if (!result) {
         announce(t("No semantic path to a root was found", "Nenhum caminho semântico até uma raiz foi encontrado"));
@@ -340,12 +451,34 @@
       pathNodes = new Set(result.nodes);
       pathEdges = new Set(result.edges);
       pathActive = true;
+      activePathKind = "root";
       installPredicates();
       contextApi.refresh();
       result.nodes.forEach((id) => cy.getElementById(id).addClass("need-root-path-node"));
       result.edges.forEach((id) => cy.getElementById(id).addClass("need-root-path-edge"));
       pathButton.textContent = t("Clear root path", "Remover caminho");
       announce(`${t("Root", "Raiz")}: ${result.root} · ${result.nodes.length - 1} ${t("hops", "saltos")}`);
+    });
+
+    betweenButton.addEventListener("click", () => {
+      if (pickingSecondEndpoint) {
+        pickingSecondEndpoint = null;
+        betweenButton.textContent = t("Path between…", "Caminho entre…");
+        announce(t("Path selection cancelled", "Seleção de caminho cancelada"));
+        return;
+      }
+      if (activePathKind === "between") {
+        clearPath();
+        refresh();
+        announce(t("Path cleared", "Caminho removido"));
+        return;
+      }
+      const focus = container.__needGraphFocusNode;
+      if (!focus) return;
+      clearPath();
+      pickingSecondEndpoint = focus;
+      betweenButton.textContent = t("Select the second object…", "Selecione o segundo objeto…");
+      announce(t("Select the second object to find the path", "Selecione o segundo objeto para encontrar o caminho"));
     });
 
     cy.on("tap", "edge", (event) => {
@@ -370,6 +503,7 @@
       familyField.select.value = "";
       profileField.select.value = Object.prototype.hasOwnProperty.call(profiles, "traceability") ? "traceability" : "";
       pathButton.disabled = true;
+      betweenButton.disabled = true;
       clearPath();
       requestAnimationFrame(refresh);
     });

@@ -98,6 +98,65 @@ def test_affected_only_never_publishes_an_empty_filter() -> None:
     assert 't("No impacted objects to filter", "Nenhum objeto afetado para filtrar")' in modes
 
 
+def test_shortest_path_neighbors_ignore_traversal_direction() -> None:
+    """Two-node shortest path answers 'are these connected at all', not
+    'can you walk from one to the other along declared directions' —
+    unlike directParents (which only follows a relation's own declared
+    traversalDirection), neighbors() must treat every edge in an allowed
+    family as traversable both ways, including traversalDirection "none"
+    relations (e.g. references) that directParents never follows at all.
+    """
+    explore = read(EXTENSION, "graph-explore.js")
+
+    assert "function neighbors(cy, semantics, nodeId, allowedFamilies)" in explore
+    neighbors_start = explore.index("function neighbors(cy, semantics, nodeId, allowedFamilies)")
+    neighbors_end = explore.index("\n  }\n", neighbors_start)
+    neighbors_body = explore[neighbors_start:neighbors_end]
+
+    assert "traversalDirection" not in neighbors_body
+    assert "allowedFamilies" in neighbors_body
+
+
+def test_shortest_path_button_exists_and_reuses_the_root_path_highlight() -> None:
+    """Reuses pathToRoot's own highlight classes and forced-visibility
+    wiring rather than a second, parallel highlight system."""
+    explore = read(EXTENSION, "graph-explore.js")
+
+    assert 't("Path between…", "Caminho entre…")' in explore
+    assert explore.count('"need-root-path-node need-root-path-edge"') >= 1
+    assert "function shortestPath(cy, semantics, startId, endId, allowedFamilies)" in explore
+
+
+def test_shortest_path_picking_mode_does_not_clear_on_the_second_pick() -> None:
+    """Focus changes normally clear any active path (so path-to-root
+    doesn't linger) — but the second endpoint pick for shortest-path IS a
+    focus change, and must not be swallowed by that same auto-clear."""
+    explore = read(EXTENSION, "graph-explore.js")
+
+    focus_start = explore.index('addEventListener("quarto-needs-node-focus"')
+    focus_end = explore.index("});", focus_start)
+    focus_body = explore[focus_start:focus_end]
+
+    assert "pickingSecondEndpoint" in focus_body
+
+
+def test_shortest_path_handles_the_same_node_picked_twice() -> None:
+    explore = read(EXTENSION, "graph-explore.js")
+
+    shortest_start = explore.index("function shortestPath(cy, semantics, startId, endId, allowedFamilies)")
+    shortest_end = explore.index("\n  }\n", shortest_start)
+    shortest_body = explore[shortest_start:shortest_end]
+
+    assert "startId === endId" in shortest_body
+
+
+def test_shortest_path_announces_when_no_path_exists() -> None:
+    explore = read(EXTENSION, "graph-explore.js")
+
+    assert 'No semantic path was found between the two objects' in explore
+    assert "Nenhum caminho semântico foi encontrado entre os dois objetos" in explore
+
+
 def test_affected_only_toggle_refreshes_visibility_not_just_predicates() -> None:
     """Toggling the checkbox must actually re-render node visibility.
 
