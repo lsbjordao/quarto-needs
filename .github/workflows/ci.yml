@@ -129,6 +129,33 @@ jobs:
       - name: Verify the installed path
         run: make check-install
 
+  quarto-minimum:
+    name: Quarto minimum version smoke
+    needs: core
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+          cache: pip
+      - name: Install project and test dependencies
+        run: make setup
+      - name: Set up the declared minimum Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: "1.6.0"
+      - name: Scan and check the minimal example
+        run: make minimal-check
+      - name: Render the minimal example
+        run: make render-minimal-example
+      - name: Verify rendered output
+        run: test -f examples/minimal/_book/index.html
+
   quality:
     name: Quality artifacts
     needs: core

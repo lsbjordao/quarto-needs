@@ -1,4 +1,4 @@
-.PHONY: setup setup-branding setup-babelquarto test branding-assets branding-check scan check coverage example preview-example sync-example check-example render-example render-example-all render-example-multilingual render-manual-multilingual preview-self-example sync-self-example check-self-example evidence-self-example render-self-example baseline-example diff-example impact-example check-install
+.PHONY: setup setup-branding setup-babelquarto test branding-assets branding-check scan check coverage example preview-example sync-example check-example render-example render-example-all render-example-multilingual render-manual-multilingual preview-self-example sync-self-example check-self-example evidence-self-example render-self-example baseline-example diff-example impact-example check-install minimal-check render-minimal-example check-minimal-example
 .DEFAULT_GOAL := test
 
 VENV_PYTHON := .venv/bin/python
@@ -41,6 +41,15 @@ preview-example: render-example
 
 sync-example:
 	cd examples/book && ../../$(VENV_PYTHON) ../../tools/quarto_needs_pre_render.py
+
+minimal-check:
+	PYTHONPATH=src $(VENV_PYTHON) -m quarto_needs.cli --root examples/minimal scan
+	PYTHONPATH=src $(VENV_PYTHON) -m quarto_needs.cli --root examples/minimal check
+
+render-minimal-example:
+	cd examples/minimal && PATH="$(CURDIR)/.venv/bin:$$PATH" quarto render --to html
+
+check-minimal-example: minimal-check
 
 check-example:
 	PYTHONPATH=src $(VENV_PYTHON) -m quarto_needs.cli --root examples/book check
