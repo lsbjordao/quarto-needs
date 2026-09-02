@@ -170,6 +170,38 @@ def test_graph_css_sizes_the_canvas_to_fill_fullscreen() -> None:
     assert ".need-graph-container:fullscreen .need-graph-canvas" in source
 
 
+def test_graph_lua_ships_a_png_export_button_after_fullscreen() -> None:
+    lua = (ROOT / "_extensions" / "quarto-needs" / "graph.lua").read_text(encoding="utf-8")
+    assert '<button type="button" class="need-graph-export-png">' in lua
+    assert 'views.tr("Export PNG", "Exportar PNG")' in lua
+    assert lua.index("need-graph-fullscreen") < lua.index("need-graph-export-png")
+
+
+def test_graph_js_exports_png_via_the_pinned_cytoscape_build() -> None:
+    """cy.svg() does not exist on the vendored core (cytoscape-svg is a
+    separate, GPLv3-licensed plugin — a real license conflict for an
+    MIT project, deliberately not vendored). PNG export uses only what
+    the pinned build already ships."""
+    source = GRAPH_JS.read_text(encoding="utf-8")
+    export_start = source.index("need-graph-export-png")
+    block = source[export_start : export_start + 700]
+    assert "cy.png(" in block
+    assert "full: true" in block
+    assert "cy.svg(" not in block
+
+
+def test_graph_js_png_export_downloads_a_named_file() -> None:
+    """The exported filename carries the graph's own instance id so
+    multiple need-graph embeds on one page never collide or overwrite
+    each other's downloads."""
+    source = GRAPH_JS.read_text(encoding="utf-8")
+    export_start = source.index("need-graph-export-png")
+    block = source[export_start : export_start + 700]
+    assert ".download = " in block
+    assert "container.id" in block
+    assert ".click()" in block
+
+
 def test_default_projection_is_written_and_embeds_projection(tmp_path) -> None:
     (tmp_path / "adversarial.qmd").write_text(FIXTURE.read_text(encoding="utf-8"))
     result = analyze_project(tmp_path)

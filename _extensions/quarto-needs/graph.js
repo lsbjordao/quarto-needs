@@ -519,6 +519,25 @@
       }
     }
 
+    // Export PNG --------------------------------------------------------------
+    // cy.svg() does not exist on the vendored Cytoscape core — the only SVG
+    // export plugin (cytoscape-svg) is GPLv3, which conflicts with this
+    // project's MIT license for a vendored dependency, so PNG is all this
+    // uses. Hidden (display:none) elements are already excluded by Cytoscape
+    // itself, so the export naturally reflects whatever filters are active.
+    const exportBtn = controls.querySelector(".need-graph-export-png");
+    if (exportBtn) {
+      exportBtn.addEventListener("click", () => {
+        const dataUrl = cy.png({ full: true, scale: 2, bg: "#ffffff" });
+        const link = document.createElement("a");
+        link.href = dataUrl;
+        link.download = (container.id || "graph") + ".png";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      });
+    }
+
     // Color by attribute ----------------------------------------------------
     const colorSelect = controls.querySelector("[data-need-graph-color]");
     const preferred = colorSelect && colorSelect.value;
