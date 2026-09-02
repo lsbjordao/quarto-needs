@@ -1,0 +1,81 @@
+{
+  "environment": {
+    "implementation": "CPython",
+    "machine": "x86_64",
+    "python": "3.13.5",
+    "system": "Linux-6.12.107+deb13-amd64-x86_64-with-glibc2.41"
+  },
+  "generated_at": "2026-09-02",
+  "method": "best-of-N wall clock via time.perf_counter; medians included alongside",
+  "results": [
+    {
+      "analyze_ms": 4.1,
+      "fingerprint_ms": 1.8,
+      "medians_ms": {
+        "analyze": 4.2,
+        "fingerprint": 1.8,
+        "parse": 1.5,
+        "rules": 0.0,
+        "select_graph": 0.2
+      },
+      "objects": 100,
+      "parse_ms": 1.5,
+      "relations": 204,
+      "rules_ms": 0.0,
+      "select_graph_ms": 0.2,
+      "semantic_fingerprint": "56159483f610188177a52d011b520bc243ef03be1e401e7e0c4cfede577777d4"
+    },
+    {
+      "analyze_ms": 39.6,
+      "fingerprint_ms": 14.7,
+      "medians_ms": {
+        "analyze": 40.5,
+        "fingerprint": 14.9,
+        "parse": 15.3,
+        "rules": 0.1,
+        "select_graph": 0.7
+      },
+      "objects": 1000,
+      "parse_ms": 15.1,
+      "relations": 2049,
+      "rules_ms": 0.1,
+      "select_graph_ms": 0.7,
+      "semantic_fingerprint": "33813d782ac7d9cf42094ef8c6c04e76e137c55a892fbe3a3a4d345ae3f22a2a"
+    },
+    {
+      "analyze_ms": 430.6,
+      "fingerprint_ms": 148.8,
+      "medians_ms": {
+        "analyze": 454.2,
+        "fingerprint": 150.5,
+        "parse": 155.1,
+        "rules": 0.8,
+        "select_graph": 7.3
+      },
+      "objects": 10000,
+      "parse_ms": 154.9,
+      "relations": 20499,
+      "rules_ms": 0.7,
+      "select_graph_ms": 7.1,
+      "semantic_fingerprint": "5e890ce21f3b760a6d37be0d66aaa69daabc18e6726e3aeafdf3416059b68b81"
+    },
+    {
+      "analyze_ms": 2613.9,
+      "fingerprint_ms": 753.6,
+      "medians_ms": {
+        "analyze": 2617.2,
+        "fingerprint": 753.6,
+        "parse": 1055.1,
+        "rules": 5.0,
+        "select_graph": 50.0
+      },
+      "objects": 50000,
+      "parse_ms": 887.9,
+      "relations": 102499,
+      "rules_ms": 4.7,
+      "select_graph_ms": 46.9,
+      "semantic_fingerprint": "4c334f2bcde558053402ad3f70fa1a037eb8b2517443042ddc9319449a1e5a4c"
+    }
+  ],
+  "seed": 20260902
+}
