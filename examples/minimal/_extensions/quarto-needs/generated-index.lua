@@ -1,0 +1,17 @@
+return {
+  ["ADR-001"] = { title = "Retry through an idempotent client with a bounded queue", href = "index.html#ADR-001", type = "architecture-decision", status = "accepted" },
+  ["COMP-001"] = { title = "Retry client", href = "index.html#COMP-001", type = "component", status = "approved" },
+  ["COMP-002"] = { title = "Retry ledger", href = "index.html#COMP-002", type = "component", status = "approved" },
+  ["EVD-001"] = { title = "CI run 2231", href = "index.html#EVD-001", type = "evidence", status = "final" },
+  ["EVD-002"] = { title = "CI run 2232", href = "index.html#EVD-002", type = "evidence", status = "final" },
+  ["EVD-003"] = { title = "CI run 2233", href = "index.html#EVD-003", type = "evidence", status = "final" },
+  ["REQ-001"] = { title = "Retry transient provider failures", href = "index.html#REQ-001", type = "system-requirement", status = "approved" },
+  ["REQ-002"] = { title = "Never double-charge a retried payment", href = "index.html#REQ-002", type = "system-requirement", status = "approved" },
+  ["REQ-003"] = { title = "Expose retry outcomes to operations", href = "index.html#REQ-003", type = "system-requirement", status = "approved" },
+  ["REQ-004"] = { title = "Bound the retry backlog", href = "index.html#REQ-004", type = "system-requirement", status = "approved" },
+  ["STK-001"] = { title = "Reliable payments under transient failures", href = "index.html#STK-001", type = "stakeholder-need", status = "approved" },
+  ["TC-001"] = { title = "Transient failures are retried", href = "index.html#TC-001", type = "test-case", status = "passed" },
+  ["TC-002"] = { title = "Retries never double-charge", href = "index.html#TC-002", type = "test-case", status = "passed" },
+  ["TC-003"] = { title = "Outcomes are recorded", href = "index.html#TC-003", type = "test-case", status = "passed" },
+  ["TC-004"] = { title = "Backlog bound holds", href = "index.html#TC-004", type = "test-case", status = "passed" },
+}

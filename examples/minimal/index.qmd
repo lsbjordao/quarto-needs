@@ -1,0 +1,152 @@
+---
+title: "Payments Retry Service — traceable engineering"
+---
+
+This small project shows the canonical Quarto-Needs workflow on an ordinary
+engineering problem: a payment retry service. One stakeholder need drives a
+small requirement set; one architecture decision bounds the solution; tests
+and evidence verify the requirements. Everything below is declared in this
+repository and every table, matrix, flow, and graph on this page is generated
+from those declarations at build time.
+
+## The stakeholder need
+
+::: {.need #STK-001 type="stakeholder-need" status="approved"}
+## Reliable payments under transient failures
+
+Customers must not lose a paid order because a payment provider hiccupped.
+
+### Rationale
+
+Failed retries generate support tickets, refunds, and churn; the business
+wants providers to absorb transient faults instead.
+:::
+
+## Requirements
+
+::: {.need #REQ-001 type="system-requirement" status="approved" priority="high" derives-from="STK-001" implemented-by="COMP-001" verified-by="TC-001"}
+## Retry transient provider failures
+
+The service shall retry a payment up to three times when the provider
+returns a transient error.
+
+### Rationale
+
+Transient faults are the most common failure mode and are safely retryable.
+:::
+
+::: {.need #REQ-002 type="system-requirement" status="approved" priority="high" derives-from="STK-001" implemented-by="COMP-001" verified-by="TC-002"}
+## Never double-charge a retried payment
+
+The service shall use an idempotency key so a retried payment cannot be
+charged twice.
+
+### Rationale
+
+A retry that double-charges is worse than the fault it recovers from.
+:::
+
+::: {.need #REQ-003 type="system-requirement" status="approved" priority="medium" derives-from="STK-001" implemented-by="COMP-002" verified-by="TC-003"}
+## Expose retry outcomes to operations
+
+The service shall record every attempt's outcome so operations can inspect
+retry behaviour.
+
+### Rationale
+
+Operations cannot trust what it cannot observe.
+:::
+
+::: {.need #REQ-004 type="system-requirement" status="approved" priority="low" derives-from="STK-001" implemented-by="COMP-002" verified-by="TC-004"}
+## Bound the retry backlog
+
+The service shall cap the pending-retry queue so sustained outages cannot
+exhaust storage.
+
+### Rationale
+
+A backlog without bounds turns a provider outage into a platform incident.
+:::
+
+## Architecture
+
+::: {.need #ADR-001 type="architecture-decision" status="accepted" addresses="REQ-001; REQ-002" applies-to="COMP-001; COMP-002"}
+## Retry through an idempotent client with a bounded queue
+
+Retries live in a dedicated client holding the idempotency key; a bounded
+queue decouples request handling from provider latency.
+
+### Rationale
+
+Centralizing retries in one component keeps the double-charge guarantee in
+one place instead of scattering it across call sites.
+:::
+
+::: {.need #COMP-001 type="component" status="approved"}
+## Retry client
+
+Owns provider calls, the idempotency key, and the retry schedule.
+:::
+
+::: {.need #COMP-002 type="component" status="approved"}
+## Retry ledger
+
+Persists attempt outcomes and enforces the pending-retry bound.
+:::
+
+## Verification
+
+::: {.need #TC-001 type="test-case" status="passed" evidences="EVD-001"}
+## Transient failures are retried
+
+Simulates two transient provider errors followed by success.
+:::
+
+::: {.need #TC-002 type="test-case" status="passed" evidences="EVD-002"}
+## Retries never double-charge
+
+Replays the same idempotency key and asserts a single charge.
+:::
+
+::: {.need #TC-003 type="test-case" status="passed" evidences="EVD-003"}
+## Outcomes are recorded
+
+Forces each outcome class and checks the ledger entries.
+:::
+
+::: {.need #TC-004 type="test-case" status="passed" evidences="EVD-001"}
+## Backlog bound holds
+
+Floods the queue past its cap and asserts rejection instead of growth.
+:::
+
+::: {.need #EVD-001 type="evidence" status="final" source="ci-run-2231"}
+## CI run 2231
+
+Retry-client suite results from the release pipeline.
+:::
+
+::: {.need #EVD-002 type="evidence" status="final" source="ci-run-2232"}
+## CI run 2232
+
+Idempotency replay suite results from the release pipeline.
+:::
+
+::: {.need #EVD-003 type="evidence" status="final" source="ci-run-2233"}
+## CI run 2233
+
+Ledger suite results from the release pipeline.
+:::
+
+## Generated traceability
+
+The rest of this page is generated from the declarations above at build
+time — nothing here is hand-maintained.
+
+{{< need-table types="system-requirement" columns="id;title;status;implemented-by;verified-by" sort="id" caption="Requirements and their coverage" >}}
+
+{{< need-matrix rows="system-requirement" columns="test-case" relation="verified-by" >}}
+
+{{< need-flow root="STK-001" depth="6" relations="derives-from;addresses;applies-to;implemented-by;verified-by;evidences" direction="LR" >}}
+
+{{< need-graph >}}
