@@ -314,6 +314,177 @@ The static document remains usable without JavaScript, while HTML readers gain a
 `TC-014` checks persistence/full-content behavior and verifies that the expanded control is positioned by `button.offsetWidth + gap`, never by the old half-width overlap.
 :::
 
+::: {.need #ADR-011 type="architecture-decision" status="accepted" date="2026-09-02" revisit-after="2027-09-02" decision-makers="Quarto-Needs maintainers" tags="documentation;architecture;viewpoints;arc42" addresses="STK-002;SYS-002;RISK-001" applies-to="COMP-EXTENSION" confirmed-by="TC-002"}
+## Document Quarto-Needs itself through explicit viewpoints, indexed arc42-lite
+
+### Context and Problem Statement
+
+`ARCHITECTURE.md` and this self-hosted example both describe the system, but neither page declares its audience, the concern it answers, or when it must be revisited. As the product grew from a single pipeline into CLI/core/Quarto/LSP/VS Code/interoperability surfaces, an undeclared set of ad hoc pages risks duplicating content and drifting silently.
+
+### Decision Drivers
+
+- give every architecture page an explicit audience, concern, and update trigger;
+- avoid forcing one notation (C4, UML, or 4+1) to answer every question;
+- keep the index navigable without becoming a second copy of this case study.
+
+### Decision Outcome
+
+Organize `docs/architecture/` as a small set of ISO/IEC/IEEE 42010-style viewpoints, indexed by an arc42-lite structure. Each page records its audience, concern, notation, and source in `viewpoints.md`; diagrams are chosen per concern rather than committing the whole set to one modeling language.
+
+### Consequences
+
+The documentation set gains a stable table of contents and a contract per page, at the cost of keeping `viewpoints.md` current whenever a page's purpose changes.
+
+### Confirmation
+
+`TC-002` confirms the presentation/rendering path this documentation set builds on.
+:::
+
+::: {.need #ADR-012 type="architecture-decision" status="accepted" date="2026-09-02" revisit-after="2027-09-02" decision-makers="Quarto-Needs maintainers" tags="architecture;types;extensibility" addresses="SYS-004;RISK-001" applies-to="COMP-ANALYSIS;COMP-RULES" confirmed-by="TC-004"}
+## Model architectural roles as configurable types, not a fixed enumeration
+
+### Context and Problem Statement
+
+Phase 6 needed `system`/`container`/`component`/`actor`/`external-system` roles for C4 views. A fixed Python enum for architectural roles would hardcode one project's vocabulary into the core, contradicting the existing decision to keep traceability as a typed property graph with project-declared types (`ADR-003`).
+
+### Decision Outcome
+
+Architectural roles are ordinary entries under `[types.*]` in project configuration, validated the same way as every other type, never a hardcoded enumeration in `config.py`. `ARC001` and the C4 projection match on these configured types plus the fixed C4 layer order, never on a Python-level role constant.
+
+### Consequences
+
+A project can rename or extend its architectural vocabulary without a core code change; C4 support depends on a project actually declaring the expected types, which the C4 projection and `ARC001` already report explicitly when a focus type is unsupported.
+
+### Confirmation
+
+`TC-004` confirms decision and rule governance, including `ARC001`'s layer-adjacency checks.
+:::
+
+::: {.need #ADR-013 type="architecture-decision" status="accepted" date="2026-09-02" revisit-after="2027-09-02" decision-makers="Quarto-Needs maintainers" tags="architecture;hierarchy;relations" addresses="SYS-004;RISK-001" applies-to="COMP-ANALYSIS;COMP-RULES" confirmed-by="TC-004"}
+## Represent architecture hierarchy and containment through a first-class part-of relation
+
+### Context and Problem Statement
+
+`decomposes` already expressed parent-to-child containment, but nothing let a child self-declare its parent: every container had to enumerate its own components by hand, an error-prone, one-directional bookkeeping burden.
+
+### Decision Outcome
+
+Add `part-of` as `decomposes`'s genuine inverse (child-authored, `(part, whole)` roles, its own `v1_name` so `relation_policies` can target one direction independently). Enforce fixed-layer adjacency (`system > container > component > source-module`) with the `ARC001` rule over both authored directions.
+
+### Consequences
+
+Components and source modules author their own placement; `ARC001` catches layer-skipping or same-layer edges as a structural error, and non-C4 types are simply ignored by the rule rather than rejected.
+
+### Confirmation
+
+`TC-004`.
+:::
+
+::: {.need #ADR-014 type="architecture-decision" status="accepted" date="2026-09-02" revisit-after="2027-09-02" decision-makers="Quarto-Needs maintainers" tags="architecture;relations;traceability" addresses="RISK-001" applies-to="COMP-ANALYSIS;COMP-RULES" confirmed-by="TC-004"}
+## Reuse part-of instead of introducing a separate realized-by/realizes relation
+
+### Context and Problem Statement
+
+An external documentation-strategy review proposed adding an `ArchitectureElement realized-by ImplementationArtifact` relation (and its inverse `realizes`) to connect components to the source modules that implement them, reasoning that containment and "is realized by" are conceptually distinct. By the time this decision was recorded, `part-of` already connected every `source-module` to its owning `component` (see `implementation.qmd`), and `ARC001` already treats that edge as the bottom rung of the same fixed C4 layer ladder used for `container`/`system`.
+
+### Considered Options
+
+- introduce `realized-by`/`realizes` as a new relation family, kept parallel to `part-of`;
+- keep `part-of` as the single relation connecting a source module to its owning component, exactly as it already connects a component to its container and a container to its system.
+
+### Decision Outcome
+
+Do not introduce `realized-by`/`realizes`. `part-of` already means "the child sits inside this parent at the next C4 layer up" for every layer, including `source-module -> component`. A second relation expressing the same fact between the same two objects would let the two edges disagree with no rule capable of detecting the contradiction, and would fragment `ARC001`'s single layer-adjacency check across two relation families.
+
+### Consequences
+
+Architecture-to-implementation traceability continues to read entirely through `part-of` plus `implements`/`implemented-by` (code to requirement); no new relation, rule, or projection code exists for this concern.
+
+### Confirmation
+
+`TC-004`.
+:::
+
+::: {.need #ADR-015 type="architecture-decision" status="accepted" date="2026-09-02" revisit-after="2027-09-02" decision-makers="Quarto-Needs maintainers" tags="architecture;c4;projection" addresses="SYS-006;RISK-001;RISK-002" applies-to="COMP-GRAPH" confirmed-by="TC-006"}
+## Derive C4/architecture projections from the canonical snapshot, never hand-author them
+
+### Context and Problem Statement
+
+A hand-maintained C4 diagram drifts the moment the underlying `part-of`/`depends-on` graph changes, and a second, independently authored diagram risks disagreeing with the engineering graph it claims to depict.
+
+### Decision Outcome
+
+`build_c4_view` computes every C4 level as one `select_graph` depth-1 call over an allowlisted set of relations for that level; `c4_mermaid_source`/`c4_code_table_markdown` render that projection as text; `write_c4_projections` writes one JSON file per view under `.quarto-needs/graphs/`. No C4 view is authored directly; the `need-c4` shortcode only ever reads a pre-rendered projection file.
+
+### Consequences
+
+Every C4 diagram in this documentation set is reproducible from the graph and cannot silently diverge from it; adding an object or `part-of` edge is sufficient to update the corresponding view on the next build.
+
+### Confirmation
+
+`TC-006`.
+:::
+
+::: {.need #ADR-016 type="architecture-decision" status="accepted" date="2026-09-02" revisit-after="2027-09-02" decision-makers="Quarto-Needs maintainers" tags="architecture;renderer-independence" addresses="SYS-002;RISK-001" applies-to="COMP-EXTENSION;COMP-GRAPH" confirmed-by="TC-002"}
+## Keep the architecture model renderer-independent
+
+### Context and Problem Statement
+
+C4/UML-flavored diagram text (Mermaid) is one presentation of the architecture graph; a second, unrelated presentation — the interactive Cytoscape exploration view — already exists over the same public projection.
+
+### Decision Outcome
+
+Mermaid source, the Code-level Markdown table, and the interactive Cytoscape view are alternate renderers over the same `graph_projection.py` output; none of them is treated as the canonical architecture model, and none of the three defines relation semantics of its own.
+
+### Consequences
+
+A future renderer (a different diagram language, a static image export) can consume the same projection without touching `analysis.py`, `relations.py`, or the C4 projection code.
+
+### Confirmation
+
+`TC-002`.
+:::
+
+::: {.need #ADR-017 type="architecture-decision" status="accepted" date="2026-09-02" revisit-after="2027-09-02" decision-makers="Quarto-Needs maintainers" tags="architecture;generated-artifacts;boundary" addresses="RISK-002;SYS-006" applies-to="COMP-GRAPH" confirmed-by="TC-006"}
+## Draw an explicit boundary between authored architecture declarations and generated projections
+
+### Context and Problem Statement
+
+Generated files (`.quarto-needs/needs.json`, `.quarto-needs/graphs/*.json`, `generated-index.lua`) live inside the same project tree as authored `.qmd` declarations. Without an explicit rule, a contributor could hand-edit a generated file, or a generated file could be mistaken for a second authoring surface.
+
+### Decision Outcome
+
+Every path under a project's `.quarto-needs/` output directory is generated-only: the CLI build step recreates it in full on every run, `generated-index.lua` is explicitly excluded from the extension-asset sync so it is never treated as an authoring source, and stale `c4-*.json` files are removed before a projection is rewritten. `docs/architecture/generated/` follows the same rule for this documentation set's own diagrams.
+
+### Consequences
+
+Reviewers and contributors can rely on "is it under `.quarto-needs/` (or `docs/architecture/generated/`)?" as a sufficient test for "may I hand-edit this file?"; the answer is always no.
+
+### Confirmation
+
+`TC-006`.
+:::
+
+::: {.need #ADR-018 type="architecture-decision" status="accepted" date="2026-09-02" revisit-after="2027-09-02" decision-makers="Quarto-Needs maintainers" tags="architecture;c4;execution-units" addresses="SYS-004;RISK-001" applies-to="COMP-ANALYSIS;COMP-RULES" confirmed-by="TC-004"}
+## Classify execution units (system, container) separately from logical components
+
+### Context and Problem Statement
+
+This example's own `component` objects mix logical responsibility (parser, rule engine) with what are really deployable/executable units; a naive C4 projection that mapped every `type=component` to a C4 Component would blur the distinction between "runs as a process" and "is a logical piece of a process."
+
+### Decision Outcome
+
+`system` and `container` are configured as distinct types representing deployable/executable units; `component` remains the logical decomposition inside a container. `build_c4_view` requires a `system` focus for Context/Container and a `container` focus for Component, so a logical component can never itself be treated as a container boundary.
+
+### Consequences
+
+Adding a new deployable unit means declaring a new `container` (or `system`), not repurposing an existing `component`; `ARC001`'s fixed layer order (`system > container > component > source-module`) enforces this separation structurally.
+
+### Confirmation
+
+`TC-004`.
+:::
+
 ## Generated architecture views
 
 {{< need-table query="architecture-decisions" columns="id;title;status" sort="id" >}}
@@ -327,3 +498,19 @@ The static document remains usable without JavaScript, while HTML readers gain a
 {{< need-c4 root="SYS-QUARTO-NEEDS" level="container" >}}
 
 {{< need-c4 root="CONTAINER-PYTHON-PKG" level="component" >}}
+
+## Additional C4 diagram backends
+
+Each `need-c4` view also supports three additional backends, selected with the `backend` shortcode argument. PlantUML, D2, and current Structurizr tooling render diagrams when their local CLIs are available; otherwise the DSL source is shown as a code block:
+
+### Structurizr DSL
+
+{{< need-c4 root="SYS-QUARTO-NEEDS" level="context" backend="structurizr" >}}
+
+### C4-PlantUML
+
+{{< need-c4 root="SYS-QUARTO-NEEDS" level="context" backend="plantuml" >}}
+
+### D2
+
+{{< need-c4 root="SYS-QUARTO-NEEDS" level="context" backend="d2" >}}

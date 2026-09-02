@@ -33,6 +33,7 @@ def test_context_diagram_shows_the_system_as_an_opaque_box() -> None:
     assert 'System(' in source
     assert 'Person(' in source
     assert 'Rel(' in source
+    assert 'UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")' in source
     assert source.endswith("\n")
 
 

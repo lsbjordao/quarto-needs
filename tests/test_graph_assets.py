@@ -386,6 +386,40 @@ def test_write_c4_projections_writes_one_file_per_system_and_container_level(tmp
     assert component_payload["source"].splitlines()[0] == "C4Component"
 
 
+def test_write_c4_projections_also_writes_the_structurizr_plantuml_and_d2_backends(
+    tmp_path,
+) -> None:
+    (tmp_path / "arch.qmd").write_text(
+        '::: {.need #SYS-1 type="system" status="draft"}\n## System\n:::\n\n'
+        '::: {.need #CONTAINER-1 type="container" status="draft" '
+        'part-of="SYS-1" technology="Python"}\n## Container\n:::\n',
+        encoding="utf-8",
+    )
+    result = analyze_project(tmp_path)
+    assert result.snapshot is not None
+
+    graph_output.write_c4_projections(tmp_path, result.snapshot)
+
+    graph_dir = tmp_path / ".quarto-needs" / "graphs"
+    for backend, marker in (
+        ("structurizr", "workspace {"),
+        ("plantuml", "@startuml"),
+        ("d2", "shape:"),
+    ):
+        payload = json.loads(
+            (graph_dir / f"c4-context-SYS-1.{backend}.json").read_text(encoding="utf-8")
+        )
+        assert payload["schemaVersion"] == "c4-view-v1"
+        assert payload["kind"] == "source"
+        assert payload["language"] == backend
+        assert marker in payload["source"]
+
+    component_payload = json.loads(
+        (graph_dir / "c4-component-CONTAINER-1.structurizr.json").read_text(encoding="utf-8")
+    )
+    assert "= container " in component_payload["source"]
+
+
 def test_write_c4_projections_writes_a_code_table_for_every_component(tmp_path) -> None:
     (tmp_path / "arch.qmd").write_text(
         '::: {.need #CONTAINER-1 type="container" status="draft"}\n## Container\n:::\n\n'

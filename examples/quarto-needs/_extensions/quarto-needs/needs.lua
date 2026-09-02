@@ -63,18 +63,32 @@ function Div(el)
   append_badge("priority", priority)
   if need_type == "architecture-decision" then append_badge("date", date) end
   local badges = pandoc.Div({pandoc.Plain(badge_inlines)}, pandoc.Attr("", {"need-header-badges"}))
-  local header = pandoc.Div({
-    pandoc.Header(heading_level, title_inlines, pandoc.Attr("", {"need-heading"})),
-    badges
-  }, pandoc.Attr("", {"need-header"}))
+  local need_type_class = "need-type-" .. slug(need_type)
+  local header = pandoc.Header(
+    heading_level,
+    title_inlines,
+    pandoc.Attr(
+      id,
+      {"need-card-section", "need-heading", "unnumbered", need_type_class}
+    )
+  )
 
   local body = {}
+  local function mark_unnumbered(block)
+    if not block.classes:includes("unnumbered") then
+      block.classes:insert("unnumbered")
+    end
+    return block
+  end
   for i, block in ipairs(el.content) do
     if i ~= heading_index then
       if block.t == "Header" then
         local suffix = block.identifier
         if suffix == "" then suffix = slug(pandoc.utils.stringify(block.content)) end
         block.identifier = id .. "-" .. suffix
+        block = mark_unnumbered(block)
+      else
+        block = block:walk({Header = mark_unnumbered})
       end
       table.insert(body, block)
     end
@@ -87,5 +101,12 @@ function Div(el)
     table.insert(body, views.warning(message))
   end
 
-  return pandoc.Div({header, table.unpack(body)}, pandoc.Attr(id, {"need-card", "need-type-" .. slug(need_type)}))
+  return {
+    header,
+    badges,
+    pandoc.Div(
+      body,
+      pandoc.Attr("", {"need-card", need_type_class}, {["data-need-id"] = id})
+    )
+  }
 end

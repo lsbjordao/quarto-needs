@@ -226,15 +226,7 @@ end
 
 local inline_svg_cache = {}
 
-function M.mermaid_inline_svg(source, description, class_name)
-  local digest = pandoc.utils.sha1(source)
-  local svg = inline_svg_cache[digest]
-  if not svg then
-    local html = with_temp_mermaid(source, "quarto-needs-svg", "svg", collect_temp_html)
-    svg = html and normalize_mermaid_svg(html)
-    if not svg then return nil end
-    inline_svg_cache[digest] = svg
-  end
+local function finalize_inline_svg(svg, description, class_name, responsive)
   svg = namespace_svg_ids(svg, M.reserve_view_id("need-svg") .. "-")
   local open_end = svg:find(">", 1, true)
   if not open_end then return nil end
@@ -247,12 +239,32 @@ function M.mermaid_inline_svg(source, description, class_name)
       open_tag = open_tag .. ' class="' .. class_name .. '"'
     end
   end
+  if responsive then
+    open_tag = open_tag:gsub('%s*width="[^"]*"', "")
+    open_tag = open_tag:gsub('%s*height="[^"]*"', "")
+    open_tag = open_tag:gsub('%s*style="[^"]*"', "")
+  end
   open_tag = open_tag:gsub('%s*role="[^"]*"', "")
   local extras = ' role="img"'
   if description and description ~= "" then
     extras = extras .. ' aria-label="' .. escape_html_attr(description) .. '"'
   end
-  return open_tag .. extras .. ' style="max-width:100%;height:auto">' .. body
+  if responsive then
+    return open_tag .. extras .. ' width="100%" style="max-width:100%;height:auto">' .. body
+  end
+  return open_tag .. extras .. ">" .. body
+end
+
+function M.mermaid_inline_svg(source, description, class_name)
+  local digest = pandoc.utils.sha1(source)
+  local svg = inline_svg_cache[digest]
+  if not svg then
+    local html = with_temp_mermaid(source, "quarto-needs-svg", "svg", collect_temp_html)
+    svg = html and normalize_mermaid_svg(html)
+    if not svg then return nil end
+    inline_svg_cache[digest] = svg
+  end
+  return finalize_inline_svg(svg, description, class_name, false)
 end
 
 local mermaid_assets = {}
@@ -269,6 +281,130 @@ function M.render_mermaid_asset(source, prefix)
   local name = prefix .. "-" .. digest .. ".png"
   pandoc.mediabag.insert(name, "image/png", data)
   mermaid_assets[digest] = {name = name, data = data}
+  return name
+end
+
+-- Real diagram rendering for the additional C4 backends (Structurizr,
+-- PlantUML, D2), each an optional local CLI. Every entry point below
+-- degrades to (nil, message) whenever the tool isn't installed or errors,
+-- letting callers fall back to the pre-rendered source-only code block.
+local function render_external(prefix, write_input, run, collect)
+  local ok, result = pcall(pandoc.system.with_temporary_directory, prefix, function(directory)
+    local ok_write, write_err = write_input(directory)
+    if not ok_write then return {error = write_err or "temporary source"} end
+    local ran, run_result = pcall(function()
+      return pandoc.system.with_working_directory(directory, function() return run(directory) end)
+    end)
+    if not ran then return {error = pandoc.utils.stringify(run_result)} end
+    return collect(directory)
+  end)
+  if not ok then return nil, pandoc.utils.stringify(result) end
+  if type(result) ~= "table" or result.error then
+    return nil, (type(result) == "table" and result.error) or "render failed"
+  end
+  return result.data
+end
+
+local function write_temp_file(directory, name, contents)
+  local f = io.open(pandoc.path.join({directory, name}), "wb")
+  if not f then return false, "temporary source" end
+  f:write(contents); f:close()
+  return true
+end
+
+local function read_temp_file(directory, name)
+  local f = io.open(pandoc.path.join({directory, name}), "rb")
+  if not f then return {error = name .. " produced no output"} end
+  local contents = f:read("*a"); f:close()
+  return {data = contents}
+end
+
+local plantuml_cache = {}
+
+local function render_plantuml(source, format)
+  local key = format .. ":" .. pandoc.utils.sha1(source)
+  local cached = plantuml_cache[key]
+  if cached then return cached end
+  local data = render_external(
+    "quarto-needs-plantuml",
+    function(directory) return write_temp_file(directory, "diagram.puml", source) end,
+    function() return pandoc.pipe("plantuml", {format == "png" and "-tpng" or "-tsvg", "diagram.puml"}, "") end,
+    function(directory) return read_temp_file(directory, "diagram." .. format) end
+  )
+  if data then plantuml_cache[key] = data end
+  return data
+end
+
+local d2_cache = {}
+
+local function render_d2(source, format)
+  local key = format .. ":" .. pandoc.utils.sha1(source)
+  local cached = d2_cache[key]
+  if cached then return cached end
+  local data = render_external(
+    "quarto-needs-d2",
+    function(directory) return write_temp_file(directory, "diagram.d2", source) end,
+    function() return pandoc.pipe("d2", {"diagram.d2", "diagram." .. format}, "") end,
+    function(directory) return read_temp_file(directory, "diagram." .. format) end
+  )
+  if data then d2_cache[key] = data end
+  return data
+end
+
+local structurizr_cache = {}
+
+local function render_structurizr(source, format)
+  local key = format .. ":" .. pandoc.utils.sha1(source)
+  local cached = structurizr_cache[key]
+  if cached then return cached end
+  local data = render_external(
+    "quarto-needs-structurizr",
+    function(directory) return write_temp_file(directory, "workspace.dsl", source) end,
+    function()
+      pandoc.pipe("structurizr", {"export", "-workspace", "workspace.dsl", "-format", format, "-output", "out"}, "")
+      return true
+    end,
+    function(directory)
+      return pandoc.system.with_working_directory(directory, function()
+        local output = "$(find out -maxdepth 1 -type f ! -name '*-key." .. format .. "' -print -quit)"
+        return {data = pandoc.pipe("sh", {"-c", "cat " .. output}, "")}
+      end)
+    end
+  )
+  if data then structurizr_cache[key] = data end
+  return data
+end
+
+local diagram_renderers = {
+  plantuml = render_plantuml,
+  d2 = render_d2,
+  structurizr = render_structurizr,
+}
+
+function M.diagram_inline_svg(backend, source, description, class_name)
+  local render = diagram_renderers[backend]
+  if not render then return nil end
+  local svg = render(source, "svg")
+  if not svg then return nil end
+  return finalize_inline_svg(svg, description, class_name, true)
+end
+
+local diagram_assets = {}
+
+function M.render_diagram_asset(backend, source, prefix)
+  local render = diagram_renderers[backend]
+  if not render then return nil, backend .. " is not a renderable backend" end
+  local digest = pandoc.utils.sha1(backend .. source)
+  local cached = diagram_assets[digest]
+  if cached then
+    pandoc.mediabag.insert(cached.name, "image/png", cached.data)
+    return cached.name
+  end
+  local data, err = render(source, "png")
+  if not data then return nil, err or (backend .. " render failed") end
+  local name = prefix .. "-" .. digest .. ".png"
+  pandoc.mediabag.insert(name, "image/png", data)
+  diagram_assets[digest] = {name = name, data = data}
   return name
 end
 

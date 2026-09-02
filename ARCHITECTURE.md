@@ -1,5 +1,7 @@
 # Architecture
 
+Full architecture documentation lives in [`docs/architecture/`](docs/architecture/index.md), organized as explicit viewpoints indexed by an arc42-lite structure (see [`docs/architecture/viewpoints.md`](docs/architecture/viewpoints.md) and `ADR-011` in the self-hosted example). This page is a short summary of the same pipeline for readers who land here first.
+
 Quarto-Needs follows a ports-and-adapters style architecture. The requirements graph is canonical; Quarto is one authoring/rendering adapter.
 
 ```text

@@ -6,4 +6,12 @@ title: "Verification details"
 ## Administrator login test
 
 The suite signs an administrator in and asserts that the session is established.
+
+### Rationale
+
+This test protects the privileged sign-in path.
+
+> #### Nested verification note {#nested-verification-note}
+>
+> This nested heading must also remain unnumbered.
 :::

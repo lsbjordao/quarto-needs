@@ -1,5 +1,6 @@
 from collections import Counter
 from pathlib import Path
+import re
 import shutil
 import subprocess
 
@@ -174,7 +175,16 @@ def test_aegis_book_renders_generated_views():
     assert "<svg" in diagrams
     assert '<pre class="mermaid' not in diagrams
     assert "<foreignobject" not in diagrams.lower()
-    assert '<h2 class="need-heading anchored"' in functional
+    need_heading = re.search(
+        r'<h2\b(?=[^>]*class="[^"]*\bneed-heading\b)(?=[^>]*'
+        r'data-anchor-id="FUN-001")[^>]*>',
+        functional,
+    )
+    assert need_heading is not None
+    assert re.search(r'\bunnumbered\b', need_heading.group(0))
+    assert "data-number=" not in need_heading.group(0)
+    assert 'href="#FUN-001"' in functional
+    assert 'data-need-id="FUN-001"' in functional
     assert 'id="FUN-001-rationale"' in functional
 
     system = (output / "requirements" / "system.html").read_text(encoding="utf-8")

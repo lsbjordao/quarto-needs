@@ -1,0 +1,5 @@
+---
+title: "C4 fixture (Structurizr backend)"
+---
+
+{{< need-c4 root="SYS-1" level="context" backend="structurizr" >}}

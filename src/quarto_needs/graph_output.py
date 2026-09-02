@@ -484,25 +484,43 @@ def write_c4_projections(root: Path, snapshot: AnalysisSnapshot) -> None:
     `container`/`component` types, so there is nothing for a project to
     declare and nothing that can drift out of sync with the graph.
     """
+    from .c4_d2 import c4_d2_source
+    from .c4_plantuml import c4_plantuml_source
     from .c4_projection import C4ViewError, build_c4_view
     from .c4_render import c4_code_table_markdown, c4_mermaid_source
+    from .c4_structurizr import c4_structurizr_source
 
     graph_dir = root / ".quarto-needs" / "graphs"
     for stale in graph_dir.glob("c4-*.json"):
         stale.unlink()
 
-    def _write(view_id: str, kind: str, source: str) -> None:
+    # Additional diagram backends beyond Mermaid, kept alongside it rather
+    # than replacing it (Mermaid is the format both the `need-c4` shortcode's
+    # default and its existing tests depend on). Every backend renders the
+    # exact same GraphProjection Mermaid does — no renderer defines its own
+    # architecture semantics (ADR-016).
+    _DIAGRAM_BACKENDS = (
+        ("structurizr", c4_structurizr_source),
+        ("plantuml", c4_plantuml_source),
+        ("d2", c4_d2_source),
+    )
+
+    def _write(view_id: str, kind: str, source: str, *, language: str | None = None) -> None:
+        payload: dict[str, str] = {"schemaVersion": "c4-view-v1", "kind": kind, "source": source}
+        if language is not None:
+            payload["language"] = language
         graph_dir.mkdir(parents=True, exist_ok=True)
         _atomic_text(
             graph_dir / f"{view_id}.json",
-            json.dumps(
-                {"schemaVersion": "c4-view-v1", "kind": kind, "source": source},
-                ensure_ascii=False,
-                indent=2,
-                sort_keys=True,
-            )
-            + "\n",
+            json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         )
+
+    def _write_diagram_view(view_id: str, level: str, projection, focus_id: str) -> None:
+        source = c4_mermaid_source(projection, focus_id=focus_id, level=level)
+        _write(view_id, "mermaid", source)
+        for backend, render in _DIAGRAM_BACKENDS:
+            backend_source = render(projection, focus_id=focus_id, level=level)
+            _write(f"{view_id}.{backend}", "source", backend_source, language=backend)
 
     for record in snapshot.objects:
         if record.type == "system":
@@ -511,15 +529,13 @@ def write_c4_projections(root: Path, snapshot: AnalysisSnapshot) -> None:
                     projection = build_c4_view(snapshot, focus_id=record.id, level=level)
                 except (C4ViewError, GraphLimitExceeded):
                     continue
-                source = c4_mermaid_source(projection, focus_id=record.id, level=level)
-                _write(f"c4-{level}-{record.id}", "mermaid", source)
+                _write_diagram_view(f"c4-{level}-{record.id}", level, projection, record.id)
         elif record.type == "container":
             try:
                 projection = build_c4_view(snapshot, focus_id=record.id, level="component")
             except (C4ViewError, GraphLimitExceeded):
                 continue
-            source = c4_mermaid_source(projection, focus_id=record.id, level="component")
-            _write(f"c4-component-{record.id}", "mermaid", source)
+            _write_diagram_view(f"c4-component-{record.id}", "component", projection, record.id)
         elif record.type == "component":
             table = c4_code_table_markdown(snapshot, focus_id=record.id)
             _write(f"c4-code-{record.id}", "table", table)

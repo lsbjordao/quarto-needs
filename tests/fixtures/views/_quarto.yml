@@ -6,7 +6,10 @@ website:
   title: "Quarto Needs views fixture"
 
 format:
-  html: default
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
 
 filters:
   - quarto-needs

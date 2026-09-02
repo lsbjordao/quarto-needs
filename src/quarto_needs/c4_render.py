@@ -112,7 +112,7 @@ def c4_mermaid_source(projection: GraphProjection, *, focus_id: str, level: str)
         }
         visible_others = [node for node in others if node.id in connected_ids]
 
-    lines = [diagram_type]
+    lines = [diagram_type, '  UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")']
     if level == "context":
         lines.append(f"  {_macro_call(focus)}")
         for node in visible_others:

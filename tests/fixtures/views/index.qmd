@@ -22,6 +22,12 @@ The service shall let an administrator recover a lost credential.
 The service shall notify administrators about credential changes.
 :::
 
+::: {.need #REQ-APPROVED-heading type="risk" status="approved" priority="low"}
+## Avoid derived-anchor collisions
+
+A valid need ID shall not collide with another card's generated anchor.
+:::
+
 ## Approved requirements
 
 {{< need-table id="approved-table" types="functional-requirement" status="approved" columns="id;title;type;status;priority;verified-by" sort="priority;id" caption="Approved application requirements" >}}

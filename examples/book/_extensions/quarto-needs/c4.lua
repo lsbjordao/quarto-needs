@@ -1,11 +1,14 @@
 -- The `need-c4` shortcode: Mermaid C4 diagrams and the Code-level table.
 --
 -- All C4-specific logic (which node is what shape, how a diagram's text is
--- built) lives in Python (c4_render.py) and is pre-rendered to
--- .quarto-needs/graphs/c4-<level>-<id>.json by write_c4_projections. This
--- module only reads that file and hands its text to the existing Mermaid
--- rendering helper — it never interprets a graph projection itself, unlike
--- graph.lua's own need-graph shortcode.
+-- built) lives in Python (c4_render.py and its sibling renderer modules
+-- c4_structurizr.py/c4_plantuml.py/c4_d2.py) and is pre-rendered to
+-- .quarto-needs/graphs/c4-<level>-<id>[.<backend>].json by
+-- write_c4_projections. This module only reads that file and hands its text
+-- to the existing Mermaid rendering helper, or invokes the selected local
+-- renderer for the other backends before falling back to source text.
+-- It never interprets a graph projection itself, unlike graph.lua's own
+-- need-graph shortcode.
 local M = {}
 
 local function script_dir()
@@ -17,6 +20,7 @@ end
 local views = dofile(script_dir() .. "views.lua")
 
 local VALID_LEVELS = {context = true, container = true, component = true, code = true}
+local MERMAID_BACKEND = "mermaid"
 
 local function project_dir()
   local ok, directory = pcall(function() return quarto.project.directory end)
@@ -41,6 +45,7 @@ function M.render_shortcode(args, kwargs)
   views.ensure_assets()
   local root_id = views.kwarg(kwargs, "root", "")
   local level = views.kwarg(kwargs, "level", "")
+  local backend = views.kwarg(kwargs, "backend", MERMAID_BACKEND)
   if root_id == "" or level == "" then
     return views.warning(views.tr(
       "need-c4 requires both root and level.",
@@ -56,6 +61,9 @@ function M.render_shortcode(args, kwargs)
 
   local root = project_dir()
   local view_id = "c4-" .. level .. "-" .. root_id
+  if backend ~= MERMAID_BACKEND then
+    view_id = view_id .. "." .. backend
+  end
   local decoded, message = load_c4_view(root, view_id)
   if not decoded then
     quarto.log.warning(message)
@@ -64,6 +72,27 @@ function M.render_shortcode(args, kwargs)
 
   if decoded.kind == "table" then
     return pandoc.read(decoded.source, "markdown").blocks
+  end
+
+  if decoded.kind == "source" then
+    local language = decoded.language or backend
+    local description = views.tr("Architecture diagram", "Diagrama de arquitetura")
+    if views.is_html_format() then
+      local svg = views.diagram_inline_svg(backend, decoded.source, description, "need-c4-figure")
+      if svg then
+        return pandoc.RawBlock("html", svg)
+      end
+    else
+      local image_name = views.render_diagram_asset(backend, decoded.source, "quarto-needs-c4-" .. backend)
+      if image_name then
+        return pandoc.Para({
+          pandoc.Image({pandoc.Str(description)}, image_name, "", pandoc.Attr("", {"need-c4-figure"}, {role="img"}))
+        })
+      end
+    end
+    -- No local {backend} tool installed (or it failed): fall back to the
+    -- pre-rendered source text, still useful on its own as a code sample.
+    return pandoc.Div({pandoc.CodeBlock(decoded.source, pandoc.Attr("", {language}))})
   end
 
   local description = views.tr("Architecture diagram", "Diagrama de arquitetura")

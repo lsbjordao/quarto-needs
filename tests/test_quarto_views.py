@@ -172,6 +172,69 @@ window.addEventListener("load", () => {
     return json.loads(match.group("payload"))
 
 
+def browser_need_card_style_result(tmp_path: Path) -> dict[str, object]:
+    """Return reader-visible card typography and alignment from Chromium."""
+    project = copy_fixture_project(tmp_path / "card-style", "views")
+    subprocess.run(["quarto", "render", str(project)], cwd=ROOT, check=True)
+    html_path = project / "_site" / "index.html"
+    driver = """
+<script>
+window.addEventListener("load", () => {
+  const section = document.getElementById("REQ-APPROVED");
+  const heading = section.querySelector(":scope > .need-heading");
+  const badges = section.querySelector(":scope > .need-header-badges");
+  const card = section.querySelector(":scope > .need-card");
+  const body = card.querySelector(":scope > p");
+  const headingRect = heading.getBoundingClientRect();
+  const badgesRect = badges.getBoundingClientRect();
+  const cardRect = card.getBoundingClientRect();
+  const badgeStyle = getComputedStyle(badges);
+  const badgeItems = Array.from(badges.querySelectorAll(".need-badge"));
+  const result = {
+    headingWeight: Number(getComputedStyle(heading).fontWeight),
+    bodyWeight: Number(getComputedStyle(body).fontWeight),
+    headerRowsAlign: Math.abs(headingRect.top - badgesRect.top) < 1 &&
+      Math.abs(headingRect.bottom - badgesRect.bottom) < 1,
+    headerTouchesBody: Math.abs(headingRect.bottom - cardRect.top) < 1,
+    badgeGap: Number.parseFloat(badgeStyle.columnGap) || 0,
+    badgeWrap: badgeStyle.flexWrap,
+    badgesStayAtomic: badgeItems.every(
+      (badge) => getComputedStyle(badge).whiteSpace === "nowrap"
+    )
+  };
+  const output = document.createElement("output");
+  output.id = "need-card-style-result";
+  output.textContent = JSON.stringify(result);
+  document.body.appendChild(output);
+});
+</script>
+"""
+    html_path.write_text(
+        html_path.read_text(encoding="utf-8").replace("</body>", driver + "</body>"),
+        encoding="utf-8",
+    )
+    result = subprocess.run(
+        [
+            "google-chrome",
+            "--headless",
+            "--no-sandbox",
+            "--disable-gpu",
+            "--window-size=1200,800",
+            "--dump-dom",
+            html_path.as_uri(),
+        ],
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    match = re.search(
+        r'<output id="need-card-style-result">(?P<payload>[^<]+)</output>',
+        result.stdout,
+    )
+    assert match, "Chromium did not report the need-card styles"
+    return json.loads(match.group("payload"))
+
+
 @pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
 def test_filtered_table_list_and_count_render(tmp_path: Path):
     """Removing view registration or exact-match filters breaks the rendered catalog."""
@@ -226,6 +289,22 @@ def test_need_table_search_and_sort_work_in_chromium(tmp_path: Path):
         "REQ-DRAFT",
         "REQ-APPROVED",
     ]
+
+
+@pytest.mark.skipif(
+    shutil.which("quarto") is None or shutil.which("google-chrome") is None,
+    reason="Quarto or Chrome is not installed",
+)
+def test_need_card_heading_does_not_make_the_body_bold(tmp_path: Path) -> None:
+    """Section classes style only the card title while both header cells stay aligned."""
+    result = browser_need_card_style_result(tmp_path)
+
+    assert result["headingWeight"] > result["bodyWeight"]
+    assert result["headerRowsAlign"] is True
+    assert result["headerTouchesBody"] is True
+    assert result["badgeGap"] > 0
+    assert result["badgeWrap"] == "wrap"
+    assert result["badgesStayAtomic"] is True
 
 
 @pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
@@ -339,6 +418,90 @@ def test_need_cards_render_catalog_labeled_outgoing_and_incoming_relations(tmp_p
     assert "Verifies" in details_html
     assert 'href="../index.html#REQ-APPROVED"' in details_html
     assert "No backlinks for REQ-DRAFT." in index_html
+
+
+@pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
+def test_all_need_types_render_unnumbered_headings_in_the_margin_toc(tmp_path: Path) -> None:
+    """Every need type stays unnumbered while retaining a native TOC entry."""
+    index_html, details_html = render_view_pages(tmp_path)
+
+    cases = (
+        (index_html, "REQ-APPROVED", "Authenticate administrators"),
+        (index_html, "REQ-DRAFT", "Recover credentials"),
+        (index_html, "REQ-UNPRIORITIZED", "Notify administrators"),
+        (index_html, "REQ-APPROVED-heading", "Avoid derived-anchor collisions"),
+        (details_html, "TC-LOGIN", "Administrator login test"),
+    )
+    for html, need_id, title in cases:
+        section = re.search(
+            rf'<section\b(?P<attrs>[^>]*)\sid="{need_id}"(?P<tail>[^>]*)>'
+            rf'\s*<h2\b(?P<heading_attrs>[^>]*)>(?P<body>.*?)</h2>',
+            html,
+            flags=re.DOTALL,
+        )
+        assert section is not None
+        section_attributes = section.group("attrs") + section.group("tail")
+        heading_attributes = section.group("heading_attrs")
+        assert re.search(r'class="[^"]*\bunnumbered\b[^"]*"', section_attributes)
+        assert re.search(r'class="[^"]*\bunnumbered\b[^"]*"', heading_attributes)
+        assert "data-number=" not in section_attributes
+        assert "data-number=" not in heading_attributes
+        assert f'data-anchor-id="{need_id}"' in heading_attributes
+        assert "header-section-number" not in section.group("body")
+        assert re.search(
+            rf'<div\b(?=[^>]*class="[^"]*\bneed-card\b)'
+            rf'(?=[^>]*data-need-id="{need_id}")[^>]*>',
+            html,
+        )
+
+        toc = re.search(r'<nav\b[^>]*\bid="TOC"[^>]*>(?P<body>.*?)</nav>', html, re.DOTALL)
+        assert toc is not None
+        toc_link = re.search(
+            rf'<a\b(?P<attrs>[^>]*)href="#{need_id}"(?P<tail>[^>]*)>'
+            rf'(?P<body>.*?)</a>',
+            toc.group("body"),
+            flags=re.DOTALL,
+        )
+        assert toc_link is not None
+        toc_attributes = toc_link.group("attrs") + toc_link.group("tail")
+        assert f'data-scroll-target="#{need_id}"' in toc_attributes
+        link_text = re.sub(r"<[^>]+>", "", toc_link.group("body"))
+        assert need_id in link_text
+        assert title in link_text
+        assert "header-section-number" not in toc_link.group("body")
+
+        ids = re.findall(r'\sid="([^"]+)"', html)
+        assert ids.count(need_id) == 1
+
+    index_ids = re.findall(r'\sid="([^"]+)"', index_html)
+    assert len(index_ids) == len(set(index_ids))
+
+    rationale = re.search(
+        r'<section\b(?P<attrs>[^>]*)\sid="TC-LOGIN-rationale"(?P<tail>[^>]*)>'
+        r'\s*<h3\b(?P<heading_attrs>[^>]*)>(?P<body>.*?)</h3>',
+        details_html,
+        flags=re.DOTALL,
+    )
+    assert rationale is not None
+    rationale_attributes = rationale.group("attrs") + rationale.group("tail")
+    rationale_heading_attributes = rationale.group("heading_attrs")
+    assert re.search(r'class="[^"]*\bunnumbered\b[^"]*"', rationale_attributes)
+    assert re.search(r'class="[^"]*\bunnumbered\b[^"]*"', rationale_heading_attributes)
+    assert "data-number=" not in rationale_attributes
+    assert "data-number=" not in rationale_heading_attributes
+    assert "header-section-number" not in rationale.group("body")
+
+    nested_heading = re.search(
+        r'<h4\b(?P<attrs>[^>]*)\sid="nested-verification-note"'
+        r'(?P<tail>[^>]*)>(?P<body>.*?)</h4>',
+        details_html,
+        flags=re.DOTALL,
+    )
+    assert nested_heading is not None
+    nested_attributes = nested_heading.group("attrs") + nested_heading.group("tail")
+    assert re.search(r'class="[^"]*\bunnumbered\b[^"]*"', nested_attributes)
+    assert "data-number=" not in nested_attributes
+    assert "header-section-number" not in nested_heading.group("body")
 
 
 @pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
@@ -551,6 +714,34 @@ def test_need_c4_renders_a_context_diagram(tmp_path: Path):
     assert "C4Context" not in html
     assert "Fixture system" in html
     assert "Fixture actor" in html
+
+
+@pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
+def test_need_c4_renders_a_structurizr_diagram(tmp_path: Path):
+    """The backend kwarg selects a sibling Structurizr source and renders it."""
+    project = build_c4_fixture_project(tmp_path)
+    assert (
+        project / ".quarto-needs" / "graphs" / "c4-context-SYS-1.structurizr.json"
+    ).is_file()
+    subprocess.run(
+        ["quarto", "render", str(project)],
+        cwd=ROOT,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    html = (project / "_site" / "structurizr.html").read_text(encoding="utf-8")
+
+    if shutil.which("structurizr") is None:
+        assert "workspace {" in html
+        assert "softwareSystem" in html
+        assert "need-c4-figure" not in html
+    else:
+        assert "need-c4-figure" in html
+        assert "<svg" in html.lower()
+        assert "Fixture actor" in html
+        assert "Fixture system" in html
+        assert "workspace {" not in html
 
 
 @pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
