@@ -119,6 +119,57 @@ def test_graph_lua_reads_and_applies_a_filter_argument() -> None:
     assert "filter_projection" in source
 
 
+def test_graph_lua_ships_a_fullscreen_button_next_to_reset() -> None:
+    lua = (ROOT / "_extensions" / "quarto-needs" / "graph.lua").read_text(encoding="utf-8")
+    assert '<button type="button" class="need-graph-fullscreen">' in lua
+    assert 'views.tr("Fullscreen", "Tela cheia")' in lua
+    assert lua.index('need-graph-reset') < lua.index('need-graph-fullscreen')
+
+
+def test_graph_js_feature_detects_the_fullscreen_api() -> None:
+    """An old browser or a restrictive iframe policy without
+    requestFullscreen must hide the button entirely rather than leave a
+    dead control on the page."""
+    source = GRAPH_JS.read_text(encoding="utf-8")
+    fullscreen_start = source.index("need-graph-fullscreen")
+    block = source[fullscreen_start : fullscreen_start + 800]
+    assert "requestFullscreen" in block
+    assert ".remove()" in block
+
+
+def test_graph_js_fullscreen_toggle_checks_the_active_element() -> None:
+    """Clicking must toggle based on whether THIS graph's own container is
+    the fullscreen element — not any global on/off flag — so multiple
+    need-graph instances on one page never fight over shared state."""
+    source = GRAPH_JS.read_text(encoding="utf-8")
+    assert "document.fullscreenElement ===" in source
+    assert ".exitFullscreen()" in source
+    assert ".requestFullscreen()" in source
+
+
+def test_graph_js_fullscreenchange_restabilizes_the_canvas() -> None:
+    """Entering/exiting fullscreen changes the container's real pixel size
+    without Cytoscape being told — reuse the exact same resize+fit pattern
+    already used to recover from a 0-width init, rather than new logic."""
+    source = GRAPH_JS.read_text(encoding="utf-8")
+    change_start = source.index('addEventListener("fullscreenchange"')
+    change_end = source.index("\n        });", change_start)
+    block = source[change_start:change_end]
+    assert "stabilize()" in block
+
+
+def test_graph_js_announces_when_fullscreen_is_denied() -> None:
+    source = GRAPH_JS.read_text(encoding="utf-8")
+    assert ".catch(" in source
+    assert "Fullscreen unavailable" in source
+
+
+def test_graph_css_sizes_the_canvas_to_fill_fullscreen() -> None:
+    source = GRAPH_CSS.read_text(encoding="utf-8")
+    assert ".need-graph-container:fullscreen" in source
+    assert ".need-graph-container:fullscreen .need-graph-canvas" in source
+
+
 def test_default_projection_is_written_and_embeds_projection(tmp_path) -> None:
     (tmp_path / "adversarial.qmd").write_text(FIXTURE.read_text(encoding="utf-8"))
     result = analyze_project(tmp_path)

@@ -68,6 +68,19 @@
   color: var(--bs-body-color, inherit);
   overflow: hidden;
 }
+/* Fullscreen sizes the canvas by flex-growing into whatever room the
+   controls/status leave, instead of a fixed pixel calc that would need to
+   track however tall the wrapping controls bar happens to be. */
+.need-graph-container:fullscreen {
+  display: flex;
+  flex-direction: column;
+  background: var(--bs-body-bg, white);
+  padding: 1rem;
+}
+.need-graph-container:fullscreen .need-graph-canvas {
+  flex: 1 1 auto;
+  height: auto;
+}
 .need-graph-loading {
   display: flex;
   align-items: center;

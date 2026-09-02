@@ -344,7 +344,8 @@ function M.render_shortcode(args, kwargs)
     '<option value="priority">' .. views.tr("Color: priority", "Cor: prioridade") .. '</option>' ..
     '<option value="none">' .. views.tr("No color", "Sem cor") .. '</option></select>' ..
     '<button type="button" class="need-graph-fit">' .. views.tr("Fit", "Ajustar") .. '</button>' ..
-    '<button type="button" class="need-graph-reset">' .. views.tr("Reset", "Redefinir") .. '</button></div>')
+    '<button type="button" class="need-graph-reset">' .. views.tr("Reset", "Redefinir") .. '</button>' ..
+    '<button type="button" class="need-graph-fullscreen">' .. views.tr("Fullscreen", "Tela cheia") .. '</button></div>')
   local canvas = pandoc.RawBlock("html", '<div class="need-graph-canvas" data-need-graph-canvas="' .. instance_id .. '" role="img" aria-label="' .. views.tr("Interactive traceability graph", "Grafo de rastreabilidade interativo") .. '"><div class="need-graph-loading">' .. views.tr("Loading interactive graph…", "Carregando grafo interativo…") .. '</div></div>')
   local data_script = pandoc.RawBlock("html", '<script type="application/json" data-need-graph-data="' .. instance_id .. '">' .. json_payload .. '</script>')
   -- The overlay annotation artifact (written by write_graph_overlays when the

@@ -486,6 +486,39 @@
       announce(status, "Graph reset");
     });
 
+    // Fullscreen -------------------------------------------------------------
+    // requestFullscreen() doesn't reparent anything — it only changes how the
+    // element is painted — so breadcrumbs, active-path highlighting, popups,
+    // and every other module's state survive the transition untouched. The
+    // only real effect is that the container's pixel size changes, which
+    // Cytoscape must be told about explicitly.
+    const fullscreenBtn = controls.querySelector(".need-graph-fullscreen");
+    const fullscreenRoot = container.querySelector(".need-graph-container");
+    if (fullscreenBtn && fullscreenRoot) {
+      if (!fullscreenRoot.requestFullscreen) {
+        fullscreenBtn.remove();
+      } else {
+        // The initial label is Lua's own views.tr() text (English or
+        // pt-BR); only the transient "active" label is hardcoded English,
+        // matching this file's existing dynamic status strings.
+        const restLabel = fullscreenBtn.textContent;
+        fullscreenBtn.addEventListener("click", () => {
+          if (document.fullscreenElement === fullscreenRoot) {
+            document.exitFullscreen();
+          } else {
+            fullscreenRoot.requestFullscreen().catch(() => {
+              announce(status, "Fullscreen unavailable");
+            });
+          }
+        });
+        document.addEventListener("fullscreenchange", () => {
+          const active = document.fullscreenElement === fullscreenRoot;
+          fullscreenBtn.textContent = active ? "Exit fullscreen" : restLabel;
+          stabilize();
+        });
+      }
+    }
+
     // Color by attribute ----------------------------------------------------
     const colorSelect = controls.querySelector("[data-need-graph-color]");
     const preferred = colorSelect && colorSelect.value;
