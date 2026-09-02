@@ -243,11 +243,20 @@ overlays; impact popup enrichment deferred).
 
 ---
 
-# Phase 8 — Scale, performance, compatibility, and release hardening ⚪
+# Phase 8 — Scale, performance, compatibility, and release hardening 🚧 (first slice: semantic-core stabilization — declaration-native validation, linear-time indexes, reproducible benchmarks, schema compatibility policy, minimum-Quarto verification, minimal example)
 
 Maintain synthetic sparse/dense/cyclic/high-fanout corpora around 100, 1,000, 10,000, and 50,000+ objects where practical. Measure parsing, analysis, policies, queries, baseline/diff/impact, evidence, LSP latency, graph projection, export, and Quarto rendering.
 
 Caching/incrementality is introduced only when benchmarks identify a real bottleneck. Release gates cover schema compatibility, determinism, migrations, accessibility, projection security, performance budgets, supported Python/Quarto versions, editor compatibility, interoperability, and self-hosted example health.
+
+The first slice is delivered by the core-stabilization phase
+(`docs/phase-core-stabilization.md`): the canonical analyzer no longer
+routes validation through legacy DTOs, snapshot indexes are built in
+O(V+E), a reproducible benchmark suite records linear scaling to 50k
+objects, one measured duplication was removed from the impact path, public
+schema compatibility is documented and contract-tested, CI verifies the
+declared minimum Quarto (1.6.0), and `examples/minimal/` provides the small
+non-self-hosted onboarding fixture.
 
 ---
 

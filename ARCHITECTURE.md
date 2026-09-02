@@ -15,9 +15,10 @@ Quarto-Needs follows a ports-and-adapters style architecture. The requirements g
 +--------------------------------------------------+
 |                Quarto-Needs Core                 |
 |                                                  |
-|  EngineeringObject -> Relation -> Property Graph|
-|            |             |             |         |
-|        validation      queries       metrics     |
+| ObjectDeclaration -> ObjectRecord/RelationRecord |
+|        |                  |                  |   |
+| declaration-native  snapshot-native   queries    |
+| structural valid.   governance rules   metrics   |
 +--------------------------------------------------+
           |                  |                 |
           v                  v                 v
@@ -28,7 +29,13 @@ Quarto-Needs follows a ports-and-adapters style architecture. The requirements g
 
 ## Canonical model
 
-Every traceable item is an `EngineeringObject`. Relations are first-class typed edges. The model is deliberately renderer-independent.
+Every traceable item is declared as an `ObjectDeclaration`, resolved into
+immutable `ObjectRecord`/`RelationRecord`s on the `AnalysisSnapshot`.
+Relations are first-class typed edges. The model is deliberately
+renderer-independent. `EngineeringObject` is a retained compatibility DTO
+that convenience APIs adapt into the canonical pipeline — canonical
+analysis never converts declarations into it (see
+[`docs/architecture/domain-model.md`](docs/architecture/domain-model.md)).
 
 ## Canonical pipeline
 
@@ -74,9 +81,10 @@ Lua has no evaluator of its own and cannot drift from the CLI verdict.
    `_extensions/quarto-needs` into the project-local extension. The generated
    `generated-index.lua` is deliberately excluded from this copy.
 2. Scan project `.qmd` files.
-3. Parse `.need` blocks into engineering objects.
-4. Build the requirements graph.
-5. Run structural/referential/process validation.
+3. Parse `.need` blocks into declarations.
+4. Resolve declarations into the canonical record graph and its indexes.
+5. Run declaration-native structural validation, then snapshot-native
+   governance rules.
 6. Write `.quarto-needs/needs.json`.
 7. Generate the project-specific Lua lookup index used by Quarto shortcodes.
 8. Let Quarto/Pandoc render the documentation.
