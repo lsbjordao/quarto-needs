@@ -87,10 +87,35 @@ def c4_mermaid_source(projection: GraphProjection, *, focus_id: str, level: str)
         if node.id != focus_id and node not in children
     ]
 
+    depends_on_edges = [edge for edge in projection.edges if edge.relation == "depends-on"]
+    if level == "context":
+        drawn_edges = depends_on_edges
+        visible_others = others
+    else:
+        # At container/component level the focus is drawn as a boundary
+        # macro, not a positioned node — mermaid 11.6.0's C4 layout engine
+        # throws mid-render when a Rel targets a boundary's own alias
+        # (verified against Quarto's exact bundled mermaid.js in a real
+        # browser). The relationship isn't lost: the context diagram one
+        # level up already shows it against the system/container as a whole.
+        drawn_edges = [
+            edge for edge in depends_on_edges if focus_id not in (edge.source, edge.target)
+        ]
+        # Dropping that edge is not enough on its own: an "other" node left
+        # with no remaining edge renders as a disconnected floating box with
+        # no indication of why it's on the diagram (confirmed with a real
+        # screenshot of the actual rendered SVG) — worse than the crash it
+        # replaced. Omit it entirely, matching standard C4 practice: this
+        # level only depicts things that interact with something it shows.
+        connected_ids = {edge.source for edge in drawn_edges} | {
+            edge.target for edge in drawn_edges
+        }
+        visible_others = [node for node in others if node.id in connected_ids]
+
     lines = [diagram_type]
     if level == "context":
         lines.append(f"  {_macro_call(focus)}")
-        for node in others:
+        for node in visible_others:
             lines.append(f"  {_macro_call(node)}")
     else:
         boundary_macro = _BOUNDARY_MACRO[level]
@@ -100,20 +125,10 @@ def c4_mermaid_source(projection: GraphProjection, *, focus_id: str, level: str)
         for node in children:
             lines.append(f"    {_macro_call(node)}")
         lines.append("  }")
-        for node in others:
+        for node in visible_others:
             lines.append(f"  {_macro_call(node)}")
 
-    for edge in projection.edges:
-        if edge.relation != "depends-on":
-            continue
-        # At container/component level the focus is drawn as a boundary
-        # macro, not a positioned node — mermaid 11.6.0's C4 layout engine
-        # throws mid-render when a Rel targets a boundary's own alias
-        # (verified against Quarto's exact bundled mermaid.js in a real
-        # browser). The relationship isn't lost: the context diagram one
-        # level up already shows it against the system/container as a whole.
-        if level != "context" and focus_id in (edge.source, edge.target):
-            continue
+    for edge in drawn_edges:
         lines.append(f'  Rel({_ref(edge.source)}, {_ref(edge.target)}, "{_escape(edge.label)}")')
 
     return "\n".join(lines) + "\n"

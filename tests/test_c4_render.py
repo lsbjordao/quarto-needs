@@ -136,9 +136,10 @@ def test_container_diagram_omits_rel_lines_targeting_the_boundary_itself() -> No
     throws mid-render ("Cannot read properties of undefined (reading 'x')")
     when asked to draw a Rel to a boundary alias, even though the grammar
     parses it fine — a real upstream limitation, not a syntax mistake here.
-    Dropping just that Rel (the boxes themselves still render) sidesteps it;
-    the relationship is not lost information, since the context diagram one
-    level up already shows it against the system as a whole.
+    Dropping the Rel is not the whole fix on its own — see the next test
+    for why the actor's box is also omitted, not merely left disconnected;
+    the relationship is not lost information either way, since the context
+    diagram one level up already shows it against the system as a whole.
     """
     snapshot = _snapshot(
         _obj("SYS-1", type="system", title="Quarto-Needs"),
@@ -154,13 +155,72 @@ def test_container_diagram_omits_rel_lines_targeting_the_boundary_itself() -> No
     projection = build_c4_view(snapshot, focus_id="SYS-1", level="container")
     source = c4_mermaid_source(projection, focus_id="SYS-1", level="container")
 
-    # The actor still appears as a box in the container view...
-    assert "Person(" in source
-    # ...but no Rel() line references the boundary's own alias as an endpoint.
+    # No Rel() line references the boundary's own alias as an endpoint.
     boundary_alias = source.split("System_Boundary(", 1)[1].split(",", 1)[0].strip()
     for line in source.splitlines():
         if line.strip().startswith("Rel("):
             assert boundary_alias not in line
+
+
+def test_container_diagram_omits_an_actor_left_with_no_surviving_relation() -> None:
+    """Dropping the boundary-targeted Rel (previous test) is not enough on
+    its own: a box left with no remaining edge renders as a disconnected
+    floating shape with no indication of why it's on the diagram at all —
+    confirmed by a real screenshot of the actual rendered SVG, which is
+    what surfaced this as a real defect, not just a style nit. An actor/
+    external system whose only relation was to the focus itself must be
+    omitted from the container/component view entirely, matching standard
+    C4 practice: that diagram level only depicts things that interact with
+    something it actually shows.
+    """
+    snapshot = _snapshot(
+        _obj("SYS-1", type="system", title="Quarto-Needs"),
+        _obj(
+            "CONTAINER-1", type="container", title="Python package",
+            relations=[Relation("part-of", "CONTAINER-1", "SYS-1")],
+        ),
+        _obj(
+            "ACTOR-1", type="actor", title="Requirements Engineer",
+            relations=[Relation("depends-on", "ACTOR-1", "SYS-1")],
+        ),
+    )
+    projection = build_c4_view(snapshot, focus_id="SYS-1", level="container")
+    source = c4_mermaid_source(projection, focus_id="SYS-1", level="container")
+
+    assert "Person(" not in source
+    assert "Container(" in source
+
+
+def test_container_diagram_keeps_two_others_joined_by_their_own_relation() -> None:
+    """The omission above is scoped to nodes left with zero surviving
+    edges — two 'other' nodes each reachable via the (now-dropped) edge to
+    the focus, but also joined to *each other* by a depends-on edge the
+    boundary filter does not touch, must both still appear with that Rel
+    line intact."""
+    snapshot = _snapshot(
+        _obj("SYS-1", type="system", title="Quarto-Needs"),
+        _obj(
+            "CONTAINER-1", type="container", title="Python package",
+            relations=[Relation("part-of", "CONTAINER-1", "SYS-1")],
+        ),
+        _obj(
+            "ACTOR-1", type="actor", title="Requirements Engineer",
+            relations=[
+                Relation("depends-on", "ACTOR-1", "SYS-1"),
+                Relation("depends-on", "ACTOR-1", "EXT-1"),
+            ],
+        ),
+        _obj(
+            "EXT-1", type="external-system", title="Issue tracker",
+            relations=[Relation("depends-on", "EXT-1", "SYS-1")],
+        ),
+    )
+    projection = build_c4_view(snapshot, focus_id="SYS-1", level="container")
+    source = c4_mermaid_source(projection, focus_id="SYS-1", level="container")
+
+    assert "Person(" in source
+    assert "System_Ext(" in source
+    assert "Rel(" in source
 
 
 def test_context_diagram_keeps_rel_lines_to_the_system_itself() -> None:
