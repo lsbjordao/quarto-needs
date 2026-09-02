@@ -169,6 +169,67 @@ def test_active_path_is_exposed_on_the_container_for_deep_linking() -> None:
     assert 'container.__needGraphActivePath = { kind: "between", nodes: result.nodes };' in explore
 
 
+def test_breadcrumbs_render_alongside_each_active_path() -> None:
+    """A clickable trail is rendered from the exact same result.nodes array
+    already stored on __needGraphActivePath — no new traversal, no second
+    copy of path data to keep in sync."""
+    explore = read(EXTENSION, "graph-explore.js")
+
+    assert "need-graph-breadcrumbs" in explore
+    assert "function renderBreadcrumbs(" in explore
+
+    root_set = 'container.__needGraphActivePath = { kind: "root", nodes: result.nodes };'
+    between_set = 'container.__needGraphActivePath = { kind: "between", nodes: result.nodes };'
+    assert root_set in explore
+    assert between_set in explore
+
+    after_root = explore[explore.index(root_set) : explore.index(root_set) + 400]
+    after_between = explore[explore.index(between_set) : explore.index(between_set) + 400]
+    assert "renderBreadcrumbs(result.nodes)" in after_root
+    assert "renderBreadcrumbs(result.nodes)" in after_between
+
+
+def test_breadcrumbs_clear_with_the_active_path() -> None:
+    explore = read(EXTENSION, "graph-explore.js")
+
+    clear_start = explore.index("const clearPath = () => {")
+    clear_end = explore.index("\n    };\n", clear_start)
+    clear_body = explore[clear_start:clear_end]
+
+    assert "renderBreadcrumbs(null)" in clear_body
+
+
+def test_breadcrumb_click_refocuses_without_dropping_the_path() -> None:
+    """Re-focusing a node that is already part of the shown path (a
+    breadcrumb click, or re-tapping a highlighted node on canvas) is just
+    moving attention within the same trail — it must not run the ordinary
+    'any focus change clears the active path' behavior every other focus
+    change already has."""
+    explore = read(EXTENSION, "graph-explore.js")
+
+    focus_start = explore.index('addEventListener("quarto-needs-node-focus"')
+    focus_end = explore.index("});", focus_start)
+    focus_body = explore[focus_start:focus_end]
+
+    assert "pathNodes.has(nodeId)" in focus_body
+    member_check_index = focus_body.index("pathNodes.has(nodeId)")
+    clear_call_index = focus_body.index("clearPath();")
+    assert member_check_index < clear_call_index
+
+
+def test_breadcrumb_items_dispatch_the_shared_focus_event() -> None:
+    """Clicking a breadcrumb reuses the exact same focus mechanism a canvas
+    tap already uses, rather than a second, parallel navigation path."""
+    explore = read(EXTENSION, "graph-explore.js")
+
+    render_start = explore.index("function renderBreadcrumbs(")
+    render_end = explore.index("\n  }\n", render_start)
+    render_body = explore[render_start:render_end]
+
+    assert "container.__needGraphFocusNode = id;" in render_body
+    assert 'new CustomEvent("quarto-needs-node-focus", { detail: { nodeId: id } })' in render_body
+
+
 def test_affected_only_toggle_refreshes_visibility_not_just_predicates() -> None:
     """Toggling the checkbox must actually re-render node visibility.
 

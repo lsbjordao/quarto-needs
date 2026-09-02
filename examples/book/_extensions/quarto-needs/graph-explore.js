@@ -302,6 +302,12 @@
     wrapper.append(typeField.label, statusField.label, familyField.label, profileField.label, pathButton, betweenButton);
     controls.appendChild(wrapper);
 
+    const breadcrumbs = document.createElement("nav");
+    breadcrumbs.className = "need-graph-breadcrumbs";
+    breadcrumbs.setAttribute("aria-label", t("Path trail", "Trilha do caminho"));
+    breadcrumbs.hidden = true;
+    controls.appendChild(breadcrumbs);
+
     let pathNodes = new Set();
     let pathEdges = new Set();
     let pathActive = false;
@@ -309,6 +315,34 @@
     let pickingSecondEndpoint = null;
 
     const announce = (message) => { if (status) status.textContent = message; };
+
+    // Renders the exact result.nodes array already stored on
+    // __needGraphActivePath as a clickable trail — never a second, separately
+    // maintained copy of path data. Clicking an entry re-focuses that node
+    // through the same shared event a canvas tap already dispatches.
+    function renderBreadcrumbs(nodes) {
+      breadcrumbs.innerHTML = "";
+      if (!nodes || !nodes.length) { breadcrumbs.hidden = true; return; }
+      nodes.forEach((id, index) => {
+        if (index > 0) {
+          const sep = document.createElement("span");
+          sep.className = "need-graph-breadcrumb-sep";
+          sep.setAttribute("aria-hidden", "true");
+          sep.textContent = "→";
+          breadcrumbs.appendChild(sep);
+        }
+        const item = document.createElement("button");
+        item.type = "button";
+        item.className = "need-graph-breadcrumb";
+        item.textContent = id;
+        item.addEventListener("click", () => {
+          container.__needGraphFocusNode = id;
+          container.dispatchEvent(new CustomEvent("quarto-needs-node-focus", { detail: { nodeId: id } }));
+        });
+        breadcrumbs.appendChild(item);
+      });
+      breadcrumbs.hidden = false;
+    }
     const activeProfileFamilies = () => {
       const name = profileField.select.value;
       const raw = name ? profiles[name] : null;
@@ -382,6 +416,7 @@
       cy.elements().removeClass("need-root-path-node need-root-path-edge");
       pathButton.textContent = t("Path to root", "Caminho até a raiz");
       betweenButton.textContent = t("Path between…", "Caminho entre…");
+      renderBreadcrumbs(null);
       installPredicates();
     };
 
@@ -420,6 +455,7 @@
         pathActive = true;
         activePathKind = "between";
         container.__needGraphActivePath = { kind: "between", nodes: result.nodes };
+        renderBreadcrumbs(result.nodes);
         installPredicates();
         contextApi.refresh();
         result.nodes.forEach((id) => cy.getElementById(id).addClass("need-root-path-node"));
@@ -428,6 +464,15 @@
         pathButton.disabled = false;
         betweenButton.disabled = false;
         announce(`${result.nodes.length - 1} ${t("hops", "saltos")}`);
+        return;
+      }
+      // Re-focusing a node already on the shown trail (a breadcrumb click, or
+      // re-tapping a highlighted node on canvas) is just moving attention
+      // within the same path — it must not trigger the ordinary "any focus
+      // change clears the active path" rule below.
+      if (pathActive && nodeId && pathNodes.has(nodeId)) {
+        pathButton.disabled = !nodeId;
+        betweenButton.disabled = !nodeId;
         return;
       }
       clearPath();
@@ -455,6 +500,7 @@
       pathActive = true;
       activePathKind = "root";
       container.__needGraphActivePath = { kind: "root", nodes: result.nodes };
+      renderBreadcrumbs(result.nodes);
       installPredicates();
       contextApi.refresh();
       result.nodes.forEach((id) => cy.getElementById(id).addClass("need-root-path-node"));
