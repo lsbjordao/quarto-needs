@@ -71,6 +71,55 @@ def test_showcase_graph_clients_match_canonical_extension() -> None:
     assert read(SHOWCASE, "graph-modes.js") == read(EXTENSION, "graph-modes.js")
 
 
+def test_changes_mode_reflects_the_static_table_not_just_the_canvas() -> None:
+    """Known limitation item 1's named follow-on: the static table stayed
+    the catalog table in every mode before this. Changes mode must update
+    it — the same reader relying on the table for accessibility should see
+    the same information a sighted canvas user does."""
+    modes = read(EXTENSION, "graph-modes.js")
+
+    assert 'data-need-graph-role="node"' in modes
+    assert 'data-need-graph-role="edge"' in modes
+    assert "data-need-graph-row-id" in modes
+
+
+def test_changes_mode_snapshots_the_table_before_any_mode_ever_applies() -> None:
+    """The snapshot must be taken once, from the untouched catalog-rendered
+    table, before any mode switch — not lazily inside applyChanges(), where
+    a second Changes-mode entry would snapshot the table's own prior
+    modifications instead of the true original."""
+    modes = read(EXTENSION, "graph-modes.js")
+
+    snapshot_index = modes.index("tableSnapshot")
+    first_mode_switch_index = modes.index('modeField.select.addEventListener("change"')
+    assert snapshot_index < first_mode_switch_index
+
+
+def test_changes_mode_appends_ghost_rows_and_updates_existing_ones() -> None:
+    source = read(EXTENSION, "graph-modes.js")
+    apply_start = source.index("function applyChanges()")
+    apply_end = source.index("\n    function applyImpact", apply_start)
+    block = source[apply_start:apply_end]
+
+    assert "appendGhostRow(nodeTable" in block
+    assert "appendGhostRow(edgeTable" in block
+    assert 'document.createElement("tr")' in source
+
+
+def test_changes_mode_restores_the_table_on_reset() -> None:
+    """Leaving Changes mode (switching away, or Reset) must restore the
+    table exactly to its original catalog state — removed ghost rows gone,
+    modified cells back to their snapshot text — not whatever text happens
+    to be left over from the last mode."""
+    modes = read(EXTENSION, "graph-modes.js")
+    reset_start = modes.index("function resetChangeData()")
+    reset_end = modes.index("\n    function addGhosts", reset_start)
+    block = modes[reset_start:reset_end]
+
+    assert "tableSnapshot" in block
+    assert ".remove()" in block
+
+
 def test_impact_mode_composes_through_the_existing_predicates() -> None:
     modes = read(EXTENSION, "graph-modes.js")
     explore = read(EXTENSION, "graph-explore.js")

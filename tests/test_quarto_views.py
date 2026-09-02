@@ -646,3 +646,26 @@ def test_need_graph_static_table_lists_node_attributes_not_just_edges(tmp_path: 
     assert "test-case" in html
     assert "approved" in html
     assert "passed" in html
+
+
+def test_need_graph_static_table_rows_carry_a_stable_row_id(tmp_path: Path) -> None:
+    """Each row needs a stable id the client can find without fragile
+    text-matching, and the two same-classed tables need a way to tell node
+    rows from edge rows apart — both used by the mode-switcher's table
+    reflection (Known limitations item 1's named follow-on)."""
+    project = build_overlays_fixture_project(tmp_path, with_baseline=False)
+    subprocess.run(
+        ["quarto", "render", str(project)],
+        cwd=ROOT,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    html = (project / "_site" / "index.html").read_text(encoding="utf-8")
+    assert 'data-need-graph-role="node"' in html
+    assert 'data-need-graph-role="edge"' in html
+    assert 'data-need-graph-row-id="REQ-1"' in html
+    # An edge row's id is the raw (source, relation, target) triple — the
+    # exact key graph-modes.js's own findEdge() already keys overlay entries
+    # by — not the translated display label a reader sees in the cell.
+    assert re.search(r'data-need-graph-row-id="REQ-1\|[^"]+\|TC-1"', html)

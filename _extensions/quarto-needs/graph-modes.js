@@ -89,9 +89,62 @@
     const syncSlots = () => { reapplyPredicates(); contextApi.refresh(); };
     const announce = (message) => { if (status) status.textContent = message; };
 
+    // The static table stays the primary accessible path — Changes mode
+    // must update it too, not just the canvas, or a reader relying on it
+    // sees a stale catalog view regardless of the selected mode. Impact
+    // mode's table columns are a separate, larger follow-on (it needs the
+    // same path-explanation text formatting Lua's impact_explanations()
+    // already does, which JS presenting-not-classifying shouldn't
+    // duplicate) and stays announcement/popup-only for now.
+    const nodeTable = container.querySelector('.need-graph-table[data-need-graph-role="node"]');
+    const edgeTable = container.querySelector('.need-graph-table[data-need-graph-role="edge"]');
+    // Snapshotted once, from the untouched catalog-rendered table, before
+    // any mode ever applies — never re-derived lazily, or a second Changes
+    // entry would snapshot the table's own prior modifications instead of
+    // the true original.
+    const tableSnapshot = new Map();
+    function snapshotTable(table) {
+      if (!table) return;
+      table.querySelectorAll("tbody tr[data-need-graph-row-id]").forEach((row) => {
+        const cells = row.querySelectorAll("td");
+        const last = cells[cells.length - 1];
+        if (last) tableSnapshot.set(row.dataset.needGraphRowId, last.textContent);
+      });
+    }
+    snapshotTable(nodeTable);
+    snapshotTable(edgeTable);
+
+    function findRow(table, id) {
+      if (!table) return null;
+      return table.querySelector('tbody tr[data-need-graph-row-id="' + CSS.escape(String(id)) + '"]');
+    }
+    function setLastCellText(row, text) {
+      if (!row) return;
+      const cells = row.querySelectorAll("td");
+      const last = cells[cells.length - 1];
+      if (last) last.textContent = text;
+    }
+    function appendGhostRow(table, id, cellValues) {
+      if (!table) return null;
+      const tbody = table.querySelector("tbody");
+      if (!tbody) return null;
+      const row = document.createElement("tr");
+      row.dataset.needGraphRowId = id;
+      cellValues.forEach((value) => {
+        const cell = document.createElement("td");
+        cell.textContent = value;
+        row.appendChild(cell);
+      });
+      tbody.appendChild(row);
+      return row;
+    }
+
     // Everything one mode application touches, so leaving a mode restores
     // exactly what it changed — no more, no less.
-    const touched = { changes: new Set(), edges: [], pathEdges: [], impacts: [], ghosts: new Set() };
+    const touched = {
+      changes: new Set(), edges: [], pathEdges: [], impacts: [], ghosts: new Set(),
+      tableRows: new Set(), tableGhostRows: [],
+    };
     let ghostEdgeSequence = 0;
 
     function resetChangeData() {
@@ -120,11 +173,18 @@
           if (element.length) element.remove();
         });
       });
+      touched.tableRows.forEach((id) => {
+        const row = findRow(nodeTable, id) || findRow(edgeTable, id);
+        if (row && tableSnapshot.has(id)) setLastCellText(row, tableSnapshot.get(id));
+      });
+      touched.tableGhostRows.forEach((row) => row.remove());
       touched.changes.clear();
       touched.edges.length = 0;
       touched.pathEdges.length = 0;
       touched.impacts.length = 0;
       touched.ghosts.clear();
+      touched.tableRows.clear();
+      touched.tableGhostRows.length = 0;
       container.__needGraphOverlayForcedNodes = null;
       container.__needGraphAffectedOnly = null;
       if (affected.input) affected.input.checked = false;
@@ -201,6 +261,33 @@
           edge.data("change", String(entry[3]));
           touched.edges.push(edge.id());
         });
+      });
+      Object.entries(diff.nodes || {}).forEach(([id, change]) => {
+        const row = findRow(nodeTable, id);
+        if (!row) return;
+        setLastCellText(row, String(change));
+        touched.tableRows.add(id);
+      });
+      (diff.edges || []).forEach((entry) => {
+        const id = entry[0] + "|" + entry[1] + "|" + entry[2];
+        const row = findRow(edgeTable, id);
+        if (!row) return;
+        setLastCellText(row, String(entry[3]));
+        touched.tableRows.add(id);
+      });
+      (diff.ghostNodes || []).forEach((ghost) => {
+        const row = appendGhostRow(nodeTable, String(ghost.id), [
+          ghost.id, ghost.title || ghost.id, ghost.type || "", ghost.status || "",
+          ghost.priority || "", (ghost.tags || []).join(", "), "removed",
+        ]);
+        if (row) touched.tableGhostRows.push(row);
+      });
+      (diff.ghostEdges || []).forEach((edge) => {
+        const id = edge.source + "|" + (edge.relation || "") + "|" + edge.target;
+        const row = appendGhostRow(edgeTable, id, [
+          edge.source, edge.label || edge.relation || "", edge.target, "removed", "",
+        ]);
+        if (row) touched.tableGhostRows.push(row);
       });
       container.__needGraphOverlayForcedNodes = new Set([...ghostIds, ...touched.changes]);
       reapplyPredicates();

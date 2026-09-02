@@ -94,7 +94,12 @@ local function edge_table_rows(projection)
     for _, key in ipairs({edge.source .. "\0" .. edge.target, edge.target .. "\0" .. edge.source}) do
       for _, value in ipairs(explanations[key] or {}) do table.insert(hit, value) end
     end
-    table.insert(rows, {source=text(edge.source), relation=text(edge.label), target=text(edge.target), change=text(edge.change), impact=table.concat(hit, "; ")})
+    -- id uses the raw relation key (edge.relation), not the translated
+    -- display label (edge.label) below — it must match the same
+    -- (source, relation, target) triple graph-modes.js's findEdge() already
+    -- keys diff/impact overlay entries by.
+    local id = text(edge.source) .. "|" .. text(edge.relation) .. "|" .. text(edge.target)
+    table.insert(rows, {id=id, source=text(edge.source), relation=text(edge.label), target=text(edge.target), change=text(edge.change), impact=table.concat(hit, "; ")})
   end
   return rows
 end
@@ -249,7 +254,14 @@ local function load_projection(root, view_id)
   return decoded, contents
 end
 
-local function table_block(headers, rows)
+-- `row_ids`, when given, is a list parallel to `rows` naming each row's
+-- stable id (a node id, or a "source|relation|target" triple for an edge —
+-- the same key graph-modes.js's findEdge() already uses) as a
+-- data-need-graph-row-id attribute, so the client can find and update a
+-- specific row without fragile text-matching against a cell's contents.
+-- `kind` ("node"/"edge") is stamped on the table itself so the client can
+-- tell the two same-classed tables apart.
+local function table_block(headers, rows, kind, row_ids)
   local function cells_block(cells)
     local result = {}
     for _, value in ipairs(cells) do table.insert(result, pandoc.Plain({pandoc.Str(value)})) end
@@ -258,7 +270,20 @@ local function table_block(headers, rows)
   local aligns, widths = {}, {}
   for _ = 1, #headers do aligns[#aligns + 1] = "AlignDefault"; widths[#widths + 1] = 0 end
   local simple = pandoc.SimpleTable({pandoc.Str("")}, aligns, widths, cells_block(headers), rows)
-  local t = pandoc.utils.from_simple_table(simple); t.classes = {"need-graph-table"}; return t
+  local t = pandoc.utils.from_simple_table(simple)
+  t.classes = {"need-graph-table"}
+  if kind then t.attributes = {["data-need-graph-role"] = kind} end
+  if row_ids then
+    local body = t.bodies[1]
+    for i, row in ipairs(body.body) do
+      if row_ids[i] then
+        row.attr = pandoc.Attr("", {}, {["data-need-graph-row-id"] = row_ids[i]})
+        body.body[i] = row
+      end
+    end
+    t.bodies[1] = body
+  end
+  return t
 end
 
 function M.render_shortcode(args, kwargs)
@@ -312,19 +337,23 @@ function M.render_shortcode(args, kwargs)
     views.tr("Status", "Status"), views.tr("Priority", "Prioridade"),
     views.tr("Tags", "Tags"), views.tr("Change", "Mudança"),
   }
-  local node_rows = {}
+  local node_rows, node_row_ids = {}, {}
   for _, row in ipairs(node_table_rows(projection)) do
     table.insert(node_rows, {row.id, row.title, row.type, row.status, row.priority, row.tags, row.change})
+    table.insert(node_row_ids, row.id)
   end
-  table.insert(blocks, table_block(node_header, node_rows))
+  table.insert(blocks, table_block(node_header, node_rows, "node", node_row_ids))
 
   local header = {
     views.tr("Source", "Origem"), views.tr("Relation", "Relação"), views.tr("Target", "Destino"),
     views.tr("Change", "Mudança"), views.tr("Impact", "Impacto")
   }
-  local rows = {}
-  for _, row in ipairs(edge_table_rows(projection)) do table.insert(rows, {row.source, row.relation, row.target, row.change, row.impact}) end
-  table.insert(blocks, table_block(header, rows))
+  local rows, edge_row_ids = {}, {}
+  for _, row in ipairs(edge_table_rows(projection)) do
+    table.insert(rows, {row.source, row.relation, row.target, row.change, row.impact})
+    table.insert(edge_row_ids, row.id)
+  end
+  table.insert(blocks, table_block(header, rows, "edge", edge_row_ids))
 
   local encoded_ok, encoded = pcall(pandoc.json.encode, projection)
   local projection_changed = views.language() ~= "en" or next(filter_cond) or root_id ~= ""
