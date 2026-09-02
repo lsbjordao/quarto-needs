@@ -60,6 +60,29 @@ stays constant across sizes. No superlinear behavior is visible after the
 single-pass index construction change; no further optimization is justified
 by this data.
 
+## Profiling consumers of repeated derivation (spec section 10)
+
+Measured 2026-09-02 on the 50k-object model (102k relations), 5 changed
+requirements as impact origins:
+
+* `select_graph` (depth 2, 10 seeds): ~47 ms — consumes snapshot indexes;
+  not material.
+* `run_rules` re-run: ~5 ms — snapshot-native already; not material.
+* `diff` (baseline vs current, recompute): ~2.7 s.
+* `impact --recompute-with current` (5 origins, distance ≤ 10): 3.94 s
+  before / **2.86 s after** removing one duplicated baseline-relation
+  recomputation (the stored baseline relations were re-resolved through the
+  current catalog once inside `diff.compare` and again to build the
+  traversal adjacency; `impact.analyze` now re-resolves once and hands the
+  list to both). Identical output (290 impacted objects).
+* `suspect`: inherits the same win (it derives from the impact report).
+
+The remaining cost is one-pass inherent work (one recomputation, one
+current-side fingerprint pass, one classification). No caches were added;
+no snapshot-level adjacency/family indexes were introduced — the measured
+consumers either already use the canonical indexes or pay a single O(V+E)
+pass per user-invoked operation.
+
 ## Limitations
 
 * Absolute numbers are indicative only — one machine, one run date, best-of-3.

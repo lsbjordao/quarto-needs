@@ -324,6 +324,7 @@ def compare(
     config: NeedsConfig,
     *,
     recompute: bool = False,
+    recomputed_baseline_relations: Sequence[Mapping[str, object]] | None = None,
 ) -> DiffReport:
     if not baseline_payload.get("valid", False):
         raise DiffError(
@@ -354,7 +355,12 @@ def compare(
         )
 
         baseline_relations = list(baseline_payload.get("relations", []))
-        if recompute:
+        if recompute and recomputed_baseline_relations is not None:
+            # A caller (impact) that already re-resolved the stored relations
+            # under the current catalog hands them in here, so one analysis
+            # pass pays for the recomputation exactly once.
+            baseline_relations = list(recomputed_baseline_relations)
+        elif recompute:
             baseline_relations = recomputed_relations(baseline_relations)
         # A catalog change can move families and roles, so semantic fingerprints
         # from the two sides stop being comparable. Fall back to authored tuples,

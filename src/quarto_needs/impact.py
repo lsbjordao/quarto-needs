@@ -127,22 +127,37 @@ def analyze(
                 "pass --recompute-with current to traverse under the current date"
             )
 
+    # Re-resolve the stored relations once, up front: in recompute mode the
+    # list feeds both the diff below and the traversal adjacency, which
+    # previously re-resolved every stored relation twice in one run —
+    # measured as the dominant cost of this operation at scale. In default
+    # mode the adjacency keeps using the stored relations and the diff keeps
+    # recomputing internally, as before.
+    stored_relations = list(baseline_payload.get("relations", []))
+    recomputed = (
+        diff_module.recomputed_relations(stored_relations) if recompute else None
+    )
+
     try:
-        report = diff_module.compare(baseline_payload, snapshot, config, recompute=True)
+        report = diff_module.compare(
+            baseline_payload,
+            snapshot,
+            config,
+            recompute=True,
+            recomputed_baseline_relations=recomputed,
+        )
     except diff_module.DiffError as error:
         raise ImpactError(str(error)) from error
 
     try:
         origins = _origins(report)
-        stored_relations = list(baseline_payload.get("relations", []))
         # An edge present only in the baseline is propagated with its stored
         # direction otherwise, so a catalog whose impact direction moved would
         # steer part of the traversal under the policy `--recompute-with
         # current` exists to leave behind. Recomputing them here is what makes
         # one relation policy govern the entire traversal.
         adjacency = _union_edges(
-            diff_module.recomputed_relations(stored_relations) if recompute else stored_relations,
-            snapshot,
+            recomputed if recomputed is not None else stored_relations, snapshot
         )
         baseline_objects = {str(item["id"]): item for item in baseline_payload.get("objects", [])}
     except KeyError as error:
