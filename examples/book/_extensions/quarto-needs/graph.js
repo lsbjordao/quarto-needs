@@ -281,6 +281,17 @@
     body.push(badgeField("Status", "status", data.status));
     body.push(badgeField("Priority", "priority", data.priority));
     if (data.change && data.change !== "unchanged") body.push(plainField("Change", data.change));
+    // Impact-mode fields: only ever set on a node while Impact mode is
+    // active (graph-modes.js's applyImpact()/resetChangeData() own that
+    // lifecycle) — this function doesn't know or care about "modes" at
+    // all, it just presents whatever data happens to be on the node,
+    // exactly like the Change row above already does.
+    if (data.impactDistance != null) body.push(plainField("Distance", data.impactDistance));
+    if (data.impactOrigin) body.push(plainField("Origin", data.impactOrigin));
+    if (data.impactClassification) body.push(plainField("Classification", data.impactClassification));
+    if (Array.isArray(data.impactPath) && data.impactPath.length) {
+      body.push(plainField("Path", data.impactPath.join(" → ")));
+    }
     const popup = document.createElement("div");
     popup.className = "need-graph-popup";
     popup.setAttribute("role", "dialog");

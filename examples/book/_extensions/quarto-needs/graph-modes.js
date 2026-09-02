@@ -166,6 +166,8 @@
           if (!node.length) return;
           node.removeData("impactDistance");
           node.removeData("impactOrigin");
+          node.removeData("impactClassification");
+          node.removeData("impactPath");
           node.removeClass("need-impact-origin");
         });
         touched.ghosts.forEach((id) => {
@@ -306,6 +308,8 @@
           if (!node.length) return;
           node.data("impactDistance", Number(entry.distance) || 0);
           node.data("impactOrigin", String(entry.origin || ""));
+          node.data("impactClassification", String(entry.classification || ""));
+          node.data("impactPath", Array.isArray(entry.path) ? entry.path.map(String) : []);
           if (entry.origin && String(entry.origin) === String(entry.id)) node.addClass("need-impact-origin");
           impacted.add(String(entry.id));
           touched.impacts.push(String(entry.id));

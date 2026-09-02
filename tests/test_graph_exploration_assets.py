@@ -120,6 +120,32 @@ def test_changes_mode_restores_the_table_on_reset() -> None:
     assert ".remove()" in block
 
 
+def test_impact_mode_stores_path_and_classification_on_the_node() -> None:
+    """distance/origin were already stored as node data; path/classification
+    exist in the same overlays.impact.entries shape but were never carried
+    over — the popup can't show what was never set."""
+    modes = read(EXTENSION, "graph-modes.js")
+    apply_start = modes.index("function applyImpact()")
+    apply_end = modes.index("\n    const modeField", apply_start)
+    block = modes[apply_start:apply_end]
+
+    assert 'node.data("impactPath"' in block
+    assert 'node.data("impactClassification"' in block
+
+
+def test_impact_mode_cleans_up_path_and_classification_on_reset() -> None:
+    """Leaving Impact mode must remove these two the same way distance/
+    origin are already removed, or a popup opened afterward would still
+    show stale impact rows for a node no longer being analyzed."""
+    modes = read(EXTENSION, "graph-modes.js")
+    reset_start = modes.index("function resetChangeData()")
+    reset_end = modes.index("\n    function addGhosts", reset_start)
+    block = modes[reset_start:reset_end]
+
+    assert 'node.removeData("impactPath")' in block
+    assert 'node.removeData("impactClassification")' in block
+
+
 def test_impact_mode_composes_through_the_existing_predicates() -> None:
     modes = read(EXTENSION, "graph-modes.js")
     explore = read(EXTENSION, "graph-explore.js")

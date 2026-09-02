@@ -205,6 +205,22 @@ def test_graph_js_enter_activates_via_the_real_tap_event() -> None:
     assert '" "' in block
 
 
+def test_graph_js_popup_shows_impact_rows_when_present_on_the_node() -> None:
+    """Mirrors the existing Change row's own precedent exactly: the popup
+    doesn't know about "modes" at all, it just presents whatever node data
+    fields happen to be set — Impact mode setting them, and Reset/leaving
+    Impact mode clearing them, is what makes these rows mode-scoped."""
+    source = GRAPH_JS.read_text(encoding="utf-8")
+    popup_start = source.index("function buildNodePopup(node)")
+    popup_end = source.index("\n    return popup;\n", popup_start)
+    block = source[popup_start:popup_end]
+
+    assert "data.impactDistance" in block
+    assert "data.impactOrigin" in block
+    assert "data.impactClassification" in block
+    assert "data.impactPath" in block
+
+
 def test_graph_theme_sync_uses_the_registered_cytoscape_instance() -> None:
     source = NEEDS_JS.read_text(encoding="utf-8")
     assert "canvas.__quartoNeedsCy" in source
