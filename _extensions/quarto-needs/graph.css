@@ -81,6 +81,23 @@
   flex: 1 1 auto;
   height: auto;
 }
+/* The vendored default (.cytoscape-navigator, in vendor/cytoscape-navigator/
+   cytoscape.js-navigator.css) is a page-corner position:fixed 400x400 panel;
+   this overrides it to a small corner of the canvas itself. Higher
+   specificity than the vendored bare-class selector wins regardless of
+   stylesheet order, so the vendored file stays unmodified. */
+.need-graph-canvas .cytoscape-navigator {
+  position: absolute;
+  top: auto;
+  bottom: .5rem;
+  right: .5rem;
+  left: auto;
+  width: 140px;
+  height: 100px;
+  border: 1px solid var(--bs-border-color, #d7dce2);
+  background: var(--bs-body-bg, white);
+  z-index: 15;
+}
 .need-graph-loading {
   display: flex;
   align-items: center;

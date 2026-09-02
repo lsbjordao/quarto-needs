@@ -347,7 +347,7 @@ function M.render_shortcode(args, kwargs)
     '<button type="button" class="need-graph-reset">' .. views.tr("Reset", "Redefinir") .. '</button>' ..
     '<button type="button" class="need-graph-fullscreen">' .. views.tr("Fullscreen", "Tela cheia") .. '</button>' ..
     '<button type="button" class="need-graph-export-png">' .. views.tr("Export PNG", "Exportar PNG") .. '</button></div>')
-  local canvas = pandoc.RawBlock("html", '<div class="need-graph-canvas" data-need-graph-canvas="' .. instance_id .. '" role="img" aria-label="' .. views.tr("Interactive traceability graph", "Grafo de rastreabilidade interativo") .. '"><div class="need-graph-loading">' .. views.tr("Loading interactive graph…", "Carregando grafo interativo…") .. '</div></div>')
+  local canvas = pandoc.RawBlock("html", '<div class="need-graph-canvas" data-need-graph-canvas="' .. instance_id .. '" role="img" aria-label="' .. views.tr("Interactive traceability graph", "Grafo de rastreabilidade interativo") .. '"><div class="need-graph-loading">' .. views.tr("Loading interactive graph…", "Carregando grafo interativo…") .. '</div><div id="' .. instance_id .. '-minimap" class="cytoscape-navigator" data-need-graph-minimap="' .. instance_id .. '" aria-hidden="true"></div></div>')
   local data_script = pandoc.RawBlock("html", '<script type="application/json" data-need-graph-data="' .. instance_id .. '">' .. json_payload .. '</script>')
   -- The overlay annotation artifact (written by write_graph_overlays when the
   -- project has a comparison baseline) rides along when it exists; its script

@@ -22,8 +22,13 @@ ROOT = Path(__file__).resolve().parents[1]
 VENDOR = ROOT / "_extensions" / "quarto-needs" / "vendor" / "cytoscape"
 MANIFEST = VENDOR / "ASSET_MANIFEST.json"
 CYTOSCAPE = VENDOR / "cytoscape.min.js"
+NAVIGATOR_VENDOR = ROOT / "_extensions" / "quarto-needs" / "vendor" / "cytoscape-navigator"
+NAVIGATOR_MANIFEST = NAVIGATOR_VENDOR / "ASSET_MANIFEST.json"
+NAVIGATOR_JS = NAVIGATOR_VENDOR / "cytoscape-navigator.js"
 GRAPH_JS = ROOT / "_extensions" / "quarto-needs" / "graph.js"
 GRAPH_CSS = ROOT / "_extensions" / "quarto-needs" / "graph.css"
+GRAPH_LUA = ROOT / "_extensions" / "quarto-needs" / "graph.lua"
+VIEWS_LUA = ROOT / "_extensions" / "quarto-needs" / "views.lua"
 NEEDS_JS = ROOT / "_extensions" / "quarto-needs" / "needs.js"
 MARGIN_SIDEBAR = ROOT / "_extensions" / "quarto-needs" / "margin-sidebar.js"
 
@@ -65,6 +70,72 @@ def test_cytoscape_license_is_recorded() -> None:
     contents = license_file.read_text(encoding="utf-8")
     assert "Permission is hereby granted" in contents
     assert "Cytoscape" in contents
+
+
+def test_cytoscape_navigator_is_vendored_and_not_remote() -> None:
+    assert NAVIGATOR_JS.is_file()
+    assert NAVIGATOR_JS.stat().st_size > 10_000
+    assert b"unpkg.com" not in NAVIGATOR_JS.read_bytes()
+
+
+def test_cytoscape_navigator_matches_its_recorded_checksum() -> None:
+    manifest = json.loads(NAVIGATOR_MANIFEST.read_text(encoding="utf-8"))
+    assert manifest["integrity"].startswith("sha256-")
+    expected = manifest["integrity"].removeprefix("sha256-")
+    assert _sha256(NAVIGATOR_JS) == expected
+
+
+def test_cytoscape_navigator_manifest_pins_version_and_license() -> None:
+    manifest = json.loads(NAVIGATOR_MANIFEST.read_text(encoding="utf-8"))
+    assert manifest["name"] == "cytoscape-navigator"
+    assert manifest["version"]
+    # MIT, not GPLv3 — the license actually checked before vendoring, unlike
+    # the SVG-export slice's cytoscape-svg near-miss (GPLv3 in every release).
+    assert manifest["license"] == "MIT"
+
+
+def test_cytoscape_navigator_license_is_recorded() -> None:
+    license_file = NAVIGATOR_VENDOR / "LICENSE"
+    assert license_file.is_file()
+    contents = license_file.read_text(encoding="utf-8")
+    assert "Permission is hereby granted" in contents
+
+
+def test_navigator_is_loaded_after_cytoscape_core_and_before_graph_js() -> None:
+    views = VIEWS_LUA.read_text(encoding="utf-8")
+    assert 'version = "0.1.8"' in views
+    assert views.index('"vendor/cytoscape/cytoscape.min.js"') < views.index(
+        '"vendor/cytoscape-navigator/cytoscape-navigator.js"'
+    )
+    assert views.index('"vendor/cytoscape-navigator/cytoscape-navigator.js"') < views.index('"graph.js"')
+    assert '"vendor/cytoscape-navigator/cytoscape.js-navigator.css"' in views
+
+
+def test_graph_lua_gives_each_minimap_a_unique_id() -> None:
+    """cytoscape-navigator's own container lookup is a global
+    getElementById/getElementsByClassName with no per-graph scoping — a
+    shared id or class would make a second need-graph instance's minimap
+    grab the first instance's panel. instance_id keeps them apart."""
+    lua = GRAPH_LUA.read_text(encoding="utf-8")
+    assert "-minimap" in lua
+    assert 'data-need-graph-minimap="' in lua
+    assert 'class="cytoscape-navigator"' in lua
+
+
+def test_graph_js_wires_the_minimap_when_the_plugin_loaded() -> None:
+    source = GRAPH_JS.read_text(encoding="utf-8")
+    minimap_start = source.index("data-need-graph-minimap")
+    block = source[minimap_start : minimap_start + 300]
+    assert 'typeof cy.navigator === "function"' in block
+    assert "cy.navigator(" in block
+
+
+def test_graph_css_overrides_the_navigators_default_page_corner_panel() -> None:
+    """The vendored default is position:fixed, 400x400, bottom-right of the
+    whole page — a corner of the actual canvas is what's wanted here."""
+    source = GRAPH_CSS.read_text(encoding="utf-8")
+    assert ".need-graph-canvas .cytoscape-navigator" in source
+    assert "position: absolute" in source
 
 
 def test_graph_js_ships_expected_markers() -> None:

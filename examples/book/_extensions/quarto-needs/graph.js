@@ -538,6 +538,16 @@
       });
     }
 
+    // Mini-map -----------------------------------------------------------------
+    // cytoscape-navigator (MIT, vendored) handles the scaling math, thumbnail
+    // redraw, and drag-to-pan interaction, listening to Cytoscape's own
+    // pan/zoom/render/resize events internally — no interop code needed for
+    // filters, fullscreen, or layout changes to stay in sync.
+    const minimapEl = canvasRoot.querySelector("[data-need-graph-minimap]");
+    if (minimapEl && typeof cy.navigator === "function") {
+      cy.navigator({ container: "#" + minimapEl.id });
+    }
+
     // Color by attribute ----------------------------------------------------
     const colorSelect = controls.querySelector("[data-need-graph-color]");
     const preferred = colorSelect && colorSelect.value;
