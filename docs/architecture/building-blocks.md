@@ -23,6 +23,8 @@ Inside `CONTAINER-PYTHON-PKG`:
 | `COMP-BASELINE` | Captures reproducible states; computes changes and impact paths |
 | `COMP-I18N` | Validates translated sources against the canonical graph; emits localized title projections |
 
+These components are a logical decomposition, not independently deployable units. The semantic kernel inside them is deliberately small — `parser.py`, `config.py`, `relations.py`, `validation.py`, `analysis.py`, `snapshot.py`, `rules.py`, `fingerprints.py`; it is where a project's declarations become the canonical snapshot. The remaining components, and the Quarto extension, are consumers of that snapshot or of its derived projections.
+
 Inside `CONTAINER-QUARTO-EXT`:
 
 | Component | Responsibility |
