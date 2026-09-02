@@ -377,6 +377,7 @@
       pathActive = false;
       activePathKind = null;
       pickingSecondEndpoint = null;
+      container.__needGraphActivePath = null;
       container.__needGraphForcedNodes = pathNodes;
       cy.elements().removeClass("need-root-path-node need-root-path-edge");
       pathButton.textContent = t("Path to root", "Caminho até a raiz");
@@ -418,6 +419,7 @@
         pathEdges = new Set(result.edges);
         pathActive = true;
         activePathKind = "between";
+        container.__needGraphActivePath = { kind: "between", nodes: result.nodes };
         installPredicates();
         contextApi.refresh();
         result.nodes.forEach((id) => cy.getElementById(id).addClass("need-root-path-node"));
@@ -452,6 +454,7 @@
       pathEdges = new Set(result.edges);
       pathActive = true;
       activePathKind = "root";
+      container.__needGraphActivePath = { kind: "root", nodes: result.nodes };
       installPredicates();
       contextApi.refresh();
       result.nodes.forEach((id) => cy.getElementById(id).addClass("need-root-path-node"));

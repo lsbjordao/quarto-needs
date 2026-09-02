@@ -31,7 +31,7 @@ function M.ensure_assets()
   rawset(_G, ASSETS_FLAG, true)
   quarto.doc.add_html_dependency({
     name = "quarto-needs",
-    version = "0.1.6",
+    version = "0.1.7",
     stylesheets = {"needs.css", "graph.css"},
     scripts = {
       "needs.js",
@@ -40,6 +40,7 @@ function M.ensure_assets()
       "graph.js",
       "graph-explore.js",
       "graph-modes.js",
+      "graph-state.js",
     },
   })
 end

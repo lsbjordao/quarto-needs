@@ -13,7 +13,7 @@ def read(root: Path, name: str) -> str:
 def test_exploration_client_is_loaded_after_base_graph() -> None:
     views = read(EXTENSION, "views.lua")
 
-    assert 'version = "0.1.6"' in views
+    assert 'version = "0.1.7"' in views
     assert views.index('"graph-context.js"') < views.index('"graph.js"')
     assert views.index('"graph.js"') < views.index('"graph-explore.js"')
     assert views.index('"graph-explore.js"') < views.index('"graph-modes.js"')
@@ -157,6 +157,18 @@ def test_shortest_path_announces_when_no_path_exists() -> None:
     assert "Nenhum caminho semântico foi encontrado entre os dois objetos" in explore
 
 
+def test_active_path_is_exposed_on_the_container_for_deep_linking() -> None:
+    """Deep-linking/saved-state needs to read which path (if any) is
+    currently shown without reaching into graph-explore.js's private
+    closure — the same container-property convention __needGraphFocusNode
+    already uses."""
+    explore = read(EXTENSION, "graph-explore.js")
+
+    assert 'container.__needGraphActivePath = null;' in explore
+    assert 'container.__needGraphActivePath = { kind: "root", nodes: result.nodes };' in explore
+    assert 'container.__needGraphActivePath = { kind: "between", nodes: result.nodes };' in explore
+
+
 def test_affected_only_toggle_refreshes_visibility_not_just_predicates() -> None:
     """Toggling the checkbox must actually re-render node visibility.
 
@@ -191,3 +203,69 @@ def test_find_edge_miss_is_skipped_not_crashed() -> None:
 
     assert "if (!edge.length) return;" not in modes
     assert modes.count("if (!edge) return;") == 2
+
+
+def test_state_client_is_loaded_last() -> None:
+    views = read(EXTENSION, "views.lua")
+
+    assert 'version = "0.1.7"' in views
+    assert views.index('"graph-modes.js"') < views.index('"graph-state.js"')
+
+
+def test_state_client_reads_the_same_selectors_the_other_modules_publish() -> None:
+    """The state client must read/drive the real controls other modules
+    already own — not a second, drifting copy of their selectors."""
+    state = read(EXTENSION, "graph-state.js")
+    explore = read(EXTENSION, "graph-explore.js")
+    modes = read(EXTENSION, "graph-modes.js")
+
+    for kind in ("type", "status", "family", "profile"):
+        assert f'data-need-graph-explore="{kind}"' in state
+        assert f'select.dataset.needGraphExplore = "{kind}"' in explore or "select.dataset.needGraphExplore = kind" in explore
+
+    assert 'data-need-graph-modes="mode"' in state
+    assert 'data-need-graph-modes="affected"' in state
+    assert 'select.dataset.needGraphModes = "mode"' in modes
+    assert 'input.dataset.needGraphModes = "affected"' in modes
+
+    assert ".need-graph-root-path" in state
+    assert ".need-graph-shortest-path" in state
+    assert 'pathButton.className = "need-graph-root-path"' in explore
+    assert 'betweenButton.className = "need-graph-shortest-path"' in explore
+
+    assert ".need-graph-search" in state
+
+
+def test_state_client_hash_wins_over_storage_and_uses_replace_state() -> None:
+    state = read(EXTENSION, "graph-state.js")
+
+    assert "readHashState" in state
+    assert "readStoredState" in state
+    assert "hashState || readStoredState" in state
+    assert "history.replaceState" in state
+    assert "history.pushState" not in state
+
+
+def test_state_client_clears_both_stores_on_context_reset() -> None:
+    state = read(EXTENSION, "graph-state.js")
+
+    reset_start = state.index('addEventListener("quarto-needs-context-reset"')
+    reset_end = state.index("});", reset_start)
+    reset_body = state[reset_start:reset_end]
+
+    assert "clearHashState" in reset_body
+    assert "clearStoredState" in reset_body
+
+
+def test_state_client_storage_failures_never_throw() -> None:
+    """localStorage can be unavailable (private browsing, quota) — state
+    persistence is a convenience, never a hard requirement."""
+    state = read(EXTENSION, "graph-state.js")
+
+    assert state.count("try {") >= 2
+    assert "localStorage.getItem" in state
+    assert "localStorage.setItem" in state
+
+
+def test_showcase_state_client_matches_canonical_extension() -> None:
+    assert read(SHOWCASE, "graph-state.js") == read(EXTENSION, "graph-state.js")
