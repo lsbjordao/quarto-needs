@@ -669,3 +669,112 @@ def test_need_graph_static_table_rows_carry_a_stable_row_id(tmp_path: Path) -> N
     # exact key graph-modes.js's own findEdge() already keys overlay entries
     # by — not the translated display label a reader sees in the cell.
     assert re.search(r'data-need-graph-row-id="REQ-1\|[^"]+\|TC-1"', html)
+
+
+def test_need_graph_renders_a_table_with_zero_edges_without_crashing(tmp_path: Path) -> None:
+    """Pandoc's from_simple_table omits bodies[1] entirely when a table has
+    zero data rows — table_block's row-id attribution originally assumed
+    it always exists, crashing the whole page render (attempt to index a
+    nil value) for any node with no edges at all. Found while building the
+    named-query-overlays test below: a lone REQ-1 with no relations was the
+    first fixture in this whole suite to exercise a genuinely empty table."""
+    project = tmp_path / "edgeless"
+    project.mkdir()
+    shutil.copytree(ROOT / "_extensions", project / "_extensions")
+    (project / "_quarto.yml").write_text(
+        "project:\n  type: website\n  output-dir: _site\n\n"
+        'website:\n  title: "Edgeless fixture"\n\n'
+        "format:\n  html: default\n\nfilters:\n  - quarto-needs\n",
+        encoding="utf-8",
+    )
+    (project / "index.qmd").write_text(
+        '---\ntitle: "Edgeless fixture"\n---\n\n'
+        '::: {.need #REQ-1 type="functional-requirement" status="approved"}\n\n'
+        "## Authenticate\nNo relations at all.\n:::\n\n"
+        "{{< need-graph >}}\n",
+        encoding="utf-8",
+    )
+    subprocess.run(
+        [".venv/bin/quarto-needs", "--root", str(project), "scan"],
+        cwd=ROOT, check=True, text=True, capture_output=True,
+    )
+    subprocess.run(
+        ["quarto", "render", str(project)],
+        cwd=ROOT, check=True, text=True, capture_output=True,
+    )
+    html = (project / "_site" / "index.html").read_text(encoding="utf-8")
+    assert 'data-need-graph-row-id="REQ-1"' in html
+    assert html.count("need-graph-table") == 2
+
+
+def test_named_query_view_gets_its_own_overlay_when_allowlisted(tmp_path: Path) -> None:
+    """Known limitation item 2: overlays covered only the default view
+    before this. A project that lists a query in [graph] overlay-queries
+    must see the real mode switcher on that query's own {{< need-graph
+    view="..." >}} page, not just the default one — a standalone project
+    (not the shared "overlays" fixture, whose other tests assert an exact
+    table count a second graph instance would throw off)."""
+    project = tmp_path / "named-query-overlays"
+    project.mkdir()
+    shutil.copytree(ROOT / "_extensions", project / "_extensions")
+    (project / "_quarto.yml").write_text(
+        "project:\n  type: website\n  output-dir: _site\n\n"
+        'website:\n  title: "Named query overlay fixture"\n\n'
+        "format:\n  html: default\n\nfilters:\n  - quarto-needs\n",
+        encoding="utf-8",
+    )
+    (project / ".quarto-needs.toml").write_text(
+        '[queries.reqs-only]\nall = [{ field = "type", op = "eq", value = "functional-requirement" }]\n'
+        '[graph]\nbaseline = "baselines/quarto-needs.json"\noverlay-queries = ["reqs-only"]\n',
+        encoding="utf-8",
+    )
+    (project / "index.qmd").write_text(
+        '---\ntitle: "Named query overlay fixture"\n---\n\n'
+        '::: {.need #REQ-1 type="functional-requirement" status="approved"}\n\n'
+        "## Authenticate\nOriginal body.\n:::\n\n"
+        '::: {.need #TC-1 type="test-case" status="passed"}\n\n## Login\n:::\n\n'
+        '{{< need-graph view="reqs-only" id="reqs-view" >}}\n',
+        encoding="utf-8",
+    )
+    subprocess.run(
+        [".venv/bin/quarto-needs", "--root", str(project), "scan"],
+        cwd=ROOT, check=True, text=True, capture_output=True,
+    )
+    subprocess.run(
+        [".venv/bin/quarto-needs", "--root", str(project), "baseline", "create"],
+        cwd=ROOT, check=True, text=True, capture_output=True,
+    )
+    (project / "index.qmd").write_text(
+        (project / "index.qmd").read_text(encoding="utf-8").replace(
+            "Original body.", "Revised body."
+        ),
+        encoding="utf-8",
+    )
+    subprocess.run(
+        [".venv/bin/quarto-needs", "--root", str(project), "scan"],
+        cwd=ROOT, check=True, text=True, capture_output=True,
+    )
+    subprocess.run(
+        ["quarto", "render", str(project)],
+        cwd=ROOT, check=True, text=True, capture_output=True,
+    )
+    html = (project / "_site" / "index.html").read_text(encoding="utf-8")
+    # The mode-switcher <select> itself is JS-inserted progressive
+    # enhancement (graph-modes.js), never present in server-rendered HTML —
+    # the overlays script tag is the correct static-HTML signal that it
+    # will appear once JS runs, the same signal
+    # test_need_graph_embeds_the_overlay_artifact_when_a_baseline_exists
+    # already checks for the default view.
+    assert 'data-need-graph="reqs-view"' in html
+    assert 'data-need-graph-overlays="reqs-view"' in html
+    payload_match = re.search(
+        r'<script type="application/json" data-need-graph-overlays="reqs-view">(.*?)</script>',
+        html, re.S,
+    )
+    assert payload_match, "expected the reqs-view overlays payload in the rendered page"
+    overlays = json.loads(payload_match.group(1))
+    # The payload's own "view" field is the query's view id
+    # (need-graph-query-reqs-only), distinct from "reqs-view" — the
+    # shortcode's chosen instance id, used only for the embed attribute.
+    assert overlays["view"] == "need-graph-query-reqs-only"
+    assert overlays["diff"]["nodes"] == {"REQ-1": "modified"}

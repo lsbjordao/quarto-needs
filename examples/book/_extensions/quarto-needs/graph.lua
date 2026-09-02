@@ -273,7 +273,10 @@ local function table_block(headers, rows, kind, row_ids)
   local t = pandoc.utils.from_simple_table(simple)
   t.classes = {"need-graph-table"}
   if kind then t.attributes = {["data-need-graph-role"] = kind} end
-  if row_ids then
+  -- Pandoc's from_simple_table omits bodies[1] entirely when there are zero
+  -- data rows (an edge-less or node-less graph, or a narrow filter/named
+  -- query) — nothing to attribute a row id to in that case.
+  if row_ids and t.bodies[1] then
     local body = t.bodies[1]
     for i, row in ipairs(body.body) do
       if row_ids[i] then

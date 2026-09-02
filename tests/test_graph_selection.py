@@ -82,6 +82,7 @@ def test_graph_section_parses_every_key(tmp_path: Path) -> None:
             'mode = "impact"\nlayout = "radial"\nseed = 9\n'
             'relations = ["verified-by", "verifies"]\n'
             'baseline = "baselines/custom.json"\n'
+            'overlay-queries = ["hub", "risks"]\n'
         ),
     )
     graph = load_config(tmp_path).graph
@@ -93,6 +94,12 @@ def test_graph_section_parses_every_key(tmp_path: Path) -> None:
     assert graph.seed == 9
     assert graph.relations == ("verified-by", "verifies")
     assert graph.baseline == "baselines/custom.json"
+    assert graph.overlay_queries == ("hub", "risks")
+
+
+def test_graph_overlay_queries_defaults_to_empty(tmp_path: Path) -> None:
+    write_project(tmp_path, SPARSE)
+    assert load_config(tmp_path).graph.overlay_queries == ()
 
 
 def test_graph_rejects_unknown_keys(tmp_path: Path) -> None:
@@ -115,6 +122,8 @@ def test_graph_rejects_unknown_keys(tmp_path: Path) -> None:
         '[graph]\nrelations = ["no-such-relation"]\n',
         '[graph]\nrelations = "verified-by"\n',
         '[graph]\nbaseline = ""\n',
+        "[graph]\noverlay-queries = 5\n",
+        '[graph]\noverlay-queries = "hub"\n',
     ],
 )
 def test_graph_rejects_invalid_values(tmp_path: Path, config: str) -> None:
@@ -129,7 +138,7 @@ def test_graph_settings_do_not_change_the_configuration_fingerprint(tmp_path: Pa
     write_project(
         tmp_path,
         SPARSE,
-        config='[graph]\nmax-nodes = 5\nbaseline = "baselines/pinned.json"\n',
+        config='[graph]\nmax-nodes = 5\nbaseline = "baselines/pinned.json"\noverlay-queries = ["hub"]\n',
     )
     limited = load_config(tmp_path).canonical_document()
 

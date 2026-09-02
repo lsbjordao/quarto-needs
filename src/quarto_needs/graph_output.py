@@ -345,15 +345,25 @@ def build_graph_overlays(
     config: NeedsConfig,
     *,
     baseline_payload: Mapping[str, object],
+    query_name: str | None = None,
 ) -> dict[str, object]:
     """The browser-facing annotation artifact, extracted from the *built*
     overlay projections — never re-derived. Whatever the diff/impact builders
     compute is exactly what this artifact carries, so the browser can never
     present annotations that disagree with the overlays themselves.
+
+    `query_name`, when given, scopes the diff/impact traversal to that named
+    query's own selection (not the default view's) — a node's distance and
+    classification are relative to the traversal's own scope, so reusing the
+    default view's overlay and filtering client-side would give wrong
+    numbers for a narrower named query, not just extra rows.
     """
-    selection = _selection(snapshot, config)
+    selection = (
+        _selection(snapshot, config, query_name) if query_name is not None else _selection(snapshot, config)
+    )
+    view_id = query_view_id(query_name) if query_name is not None else DEFAULT_VIEW_ID
     common: dict[str, object] = dict(
-        view_id=DEFAULT_VIEW_ID,
+        view_id=view_id,
         recompute=True,
         relations=config.graph.relations,
         limits=_limits(config),
@@ -369,7 +379,7 @@ def build_graph_overlays(
 
     return {
         "schemaVersion": OVERLAYS_SCHEMA,
-        "view": DEFAULT_VIEW_ID,
+        "view": view_id,
         "diff": {
             "nodes": {
                 node.id: node.change
@@ -423,17 +433,45 @@ def write_graph_overlays(
         baseline_payload = load_baseline(_baseline_path(root, config))
     except BaselineError:
         return None
+    graph_dir = root / ".quarto-needs" / "graphs"
+    graph_dir.mkdir(parents=True, exist_ok=True)
+
+    target: Path | None = None
     try:
         overlays = build_graph_overlays(snapshot, config, baseline_payload=baseline_payload)
     except GraphLimitExceeded:
-        return None
-    graph_dir = root / ".quarto-needs" / "graphs"
-    graph_dir.mkdir(parents=True, exist_ok=True)
-    target = graph_dir / f"{DEFAULT_VIEW_ID}-overlays.json"
-    _atomic_text(
-        target,
-        json.dumps(overlays, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-    )
+        pass
+    else:
+        target = graph_dir / f"{DEFAULT_VIEW_ID}-overlays.json"
+        _atomic_text(
+            target,
+            json.dumps(overlays, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        )
+
+    # An explicit allowlist, not every configured named query: a diff/impact
+    # traversal per query multiplies the same cost item 9 already flags for
+    # the default view alone, so this only pays it where a project author
+    # has actually asked for a mode switcher on that query's own page. An
+    # unrecognized name (typo, stale entry) is silently skipped — the same
+    # optional-presentation-artifact contract a missing baseline already has.
+    # Each query's traversal degrades independently of the default view's
+    # own (they are different selections with different budgets) — one
+    # exceeding its budget must not block the others.
+    for query_name in config.graph.overlay_queries:
+        if query_name not in config.named_query_sources:
+            continue
+        try:
+            query_overlays = build_graph_overlays(
+                snapshot, config, baseline_payload=baseline_payload, query_name=query_name
+            )
+        except GraphLimitExceeded:
+            continue
+        query_target = graph_dir / f"{query_view_id(query_name)}-overlays.json"
+        _atomic_text(
+            query_target,
+            json.dumps(query_overlays, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        )
+
     return target
 
 

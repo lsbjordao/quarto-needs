@@ -85,6 +85,7 @@ class GraphSettings:
     seed: int = 1
     relations: tuple[str, ...] = ()
     baseline: str | None = None
+    overlay_queries: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -500,7 +501,7 @@ def _parse_graph(raw: object) -> GraphSettings:
         raise _fail("[graph] must be a table")
     unknown = set(raw) - {
         "max-nodes", "max-edges", "depth", "mode", "layout", "seed", "relations",
-        "baseline"
+        "baseline", "overlay-queries",
     }
     if unknown:
         raise _fail(f"[graph] has unknown keys: {', '.join(sorted(unknown))}")
@@ -533,6 +534,12 @@ def _parse_graph(raw: object) -> GraphSettings:
     if baseline is not None and (not isinstance(baseline, str) or not baseline.strip()):
         raise _fail("[graph] baseline must be a non-empty string when present")
 
+    overlay_queries_raw = raw.get("overlay-queries")
+    if overlay_queries_raw is not None:
+        overlay_queries = _string_list(overlay_queries_raw, "[graph] overlay-queries")
+    else:
+        overlay_queries = ()
+
     relations_raw = raw.get("relations")
     if relations_raw is not None:
         names = _string_list(relations_raw, "[graph] relations")
@@ -558,6 +565,7 @@ def _parse_graph(raw: object) -> GraphSettings:
         seed=seed,
         relations=relations,
         baseline=baseline,
+        overlay_queries=overlay_queries,
     )
 
 

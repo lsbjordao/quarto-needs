@@ -585,6 +585,75 @@ def test_write_graph_overlays_degrades_gracefully_when_the_overlay_exceeds_budge
     assert not (tmp_path / ".quarto-needs" / "graphs" / "need-graph-1-overlays.json").exists()
 
 
+def test_write_graph_overlays_writes_one_overlay_per_allowlisted_named_query(
+    tmp_path: Path,
+) -> None:
+    """Known limitation item 2's named follow-on: overlays covered only the
+    default view before this. A named query's own overlay must reflect
+    *its own* selection (a diff/impact traversal scoped to that query, not
+    the default view's), so distances/classifications are correct relative
+    to what that query actually shows — reusing the default overlay's data
+    and filtering client-side would give wrong numbers, not just extra
+    rows."""
+    _write_baseline(tmp_path, CHAIN_V1)
+    (tmp_path / "graph.qmd").write_text(CHAIN_V2, encoding="utf-8")
+    (tmp_path / ".quarto-needs.toml").write_text(
+        '[queries.sys-only]\nall = [{ field = "type", op = "eq", value = "system-requirement" }]\n'
+        '[graph]\noverlay-queries = ["sys-only"]\n',
+        encoding="utf-8",
+    )
+    result = _analyze(tmp_path)
+
+    graph_output.write_default_projection(tmp_path, result.snapshot, load_config(tmp_path))
+
+    view_id = graph_output.query_view_id("sys-only")
+    overlay_path = tmp_path / ".quarto-needs" / "graphs" / f"{view_id}-overlays.json"
+    assert overlay_path.is_file()
+    payload = json.loads(overlay_path.read_text(encoding="utf-8"))
+    assert payload["schemaVersion"] == "need-graph-overlays-v1"
+    assert payload["view"] == view_id
+
+
+def test_write_graph_overlays_skips_a_name_that_matches_no_configured_query(
+    tmp_path: Path,
+) -> None:
+    """An optional presentation artifact, same contract as a missing
+    baseline or a too-large overlay traversal — a typo'd or stale name in
+    overlay-queries must never fail the build."""
+    _write_baseline(tmp_path, CHAIN_V1)
+    (tmp_path / "graph.qmd").write_text(CHAIN_V2, encoding="utf-8")
+    (tmp_path / ".quarto-needs.toml").write_text(
+        '[graph]\noverlay-queries = ["no-such-query"]\n', encoding="utf-8"
+    )
+    result = _analyze(tmp_path)
+
+    # Must not raise.
+    graph_output.write_default_projection(tmp_path, result.snapshot, load_config(tmp_path))
+    graphs_dir = tmp_path / ".quarto-needs" / "graphs"
+    assert not any("no-such-query" in f.name for f in graphs_dir.glob("*-overlays.json"))
+
+
+def test_write_graph_overlays_writes_no_named_query_overlays_by_default(
+    tmp_path: Path,
+) -> None:
+    """Regression guard: an empty/absent overlay-queries must behave
+    exactly as it did before this slice — only the default view's overlay,
+    nothing per named query, even when named queries are configured."""
+    _write_baseline(tmp_path, CHAIN_V1)
+    (tmp_path / "graph.qmd").write_text(CHAIN_V2, encoding="utf-8")
+    (tmp_path / ".quarto-needs.toml").write_text(
+        '[queries.sys-only]\nall = [{ field = "type", op = "eq", value = "system-requirement" }]\n',
+        encoding="utf-8",
+    )
+    result = _analyze(tmp_path)
+
+    graph_output.write_default_projection(tmp_path, result.snapshot, load_config(tmp_path))
+
+    graphs_dir = tmp_path / ".quarto-needs" / "graphs"
+    overlay_files = sorted(f.name for f in graphs_dir.glob("*-overlays.json"))
+    assert overlay_files == ["need-graph-1-overlays.json"]
+
+
 def test_write_graph_overlays_honors_the_configured_baseline_path(tmp_path: Path) -> None:
     (tmp_path / "baselines").mkdir()
     _write_baseline(tmp_path, CHAIN_V1)
