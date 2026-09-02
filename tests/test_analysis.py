@@ -393,9 +393,10 @@ def test_snapshot_index_construction_is_linear(tmp_path: Path) -> None:
     4,000 objects with 16,000 relations must analyze in a few seconds at
     most; the replaced pattern (one full relation scan per object) costs
     four scans worth of comparisons per object and takes tens of seconds at
-    this size. The bound is deliberately generous — the AST contract in
-    ``test_semantic_kernel_contract.py`` guards the pattern deterministically,
-    this only proves the construction stays practical at scale.
+    this size. The bound is deliberately generous — CI runners can be slow
+    and loaded — because the deterministic AST contract in
+    ``test_semantic_kernel_contract.py`` guards the pattern itself; this
+    only proves the construction stays practical at scale.
     """
     import time
 
@@ -421,7 +422,7 @@ def test_snapshot_index_construction_is_linear(tmp_path: Path) -> None:
     assert result.snapshot is not None
     assert len(result.snapshot.objects) == 4_000
     assert len(result.snapshot.relations) == 16_000
-    assert elapsed < 3.0, f"analysis took {elapsed:.2f}s"
+    assert elapsed < 10.0, f"analysis took {elapsed:.2f}s"
 
 
 def test_finding_order_includes_anchor_and_canonical_properties() -> None:

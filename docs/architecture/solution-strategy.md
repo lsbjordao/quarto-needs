@@ -10,7 +10,7 @@ The product has a Python analysis core, Lua rendering filters, and JavaScript in
 
 `cli.build` loads configuration once, analyzes once, and materializes every named query, quality report, and C4 view from that single `AnalysisSnapshot`. Nothing downstream — Lua shortcodes, the CLI, exporters — has its own evaluator. This is why a `query=` filter in a Quarto page and a `quarto-needs coverage` CLI number can never silently disagree.
 
-The same discipline applies inside the core: validation runs on the canonical model only — declaration tokens before the snapshot exists (`validate_declarations`), snapshot records after it (`run_rules`) — never on legacy compatibility DTOs. The dependency direction for the retained `EngineeringObject` convenience APIs is one-way, legacy-into-canonical (`model.to_declaration`), and `tests/test_semantic_kernel_contract.py` fails if a canonical module starts importing the legacy model again.
+The same discipline applies inside the core: validation runs on the canonical model only — declaration tokens before the snapshot exists (`validate_declarations`), snapshot records after it (`run_rules`) — never on legacy compatibility DTOs. The dependency direction for the retained `EngineeringObject` convenience APIs is one-way, legacy-into-canonical (`model.to_declaration`), and `tests/test_semantic_kernel_contract.py` fails if the adapter-free kernel modules start importing the legacy model at runtime, or if any canonical pipeline function (compatibility entry points exempt) references the legacy type.
 
 ## Text-first authoring, typed property graph as the model (`ADR-003`)
 

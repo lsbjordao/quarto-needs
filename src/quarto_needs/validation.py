@@ -161,10 +161,24 @@ def validate(
     defers to :func:`validate_declarations`. The canonical analyzer no
     longer routes through this function; it remains for external callers
     and tests that construct legacy objects directly.
+
+    Two deliberate differences from the pre-stabilization implementation
+    remain for direct callers:
+
+    * relation names are resolved through the relation catalog, so an
+      unsupported name now also raises the structural ``REQ007`` finding
+      this function previously never produced, and the ``REQ005`` message
+      names the resolved v1 relation (``derived-from`` reports as
+      ``derives-from``);
+    * an explicitly passed ``require_rationale_for`` still honors the
+      historical falsy-falls-back-to-default behavior, so an empty set
+      selects the default governed types instead of disabling ``REQ002``.
     """
     return list(
         validate_declarations(
             (to_declaration(item) for item in objects),
-            require_rationale_for=require_rationale_for,
+            require_rationale_for=(
+                require_rationale_for or None
+            ),
         )
     )

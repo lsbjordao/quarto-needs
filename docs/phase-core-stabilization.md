@@ -65,9 +65,13 @@ source text
 
 The boundary is executable: `tests/test_semantic_kernel_contract.py`
 (AST-based) fails if a canonical pipeline function references
-`EngineeringObject`, if a kernel module imports the legacy model at
-runtime, if graph/C4 projections stop consuming snapshots, or if browser
-assets hardcode relation-family semantics.
+`EngineeringObject`, if one of the adapter-free kernel modules
+(`rules.py`, `snapshot.py`, `fingerprints.py`, `relations.py`,
+`config.py`, `diagnostics.py`) imports the legacy model at runtime — the
+three adapter-hosting modules (`analysis.py`, `validation.py`,
+`parser.py`) are instead checked function-by-function, with their named
+compatibility entry points exempt — if graph/C4 projections stop consuming
+snapshots, or if browser assets hardcode relation-family semantics.
 
 ## 3. Measured performance
 
@@ -93,8 +97,8 @@ index fix. CPython 3.13.5, Linux x86_64.
 1. **Linear-time graph indexes** (`8854a65`): outgoing/incoming were built
    with one full relation scan per object — O(V·E). Replaced with a single
    bucketing pass, O(V+E), preserving deterministic ordering. Guarded by a
-   scale test (4k objects/16k relations, 0.35 s) and an AST-level pattern
-   guard.
+   scale test (4k objects/16k relations, runs in well under a second with
+   a generous 10 s bound) and an AST-level pattern guard.
 2. **Single relation recomputation per impact run** (`8be3964`): profiling
    the 50k model showed `--recompute-with current` re-resolving every
    stored baseline relation twice (once in `diff.compare`, once for the
@@ -169,6 +173,13 @@ Quarto. It also serves as the small non-self-hosted integration fixture.
   convenience entry point; adapts into the canonical analyzer.
 * `validation.validate(list[EngineeringObject])` — compatibility wrapper
   over `validate_declarations` for external callers and existing tests.
+  Direct callers see two deliberate differences from the pre-stabilization
+  implementation, documented in the function's docstring: unsupported
+  relation names now also raise `REQ007` (previously produced only by the
+  deleted bridge), and `REQ005` messages use catalog-resolved v1 relation
+  names (`derived-from` reports as `derives-from`). The empty-set
+  `require_rationale_for` fallback to the default governed types is
+  preserved.
 * `parser.parse_qmd` / `parser.parse_project` / `_legacy_object` —
   compatibility constructors over the canonical parser (no internal
   callers).

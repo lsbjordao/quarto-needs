@@ -5,6 +5,8 @@ import sys
 from pathlib import Path
 from importlib.util import module_from_spec, spec_from_file_location
 
+import pytest
+
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "_extensions" / "quarto-needs"
@@ -32,6 +34,21 @@ def runtime_assets(directory: Path) -> dict[Path, bytes]:
 def test_example_extension_matches_all_canonical_runtime_assets():
     """The checked-in showcase installs exactly the canonical adapter assets."""
     assert runtime_assets(EXAMPLE_EXTENSION) == runtime_assets(SOURCE)
+
+
+@pytest.mark.parametrize(
+    "example",
+    ["book", "minimal"],
+)
+def test_every_example_extension_matches_the_canonical_assets(example: str):
+    """Every committed example extension copy stays in sync with the source.
+
+    Without this, a new or changed extension asset would silently leave a
+    stale vendored copy behind (the pre-render sync repairs it only at the
+    next render).
+    """
+    extension = ROOT / "examples" / example / "_extensions" / "quarto-needs"
+    assert runtime_assets(extension) == runtime_assets(SOURCE)
 
 
 def test_pre_render_synchronizes_all_canonical_extension_assets(tmp_path: Path):
