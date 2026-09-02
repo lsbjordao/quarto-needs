@@ -52,6 +52,12 @@ def _legacy_coverage_fallback(
 
 
 def coverage(objects: list[EngineeringObject]) -> dict[str, object]:
+    """Convenience API: adapts legacy objects into the canonical analyzer.
+
+    The legacy signature is kept for external callers; analysis itself runs
+    through the canonical pipeline (``analyze_objects``), never a separate
+    implementation.
+    """
     result = analyze_objects(objects)
     if result.snapshot is None:
         return _legacy_coverage_fallback(objects)
@@ -303,6 +309,7 @@ def export_graph(
     objects: list[EngineeringObject],
     findings: list[Finding],
 ) -> None:
+    """Convenience API: legacy objects in, canonical v1 graph out."""
     result = analyze_objects(objects, reported_findings=findings)
     if result.snapshot is None:
         raise ValueError(_INVALID_GRAPH_ERROR)
@@ -310,6 +317,7 @@ def export_graph(
 
 
 def export_lua_index(path: Path, objects: list[EngineeringObject]) -> None:
+    """Convenience API: legacy objects in, canonical Lua index out."""
     result = analyze_objects(objects)
     if result.snapshot is None:
         raise ValueError(_INVALID_GRAPH_ERROR)

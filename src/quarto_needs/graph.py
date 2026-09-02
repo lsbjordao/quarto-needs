@@ -1,3 +1,9 @@
+"""Legacy in-memory graph over ``EngineeringObject`` DTOs.
+
+Kept as a compatibility/test surface: tests construct legacy objects and
+exercise traversal ordering against it. The canonical analyzer builds its
+own indexed immutable graph on ``AnalysisSnapshot`` (see ``snapshot.py``);
+this class never participates in project analysis."""
 from __future__ import annotations
 
 from collections import defaultdict, deque

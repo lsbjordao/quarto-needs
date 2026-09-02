@@ -311,6 +311,11 @@ def parse_project_declarations(
 
 
 def _legacy_object(declaration: ObjectDeclaration) -> EngineeringObject:
+    """Compatibility adapter: canonical declaration -> legacy DTO.
+
+    Exists only for the legacy constructors below; the canonical analyzer
+    never converts declarations back into legacy objects.
+    """
     relations: list[Relation] = []
     for token in declaration.relations:
         kind = DEFAULT_RELATION_CATALOG.resolve(token.authored_name)
@@ -344,6 +349,11 @@ def _legacy_object(declaration: ObjectDeclaration) -> EngineeringObject:
 
 
 def parse_qmd(path: Path, root: Path | None = None) -> list[EngineeringObject]:
+    """Compatibility constructor over the canonical declaration parser.
+
+    Parses through the canonical pipeline and adapts the result into legacy
+    DTOs for external convenience; no canonical analysis path uses it.
+    """
     return [
         _legacy_object(declaration)
         for declaration in parse_qmd_declarations(path, root).declarations
@@ -356,6 +366,12 @@ def parse_project(
     *,
     overlays: Mapping[str, str] | None = None,
 ) -> list[EngineeringObject]:
+    """Compatibility constructor over the canonical declaration parser.
+
+    Legacy counterpart of :func:`parse_project_declarations`; tests and
+    external convenience callers consume the legacy DTOs, while canonical
+    analysis consumes the declarations directly.
+    """
     objects = [
         _legacy_object(declaration)
         for declaration in parse_project_declarations(
