@@ -223,6 +223,139 @@ def test_unknown_legacy_relation_becomes_structural_finding() -> None:
     ]
 
 
+def _approved_requirement_qmd(need_id: str) -> str:
+    return (
+        f'::: {{.need #{need_id} type="system-requirement" status="approved"}}\n'
+        f"\n## {need_id}\n"
+        "Body.\n"
+        ":::\n"
+    )
+
+
+def test_validation_warnings_do_not_prevent_snapshot(tmp_path: Path) -> None:
+    source = tmp_path / "req.qmd"
+    source.write_text(_approved_requirement_qmd("REQ-1"), encoding="utf-8")
+
+    result = analyze_project(tmp_path, files=[source])
+
+    assert result.valid is True
+    assert result.snapshot is not None
+    # Characterization: REQ002/REQ006 carry no location and sort by code.
+    assert [
+        (item.code, item.severity, item.object_id, item.message, item.location)
+        for item in result.findings
+    ] == [
+        ("REQ002", "warning", "REQ-1", "REQ-1 has no rationale", None),
+        (
+            "REQ006",
+            "warning",
+            "REQ-1",
+            "REQ-1 is approved but has no verification relation",
+            None,
+        ),
+    ]
+
+
+def test_warnings_are_still_reported_when_the_snapshot_is_blocked(
+    tmp_path: Path,
+) -> None:
+    # Characterization: REQ002/REQ006 are computed pre-snapshot, so they stay
+    # observable even when a structural error blocks construction. Identical
+    # warnings on duplicate IDs deduplicate into one finding each.
+    first = tmp_path / "a.qmd"
+    second = tmp_path / "z.qmd"
+    for path in (first, second):
+        path.write_text(_approved_requirement_qmd("REQ-DUP"), encoding="utf-8")
+
+    result = analyze_project(tmp_path, files=[first, second])
+
+    assert result.snapshot is None
+    assert [
+        (item.code, item.severity, item.object_id, item.location)
+        for item in result.findings
+    ] == [
+        ("REQ004", "error", "REQ-DUP", LocationRecord("a.qmd", 1, "REQ-DUP")),
+        ("REQ002", "warning", "REQ-DUP", None),
+        ("REQ006", "warning", "REQ-DUP", None),
+    ]
+
+
+def test_unknown_target_blocks_snapshot_with_resolved_relation_and_owner_location(
+    tmp_path: Path,
+) -> None:
+    # Characterization: the REQ005 message names the resolved v1 relation and
+    # the finding carries the owning object's location, not the token's.
+    source = tmp_path / "req.qmd"
+    source.write_text(
+        '::: {.need #REQ-1 type="need" verified-by="TC-404"}\n\n## REQ-1\nBody.\n:::\n',
+        encoding="utf-8",
+    )
+
+    result = analyze_project(tmp_path, files=[source])
+
+    assert result.snapshot is None
+    assert [
+        (item.code, item.severity, item.object_id, item.message, item.location)
+        for item in result.findings
+    ] == [
+        (
+            "REQ005",
+            "error",
+            "REQ-1",
+            "REQ-1 references unknown object TC-404 via verified-by",
+            LocationRecord("req.qmd", 1, "REQ-1"),
+        ),
+    ]
+
+
+def test_verified_relation_satisfies_req006_even_when_its_target_is_unknown(
+    tmp_path: Path,
+) -> None:
+    # Characterization: REQ006 inspects relation presence only; target
+    # existence is REQ005's concern.
+    source = tmp_path / "req.qmd"
+    source.write_text(
+        "::: {.need #REQ-1 type=\"system-requirement\" status=\"approved\"}\n"
+        "verified-by: TC-GHOST\n"
+        "\n## REQ-1\nBody.\n:::\n",
+        encoding="utf-8",
+    )
+
+    result = analyze_project(tmp_path, files=[source])
+
+    assert result.snapshot is None
+    # REQ006 stays silent (relation presence is enough); the approved,
+    # rationale-less requirement still earns REQ002.
+    assert [item.code for item in result.findings] == ["REQ005", "REQ002"]
+
+
+def test_findings_and_snapshot_are_equivalent_under_file_order_permutation(
+    tmp_path: Path,
+) -> None:
+    governed = tmp_path / "a.qmd"
+    governed.write_text(
+        "::: {.need #REQ-B type=\"system-requirement\" status=\"approved\"}\n"
+        "verified-by: GHOST-TC\n"
+        "\n## REQ-B\nBody.\n:::\n",
+        encoding="utf-8",
+    )
+    plain = tmp_path / "z.qmd"
+    plain.write_text(
+        '::: {.need #REQ-A type="system-requirement"}\n\n## REQ-A\nBody.\n:::\n',
+        encoding="utf-8",
+    )
+
+    forward = analyze_project(tmp_path, files=[governed, plain])
+    reverse = analyze_project(tmp_path, files=[plain, governed])
+
+    assert forward == reverse
+    assert [(item.code, item.object_id) for item in forward.findings] == [
+        ("REQ005", "REQ-B"),
+        ("REQ002", "REQ-A"),
+        ("REQ002", "REQ-B"),
+    ]
+
+
 def test_finding_order_includes_anchor_and_canonical_properties() -> None:
     legacy = EngineeringObject("REQ-1", "need", "Canonical findings")
     findings = [
