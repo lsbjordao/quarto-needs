@@ -2956,16 +2956,41 @@ def test_default_scope_is_null_when_a_level_has_more_than_one(tmp_path) -> None:
     assert index["defaultScopeByLevel"]["code"] is None
 
 
-def test_a_scope_id_that_is_not_path_safe_gets_a_stable_suffixed_directory(tmp_path) -> None:
+def test_a_path_dangerous_scope_id_gets_a_safe_stable_directory(tmp_path) -> None:
     snapshot = _snapshot(_obj("SYS/ODD", type="system"))
     write_c4_artifacts(tmp_path, snapshot, embedded_defaults())
     index = json.loads(
         (tmp_path / ".quarto-needs" / "c4" / "index.json").read_text(encoding="utf-8")
     )
     directory = index["views"][0]["directory"]
-    assert directory.startswith("system-context/SYS_ODD-")
+    # The separator must not survive into the path, and the segment must
+    # stay inside the tree.
+    assert directory.startswith("system-context/SYS_ODD")
+    assert directory.count("/") == 1
     assert ".." not in directory and not directory.startswith("/")
     assert (tmp_path / ".quarto-needs" / "c4" / directory / "view.json").is_file()
+    # Deterministic across runs.
+    write_c4_artifacts(tmp_path, snapshot, embedded_defaults())
+    again = json.loads(
+        (tmp_path / ".quarto-needs" / "c4" / "index.json").read_text(encoding="utf-8")
+    )
+    assert again["views"][0]["directory"] == directory
+
+
+def test_two_scope_ids_that_sanitize_alike_get_distinct_directories(tmp_path) -> None:
+    # "SYS-1" and "SYS.1" both sanitize to "SYS_1"; neither may win the
+    # directory and silently overwrite the other's artifacts.
+    snapshot = _snapshot(_obj("SYS-1", type="system"), _obj("SYS.1", type="system"))
+    write_c4_artifacts(tmp_path, snapshot, embedded_defaults())
+    index = json.loads(
+        (tmp_path / ".quarto-needs" / "c4" / "index.json").read_text(encoding="utf-8")
+    )
+    directories = {
+        entry["scopeId"]: entry["directory"]
+        for entry in index["views"] if entry["level"] == "system-context"
+    }
+    assert len(set(directories.values())) == 2
+    assert all(value.startswith("system-context/SYS_1-") for value in directories.values())
 
 
 def test_writing_twice_is_byte_identical_and_removes_stale_views(tmp_path) -> None:
@@ -3051,6 +3076,8 @@ import shutil
 import tempfile
 from pathlib import Path
 
+from typing import Iterable
+
 from ..config import NeedsConfig
 from ..snapshot import AnalysisSnapshot
 from .model import LEVEL_ALIASES, LEVELS, LayoutDirection, sanitize_identifier
@@ -3086,17 +3113,32 @@ def _atomic_text(path: Path, contents: str) -> None:
         raise
 
 
-def _directory_slug(scope_id: str) -> str:
-    """A path-safe directory name for one scope.
+def _directory_slugs(scope_ids: Iterable[str]) -> dict[str, str]:
+    """Path-safe directory names for one level's scopes, collision-free.
 
-    No consumer reproduces this -- `index.json` records it -- so it can be
-    lossy as long as it is deterministic and collision-free.
+    Path safety is free: `sanitize_identifier` emits only `[A-Za-z0-9_]`, so
+    no separator, dot-segment or leading dash can survive into a path
+    component whatever the object ID looked like. What is *not* free is
+    uniqueness -- sanitization is lossy, and `SYS-1` and `SYS.1` both give
+    `SYS_1`. So, exactly as `identifier_map` does, every member of a
+    colliding group gets a stable digest of its own ID rather than only the
+    second one seen, which would make the layout depend on iteration order.
+
+    No consumer reproduces this: `index.json` records the mapping, which is
+    what keeps the Lua reader a pure lookup with no ID rule of its own.
     """
-    safe = sanitize_identifier(scope_id)
-    if safe == scope_id:
-        return safe
-    digest = hashlib.sha256(scope_id.encode("utf-8")).hexdigest()[:8]
-    return f"{safe}-{digest}"
+    grouped: dict[str, list[str]] = {}
+    for scope_id in scope_ids:
+        grouped.setdefault(sanitize_identifier(scope_id), []).append(scope_id)
+    slugs: dict[str, str] = {}
+    for safe, ids in grouped.items():
+        if len(ids) == 1:
+            slugs[ids[0]] = safe
+            continue
+        for scope_id in ids:
+            digest = hashlib.sha256(scope_id.encode("utf-8")).hexdigest()[:8]
+            slugs[scope_id] = f"{safe}-{digest}"
+    return slugs
 
 
 def render_options_for(config: NeedsConfig, renderer: str) -> C4RenderOptions:
@@ -3123,6 +3165,7 @@ def write_c4_artifacts(
     for level in LEVELS:
         scopes = available_scopes(snapshot, level)
         default_scopes[level] = scopes[0] if len(scopes) == 1 else None
+        slugs = _directory_slugs(scopes)
         for scope_id in scopes:
             try:
                 view = project_c4(snapshot, level=level, scope_id=scope_id)
@@ -3131,7 +3174,7 @@ def write_c4_artifacts(
                 # An optional visualization never fails the analysis.
                 continue
             diagnostics = validate_c4_view(view)
-            slug = _directory_slug(scope_id)
+            slug = slugs[scope_id]
             directory = base / level / slug
             view_path = directory / "view.json"
             _atomic_text(view_path, render_c4_view(view, diagnostics=diagnostics))
