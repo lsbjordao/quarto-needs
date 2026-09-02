@@ -98,6 +98,42 @@ def _impact_texts(projection: GraphProjection) -> dict[tuple[str, str], list[str
     return explanations
 
 
+@dataclass(frozen=True, slots=True)
+class NodeRow:
+    """One accessible-table row: an object's own attributes.
+
+    The interactive canvas is deliberately `aria-hidden` (an earlier
+    milestone's own decision — the static table is the primary operable
+    representation for keyboard/screen-reader readers); until this, that
+    table only ever listed edges, so a node's own type/status/priority/tags
+    were only visible on the canvas a non-visual reader can't reach at all.
+    """
+
+    id: str
+    title: str
+    type: str
+    status: str
+    priority: str
+    tags: str
+    change: str
+
+
+def node_table_rows(projection: GraphProjection) -> tuple[NodeRow, ...]:
+    """Table data carrying every node's own attributes and change state."""
+    return tuple(
+        NodeRow(
+            id=node.id,
+            title=node.title,
+            type=node.type,
+            status=node.status,
+            priority=node.priority or "",
+            tags=", ".join(node.tags),
+            change=node.change or "",
+        )
+        for node in projection.nodes
+    )
+
+
 def edge_table_rows(projection: GraphProjection) -> tuple[EdgeRow, ...]:
     """Table data carrying every edge's change state and impact explanation.
 

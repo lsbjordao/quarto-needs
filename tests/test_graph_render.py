@@ -257,6 +257,34 @@ def test_edge_table_relation_column_uses_labels_not_codes(tmp_path: Path) -> Non
     ]
 
 
+def test_node_table_carries_type_status_priority_and_tags(tmp_path: Path) -> None:
+    """The static accessible fallback is edge-only today — a node's own
+    type/status/priority/tags are otherwise only visible on the
+    (deliberately aria-hidden) interactive canvas. Closes that gap."""
+    rows = graph_render.node_table_rows(catalog_projection(tmp_path))
+    by_id = {row.id: row for row in rows}
+
+    assert set(by_id) == {"ADV-1", "ADV-2"}
+    adv1 = by_id["ADV-1"]
+    assert adv1.title
+    assert adv1.type
+    assert adv1.status
+    # tags is a comma-joined string, ready for a table cell — not a list.
+    assert isinstance(adv1.tags, str)
+
+
+def test_node_table_change_column_matches_the_projection_catalog_is_blank(
+    tmp_path: Path,
+) -> None:
+    diff_rows = graph_render.node_table_rows(diff_projection(tmp_path))
+    by_id = {row.id: row for row in diff_rows}
+    assert by_id["REQ-1"].change == "modified"
+    assert by_id["REQ-3"].change == "added"
+
+    catalog_rows = graph_render.node_table_rows(catalog_projection(tmp_path))
+    assert all(row.change == "" for row in catalog_rows)
+
+
 # --- summary ------------------------------------------------------------------
 
 

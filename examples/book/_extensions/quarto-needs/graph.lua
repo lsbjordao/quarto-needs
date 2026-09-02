@@ -99,6 +99,26 @@ local function edge_table_rows(projection)
   return rows
 end
 
+-- One row per node's own attributes and change state. The interactive
+-- canvas is deliberately aria-hidden (an earlier milestone's own decision:
+-- the static table is the primary operable representation for keyboard/
+-- screen-reader readers); until this, that table only ever listed edges,
+-- so a node's own type/status/priority/tags were only visible on the
+-- canvas a non-visual reader can't reach at all.
+local function node_table_rows(projection)
+  local rows = {}
+  for _, node in ipairs(projection.nodes) do
+    local tags = {}
+    for _, tag in ipairs(node.tags or {}) do table.insert(tags, text(tag)) end
+    table.insert(rows, {
+      id = text(node.id), title = text(node.title), type = text(node.type),
+      status = text(node.status), priority = text(node.priority),
+      tags = table.concat(tags, ", "), change = text(node.change),
+    })
+  end
+  return rows
+end
+
 local function summary_entries(projection)
   local entries = {
     {views.tr("mode", "modo"), text(projection.view.mode)},
@@ -286,6 +306,17 @@ function M.render_shortcode(args, kwargs)
   local summary_text = {}
   for _, entry in ipairs(summary_entries(projection)) do table.insert(summary_text, entry[1] .. ": " .. entry[2]) end
   table.insert(blocks, pandoc.Para({pandoc.Str(table.concat(summary_text, " · "))}))
+
+  local node_header = {
+    views.tr("ID", "ID"), views.tr("Title", "Título"), views.tr("Type", "Tipo"),
+    views.tr("Status", "Status"), views.tr("Priority", "Prioridade"),
+    views.tr("Tags", "Tags"), views.tr("Change", "Mudança"),
+  }
+  local node_rows = {}
+  for _, row in ipairs(node_table_rows(projection)) do
+    table.insert(node_rows, {row.id, row.title, row.type, row.status, row.priority, row.tags, row.change})
+  end
+  table.insert(blocks, table_block(node_header, node_rows))
 
   local header = {
     views.tr("Source", "Origem"), views.tr("Relation", "Relação"), views.tr("Target", "Destino"),
