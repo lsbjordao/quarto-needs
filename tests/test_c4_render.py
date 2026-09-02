@@ -126,6 +126,59 @@ def test_code_table_finds_children_authored_via_decomposes_too() -> None:
     assert "Python" in table
 
 
+def test_container_diagram_omits_rel_lines_targeting_the_boundary_itself() -> None:
+    """A `depends-on` edge whose target is the focus node itself becomes,
+    at container/component level, a `Rel()` pointing at the System_Boundary/
+    Container_Boundary macro's own alias — not a real positioned node.
+
+    Confirmed by direct reproduction against the exact mermaid.js Quarto
+    ships (11.6.0) in a real headless Chrome: mermaid's C4 layout engine
+    throws mid-render ("Cannot read properties of undefined (reading 'x')")
+    when asked to draw a Rel to a boundary alias, even though the grammar
+    parses it fine — a real upstream limitation, not a syntax mistake here.
+    Dropping just that Rel (the boxes themselves still render) sidesteps it;
+    the relationship is not lost information, since the context diagram one
+    level up already shows it against the system as a whole.
+    """
+    snapshot = _snapshot(
+        _obj("SYS-1", type="system", title="Quarto-Needs"),
+        _obj(
+            "CONTAINER-1", type="container", title="Python package",
+            relations=[Relation("part-of", "CONTAINER-1", "SYS-1")],
+        ),
+        _obj(
+            "ACTOR-1", type="actor", title="Requirements Engineer",
+            relations=[Relation("depends-on", "ACTOR-1", "SYS-1")],
+        ),
+    )
+    projection = build_c4_view(snapshot, focus_id="SYS-1", level="container")
+    source = c4_mermaid_source(projection, focus_id="SYS-1", level="container")
+
+    # The actor still appears as a box in the container view...
+    assert "Person(" in source
+    # ...but no Rel() line references the boundary's own alias as an endpoint.
+    boundary_alias = source.split("System_Boundary(", 1)[1].split(",", 1)[0].strip()
+    for line in source.splitlines():
+        if line.strip().startswith("Rel("):
+            assert boundary_alias not in line
+
+
+def test_context_diagram_keeps_rel_lines_to_the_system_itself() -> None:
+    """At context level the focus is drawn as a plain System() node, not a
+    boundary — the same depends-on edge is a normal, safely-renderable Rel
+    there, and must not be dropped by the container/component-only guard."""
+    snapshot = _snapshot(
+        _obj("SYS-1", type="system", title="Quarto-Needs"),
+        _obj(
+            "ACTOR-1", type="actor", title="Requirements Engineer",
+            relations=[Relation("depends-on", "ACTOR-1", "SYS-1")],
+        ),
+    )
+    projection = build_c4_view(snapshot, focus_id="SYS-1", level="context")
+    source = c4_mermaid_source(projection, focus_id="SYS-1", level="context")
+    assert "Rel(" in source
+
+
 def test_container_diagram_finds_children_authored_via_decomposes_too() -> None:
     """`_is_child_edge`'s `decomposes` branch (parent declares child,
     source=focus/target=child), exercised end to end through

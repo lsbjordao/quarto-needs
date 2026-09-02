@@ -106,6 +106,14 @@ def c4_mermaid_source(projection: GraphProjection, *, focus_id: str, level: str)
     for edge in projection.edges:
         if edge.relation != "depends-on":
             continue
+        # At container/component level the focus is drawn as a boundary
+        # macro, not a positioned node — mermaid 11.6.0's C4 layout engine
+        # throws mid-render when a Rel targets a boundary's own alias
+        # (verified against Quarto's exact bundled mermaid.js in a real
+        # browser). The relationship isn't lost: the context diagram one
+        # level up already shows it against the system/container as a whole.
+        if level != "context" and focus_id in (edge.source, edge.target):
+            continue
         lines.append(f'  Rel({_ref(edge.source)}, {_ref(edge.target)}, "{_escape(edge.label)}")')
 
     return "\n".join(lines) + "\n"
