@@ -1,13 +1,20 @@
 from __future__ import annotations
 
 from collections import Counter
+from collections.abc import Iterable
 
 from .diagnostics import Finding
-from .model import EngineeringObject, SourceLocation
-from .snapshot import LocationRecord, to_location_record
+from .model import EngineeringObject, to_declaration
+from .relations import DEFAULT_RELATION_CATALOG, RelationCatalog
+from .snapshot import ObjectDeclaration
 
 
 SEVERITY_ORDER = {"error": 0, "warning": 1, "info": 2}
+
+DEFAULT_RATIONALE_TYPES = frozenset(
+    {"system-requirement", "software-requirement"}
+)
+VERIFICATION_RELATION_NAMES = frozenset({"verified-by", "validated-by"})
 
 
 def finding_key(item: Finding) -> tuple[object, ...]:
@@ -24,37 +31,140 @@ def finding_key(item: Finding) -> tuple[object, ...]:
     )
 
 
-def validate(objects: list[EngineeringObject], require_rationale_for: set[str] | None = None) -> list[Finding]:
+def resolved_v1_name(
+    token_authored_name: str,
+    relation_catalog: RelationCatalog,
+) -> str:
+    """Resolve one authored relation name, falling back to the authored name.
+
+    This is the single place where pre-snapshot validation decides whether a
+    relation name is supported; the fallback value only ever reaches
+    diagnostics, because an unresolved name also raises the structural
+    REQ007 finding that blocks snapshot construction.
+    """
+    try:
+        return relation_catalog.resolve(token_authored_name).v1_name
+    except ValueError:
+        return token_authored_name
+
+
+def validate_declarations(
+    declarations: Iterable[ObjectDeclaration],
+    relation_catalog: RelationCatalog = DEFAULT_RELATION_CATALOG,
+    require_rationale_for: set[str] | None = None,
+) -> tuple[Finding, ...]:
+    """Validate canonical declarations before any snapshot exists.
+
+    This is the canonical pre-snapshot validation surface; it operates on
+    ``ObjectDeclaration`` and the relation catalog and never constructs
+    legacy DTOs. It produces the historical diagnostic set:
+
+    * ``REQ004`` duplicate ID (error, blocks snapshot construction);
+    * ``REQ005`` unknown relation target (error, blocks snapshot
+      construction);
+    * ``REQ007`` unsupported relation name (error, blocks snapshot
+      construction);
+    * ``REQ002`` missing rationale (warning);
+    * ``REQ006`` approved requirement without a verification relation
+      (warning).
+
+    REQ002/REQ006 are object-local checks that need no resolved graph. They
+    deliberately stay in this pre-snapshot pass (instead of the post-snapshot
+    rules engine) because structurally blocked projects produce no snapshot,
+    and their findings tuple is the only diagnostic surface such a project
+    has; characterization tests pin that these warnings remain observable
+    there.
+    """
+    rationale_types = (
+        DEFAULT_RATIONALE_TYPES
+        if require_rationale_for is None
+        else frozenset(require_rationale_for)
+    )
+    declarations = tuple(declarations)
     findings: list[Finding] = []
-    counts = Counter(o.id for o in objects)
+    counts = Counter(declaration.id for declaration in declarations)
     known_ids = set(counts)
     for need_id, count in counts.items():
         if count > 1:
-            source = next(obj.source for obj in objects if obj.id == need_id)
+            location = next(
+                declaration.location
+                for declaration in declarations
+                if declaration.id == need_id
+            )
             findings.append(Finding(
                 "REQ004",
                 "error",
                 f"Duplicate ID: {need_id}",
                 need_id,
-                to_location_record(source),
+                location,
             ))
 
-    for obj in objects:
-        for rel in obj.relations:
-            if rel.target not in known_ids:
+    for declaration in declarations:
+        for token in declaration.relations:
+            try:
+                v1_name = relation_catalog.resolve(token.authored_name).v1_name
+            except ValueError:
+                v1_name = token.authored_name
                 findings.append(Finding(
-                    "REQ005", "error",
-                    f"{obj.id} references unknown object {rel.target} via {rel.type}",
-                    obj.id,
-                    to_location_record(obj.source),
+                    "REQ007",
+                    "error",
+                    "Unsupported relation type "
+                    f"{token.authored_name} on {declaration.id}",
+                    declaration.id,
+                    token.location or declaration.location,
                 ))
-
-    require_rationale_for = require_rationale_for or {"system-requirement", "software-requirement"}
-    for obj in objects:
-        if obj.type in require_rationale_for and not obj.rationale and "### Rationale" not in obj.body:
-            findings.append(Finding("REQ002", "warning", f"{obj.id} has no rationale", obj.id))
-        if obj.status == "approved" and obj.type.endswith("requirement"):
-            has_verification = any(r.type in {"verified-by", "validated-by"} for r in obj.relations)
+            if token.target not in known_ids:
+                findings.append(Finding(
+                    "REQ005",
+                    "error",
+                    f"{declaration.id} references unknown object "
+                    f"{token.target} via {v1_name}",
+                    declaration.id,
+                    declaration.location,
+                ))
+        if (
+            declaration.type in rationale_types
+            and not declaration.rationale
+            and "### Rationale" not in declaration.body
+        ):
+            findings.append(Finding(
+                "REQ002",
+                "warning",
+                f"{declaration.id} has no rationale",
+                declaration.id,
+            ))
+        if declaration.status == "approved" and declaration.type.endswith(
+            "requirement"
+        ):
+            has_verification = any(
+                resolved_v1_name(token.authored_name, relation_catalog)
+                in VERIFICATION_RELATION_NAMES
+                for token in declaration.relations
+            )
             if not has_verification:
-                findings.append(Finding("REQ006", "warning", f"{obj.id} is approved but has no verification relation", obj.id))
-    return sorted(findings, key=finding_key)
+                findings.append(Finding(
+                    "REQ006",
+                    "warning",
+                    f"{declaration.id} is approved but has no verification relation",
+                    declaration.id,
+                ))
+    return tuple(sorted(findings, key=finding_key))
+
+
+def validate(
+    objects: list[EngineeringObject],
+    require_rationale_for: set[str] | None = None,
+) -> list[Finding]:
+    """Legacy compatibility entry point.
+
+    Adapts ``EngineeringObject`` inputs into canonical declarations and
+    defers to :func:`validate_declarations`. The canonical analyzer no
+    longer routes through this function; it remains for external callers
+    and tests that construct legacy objects directly.
+    """
+    return list(
+        validate_declarations(
+            (to_declaration(item) for item in objects),
+            require_rationale_for=require_rationale_for,
+        )
+    )

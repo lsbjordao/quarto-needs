@@ -4,6 +4,8 @@ from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from typing import Any
 
+from .snapshot import ObjectDeclaration, RelationToken, to_location_record
+
 
 @dataclass(slots=True)
 class SourceLocation:
@@ -62,3 +64,33 @@ class EngineeringObject:
         file = Path(self.source.file)
         stem = file.with_suffix("").as_posix()
         return f"{stem}.html#{self.id}"
+
+
+def to_declaration(item: EngineeringObject) -> ObjectDeclaration:
+    """Adapt a legacy object into the canonical declaration model.
+
+    This adapter lives in the legacy module on purpose: compatibility types
+    may depend on the canonical model, never the reverse. It is the single
+    entry point used by the convenience APIs (``analyze_objects``, the
+    legacy ``validate`` wrapper) to reach the canonical analyzer.
+    """
+    location = to_location_record(item.source)
+    return ObjectDeclaration(
+        id=item.id,
+        type=item.type,
+        title=item.title,
+        status=item.status,
+        body=item.body,
+        rationale=item.rationale,
+        attributes=item.attributes,
+        relations=tuple(
+            RelationToken(
+                relation.authored_name or relation.type,
+                relation.target,
+                relation.attributes,
+                location,
+            )
+            for relation in item.relations
+        ),
+        location=location,
+    )
