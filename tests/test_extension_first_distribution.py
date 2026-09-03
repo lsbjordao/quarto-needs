@@ -250,3 +250,45 @@ def test_the_declared_quarto_floor_actually_renders(tmp_path) -> None:
 
     assert completed.returncode == 0, completed.stderr
     assert_render_contract(project)
+
+
+# --- Task 11: the zero-friction starter template ----------------------------
+
+STARTER_TEMPLATE = ROOT / "templates" / "starter"
+
+
+@pytest.mark.slow
+def test_the_starter_template_needs_no_manual_activation_edit(tmp_path) -> None:
+    """`quarto use template` then `quarto render`. No filter edit in between.
+
+    Uses the real `quarto use template` command against this repository's own
+    templates/starter/ directory (a local path stands in for the
+    lsbjordao/quarto-needs/templates/starter form a real user would give),
+    proving the copied project already has the extension activated and a
+    real .need to render.
+    """
+    consumer = tmp_path / "consumer"
+    consumer.mkdir()
+    completed = subprocess.run(
+        ["quarto", "use", "template", str(STARTER_TEMPLATE), "--no-prompt"],
+        cwd=str(consumer),
+        capture_output=True,
+        text=True,
+        timeout=300,
+    )
+    assert completed.returncode == 0, completed.stderr
+
+    # The template's own descriptor must not have landed in the new project.
+    assert not (consumer / "_extension.yml").is_file()
+    assert (consumer / "_extensions" / "quarto-needs" / "_extension.yml").is_file()
+
+    rendered = render(consumer)
+    assert rendered.returncode == 0, rendered.stderr
+
+    graph = json.loads(
+        (consumer / ".quarto-needs" / "needs.json").read_text(encoding="utf-8")
+    )
+    assert {item["id"] for item in graph["objects"]} == {"REQ-1", "TC-1"}
+    html = (consumer / "index.html").read_text(encoding="utf-8")
+    assert "need-card" in html
+    assert "{{<" not in html

@@ -1,2 +1,3 @@
 _extensions/quarto-needs/vendor/** -whitespace
 examples/*/_extensions/quarto-needs/vendor/** -whitespace
+templates/*/_extensions/quarto-needs/vendor/** -whitespace

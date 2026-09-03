@@ -1,0 +1,20 @@
+---
+title: "My requirements"
+---
+
+::: {.need #REQ-1 type=functional-requirement status=approved priority=high}
+## Authenticate the user
+
+The system shall authenticate the user before granting access to private data.
+
+### Rationale
+Authentication protects private data from unauthorized access.
+:::
+
+::: {.need #TC-1 type=test-case status=passed}
+## Login test
+
+Signs a user in and asserts the session is established.
+:::
+
+Approved requirements: {{< need-count types="functional-requirement" status="approved" >}}

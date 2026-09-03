@@ -38,6 +38,52 @@ def test_example_extension_matches_all_canonical_runtime_assets():
     assert runtime_assets(EXAMPLE_EXTENSION) == runtime_assets(SOURCE)
 
 
+STARTER_TEMPLATE = ROOT / "templates" / "starter"
+
+
+def test_the_starter_template_bundles_the_canonical_extension_assets():
+    """The zero-friction new-project template must ship a real, current engine.
+
+    `quarto use template` copies this directory verbatim into a new project;
+    a stale bundled extension there is invisible until someone actually
+    uses the template, the same failure mode `test_pre_render_synchronizes_*`
+    guards against for the worked examples.
+    """
+    extension = STARTER_TEMPLATE / "_extensions" / "quarto-needs"
+    assert runtime_assets(extension) == runtime_assets(SOURCE)
+
+
+def test_the_starter_template_declares_itself_a_quarto_template():
+    """The root manifest is what makes `quarto use template` recognize the repo."""
+    import yaml
+
+    manifest = yaml.safe_load(
+        (STARTER_TEMPLATE / "_extension.yml").read_text(encoding="utf-8")
+    )
+    assert "template" in manifest
+
+
+def test_the_starter_template_excludes_its_own_descriptor_from_the_copy():
+    """Without a .quartoignore entry, the template descriptor itself would
+    land in every new project it creates -- inert, but confusing clutter.
+    """
+    ignored = (STARTER_TEMPLATE / ".quartoignore").read_text(encoding="utf-8")
+    assert "_extension.yml" in ignored.split()
+
+
+def test_the_starter_template_pre_activates_the_filter():
+    """The whole point: no manual `filters: [quarto-needs]` edit afterward."""
+    quarto_yml = (STARTER_TEMPLATE / "_quarto.yml").read_text(encoding="utf-8")
+    assert "quarto-needs" in quarto_yml
+    assert "filters:" in quarto_yml
+
+
+def test_the_starter_template_ships_one_working_need():
+    """`quarto render` right after the template must have something to render."""
+    index = (STARTER_TEMPLATE / "index.qmd").read_text(encoding="utf-8")
+    assert ".need" in index
+
+
 @pytest.mark.parametrize(
     "example",
     ["book", "minimal"],
