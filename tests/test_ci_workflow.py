@@ -157,3 +157,38 @@ def test_pdf_verifying_jobs_install_poppler_utils() -> None:
     for name in ("install", "quarto-minimum"):
         run_steps = "\n".join(str(step.get("run", "")) for step in jobs[name]["steps"])
         assert "poppler-utils" in run_steps, f"{name} must install poppler-utils"
+
+
+def test_every_job_has_a_bounded_timeout() -> None:
+    """A hung step must fail loudly within minutes, not silently burn up to
+    GitHub's 360-minute default for up to six hours. Found 2026-09-03: the
+    `quarto` job's headless-Chrome mermaid render hung on a real run for
+    2h22m before a later push's concurrency-group cancellation ended it --
+    nothing in the workflow would have stopped it on its own.
+    """
+    for name, job in parsed()["jobs"].items():
+        assert "timeout-minutes" in job, f"{name} has no timeout-minutes"
+        assert 0 < job["timeout-minutes"] <= 60, (
+            f"{name}: {job['timeout-minutes']} minutes is not a sane bound"
+        )
+
+
+def test_tinytex_installing_steps_carry_a_github_token() -> None:
+    """`tinytex: true` calls `quarto install tool tinytex`, which queries
+    GitHub's API for the latest rstudio/tinytex-releases release.
+    Unauthenticated, that shares the 60-req/hr-per-IP limit every job on the
+    runner's IP range draws from; this workflow runs three `tinytex: true`
+    jobs concurrently, which is enough to exhaust it and fail the step with
+    a bare 403. The workflow's own token raises that to 5000/hr.
+    """
+    jobs = parsed()["jobs"]
+    for name in ("quarto", "install", "quarto-minimum"):
+        setup_steps = [
+            step
+            for step in jobs[name]["steps"]
+            if step.get("with", {}).get("tinytex") is True
+        ]
+        assert setup_steps, f"{name} has no tinytex-installing step"
+        assert setup_steps[0].get("env", {}).get("GITHUB_TOKEN"), (
+            f"{name}'s tinytex install has no GITHUB_TOKEN"
+        )

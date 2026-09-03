@@ -12,6 +12,7 @@ jobs:
   core:
     name: Core / Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
     strategy:
@@ -38,6 +39,7 @@ jobs:
   vscode:
     name: VS Code language client
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
     defaults:
@@ -79,6 +81,7 @@ jobs:
     name: Quarto multilingual render smoke
     needs: core
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
     steps:
@@ -97,6 +100,15 @@ jobs:
         run: make setup-babelquarto
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
+        env:
+          # `tinytex: true` calls `quarto install tool tinytex`, which
+          # queries GitHub's API for the latest rstudio/tinytex-releases
+          # release. Unauthenticated, that shares the 60-req/hr-per-IP
+          # limit every job on the runner's IP range draws from, and this
+          # workflow runs three `tinytex: true` jobs concurrently -- easily
+          # exhausted, surfacing as a bare 403 that fails the step outright.
+          # The workflow's own token raises that to 5000/hr.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           version: "1.10.18"
           tinytex: true
@@ -113,6 +125,7 @@ jobs:
     name: Installed consumer path
     needs: core
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
     steps:
@@ -124,6 +137,8 @@ jobs:
           python-version: "3.14"
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           version: "1.10.18"
           tinytex: true
@@ -140,6 +155,7 @@ jobs:
     name: Quarto minimum version smoke
     needs: core
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
     steps:
@@ -154,6 +170,8 @@ jobs:
         run: make setup
       - name: Set up the declared minimum Quarto
         uses: quarto-dev/quarto-actions/setup@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           version: "1.6.0"
           tinytex: true
@@ -176,6 +194,7 @@ jobs:
     name: Quality artifacts
     needs: core
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       actions: read
       contents: read
