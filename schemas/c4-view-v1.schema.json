@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://quarto-needs.dev/schemas/c4-view-v1.schema.json",
+  "title": "Quarto-Needs C4 view (v1)",
+  "description": "The renderer-independent C4 intermediate representation. Every C4 renderer consumes this document and nothing else.",
+  "type": "object",
+  "required": ["schemaVersion", "view", "elements", "relationships", "diagnostics", "fingerprint"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {"const": "quarto-needs-c4-view-v1"},
+    "fingerprint": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "view": {
+      "type": "object",
+      "required": ["id", "level", "scopeId"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "level": {"enum": ["system-context", "container", "component", "code"]},
+        "scopeId": {"type": ["string", "null"]}
+      }
+    },
+    "elements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "role", "name", "description", "technology", "parentId", "external", "tags"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "role": {"enum": ["person", "software-system", "external-system", "container", "component", "code"]},
+          "name": {"type": "string"},
+          "description": {"type": ["string", "null"]},
+          "technology": {"type": ["string", "null"]},
+          "parentId": {"type": ["string", "null"]},
+          "external": {"type": "boolean"},
+          "tags": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "sourceId", "targetId", "relationType", "description", "technology", "tags"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "sourceId": {"type": "string", "minLength": 1},
+          "targetId": {"type": "string", "minLength": 1},
+          "relationType": {"type": "string", "minLength": 1},
+          "description": {"type": ["string", "null"]},
+          "technology": {"type": ["string", "null"]},
+          "tags": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "severity", "message", "objectId"],
+        "additionalProperties": false,
+        "properties": {
+          "code": {"type": "string", "pattern": "^C4[0-9]{3}$"},
+          "severity": {"enum": ["error", "warning", "info"]},
+          "message": {"type": "string"},
+          "objectId": {"type": ["string", "null"]}
+        }
+      }
+    }
+  }
+}
