@@ -273,6 +273,21 @@ characteristic and not a bottleneck, so **no caching or incrementality is
 introduced**. See `benchmarks/README.md`. LSP latency and Quarto-rendering
 measurement remain open, as do the release gates.
 
+The third slice (Phase 8B) makes distribution extension-first: the active
+Quarto extension contributes the project pre-render itself and provisions
+`quarto-needs==<extension version>` into a project-local, interpreter-scoped
+managed runtime through a standard-library bootstrap — atomic, lock-protected,
+offline after the first render — and then invokes the same canonical pre-render
+service as the CLI. The contract is rendered by real Quarto (clean first
+render, offline second render, spaces-in-path, version-skew isolation,
+runtime corruption, concurrent provisioning, and a Quarto-floor gate), the
+release workflow rehearses both the CLI and the bootstrap path against
+TestPyPI before a reviewer-approved production publish, the quickstart and a
+starter template describe the zero-install path, and the self-hosted model
+records the slice end to end with 23 attested tests. The nine pre-existing
+fixture-staleness test failures noted when the earlier tasks landed are
+resolved; the full suite is green.
+
 ---
 
 # Phase 9 — Teaching, self-hosting, and failure scenarios ⚪
