@@ -258,6 +258,21 @@ schema compatibility is documented and contract-tested, CI verifies the
 declared minimum Quarto (1.6.0), and `examples/minimal/` provides the small
 non-self-hosted onboarding fixture.
 
+The second slice completes the phase's measurement mandate. The corpus
+generator now emits four topologies beside the pinned `mixed` one —
+`sparse`, `dense`, `cyclic`, and `high-fanout` — sharing an identical object
+inventory so a measured difference is attributable to graph structure alone,
+and the harness measures queries, baseline construction, diff, impact
+(against a baseline with a real changed set, not an identical one) and
+export beside the kernel stages. Measured to 50k objects across all five
+shapes: every stage is linear in graph size, and the one shape-sensitive
+result is neighborhood selection, which costs ≈3× more on `high-fanout` than
+on `mixed` at *fewer* edges — in-degree concentration, not edge count,
+drives bounded selection. Per the phase rule, that is a documented
+characteristic and not a bottleneck, so **no caching or incrementality is
+introduced**. See `benchmarks/README.md`. LSP latency and Quarto-rendering
+measurement remain open, as do the release gates.
+
 ---
 
 # Phase 9 — Teaching, self-hosting, and failure scenarios ⚪
