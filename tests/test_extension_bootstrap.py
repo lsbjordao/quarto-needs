@@ -135,9 +135,16 @@ def test_different_interpreters_get_different_runtime_directories(tmp_path) -> N
 
     Reusing a CPython 3.11 runtime under CPython 3.13 is how you get an
     import error that looks like a corrupt install.
+
+    A hardcoded "the other tag" would collide with `base` whenever CI
+    actually runs this on that literal interpreter -- which it does, once a
+    Python 3.11 job exists -- silently testing "same directory equals same
+    directory" instead of "different identity, different directory". The
+    fake tag is derived to guarantee it never matches whatever the real
+    interpreter running this test reports.
     """
     base = bootstrap.runtime_identity()
-    other = dict(base, pythonTag="cpython-311")
+    other = dict(base, pythonTag=base["pythonTag"] + "-other")
 
     assert bootstrap.runtime_directory(
         tmp_path, "0.1.0", base
