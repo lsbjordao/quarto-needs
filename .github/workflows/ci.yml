@@ -127,6 +127,10 @@ jobs:
         with:
           version: "1.10.18"
           tinytex: true
+      - name: Install poppler-utils
+        # check_extension_first_path.sh asserts PDF content with pdftotext,
+        # which ubuntu-latest does not ship by default.
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
       - name: Verify both installation paths
         # check-install runs the extension-first scenario (the primary one)
         # and the CLI-installed scenario (still supported).
@@ -153,6 +157,8 @@ jobs:
         with:
           version: "1.6.0"
           tinytex: true
+      - name: Install poppler-utils
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
       - name: Scan and check the minimal example
         run: make minimal-check
       - name: Render the minimal example

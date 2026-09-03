@@ -146,3 +146,14 @@ def test_babelquarto_install_lets_its_cran_dependencies_resolve_as_binaries() ->
     target = makefile.split("setup-babelquarto:", 1)[1].split("\n\n", 1)[0]
     assert "getOption(\"repos\")" in target
     assert "https://ropensci.r-universe.dev" in target
+
+
+def test_pdf_verifying_jobs_install_poppler_utils() -> None:
+    """`ubuntu-latest` does not ship `pdftotext` by default; TinyTeX doesn't
+    provide it either -- it's a separate system package
+    (check_extension_first_path.sh uses it to assert PDF content).
+    """
+    jobs = parsed()["jobs"]
+    for name in ("install", "quarto-minimum"):
+        run_steps = "\n".join(str(step.get("run", "")) for step in jobs[name]["steps"])
+        assert "poppler-utils" in run_steps, f"{name} must install poppler-utils"
