@@ -117,6 +117,43 @@ grep -q 'need-card' "$HTML" || {
   exit 1
 }
 
+echo "==> Rendering DOCX and PDF through the same managed runtime"
+# The phase must not regress the print and word-processor formats the
+# CLI-installed path already served: same project, same managed runtime,
+# no new provisioning. DOCX exercises the Pandoc word-processor path; PDF
+# exercises the LaTeX path and is asserted through its extracted text.
+(
+  cd "$PROJECT"
+  quarto render . --to docx
+  quarto render . --to pdf
+)
+
+"$PYTHON" - "$PROJECT/index.docx" <<'PYDOCX' || { echo "FAIL: the DOCX render lost the requirement content" >&2; exit 1; }
+import re
+import sys
+import zipfile
+with zipfile.ZipFile(sys.argv[1]) as document:
+    text = re.sub(r"<[^>]+>", "", document.read("word/document.xml").decode("utf-8"))
+assert "Authenticate the user" in text, "requirement card text missing from DOCX"
+assert "Signs a user in" in text, "test-case card text missing from DOCX"
+PYDOCX
+
+command -v pdftotext >/dev/null 2>&1 || {
+  echo "FAIL: pdftotext is required to assert the PDF leg" >&2
+  exit 1
+}
+pdftotext "$PROJECT/index.pdf" - | grep -q "Authenticate the user" || {
+  echo "FAIL: the PDF render lost the requirement content" >&2
+  exit 1
+}
+
+# The print formats must have reused the runtime rendered above, not
+# provisioned a second one.
+[[ "$(find "$PROJECT/.quarto-needs/runtime" -name installed.json | wc -l)" -eq 1 ]] || {
+  echo "FAIL: the DOCX/PDF renders provisioned instead of reusing the runtime" >&2
+  exit 1
+}
+
 echo "==> Rendering again with no engine source and no package index"
 # After one successful provisioning the runtime is cached, so a render must
 # need neither the override nor the network. PIP_NO_INDEX makes that testable
@@ -138,4 +175,4 @@ grep -q 'data-need-count="1"' "$HTML" || {
   exit 1
 }
 
-echo "PASS: an activated extension provisions its engine and renders, then renders offline"
+echo "PASS: an activated extension provisions its engine, renders HTML/DOCX/PDF, then renders offline"
