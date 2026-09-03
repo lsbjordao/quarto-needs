@@ -100,11 +100,16 @@ def render(project: Path, *, offline: bool = False) -> subprocess.CompletedProce
 
 
 def assert_render_contract(project: Path) -> None:
-    """The observable behaviours Task 1 pinned, unchanged by the new path."""
+    """The observable behaviours Task 1 pinned, unchanged by the new path.
+
+    A superset, not an exact set: a project's own pre-render hook may have
+    authored additional objects, and their presence is the hook-order
+    contract, not a violation of this one.
+    """
     graph_path = project / ".quarto-needs" / "needs.json"
     assert graph_path.is_file(), "the extension did not build the graph"
     graph = json.loads(graph_path.read_text(encoding="utf-8"))
-    assert {item["id"] for item in graph["objects"]} == {"REQ-1", "TC-1"}
+    assert {"REQ-1", "TC-1"} <= {item["id"] for item in graph["objects"]}
     assert graph["schemaVersion"] == "1"
 
     html = (project / "index.html").read_text(encoding="utf-8")
@@ -172,6 +177,12 @@ def test_a_project_pre_render_hook_still_runs_and_runs_first(tmp_path) -> None:
     That is the order the integration needs: a hook that generates or edits
     `.qmd` content must run before the engine reads the project, or its
     output would be missing from the graph.
+
+    So the hook does not just mark that it ran -- it authors a new
+    requirement into a source document, and the assertion is that the
+    engine's graph contains it. If the extension's scan ever ran before the
+    user's hook, the object would be missing and this test would fail,
+    which a ran-marker assertion could never catch.
     """
     project = consumer_project(
         tmp_path / "consumer",
@@ -186,16 +197,26 @@ filters:
     )
     (project / "user-hook.py").write_text(
         "from pathlib import Path\n"
-        "Path('ORDER.txt').write_text('user\\n')\n",
+        "source = Path('index.qmd')\n"
+        "source.write_text(source.read_text(encoding='utf-8') + '''\\n"
+        "::: {.need #USER-HOOK-REQ type=risk status=approved}\\n"
+        "## Authored by the user's hook\\n\\n"
+        "The hook generated this requirement before the engine scanned the project.\\n"
+        ":::\\n''', encoding='utf-8')\n",
         encoding="utf-8",
     )
 
     completed = render(project)
 
     assert completed.returncode == 0, completed.stderr
-    assert (project / "ORDER.txt").read_text(encoding="utf-8") == "user\n", (
-        "the project's own pre-render hook did not run"
+    graph_path = project / ".quarto-needs" / "needs.json"
+    graph = json.loads(graph_path.read_text(encoding="utf-8"))
+    ids = {item["id"] for item in graph["objects"]}
+    assert "USER-HOOK-REQ" in ids, (
+        "the engine's graph is missing the object the user's hook authored: "
+        "the scan ran before the project's own pre-render hook"
     )
+    assert {"REQ-1", "TC-1"} <= ids, "the hand-authored objects went missing"
     assert_render_contract(project)
 
 

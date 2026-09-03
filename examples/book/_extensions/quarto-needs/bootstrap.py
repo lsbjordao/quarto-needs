@@ -83,6 +83,12 @@ def runtime_identity() -> dict[str, str]:
     by CPython 3.13 on Linux/x86_64: `pip --target` can place compiled
     extension modules, so the interpreter and machine are part of identity,
     not decoration.
+
+    The interpreter is identified down to its minor version only. A routine
+    patch update (3.13.6 to 3.13.7) keeps the same bytecodes and ABI for a
+    target install, and pinning the patch here would force a full network
+    reprovision -- or an offline render failure -- after nothing but an OS
+    security update.
     """
     implementation = platform.python_implementation().lower()
     major, minor = sys.version_info[:2]
@@ -90,7 +96,7 @@ def runtime_identity() -> dict[str, str]:
         "schemaVersion": MARKER_SCHEMA_VERSION,
         "pythonImplementation": implementation,
         "pythonTag": f"{implementation}-{major}{minor}",
-        "pythonVersion": platform.python_version(),
+        "pythonVersion": f"{major}.{minor}",
         "platform": sys.platform,
         "machine": platform.machine(),
     }
@@ -250,6 +256,59 @@ def runtime_is_valid(
 # --- Lock -------------------------------------------------------------------
 
 
+def _read_lock_token(path: Path) -> tuple[int, str] | None:
+    """The holder's (pid, token), or None when absent or unreadable.
+
+    Locks written by earlier versions hold just a pid; they parse as
+    (pid, "<pid>") and stay reclaimable through both paths below.
+    """
+    try:
+        content = path.read_text(encoding="utf-8").strip()
+    except OSError:
+        return None
+    head = content.split("-", 1)[0].strip()
+    try:
+        pid = int(head)
+    except ValueError:
+        return None
+    return pid, content
+
+
+def _unlink_matching(path: Path, recorded: tuple[int, str] | None) -> bool:
+    """Delete *path* only when it still carries this exact lock token."""
+    if recorded is None:
+        return False
+    try:
+        if _read_lock_token(path) != recorded:
+            # The file now belongs to a different holder, or is gone.
+            return False
+        path.unlink()
+        return True
+    except OSError:
+        return False
+
+
+def _process_alive(pid: int) -> bool | None:
+    """Whether *pid* is running, when the platform can tell without harm.
+
+    POSIX can probe with signal 0, which does not deliver anything. On
+    Windows os.kill with any other value terminates the target process, so
+    it must never be used as a liveness probe there; Windows falls back to
+    mtime staleness only.
+    """
+    if os.name != "posix":
+        return None
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    except OSError:
+        return None
+    return True
+
+
 @contextmanager
 def exclusive_lock(
     path: Path,
@@ -261,52 +320,63 @@ def exclusive_lock(
     """A cross-platform exclusive lock built on atomic file creation.
 
     `O_CREAT | O_EXCL` is atomic on every platform Quarto runs on, which
-    `flock` is not. A lock whose file is older than *stale_seconds* belonged
-    to a process that died without releasing it and is reclaimed.
+    `flock` is not. The holder records its process ID; a waiter reclaims a
+    lock whose holder process is demonstrably gone, or whose file is older
+    than *stale_seconds* -- the fallback for platforms (and situations)
+    where liveness cannot be probed safely.
 
-    The lock is always released, including when the body raises -- a failed
-    install must not wedge every later render.
+    Ownership is a token, not a name: release only deletes the file when it
+    still holds this holder's token, so a holder that was legitimately
+    reclaimed can never delete the replacement lock. The lock is always
+    released, including when the body raises -- a failed install must not
+    wedge every later render.
     """
     path.parent.mkdir(parents=True, exist_ok=True)
     deadline = time.monotonic() + wait_seconds
     descriptor = None
+    token = f"{os.getpid()}-{time.time_ns()}"
     while True:
         try:
             descriptor = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
             break
         except FileExistsError:
+            recorded = _read_lock_token(path)
+            liveness = _process_alive(recorded[0]) if recorded is not None else None
+            if liveness is False:
+                # The holder is dead: reclaim now rather than making every
+                # render after a crash wait out the full staleness window.
+                if _unlink_matching(path, recorded):
+                    continue
             try:
                 age = time.time() - path.stat().st_mtime
             except OSError:
                 # It vanished between the failed create and the stat: the
                 # holder released it, so try again immediately.
                 continue
-            if age > stale_seconds:
-                try:
-                    path.unlink()
-                except OSError:
-                    pass
-                continue
+            # A provably live holder keeps its lock however old the mtime
+            # looks -- an old mtime means a slow install, not a dead render.
+            # When liveness cannot be probed, age alone decides.
+            if age > stale_seconds and liveness is not True:
+                if _unlink_matching(path, recorded):
+                    continue
             if time.monotonic() >= deadline:
                 raise BootstrapError(
                     f"Timed out after {wait_seconds:.0f}s waiting for the "
                     f"Quarto-Needs runtime lock at {path}. Another render is "
-                    "provisioning the engine; if no other render is active, "
-                    "delete that file and render again."
+                    "provisioning the engine; wait for it and render again. "
+                    f"A lock left by a crashed render is reclaimed "
+                    f"automatically within {stale_seconds / 60:.0f} minutes."
                 )
             time.sleep(poll_seconds)
     try:
-        os.write(descriptor, f"{os.getpid()}\n".encode("utf-8"))
+        os.write(descriptor, token.encode("utf-8"))
         os.close(descriptor)
         descriptor = None
         yield path
     finally:
         if descriptor is not None:
             os.close(descriptor)
-        try:
-            path.unlink()
-        except OSError:
-            pass
+        _unlink_matching(path, (os.getpid(), token))
 
 
 def lock_path(root: Path) -> Path:
@@ -376,11 +446,28 @@ def staging_directory(parent: Path) -> Path:
 
 
 def promote(staging: Path, runtime_dir: Path) -> None:
-    """Publish a validated staging runtime under its final name."""
+    """Publish a validated staging runtime under its final name.
+
+    Failures here must be BootstrapErrors: a bare OSError from this step
+    would escape ensure_runtime's diagnosis and reach the user as a raw
+    traceback, breaking the "every bootstrap failure explains itself"
+    contract.
+    """
     runtime_dir.parent.mkdir(parents=True, exist_ok=True)
-    if runtime_dir.exists():
-        shutil.rmtree(runtime_dir, ignore_errors=True)
-    os.replace(staging, runtime_dir)
+    try:
+        if runtime_dir.exists():
+            # Strict, not ignore_errors: a silent rmtree failure (a locked
+            # file on Windows, say) would leave os.replace publishing onto a
+            # non-empty directory, and the resulting error would name
+            # nothing a user could act on.
+            shutil.rmtree(runtime_dir)
+        os.replace(staging, runtime_dir)
+    except OSError as error:
+        raise BootstrapError(
+            f"Could not publish the managed runtime at {runtime_dir}: {error}\n"
+            "Delete the .quarto-needs/runtime directory and render again to "
+            "reprovision from scratch."
+        ) from error
 
 
 def install_engine(target: Path, source: str) -> None:

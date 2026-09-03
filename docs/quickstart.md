@@ -175,7 +175,8 @@ checkout path before rendering, which installs from there instead of the
 index.
 
 **A later render still tries to reach the network.** It should not: once
-`.quarto-needs/runtime/<version>/<platform>/` holds a validated engine, every
+`.quarto-needs/runtime/<version>/<python-tag>-<platform>-<machine>/` (for
+example `0.1.0/cpython-313-linux-x86_64`) holds a validated engine, every
 later render reuses it with no network access at all. If a render still
 reaches out, something removed or corrupted that directory — see below.
 
