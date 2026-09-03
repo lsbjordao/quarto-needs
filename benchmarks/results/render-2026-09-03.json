@@ -1,0 +1,23 @@
+{
+  "generator": "benchmarks/benchmark_render.py",
+  "python": "3.13.5",
+  "machine": "x86_64",
+  "sizes": [
+    100,
+    1000
+  ],
+  "results": [
+    {
+      "objects": 55,
+      "prerender_ms": 51.7,
+      "quarto_render_ms": 10076.7,
+      "quarto_share_pct": 99.5
+    },
+    {
+      "objects": 550,
+      "prerender_ms": 313.0,
+      "quarto_render_ms": 22390.3,
+      "quarto_share_pct": 98.6
+    }
+  ]
+}

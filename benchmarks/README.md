@@ -160,3 +160,64 @@ licenses no such work.** Withholding it is the finding.
   measurements needing a different harness, and they remain open.
 * Shapes vary topology at a fixed object-type mix; they do not vary the
   configured rule set, derived fields, or variants.
+
+## Editor latency (LSP)
+
+`benchmark_lsp.py` closes the "LSP latency" measurement mandate. It
+measures the language service over a real on-disk project: the
+project-open path (`LanguageService.load`, full analysis from disk) and
+the interactive request path a running editor actually feels — publishing
+diagnostics, completions for a prefix, one hover, one definition, one
+references lookup, and a full symbol sweep.
+
+```bash
+.venv/bin/python benchmarks/benchmark_lsp.py --sizes 100,1000,10000 \
+    --out benchmarks/results/lsp-2026-09-03.json
+```
+
+Recorded 2026-09-03, JSON in
+[`results/lsp-2026-09-03.json`](results/lsp-2026-09-03.json), same
+environment as the core baseline:
+
+```text
+objects  load_ms  diagnostics_ms  completions_ms  hover_ms  definition_ms  references_ms  symbols_ms
+   100      10.4            0.0             0.1      0.0           0.0           0.0        0.1
+  1000      99.2            0.3             0.4      0.0           0.0           0.0        0.6
+ 10000    1043.8            3.9             6.1      0.0           0.0           0.0        8.1
+```
+
+Reading: the only editor-visible cost that scales with the project is
+opening it, and it is linear. Every per-request stage stays in
+single-digit milliseconds even at 10,000 objects — hover, definition, and
+references are effectively free because they read the immutable indexes
+built at load. No editor-side caching or incremental analysis is justified
+by this data.
+
+## Quarto render split
+
+`benchmark_render.py` addresses the render-measurement mandate: for a
+synthetic project rendered by the real `quarto` binary through the real
+extension bootstrap, it separates the canonical semantic build
+(`run_quarto_pre_render` — parse, analyze, queries, report, artifacts)
+from the full `quarto render --to html` wall clock around it.
+
+```bash
+.venv/bin/python benchmarks/benchmark_render.py --sizes 100,1000 \
+    --out benchmarks/results/render-2026-09-03.json
+```
+
+Recorded 2026-09-03, JSON in
+[`results/render-2026-09-03.json`](results/render-2026-09-03.json):
+
+```text
+objects  prerender_ms  quarto_render_ms  quarto_share_pct
+     55          51.7           10076.7              99.5
+    550         313.0           22390.3              98.6
+```
+
+Reading: the semantic build the extension adds to a render is tens to a
+few hundred milliseconds — noise against Quarto's own toolchain overhead
+(Pandoc sessions, cold caches in a fresh project directory), which dominates
+the wall clock at 98–99%. Engineering effort aimed at "renders feel slow"
+belongs to Quarto, not to the engine; these numbers make that attribution
+measurable instead of assumed.

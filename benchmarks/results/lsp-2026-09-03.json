@@ -1,0 +1,76 @@
+{
+  "generator": "benchmarks/benchmark_lsp.py",
+  "python": "3.13.5",
+  "machine": "x86_64",
+  "sizes": [
+    100,
+    1000,
+    10000
+  ],
+  "repeats": 3,
+  "results": [
+    {
+      "objects": 100,
+      "relations": 204,
+      "diagnostics_published": 55,
+      "lsp_load_ms": 10.4,
+      "lsp_diagnostics_ms": 0.0,
+      "lsp_completions_ms": 0.1,
+      "lsp_hover_ms": 0.0,
+      "lsp_definition_ms": 0.0,
+      "lsp_references_ms": 0.0,
+      "lsp_symbols_ms": 0.1,
+      "medians_ms": {
+        "load": 10.7,
+        "diagnostics": 0.0,
+        "completions": 0.1,
+        "hover": 0.0,
+        "definition": 0.0,
+        "references": 0.0,
+        "symbols": 0.1
+      }
+    },
+    {
+      "objects": 1000,
+      "relations": 2049,
+      "diagnostics_published": 550,
+      "lsp_load_ms": 99.2,
+      "lsp_diagnostics_ms": 0.3,
+      "lsp_completions_ms": 0.4,
+      "lsp_hover_ms": 0.0,
+      "lsp_definition_ms": 0.0,
+      "lsp_references_ms": 0.0,
+      "lsp_symbols_ms": 0.6,
+      "medians_ms": {
+        "load": 100.4,
+        "diagnostics": 0.3,
+        "completions": 0.4,
+        "hover": 0.0,
+        "definition": 0.0,
+        "references": 0.0,
+        "symbols": 0.6
+      }
+    },
+    {
+      "objects": 10000,
+      "relations": 20499,
+      "diagnostics_published": 5500,
+      "lsp_load_ms": 1043.8,
+      "lsp_diagnostics_ms": 3.9,
+      "lsp_completions_ms": 6.1,
+      "lsp_hover_ms": 0.0,
+      "lsp_definition_ms": 0.0,
+      "lsp_references_ms": 0.0,
+      "lsp_symbols_ms": 8.1,
+      "medians_ms": {
+        "load": 1094.3,
+        "diagnostics": 4.1,
+        "completions": 6.4,
+        "hover": 0.0,
+        "definition": 0.0,
+        "references": 0.0,
+        "symbols": 8.2
+      }
+    }
+  ]
+}
