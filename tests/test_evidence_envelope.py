@@ -148,6 +148,48 @@ def _complete_provider_payload() -> dict[str, object]:
                 "requirements": ["SYS-008", "NFR-007"],
                 "testCases": ["TC-024"],
             },
+            {
+                "nodeid": "tests/test_extension_first_distribution.py::test_a_clean_consumer_project_needs_no_engine_installation",
+                "outcome": "passed",
+                "requirements": ["SYS-009", "FUN-018", "FUN-019"],
+                "testCases": ["TC-025"],
+            },
+            {
+                "nodeid": "tests/test_extension_first_distribution.py::test_a_second_render_succeeds_without_any_engine_source",
+                "outcome": "passed",
+                "requirements": ["SYS-009", "NFR-009"],
+                "testCases": ["TC-026"],
+            },
+            {
+                "nodeid": "tests/test_extension_bootstrap.py::test_a_wrong_global_engine_never_wins_over_the_managed_runtime",
+                "outcome": "passed",
+                "requirements": ["FUN-018", "FUN-019"],
+                "testCases": ["TC-027"],
+            },
+            {
+                "nodeid": "tests/test_extension_bootstrap.py::test_a_corrupted_runtime_is_reprovisioned",
+                "outcome": "passed",
+                "requirements": ["FUN-018"],
+                "testCases": ["TC-028"],
+            },
+            {
+                "nodeid": "tests/test_extension_bootstrap.py::test_two_concurrent_bootstrap_processes_produce_one_installation",
+                "outcome": "passed",
+                "requirements": ["NFR-008"],
+                "testCases": ["TC-029"],
+            },
+            {
+                "nodeid": "tests/test_extension_first_distribution.py::test_the_project_path_may_contain_spaces",
+                "outcome": "passed",
+                "requirements": ["FUN-018"],
+                "testCases": ["TC-030"],
+            },
+            {
+                "nodeid": "tests/test_extension_distribution_contract.py::test_manifest_declares_the_quarto_floor",
+                "outcome": "passed",
+                "requirements": ["SYS-009"],
+                "testCases": ["TC-031"],
+            },
         ],
         provider_version="8.0",
     )

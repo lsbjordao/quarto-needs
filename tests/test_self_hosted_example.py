@@ -46,7 +46,7 @@ def test_self_hosted_example_is_a_valid_engineering_graph() -> None:
 
     assert result.snapshot is not None
     assert result.findings == ()
-    assert len(result.snapshot.objects) == 159
+    assert len(result.snapshot.objects) == 183
 
     ids = {item.id for item in result.snapshot.objects}
     assert {
@@ -114,6 +114,8 @@ def test_self_hosted_c4_part_of_ownership_is_complete_and_exact() -> None:
         "SRC-DIFF": ("COMP-BASELINE",),
         "SRC-IMPACT": ("COMP-BASELINE",),
         "SRC-PRE-RENDER": ("COMP-I18N",),
+        "SRC-QUARTO-INTEGRATION": ("COMP-ANALYSIS",),
+        "SRC-BOOTSTRAP": ("COMP-EXTENSION",),
     }
     actual_part_of = {
         object_id: tuple(
@@ -182,7 +184,7 @@ def test_self_hosted_source_modules_point_to_real_repository_files() -> None:
     snapshot = result.snapshot
 
     modules = [item for item in snapshot.objects if item.type == "source-module"]
-    assert len(modules) == 26
+    assert len(modules) == 28
 
     for module in modules:
         path = str(module.attributes["path"])
@@ -217,6 +219,8 @@ def test_self_hosted_pytest_bindings_point_to_real_test_functions() -> None:
         "TC-004", "TC-005", "TC-006", "TC-009", "TC-011",
         "TC-014", "TC-015", "TC-016", "TC-017", "TC-018", "TC-019",
         "TC-020", "TC-021", "TC-022", "TC-023", "TC-024",
+        "TC-025", "TC-026", "TC-027", "TC-028", "TC-029",
+        "TC-030", "TC-031",
     }
 
     for item in bound:
