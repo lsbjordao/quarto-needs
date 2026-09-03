@@ -1,0 +1,34 @@
+{
+  "project": "Legacy requirements with exotic content",
+  "current_version": "1.0",
+  "versions": {
+    "1.0": {
+      "needs_schema": {
+        "properties": {
+          "links": {"field_type": "links"},
+          "violates": {"field_type": "links"}
+        }
+      },
+      "needs": {
+        "MIS_001": {
+          "id": "MIS_001",
+          "type": "miscreq",
+          "title": "A type with no mapping",
+          "content": "The import plan must refuse to guess what a misc requirement becomes.",
+          "status": "open",
+          "links": [],
+          "violates": []
+        },
+        "REQ_001": {
+          "id": "REQ_001",
+          "type": "req",
+          "title": "A requirement violating another",
+          "content": "Its 'violates' link has no Quarto-Needs relation mapping.",
+          "status": "open",
+          "links": [],
+          "violates": ["MIS_001"]
+        }
+      }
+    }
+  }
+}

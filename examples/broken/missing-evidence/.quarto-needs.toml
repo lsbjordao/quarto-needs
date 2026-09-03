@@ -1,0 +1,6 @@
+# REQ012 ("approved or passed tests need evidence") is off by default so
+# projects without an evidence practice are not punished on day one. A team
+# that promises machine evidence should switch it on -- and this fixture is
+# the project that did, and then stopped attaching evidence.
+[rules.REQ012]
+enabled = true

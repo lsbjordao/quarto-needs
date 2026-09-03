@@ -1,0 +1,25 @@
+---
+title: "Missing evidence"
+---
+
+::: {.need #REQ-001 type="functional-requirement" status="approved" verified-by="TC-001"}
+## Authenticate administrators
+
+The service shall authenticate administrators before granting access.
+
+### Rationale
+
+A signed-off requirement whose only test has no evidence behind it is a
+promise with nothing keeping it.
+:::
+
+::: {.need #TC-001 type="test-case" status="passed"}
+## Administrator login test
+
+The suite signs an administrator in and asserts the session opens.
+
+### Rationale
+
+This is the verification the requirement points at -- but nothing proves
+it ever ran.
+:::

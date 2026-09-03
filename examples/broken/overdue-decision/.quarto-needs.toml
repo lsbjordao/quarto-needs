@@ -1,0 +1,4 @@
+# DEC006 flags accepted decisions whose revisit-after date has passed. It
+# is off by default; teams practicing decision reviews turn it on.
+[rules.DEC006]
+enabled = true

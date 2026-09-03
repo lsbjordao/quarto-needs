@@ -1,0 +1,20 @@
+---
+title: "Orphan requirements"
+---
+
+Both requirements below are well-formed: correct types, valid statuses, no
+structural findings. They are also connected to nothing -- no parent need,
+no decision, no implementation, no test. REQ014 makes that visible as info
+findings instead of letting the gaps stay invisible.
+
+::: {.need #REQ-010 type="functional-requirement" status="draft"}
+## Untraced logging requirement
+
+Nothing derives from a stakeholder need; nothing implements or verifies it.
+:::
+
+::: {.need #REQ-011 type="functional-requirement" status="draft"}
+## Untraced retention requirement
+
+Same story: a floating obligation with no edges in either direction.
+:::

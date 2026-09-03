@@ -1,0 +1,29 @@
+---
+title: "Expired evidence"
+---
+
+The test below points at evidence that carried an expiry date, and the
+date is in the past. Whatever the test proved once, REQ015 says the proof
+is no longer fresh.
+
+::: {.need #REQ-001 type="functional-requirement" status="approved" verified-by="TC-001"}
+## Sign payloads with SHA-256
+
+The service shall sign payloads using SHA-256.
+
+### Rationale
+
+Approved on the strength of a test run whose evidence has since expired.
+:::
+
+::: {.need #TC-001 type="test-case" status="passed" evidenced-by="EVD-001"}
+## Payload signature test
+
+Ran once, in February, against the signing service.
+:::
+
+::: {.need #EVD-001 type="evidence" status="verified" expires="2026-02-20" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## February signature evidence
+
+Fresh when captured; a stale claim now.
+:::

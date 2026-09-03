@@ -1,0 +1,18 @@
+---
+title: "Localization drift"
+---
+
+The canonical page declares REQ-001 as an approved high-priority
+requirement. Its Portuguese sibling is supposed to be the same object in
+another language -- the translation below quietly changed the status, which
+is how a second, competing engineering model starts.
+
+::: {.need #REQ-001 type="functional-requirement" status="approved" priority="high"}
+## Authenticate administrators
+
+The service shall authenticate administrators before granting access.
+
+### Rationale
+
+Privileged access demands a verified identity.
+:::

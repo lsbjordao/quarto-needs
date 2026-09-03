@@ -1,0 +1,34 @@
+---
+title: "Invalid relations"
+---
+
+This project cannot even produce a graph: one relation points at an object
+that does not exist, and one identifier is declared twice. Both are
+error-severity findings, and error findings block the snapshot -- there is
+nothing safe to publish downstream of them. This is the engine's most
+important promise: a broken project fails loudly instead of rendering
+half-understood.
+
+::: {.need #REQ-A type="functional-requirement" status="draft"}
+## A healthy object
+
+Declared so the project is not minimal to the point of trivia.
+:::
+
+::: {.need #REQ-B type="functional-requirement" status="draft" derives-from="REQ-MISSING"}
+## Points at a ghost
+
+`derives-from` is a real relation, but REQ-MISSING was never declared -- REQ005.
+:::
+
+::: {.need #REQ-D type="functional-requirement" status="draft"}
+## First declaration of REQ-D
+
+Identifiers must be unique across the whole project -- REQ004.
+:::
+
+::: {.need #REQ-D type="functional-requirement" status="approved"}
+## Second declaration of REQ-D
+
+Same ID, different content: the engine refuses to guess which one is real.
+:::

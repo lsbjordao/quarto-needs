@@ -1,0 +1,5 @@
+# REQ014 ("orphaned object") is an info-severity rule and is off by
+# default. Turn it on when a fully disconnected object should at least be
+# visible during review.
+[rules.REQ014]
+enabled = true

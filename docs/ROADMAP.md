@@ -286,13 +286,26 @@ TestPyPI before a reviewer-approved production publish, the quickstart and a
 starter template describe the zero-install path, and the self-hosted model
 records the slice end to end with 23 attested tests. The nine pre-existing
 fixture-staleness test failures noted when the earlier tasks landed are
-resolved; the full suite is green.
+resolved; the full suite is green. The declared Quarto 1.6.0 floor has been
+verified against a real 1.6.0 binary (contributed pre-render, relative
+`quarto run`, provisioning, and a spaces-in-path project), the installed-user
+gate now covers DOCX and PDF rendering through the managed runtime, and the
+build/twine checks have a local `make check-release-build` path.
 
 ---
 
-# Phase 9 — Teaching, self-hosting, and failure scenarios ⚪
+# Phase 9 — Teaching, self-hosting, and failure scenarios 🚧 (first slice: the broken gallery — eight executable failure fixtures)
 
 `examples/quarto-needs/` increasingly acts as the official engineering model of Quarto-Needs itself. Significant features should update requirements/decisions/implementation/tests/evidence in the same change.
+
+The first slice is `examples/broken/`: eight deliberately failing, fully
+self-contained projects whose diagnostics are asserted by
+`tests/test_teaching_fixtures.py` — missing evidence, invalid relations
+(ghost target, duplicate ID), the relation-typo trap, orphan requirements,
+overdue decisions, expired evidence, localization drift, and migration
+loss — each one teaching a different severity relationship to publication.
+Planned next slices: suspect-after-change (dynamic Git fixture),
+interchange loss, and editor/refactor failures.
 
 Target vertical slice:
 

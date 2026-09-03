@@ -1,0 +1,17 @@
+---
+title: "Deriva de localização"
+---
+
+A página canônica declara REQ-001 como aprovada e prioritária. O objetivo
+desta cópia é testar a detecção de deriva: aqui o status mudou para draft,
+e a verificação de paridade semântica deve rejeitar a publicação.
+
+::: {.need #REQ-001 type="functional-requirement" status="draft" priority="high"}
+## Autenticar administradores
+
+O serviço deve autenticar administradores antes de conceder acesso.
+
+### Justificativa
+
+Acesso privilegiado exige identidade verificada.
+:::

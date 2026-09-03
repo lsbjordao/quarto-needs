@@ -1,0 +1,7 @@
+# REQ015 checks evidence objects whose expiry attribute has passed. The
+# expiry attribute is configured here for clarity; "expires" is the default.
+[rules.REQ015]
+enabled = true
+
+[governance]
+expiry-attribute = "expires"

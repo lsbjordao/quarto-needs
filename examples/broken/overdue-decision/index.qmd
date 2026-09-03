@@ -1,0 +1,14 @@
+---
+title: "Overdue decision"
+---
+
+The decision below was accepted with an explicit review date, and that date
+has passed. DEC006 turns "nobody has looked at this since January" into a
+finding instead of a memory.
+
+::: {.need #ADR-001 type="architecture-decision" status="accepted" date="2025-11-10" revisit-after="2026-01-01"}
+## Store sessions in-process
+
+The team accepted in-process session storage as a temporary measure and
+promised to revisit it -- and never did.
+:::

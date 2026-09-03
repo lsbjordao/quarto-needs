@@ -1,0 +1,30 @@
+---
+title: "The relation typo that does not fail"
+---
+
+REQ-A below wanted to say `links-to` (a catalog name) but typed
+`linked-to`. Only catalog names parse as relations; anything else is kept
+as an ordinary attribute. There is no finding, no error, no warning: the
+project scans clean, and the edge the author meant to write simply does
+not exist.
+
+This is the trap the gallery exists to teach: run `quarto-needs check` (or
+render, and read the card) and look at the object -- the inert attribute is
+visible in the inspector, and the missing edge is visible in every view
+that would have used it.
+
+::: {.need #REQ-A type="functional-requirement" status="draft" linked-to="REQ-B"}
+## Signed payloads
+
+The service shall sign every payload it emits.
+
+### Rationale
+
+The author believed this requirement was linked to REQ-B. It is not.
+:::
+
+::: {.need #REQ-B type="functional-requirement" status="draft"}
+## Payload signing keys
+
+The related requirement the typo disconnected.
+:::
