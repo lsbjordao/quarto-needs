@@ -143,9 +143,9 @@ Remaining 5.3 gate:
 
 The terminal artifact for this phase is therefore a reviewable import plan, not automatic mutation.
 
-## 5.4 Migration adapters ✅ (Sphinx-Needs, Doorstop, StrictDoc)
+## 5.4 Migration adapters ✅ (Sphinx-Needs, Doorstop, StrictDoc, OpenFastTrace)
 
-**Status: three adapters are implemented end to end on one shared contract — deterministic plan, reviewable non-mutating apply plan with a `.need` block content preview, and a create-only, atomic, rollback-protected `--write` step. Additional source adapters remain future work.** See `docs/phase-5-migration.md`.
+**Status: four adapters are implemented end to end on one shared contract — deterministic plan, reviewable non-mutating apply plan with a `.need` block content preview, and a create-only, atomic, rollback-protected `--write` step. Additional source adapters remain future work.** See `docs/phase-5-migration.md`.
 
 Implemented capabilities include:
 
@@ -173,10 +173,10 @@ Implemented capabilities include:
 
 Next 5.4 slices:
 
-1. add further source-specific adapters such as OpenFastTrace, converging only at the shared migration-plan/apply-plan/write contracts (as Doorstop and StrictDoc did, with no change to that shared code);
+1. add further source-specific adapters, converging only at the shared migration-plan/apply-plan/write contracts (as Doorstop, StrictDoc, and OpenFastTrace did, with no change to that shared code);
 2. an update/match identity contract, if migrating a *changed* upstream source onto an already-migrated project ever becomes a requirement — today an existing canonical ID is always a create-time collision, never an implicit update.
 
-Sphinx-Needs, Doorstop, and StrictDoc remain supported migration sources and inspirations for Quarto-Needs; compatibility claims are limited to the explicitly implemented adapter behavior for each.
+Sphinx-Needs, Doorstop, StrictDoc, and OpenFastTrace remain supported migration sources and inspirations for Quarto-Needs; compatibility claims are limited to the explicitly implemented adapter behavior for each.
 
 ## 5.5 External service adapters ✅ (ten slices plus trust transitions, apply step, and retry policy)
 

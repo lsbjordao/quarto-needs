@@ -12,6 +12,11 @@ from .migrations.apply_plan import build_sphinx_apply_plan, write_apply_plan
 from .migrations.apply_write import MigrationApplyError, apply_migration_plan
 from .migrations.doorstop import DoorstopMigrationError, load_doorstop_documents
 from .migrations.doorstop import build_migration_plan as build_doorstop_plan
+from .migrations.openfasttrace import (
+    OpenFastTraceMigrationError,
+    load_specobjects,
+)
+from .migrations.openfasttrace import build_migration_plan as build_openfasttrace_plan
 from .migrations.strictdoc import StrictDocMigrationError, load_strictdoc_documents
 from .migrations.strictdoc import build_migration_plan as build_strictdoc_plan
 from .migrations.sphinx_needs import (
@@ -22,17 +27,19 @@ from .migrations.sphinx_needs import (
     write_migration_plan,
 )
 
-SOURCES = ("sphinx-needs", "doorstop", "strictdoc")
+SOURCES = ("sphinx-needs", "doorstop", "strictdoc", "openfasttrace")
 
 DEFAULT_PLAN_PATHS = {
     "sphinx-needs": ".quarto-needs/migrations/sphinx-needs-plan.json",
     "doorstop": ".quarto-needs/migrations/doorstop-plan.json",
     "strictdoc": ".quarto-needs/migrations/strictdoc-plan.json",
+    "openfasttrace": ".quarto-needs/migrations/openfasttrace-plan.json",
 }
 DEFAULT_APPLY_PLAN_PATHS = {
     "sphinx-needs": ".quarto-needs/migrations/sphinx-needs-apply-plan.json",
     "doorstop": ".quarto-needs/migrations/doorstop-apply-plan.json",
     "strictdoc": ".quarto-needs/migrations/strictdoc-apply-plan.json",
+    "openfasttrace": ".quarto-needs/migrations/openfasttrace-apply-plan.json",
 }
 
 
@@ -123,6 +130,25 @@ def _doorstop_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _openfasttrace_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="quarto-needs migrate openfasttrace",
+        description="Build a conservative migration plan from OpenFastTrace specobjects.",
+    )
+    parser.add_argument("openfasttrace_root")
+    parser.add_argument("--root")
+    parser.add_argument(
+        "--type-map", action="append", default=[], metavar="DOCTYPE=TARGET",
+        help="OpenFastTrace doctype (e.g. req) to Quarto-Needs type",
+    )
+    parser.add_argument(
+        "--relation-map", action="append", default=[], metavar="KEYWORD=RELATION",
+        help="OpenFastTrace keyword (covers, depends) to the canonical relation it expresses",
+    )
+    _add_apply_flags(parser, "openfasttrace")
+    return parser
+
+
 def _strictdoc_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="quarto-needs migrate strictdoc",
@@ -195,6 +221,19 @@ def _build_plan(
         plan = build_doorstop_plan(documents, type_map=type_map, relation_map=relation_map)
         return plan, args
 
+    if source == "openfasttrace":
+        parser = _openfasttrace_parser()
+        args = parser.parse_args(_strip_dispatch_tokens(argv, source))
+        if args.write and not args.apply_plan:
+            raise ValueError("--write requires --apply-plan")
+        type_map = _mapping(args.type_map, "--type-map")
+        relation_map = _mapping(args.relation_map, "--relation-map")
+        items = load_specobjects(_root_relative(root, args.openfasttrace_root))
+        plan = build_openfasttrace_plan(
+            items, type_map=type_map, relation_map=relation_map
+        )
+        return plan, args
+
     parser = _strictdoc_parser()
     args = parser.parse_args(_strip_dispatch_tokens(argv, source))
     if args.write and not args.apply_plan:
@@ -248,6 +287,7 @@ def run_migration_action(root: Path, argv: Sequence[str], source: str) -> int:
         SphinxNeedsMigrationError,
         DoorstopMigrationError,
         StrictDocMigrationError,
+        OpenFastTraceMigrationError,
         MigrationApplyError,
     ) as error:
         print(f"Migration error: {error}", file=sys.stderr)

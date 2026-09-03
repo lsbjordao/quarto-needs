@@ -1,10 +1,10 @@
 # Phase 5.4 — Migration adapters
 
-Status: **three migration adapters — Sphinx-Needs, Doorstop, and StrictDoc — are implemented end to end on a shared contract: a source-specific deterministic plan, a reviewable non-mutating apply plan with a `.need` block content preview, and a create-only, atomic, rollback-protected `--write` step that generates authored files.**
+Status: **four migration adapters — Sphinx-Needs, Doorstop, StrictDoc, and OpenFastTrace — are implemented end to end on a shared contract: a source-specific deterministic plan, a reviewable non-mutating apply plan with a `.need` block content preview, and a create-only, atomic, rollback-protected `--write` step that generates authored files.**
 
 Quarto-Needs treats migration as a reviewed interoperability operation, not as a parser shortcut. A migration source may have its own type system, relation semantics, computed fields, conditional links, backlinks, dynamic functions, rendering behavior, and identity conventions. Those concepts must not be silently reinterpreted as canonical Quarto-Needs semantics.
 
-Sphinx-Needs is one of the inspirations for Quarto-Needs and was the first migration source supported by this phase; Doorstop and StrictDoc followed, each converging on the same apply-plan/write contract without any adapter guessing another's semantics.
+Sphinx-Needs is one of the inspirations for Quarto-Needs and was the first migration source supported by this phase; Doorstop, StrictDoc, and OpenFastTrace followed, each converging on the same apply-plan/write contract without any adapter guessing another's semantics.
 
 ## Architectural rule
 
@@ -352,6 +352,14 @@ Additional adapters may target other requirements/docs-as-code ecosystems such a
 
 Each adapter must remain source-specific at the parsing boundary and converge only at a shared migration-plan contract, exactly as Doorstop and StrictDoc converged onto Sphinx-Needs' apply-plan/render/write implementation rather than reimplementing it. The project should not build a generic heuristic importer that guesses semantics across unrelated source ecosystems.
 
+## OpenFastTrace adapter
+
+OpenFastTrace authors specobjects in ordinary Markdown: a heading, a backticked identifier line `doctype~title-slug~revision`, keyword passages (`Status:`, `Description:`, `Rationale:`, `Comment:`), and keyword lists (`Covers:`, `Depends:`) written as `+`/`*`/`-` bullets or one-liners. `src/quarto_needs/migrations/openfasttrace.py` reads only this text; it never executes OpenFastTrace. Every `.md` file under the given root is loaded together so cross-file identifiers resolve; a duplicate identifier is refused rather than merged.
+
+The description passage is implicit in the source format — any non-keyword text is description — and `RATIONALE`-style content is folded into the candidate's content as a `### Rationale` subsection, the same convention the StrictDoc adapter and the authored `.qmd` grammar already share. `Comment` and the item's `revision` travel as preserved extras.
+
+OpenFastTrace's `Covers` keyword has no single canonical Quarto-Needs equivalent: a test covering a requirement and a feature covering a design want different edges. So `--type-map` is keyed by doctype and `--relation-map` by the OpenFastTrace keyword (`covers`, `depends`), and the caller chooses the canonical relation; an unmapped keyword's links are preserved as data and reported as `RELATION_UNMAPPED` review items — never guessed, never dropped. A link to an identifier that is not loaded is an explicit `EXTERNAL_LINK_TARGET`.
+
 ## Phase 5.4 acceptance direction
 
 The Sphinx-Needs, Doorstop, and StrictDoc adapters are considered functionally complete for their sources now that:
@@ -363,4 +371,4 @@ The Sphinx-Needs, Doorstop, and StrictDoc adapters are considered functionally c
 - the apply contract was specified (this document, and the roadmap) before any mutation code was introduced, and every one of its explicit requirements — atomicity, rollback, post-write verification, idempotence, create-only identity, unrepresentable-content refusal — is exercised by a test that fails when the corresponding behavior is removed;
 - adding a second and third adapter required no change to the apply-plan/render/write contract itself, only to each source-specific parser — evidence that the contract, not just the first adapter, is what was actually built.
 
-What remains is further breadth (OpenFastTrace), and, independently, an update/match identity contract if migrating an already-migrated project ever becomes a requirement.
+What remains is further breadth (further source adapters), and, independently, an update/match identity contract if migrating an already-migrated project ever becomes a requirement.
