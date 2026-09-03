@@ -137,6 +137,48 @@ def _complete_pytest_payload() -> dict[str, object]:
                 "requirements": ["SYS-008", "NFR-007"],
                 "testCases": ["TC-024"],
             },
+            {
+                "nodeid": "tests/test_extension_first_distribution.py::test_a_clean_consumer_project_needs_no_engine_installation",
+                "outcome": "passed",
+                "requirements": ["SYS-009", "FUN-018", "FUN-019"],
+                "testCases": ["TC-025"],
+            },
+            {
+                "nodeid": "tests/test_extension_first_distribution.py::test_a_second_render_succeeds_without_any_engine_source",
+                "outcome": "passed",
+                "requirements": ["SYS-009", "NFR-009"],
+                "testCases": ["TC-026"],
+            },
+            {
+                "nodeid": "tests/test_extension_bootstrap.py::test_a_wrong_global_engine_never_wins_over_the_managed_runtime",
+                "outcome": "passed",
+                "requirements": ["FUN-018", "FUN-019"],
+                "testCases": ["TC-027"],
+            },
+            {
+                "nodeid": "tests/test_extension_bootstrap.py::test_a_corrupted_runtime_is_reprovisioned",
+                "outcome": "passed",
+                "requirements": ["FUN-018"],
+                "testCases": ["TC-028"],
+            },
+            {
+                "nodeid": "tests/test_extension_bootstrap.py::test_two_concurrent_bootstrap_processes_produce_one_installation",
+                "outcome": "passed",
+                "requirements": ["NFR-008"],
+                "testCases": ["TC-029"],
+            },
+            {
+                "nodeid": "tests/test_extension_first_distribution.py::test_the_project_path_may_contain_spaces",
+                "outcome": "passed",
+                "requirements": ["FUN-018"],
+                "testCases": ["TC-030"],
+            },
+            {
+                "nodeid": "tests/test_extension_distribution_contract.py::test_manifest_declares_the_quarto_floor",
+                "outcome": "passed",
+                "requirements": ["SYS-009"],
+                "testCases": ["TC-031"],
+            },
         ],
         provider_version="8.0",
     )
@@ -214,7 +256,7 @@ def test_dispatch_delegates_raw_pytest_evidence_to_legacy_cli(tmp_path: Path, ca
     report = json.loads(capsys.readouterr().out)
     assert exit_code == 0
     assert report["provider"] == "pytest"
-    assert report["tests"] == 16
+    assert report["tests"] == 23
     assert report["valid"] is True
 
 
@@ -260,7 +302,7 @@ def test_attest_wraps_pytest_payload_and_result_is_checkable(
     assert exit_code == 0
     assert checked["valid"] is True
     assert checked["attested"] is True
-    assert checked["tests"] == 16
+    assert checked["tests"] == 23
 
 
 def test_attest_wraps_generic_check_payload(tmp_path: Path, capsys) -> None:

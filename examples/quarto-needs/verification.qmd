@@ -176,6 +176,92 @@ Repeat-analysis tests and canonical fixtures demonstrate stable fingerprints and
 The modeled `TC-014` is bound to the regression that protects persistent collapse behavior and the no-overlap positioning contract introduced by the historical margin-sidebar fix.
 :::
 
+## Extension-first distribution regressions
+
+::: {.need #TC-025 type="test-case" status="passed" tags="pytest;extension;distribution;provisioning;render" pytest-nodeid="tests/test_extension_first_distribution.py::test_a_clean_consumer_project_needs_no_engine_installation" evidenced-by="EVD-025"}
+## Extension-first clean render
+
+Render a real consumer project that has no installed package, no CLI on PATH, and no hand-authored pre-render, and verify the managed runtime is provisioned, the graph is produced, and cards and shortcodes resolve.
+:::
+
+::: {.need #EVD-025 type="evidence" status="verified" tags="pytest;extension;distribution;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## Extension-first clean render machine evidence
+
+`TC-025` is bound to the executable regression rendering a clean consumer project end to end through the extension's own bootstrap.
+:::
+
+::: {.need #TC-026 type="test-case" status="passed" tags="pytest;extension;distribution;offline" pytest-nodeid="tests/test_extension_first_distribution.py::test_a_second_render_succeeds_without_any_engine_source" evidenced-by="EVD-026"}
+## Offline second render
+
+After one successful provisioning, render again with no engine source and no package index and verify the cached exact runtime is reused with no provisioning attempt.
+:::
+
+::: {.need #EVD-026 type="evidence" status="verified" tags="pytest;extension;offline;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## Offline second render machine evidence
+
+`TC-026` is bound to the executable regression proving the package index is a first-render dependency only.
+:::
+
+::: {.need #TC-027 type="test-case" status="passed" tags="pytest;extension;version-skew;isolation" pytest-nodeid="tests/test_extension_bootstrap.py::test_a_wrong_global_engine_never_wins_over_the_managed_runtime" evidenced-by="EVD-027"}
+## Version skew isolation
+
+Construct an environment where an importable global engine reports a wrong version and verify the managed runtime's exact version wins the import.
+:::
+
+::: {.need #EVD-027 type="evidence" status="verified" tags="pytest;extension;version-skew;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## Version skew isolation machine evidence
+
+`TC-027` is bound to the executable regression proving system package skew cannot affect extension rendering.
+:::
+
+::: {.need #TC-028 type="test-case" status="passed" tags="pytest;extension;corruption;reprovisioning" pytest-nodeid="tests/test_extension_bootstrap.py::test_a_corrupted_runtime_is_reprovisioned" evidenced-by="EVD-028"}
+## Runtime corruption
+
+Corrupt managed runtime content and verify the runtime is rejected and safely reprovisioned instead of trusted.
+:::
+
+::: {.need #EVD-028 type="evidence" status="verified" tags="pytest;extension;corruption;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## Runtime corruption machine evidence
+
+`TC-028` is bound to the executable regression proving a marker alone is never proof of a usable runtime.
+:::
+
+::: {.need #TC-029 type="test-case" status="passed" tags="pytest;extension;concurrency;atomicity" pytest-nodeid="tests/test_extension_bootstrap.py::test_two_concurrent_bootstrap_processes_produce_one_installation" evidenced-by="EVD-029"}
+## Concurrent provisioning
+
+Start two bootstrap processes against the same clean project and verify one atomic publication, no partial runtime, and no duplicate or corrupt installation.
+:::
+
+::: {.need #EVD-029 type="evidence" status="verified" tags="pytest;extension;concurrency;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## Concurrent provisioning machine evidence
+
+`TC-029` is bound to the executable regression racing real processes on one project.
+:::
+
+::: {.need #TC-030 type="test-case" status="passed" tags="pytest;extension;paths;spaces;release-gate" pytest-nodeid="tests/test_extension_first_distribution.py::test_the_project_path_may_contain_spaces" evidenced-by="EVD-030"}
+## Project path with spaces
+
+Render a real consumer project whose absolute path contains spaces and verify the contributed relative `quarto run` command still resolves.
+:::
+
+::: {.need #EVD-030 type="evidence" status="verified" tags="pytest;extension;paths;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## Spaces-path machine evidence
+
+`TC-030` is bound to the executable release-gate regression rendering from a path with spaces.
+:::
+
+::: {.need #TC-031 type="test-case" status="passed" tags="pytest;extension;quarto;compatibility" pytest-nodeid="tests/test_extension_distribution_contract.py::test_manifest_declares_the_quarto_floor" evidenced-by="EVD-031"}
+## Declared Quarto floor
+
+Verify the extension manifest keeps declaring its supported Quarto floor. The floor itself is exercised on the minimum version by the opt-in `QUARTO_NEEDS_MIN_QUARTO_BIN` render gate.
+:::
+
+::: {.need #EVD-031 type="evidence" status="verified" tags="pytest;extension;compatibility;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## Quarto floor declaration machine evidence
+
+`TC-031` is bound to the executable regression pinning the manifest's declared floor against silent revision.
+:::
+
 ## Verification views
 
 {{< need-table types="test-case" columns="id;title;status;pytest-nodeid" sort="id" >}}

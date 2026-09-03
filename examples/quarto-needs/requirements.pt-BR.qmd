@@ -146,6 +146,46 @@ O significado de engenharia deve ser resolvido pelo núcleo Python; clientes Lua
 Mapas semânticos duplicados geram deriva e fazem visualizações equivalentes discordarem sobre o mesmo grafo de engenharia.
 :::
 
+::: {.need #FUN-018 type="functional-requirement" status="approved" priority="high" tags="extension;bootstrap;provisioning;render" derives-from="SYS-009" implemented-by="COMP-EXTENSION" verified-by="TC-025;TC-027;TC-028;TC-030" mitigates="RISK-013"}
+## Invocar automaticamente um motor gerenciado exato durante a renderização
+
+Uma extensão ativada deve provisionar sua versão exata de motor emparelhada em um runtime local ao projeto na primeira renderização, validar o que de fato instalou e executar o mesmo serviço canônico de pre-render usado pelo CLI.
+
+### Justificativa
+
+O provisionamento automático e exato elimina de uma vez a etapa manual de instalação e toda a classe de falhas por deriva de versão entre extensão e motor.
+:::
+
+::: {.need #FUN-019 type="functional-requirement" status="approved" priority="high" tags="extension;render;cli-independence" derives-from="SYS-009" implemented-by="COMP-EXTENSION" verified-by="TC-025;TC-027"}
+## Renderizar sem um motor instalado globalmente
+
+A renderização comum não deve exigir o pacote quarto-needs nem um CLI quarto-needs no PATH, e uma instalação ambiente com versão diferente jamais deve ser substituída pelo runtime gerenciado.
+
+### Justificativa
+
+A correção de uma renderização não pode depender do que mais estiver instalado na máquina.
+:::
+
+::: {.need #NFR-008 type="non-functional-requirement" status="approved" priority="high" tags="provisioning;isolation;atomicity;concurrency" derives-from="SYS-009" implemented-by="COMP-EXTENSION" verified-by="TC-029" mitigates="RISK-013"}
+## Manter o provisionamento local ao projeto, atômico e seguro sob concorrência
+
+O provisionamento do runtime gerenciado não deve modificar o ambiente Python global, deve publicar um runtime somente após validação completa e deve permanecer seguro sob primeiras renderizações concorrentes.
+
+### Justificativa
+
+Uma primeira renderização jamais deve mutar nada fora do projeto nem deixar um runtime pela metade.
+:::
+
+::: {.need #NFR-009 type="non-functional-requirement" status="approved" priority="high" tags="provisioning;offline;caching" derives-from="SYS-009" implemented-by="COMP-EXTENSION" verified-by="TC-026" mitigates="RISK-013"}
+## Suportar renderização offline a partir de um runtime válido em cache
+
+Uma vez existindo um runtime válido, a renderização deve reutilizá-lo sem acesso à rede e sem qualquer tentativa de provisionamento.
+
+### Justificativa
+
+O índice de pacotes é dependência apenas da primeira renderização; o uso cotidiano deve funcionar offline.
+:::
+
 ## Visualizações geradas de requisitos
 
 {{< need-table types="functional-requirement;non-functional-requirement" columns="id;title;type;status;priority" sort="priority;id" >}}

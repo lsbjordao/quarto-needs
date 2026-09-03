@@ -34,6 +34,12 @@ Engineers need to know not only what was required, but why architectural choices
 Translations should improve communication without creating competing semantic models or duplicated engineering truth.
 :::
 
+::: {.need #STK-008 type="stakeholder-need" status="approved" tags="quarto;installation;distribution;onboarding"}
+## Quarto authors need the extension to be the whole installation
+
+Authors activate a Quarto extension to use it. Requiring a separate package install, a CLI on PATH, and a hand-authored pre-render makes ordinary adoption fragile and gives the extension and its engine room to drift apart.
+:::
+
 ## System requirements
 
 ::: {.need #SYS-001 type="system-requirement" status="approved" priority="critical" tags="graph;semantics;traceability" derives-from="STK-001" implemented-by="COMP-ANALYSIS" verified-by="TC-001"}
@@ -94,6 +100,16 @@ Quarto-Needs shall publish presentation-safe, bounded graph projections containi
 ### Rationale
 
 Exploration should be powerful without exposing arbitrary source data or moving engineering meaning into the browser.
+:::
+
+::: {.need #SYS-009 type="system-requirement" status="approved" priority="high" tags="distribution;extension;installation;provisioning" derives-from="STK-008" implemented-by="COMP-EXTENSION" verified-by="TC-025;TC-026;TC-031"}
+## Deliver the semantic engine through the activated extension itself
+
+Quarto-Needs shall provision and invoke an exact, compatible semantic engine from the activated extension during ordinary rendering, without a global package installation, a CLI on PATH, or a user-authored pre-render.
+
+### Rationale
+
+One installation responsibility keeps adoption honest: the extension a user adds is the component that works, and its engine cannot silently drift from it.
 :::
 
 ## Reading the first derivation layer

@@ -21,6 +21,7 @@ import re
 import tomllib
 from pathlib import Path
 
+import pytest
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -97,6 +98,8 @@ def test_quickstart_points_at_the_zero_friction_starter_template() -> None:
     assert "quarto use template lsbjordao/quarto-needs/templates/starter" in quickstart
 
 
+@pytest.mark.requirement("SYS-009")
+@pytest.mark.quarto_need_test_case("TC-031")
 def test_manifest_declares_the_quarto_floor() -> None:
     assert _manifest()["quarto-required"] == ">=1.6.0"
 

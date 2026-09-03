@@ -17,6 +17,7 @@ package from source; one prebuilt wheel turns that into a plain install.
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -68,3 +69,33 @@ def local_engine_source(tmp_path_factory: pytest.TempPathFactory):
         yield str(wheels[0])
     finally:
         os.environ.pop(ENGINE_SOURCE_ENV, None)
+
+
+@pytest.fixture(scope="session")
+def views_fixture_graph(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """The views fixture's graph, generated once per session by the engine.
+
+    The Lua-facing tests assert against a graph the engine actually writes
+    from the fixture's source. A graph under tests/fixtures/views/ is
+    gitignored generated state, so depending on one sitting there would
+    describe whatever untracked artifact a developer tree happens to hold --
+    which is exactly how these tests once came to describe a stale graph
+    instead of the source. Every session scans a fresh copy of the fixture
+    through the canonical pre-render service instead.
+    """
+    from quarto_needs.quarto_integration import run_quarto_pre_render
+
+    project = tmp_path_factory.mktemp("views-fixture-graph") / "views"
+    shutil.copytree(ROOT / "tests" / "fixtures" / "views", project)
+    shutil.copytree(
+        ROOT / "_extensions" / "quarto-needs",
+        project / "_extensions" / "quarto-needs",
+    )
+    status = run_quarto_pre_render(project, quiet=True)
+    graph = project / ".quarto-needs" / "needs.json"
+    if status != 0 or not graph.is_file():
+        pytest.fail(
+            "scanning the views fixture for the Lua-facing tests failed "
+            f"(exit {status})"
+        )
+    return graph

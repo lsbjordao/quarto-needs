@@ -176,6 +176,92 @@ Testes de análise repetida e fixtures canônicas demonstram fingerprints estáv
 O `TC-014` modelado está ligado à regressão que protege o comportamento persistente de recolhimento e o contrato de posicionamento sem sobreposição introduzido pela correção histórica da barra lateral.
 :::
 
+## Regressões de distribuição extension-first
+
+::: {.need #TC-025 type="test-case" status="passed" tags="pytest;extension;distribution;provisioning;render" pytest-nodeid="tests/test_extension_first_distribution.py::test_a_clean_consumer_project_needs_no_engine_installation" evidenced-by="EVD-025"}
+## Renderização limpa extension-first
+
+Renderiza um projeto consumidor real sem pacote instalado, sem CLI no PATH e sem pre-render escrito à mão, e verifica que o runtime gerenciado é provisionado, o grafo é produzido e cards e shortcodes resolvem.
+:::
+
+::: {.need #EVD-025 type="evidence" status="verified" tags="pytest;extension;distribution;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## Evidência de máquina da renderização limpa extension-first
+
+O `TC-025` está ligado à regressão executável que renderiza um projeto consumidor limpo de ponta a ponta pelo próprio bootstrap da extensão.
+:::
+
+::: {.need #TC-026 type="test-case" status="passed" tags="pytest;extension;distribution;offline" pytest-nodeid="tests/test_extension_first_distribution.py::test_a_second_render_succeeds_without_any_engine_source" evidenced-by="EVD-026"}
+## Segunda renderização offline
+
+Após um provisionamento bem-sucedido, renderiza de novo sem fonte de motor e sem índice de pacotes e verifica que o runtime exato em cache é reutilizado sem nenhuma tentativa de provisionamento.
+:::
+
+::: {.need #EVD-026 type="evidence" status="verified" tags="pytest;extension;offline;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## Evidência de máquina da segunda renderização offline
+
+O `TC-026` está ligado à regressão executável que prova que o índice de pacotes é dependência apenas da primeira renderização.
+:::
+
+::: {.need #TC-027 type="test-case" status="passed" tags="pytest;extension;version-skew;isolation" pytest-nodeid="tests/test_extension_bootstrap.py::test_a_wrong_global_engine_never_wins_over_the_managed_runtime" evidenced-by="EVD-027"}
+## Isolamento de divergência de versão
+
+Constrói um ambiente em que um motor global importável reporta uma versão errada e verifica que a versão exata do runtime gerenciado vence a importação.
+:::
+
+::: {.need #EVD-027 type="evidence" status="verified" tags="pytest;extension;version-skew;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## Evidência de máquina do isolamento de versão
+
+O `TC-027` está ligado à regressão executável que prova que a divergência do pacote de sistema não pode afetar a renderização da extensão.
+:::
+
+::: {.need #TC-028 type="test-case" status="passed" tags="pytest;extension;corruption;reprovisioning" pytest-nodeid="tests/test_extension_bootstrap.py::test_a_corrupted_runtime_is_reprovisioned" evidenced-by="EVD-028"}
+## Corrupção de runtime
+
+Corrompe conteúdo do runtime gerenciado e verifica que o runtime é rejeitado e reprovisionado com segurança em vez de confiado.
+:::
+
+::: {.need #EVD-028 type="evidence" status="verified" tags="pytest;extension;corruption;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## Evidência de máquina da corrupção de runtime
+
+O `TC-028` está ligado à regressão executável que prova que um marker sozinho nunca é prova de um runtime utilizável.
+:::
+
+::: {.need #TC-029 type="test-case" status="passed" tags="pytest;extension;concurrency;atomicity" pytest-nodeid="tests/test_extension_bootstrap.py::test_two_concurrent_bootstrap_processes_produce_one_installation" evidenced-by="EVD-029"}
+## Provisionamento concorrente
+
+Inicia dois processos de bootstrap no mesmo projeto limpo e verifica uma publicação atômica, nenhum runtime parcial e nenhuma instalação duplicada ou corrompida.
+:::
+
+::: {.need #EVD-029 type="evidence" status="verified" tags="pytest;extension;concurrency;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## Evidência de máquina do provisionamento concorrente
+
+O `TC-029` está ligado à regressão executável que coloca processos reais em corrida por um projeto.
+:::
+
+::: {.need #TC-030 type="test-case" status="passed" tags="pytest;extension;paths;spaces;release-gate" pytest-nodeid="tests/test_extension_first_distribution.py::test_the_project_path_may_contain_spaces" evidenced-by="EVD-030"}
+## Caminho de projeto com espaços
+
+Renderiza um projeto consumidor real cujo caminho absoluto contém espaços e verifica que o comando relativo `quarto run` contribuído ainda resolve.
+:::
+
+::: {.need #EVD-030 type="evidence" status="verified" tags="pytest;extension;paths;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## Evidência de máquina do caminho com espaços
+
+O `TC-030` está ligado à regressão executável de release gate que renderiza a partir de um caminho com espaços.
+:::
+
+::: {.need #TC-031 type="test-case" status="passed" tags="pytest;extension;quarto;compatibility" pytest-nodeid="tests/test_extension_distribution_contract.py::test_manifest_declares_the_quarto_floor" evidenced-by="EVD-031"}
+## Piso declarado de Quarto
+
+Verifica que o manifesto da extensão continua declarando seu piso suportado de Quarto. O piso em si é exercitado na versão mínima pelo gate de renderização opt-in `QUARTO_NEEDS_MIN_QUARTO_BIN`.
+:::
+
+::: {.need #EVD-031 type="evidence" status="verified" tags="pytest;extension;compatibility;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
+## Evidência de máquina da declaração de piso do Quarto
+
+O `TC-031` está ligado à regressão executável que fixa o piso declarado do manifesto contra revisão silenciosa.
+:::
+
 ## Views de verificação
 
 {{< need-table types="test-case" columns="id;title;status;pytest-nodeid" sort="id" >}}

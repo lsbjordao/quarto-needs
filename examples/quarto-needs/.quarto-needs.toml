@@ -270,8 +270,8 @@ relations = ["verified-by", "evidenced-by"]
 depth = 2
 
 [graph]
-max-nodes = 160
-max-edges = 500
+max-nodes = 200
+max-edges = 600
 depth = 3
 layout = "hierarchical"
 seed = 17

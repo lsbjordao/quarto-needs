@@ -96,7 +96,14 @@ evidence-self-example:
 		tests/test_github_issues.py::test_fetch_external_github_issue_sends_conditional_request_when_cache_is_stale \
 		tests/test_github_issues.py::test_fetch_external_github_issue_list_pages_follows_rel_next_across_pages \
 		tests/test_github_reconcile.py::test_github_issue_number_stays_data_even_when_it_equals_a_canonical_id \
-		tests/test_github_http.py::test_fetch_github_resource_403_with_exhausted_rate_limit_is_rate_limited
+		tests/test_github_http.py::test_fetch_github_resource_403_with_exhausted_rate_limit_is_rate_limited \
+		tests/test_extension_first_distribution.py::test_a_clean_consumer_project_needs_no_engine_installation \
+		tests/test_extension_first_distribution.py::test_a_second_render_succeeds_without_any_engine_source \
+		tests/test_extension_first_distribution.py::test_the_project_path_may_contain_spaces \
+		tests/test_extension_bootstrap.py::test_a_wrong_global_engine_never_wins_over_the_managed_runtime \
+		tests/test_extension_bootstrap.py::test_a_corrupted_runtime_is_reprovisioned \
+		tests/test_extension_bootstrap.py::test_two_concurrent_bootstrap_processes_produce_one_installation \
+		tests/test_extension_distribution_contract.py::test_manifest_declares_the_quarto_floor
 	PYTHONPATH=src $(VENV_PYTHON) -m quarto_needs.cli_entry --root examples/quarto-needs evidence attest \
 		.quarto-needs/evidence/pytest-provider.json \
 		--output .quarto-needs/evidence/pytest.json --expires-hours 24

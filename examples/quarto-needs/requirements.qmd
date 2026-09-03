@@ -146,6 +146,46 @@ Engineering meaning shall be resolved by the Python core; Lua and browser client
 Duplicated semantic maps create drift and make equivalent views disagree about the same engineering graph.
 :::
 
+::: {.need #FUN-018 type="functional-requirement" status="approved" priority="high" tags="extension;bootstrap;provisioning;render" derives-from="SYS-009" implemented-by="COMP-EXTENSION" verified-by="TC-025;TC-027;TC-028;TC-030" mitigates="RISK-013"}
+## Invoke an exact managed engine automatically during rendering
+
+An active extension shall provision its exact paired engine version into a project-local runtime on first render, validate what it actually installed, and run the same canonical pre-render service the CLI uses.
+
+### Rationale
+
+Automatic exact provisioning removes the manual installation step and the extension/engine version-drift class of failure at once.
+:::
+
+::: {.need #FUN-019 type="functional-requirement" status="approved" priority="high" tags="extension;render;cli-independence" derives-from="SYS-009" implemented-by="COMP-EXTENSION" verified-by="TC-025;TC-027"}
+## Render without a globally installed engine
+
+Ordinary rendering shall not require a quarto-needs package or a quarto-needs CLI on PATH, and a differently-versioned ambient installation shall never be substituted for the managed runtime.
+
+### Rationale
+
+A render's correctness cannot depend on whatever else happens to be installed on the machine.
+:::
+
+::: {.need #NFR-008 type="non-functional-requirement" status="approved" priority="high" tags="provisioning;isolation;atomicity;concurrency" derives-from="SYS-009" implemented-by="COMP-EXTENSION" verified-by="TC-029" mitigates="RISK-013"}
+## Keep provisioning project-local, atomic, and concurrency-safe
+
+Managed runtime provisioning shall not modify the global Python environment, shall publish a runtime only after full validation, and shall remain safe under concurrent first renders.
+
+### Rationale
+
+A first render must never mutate anything outside the project or leave a half-installed runtime behind.
+:::
+
+::: {.need #NFR-009 type="non-functional-requirement" status="approved" priority="high" tags="provisioning;offline;caching" derives-from="SYS-009" implemented-by="COMP-EXTENSION" verified-by="TC-026" mitigates="RISK-013"}
+## Support offline rendering from a valid cached runtime
+
+Once a valid runtime exists, rendering shall reuse it without network access and without any provisioning attempt.
+
+### Rationale
+
+The package index is a first-render dependency only; everyday rendering must work offline.
+:::
+
 ## Generated requirement views
 
 {{< need-table types="functional-requirement;non-functional-requirement" columns="id;title;type;status;priority" sort="priority;id" >}}

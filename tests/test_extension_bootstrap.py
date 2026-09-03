@@ -16,6 +16,8 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
+import subprocess
 import sys
 import threading
 import time
@@ -390,6 +392,62 @@ def test_an_exception_inside_the_lock_still_releases_it(tmp_path) -> None:
         pass
 
 
+def test_a_lock_left_by_a_dead_process_is_reclaimed_without_waiting(tmp_path) -> None:
+    """Liveness, not just age, decides reclaim.
+
+    The mtime window exists for platforms that cannot probe safely; where
+    the platform can tell, a crashed holder's lock must not make every
+    later render wait it out. The pid here belonged to a real process that
+    has fully exited, so it is demonstrably dead.
+    """
+    dead = subprocess.Popen([sys.executable, "-c", "pass"])
+    dead.wait()
+
+    path = tmp_path / "lock"
+    path.write_text(f"{dead.pid}-crashed-holder\n", encoding="utf-8")
+
+    with bootstrap.exclusive_lock(path, wait_seconds=0.2, stale_seconds=600):
+        assert path.exists()
+
+
+def test_a_live_holder_is_never_stolen_even_when_the_lock_looks_stale(tmp_path) -> None:
+    """An old mtime alone must not authorize taking a live holder's lock.
+
+    This is the theft the mtime-only rule permitted: a holder whose pip
+    stalls past the staleness window would have its lock unlinked from
+    under it. POSIX-only, because that is where liveness can be probed
+    safely; the timed-out waiter proves the lock was refused, not stolen.
+    """
+    if os.name != "posix":
+        pytest.skip("liveness probing is POSIX-only")
+    path = tmp_path / "lock"
+    path.write_text(f"{os.getpid()}-still-running\n", encoding="utf-8")
+    old = time.time() - 10_000
+    os.utime(path, (old, old))
+
+    with pytest.raises(bootstrap.BootstrapError, match="Timed out"):
+        with bootstrap.exclusive_lock(path, wait_seconds=0.2, poll_seconds=0.01):
+            pytest.fail("stole a live holder's lock because the mtime was old")
+
+    assert path.exists(), "the refused waiter deleted the live holder's lock"
+
+
+def test_release_never_deletes_a_lock_reclaimed_by_someone_else(tmp_path) -> None:
+    """Ownership is the token, not the path.
+
+    A holder that was legitimately reclaimed (its token replaced) must not,
+    on exiting its context, delete the replacement lock and admit a third
+    holder behind the new one's back.
+    """
+    path = tmp_path / "lock"
+    with bootstrap.exclusive_lock(path):
+        path.write_text(
+            f"{os.getpid()}-replacement-{time.time_ns()}\n", encoding="utf-8"
+        )
+
+    assert path.exists(), "release deleted a lock this holder no longer owned"
+
+
 # --- Staging and promotion --------------------------------------------------
 
 
@@ -398,6 +456,28 @@ def test_staging_directories_are_unique(tmp_path) -> None:
     second = bootstrap.staging_directory(tmp_path)
 
     assert first != second
+
+
+def test_a_failing_publication_is_a_bootstrap_error_not_a_bare_oserror(
+    tmp_path, monkeypatch
+) -> None:
+    """promote() failures must carry the bootstrap's actionable contract.
+
+    A concurrent publisher or an un-removable file turns os.replace into an
+    OSError; raised raw, it would escape ensure_runtime's diagnosis and hit
+    the user as a traceback that names nothing they can do.
+    """
+
+    def refusing_replace(source, destination):
+        raise OSError("directory not empty")
+
+    monkeypatch.setattr(bootstrap.os, "replace", refusing_replace)
+    staging = bootstrap.staging_directory(tmp_path)
+    staging.mkdir()
+    runtime_dir = bootstrap.runtime_directory(tmp_path, "0.1.0", bootstrap.runtime_identity())
+
+    with pytest.raises(bootstrap.BootstrapError, match="Could not publish"):
+        bootstrap.promote(staging, runtime_dir)
 
 
 def test_a_failed_provision_leaves_no_staging_directory_behind(tmp_path) -> None:
@@ -557,6 +637,8 @@ def test_a_valid_cached_runtime_triggers_no_installation(tmp_path, monkeypatch) 
     assert calls == ["quarto-needs==0.1.0"], "reinstalled a runtime that was already valid"
 
 
+@pytest.mark.requirement("FUN-018")
+@pytest.mark.quarto_need_test_case("TC-028")
 def test_a_corrupted_runtime_is_reprovisioned(tmp_path) -> None:
     """A marker that outlived its site-packages must not be trusted."""
     identity = bootstrap.runtime_identity()
@@ -734,6 +816,8 @@ def test_the_bootstrap_builds_the_graph_end_to_end(tmp_path) -> None:
 
 
 @pytest.mark.slow
+@pytest.mark.requirement("FUN-018", "FUN-019")
+@pytest.mark.quarto_need_test_case("TC-027")
 def test_a_wrong_global_engine_never_wins_over_the_managed_runtime(tmp_path) -> None:
     """The skew this design removes, proved rather than asserted.
 
@@ -880,6 +964,8 @@ def test_a_runtime_valid_for_one_version_does_not_satisfy_a_request_for_another(
 
 
 @pytest.mark.slow
+@pytest.mark.requirement("NFR-008")
+@pytest.mark.quarto_need_test_case("TC-029")
 def test_two_concurrent_bootstrap_processes_produce_one_installation(tmp_path) -> None:
     """Two real processes race on the same clean project.
 

@@ -10,7 +10,6 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 VIEWS = ROOT / "_extensions" / "quarto-needs" / "views.lua"
-GRAPH = ROOT / "tests" / "fixtures" / "views" / ".quarto-needs" / "needs.json"
 
 
 LUA_ASSERTIONS = r'''
@@ -110,9 +109,12 @@ end
 '''
 
 
-def run_lua_assertions(tmp_path: Path, assertions: str) -> None:
+def run_lua_assertions(
+    tmp_path: Path, assertions: str, graph: Path | None = None
+) -> None:
     rendered = assertions.replace("__VIEWS_PATH__", json.dumps(str(VIEWS)))
-    rendered = rendered.replace("__GRAPH_PATH__", json.dumps(str(GRAPH)))
+    if graph is not None:
+        rendered = rendered.replace("__GRAPH_PATH__", json.dumps(str(graph)))
     assertion_filter = tmp_path / "views_assertions.lua"
     assertion_filter.write_text(rendered, encoding="utf-8")
     source = tmp_path / "source.md"
@@ -138,6 +140,8 @@ def test_view_id_reservation_sanitizes_and_avoids_collisions(tmp_path: Path):
 
 
 @pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
-def test_views_delegate_to_the_cached_graph_and_format_links(tmp_path: Path):
+def test_views_delegate_to_the_cached_graph_and_format_links(
+    tmp_path: Path, views_fixture_graph: Path
+):
     """The facade keeps its legacy API while every link flows through the resolver."""
-    run_lua_assertions(tmp_path, LUA_FACADE_ASSERTIONS)
+    run_lua_assertions(tmp_path, LUA_FACADE_ASSERTIONS, graph=views_fixture_graph)

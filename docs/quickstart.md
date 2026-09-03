@@ -45,6 +45,22 @@ filters:
 That is the whole configuration. Activating the filter also installs the
 extension's own pre-render step — you do not author one.
 
+> **Updating a project that predates this?** Earlier versions asked for two
+> extra pieces: `pip install quarto-needs` and a hand-authored pre-render in
+> `_quarto.yml`, typically:
+>
+> ```yaml
+> project:
+>   pre-render:
+>     - quarto-needs scan
+> ```
+>
+> Both are obsolete. Delete the `pre-render` entry — the extension supplies
+> its own, and leaving the old line in makes the render depend on a
+> `quarto-needs` command the extension-first install never puts on `PATH`.
+> The `pip install` becomes optional tooling (see [below](#optional-the-standalone-cli-and-editor-tooling)).
+> Your requirements, configuration, and rendered output do not change.
+
 ## 3. Write a requirement
 
 Create `index.qmd`:
@@ -159,7 +175,8 @@ checkout path before rendering, which installs from there instead of the
 index.
 
 **A later render still tries to reach the network.** It should not: once
-`.quarto-needs/runtime/<version>/<platform>/` holds a validated engine, every
+`.quarto-needs/runtime/<version>/<python-tag>-<platform>-<machine>/` (for
+example `0.1.0/cpython-313-linux-x86_64`) holds a validated engine, every
 later render reuses it with no network access at all. If a render still
 reaches out, something removed or corrupted that directory — see below.
 

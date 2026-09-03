@@ -144,6 +144,12 @@ Unbounded projections can become slow, visually unreadable, and unsuitable for r
 Localized files can silently diverge from canonical IDs, metadata, and relations unless semantic parity is enforced.
 :::
 
+::: {.need #RISK-013 type="risk" status="approved" priority="high" tags="distribution;provisioning;python;pip;first-render"}
+## First-use provisioning depends on Python, pip, and package availability
+
+A clean machine without a usable interpreter, without pip, or without a reachable package index cannot provision the engine on first render. A silent or vague failure there would strand new users at their very first command.
+:::
+
 ## Architecture decisions
 
 ::: {.need #ADR-001 type="architecture-decision" status="accepted" date="2026-08-29" revisit-after="2027-08-29" decision-makers="Quarto-Needs maintainers" tags="python;semantics;architecture" addresses="SYS-001;SYS-003;NFR-005;RISK-001" applies-to="COMP-ANALYSIS;IF-002" confirmed-by="TC-001;TC-008"}
@@ -483,6 +489,26 @@ Adding a new deployable unit means declaring a new `container` (or `system`), no
 ### Confirmation
 
 `TC-004`.
+:::
+
+::: {.need #ADR-019 type="architecture-decision" status="accepted" date="2026-09-03" revisit-after="2027-09-03" decision-makers="Quarto-Needs maintainers" tags="distribution;extension;bootstrap;managed-runtime" addresses="SYS-009;RISK-013" applies-to="COMP-EXTENSION" confirmed-by="TC-025;TC-026;TC-029"}
+## Provision a project-local managed runtime through an extension bootstrap
+
+### Context and Problem Statement
+
+The extension needs a Python semantic engine, but users install only the extension. The old contract asked for three separate pieces — a global pip install, a CLI on PATH, and a hand-authored pre-render — each one an independent chance to be missing, stale, or wrong for the extension's version.
+
+### Decision Outcome
+
+The extension manifest contributes the project pre-render itself. A standard-library bootstrap provisions `quarto-needs==<extension version>` into `.quarto-needs/runtime/<version>/<interpreter-identity>/` through staged, lock-protected, atomic installs, validates the actually imported version, and invokes the same canonical pre-render service the CLI uses. A valid cached runtime renders offline; a provisioning failure fails the render with the needed version, the missing runtime, and both recovery actions.
+
+### Consequences
+
+Rendering has exactly one installation responsibility, and extension and engine versions cannot drift silently. First-use provisioning still requires Python and pip, which remain documented platform prerequisites; the residual availability risk is carried explicitly by `RISK-013` rather than hidden.
+
+### Confirmation
+
+`TC-025` proves the clean first render, `TC-026` the offline second render, and `TC-029` concurrent-safe provisioning.
 :::
 
 ## Generated architecture views

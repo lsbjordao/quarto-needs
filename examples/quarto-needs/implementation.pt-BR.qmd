@@ -104,6 +104,20 @@ Percorre a união dos grafos do baseline e do estado atual e retorna caminhos ex
 Sincroniza assets da extensão, constrói o grafo de engenharia, verifica paridade semântica das fontes localizadas e emite projeções de títulos apenas para apresentação.
 :::
 
+## Distribuição extension-first
+
+::: {.need #SRC-QUARTO-INTEGRATION type="source-module" status="implemented" path="src/quarto_needs/quarto_integration.py" language="Python" layer="integration" tags="extension;render;canonical;distribution" implements="FUN-018;SYS-009" part-of="COMP-ANALYSIS"}
+## Serviço canônico de aplicação de pre-render Quarto
+
+A única operação de build semântico por trás tanto de `quarto-needs scan` quanto do bootstrap da extensão: analisar o projeto, materializar queries, pré-computar o relatório de qualidade e escrever cada artefato canônico que o Quarto consome.
+:::
+
+::: {.need #SRC-BOOTSTRAP type="source-module" status="implemented" path="_extensions/quarto-needs/bootstrap.py" language="Python" layer="integration" tags="extension;bootstrap;provisioning;distribution" implements="FUN-018;FUN-019;NFR-008;NFR-009" part-of="COMP-EXTENSION"}
+## Bootstrap do runtime gerenciado
+
+Provisiona o motor emparelhado exato em um runtime local ao projeto com instalações em staging, protegidas por lock e atômicas, valida a versão importada contra a da própria extensão, renderiza offline a partir de um cache válido e invoca o serviço canônico de pre-render.
+:::
+
 ## Uma view de requisito até código
 
 A tabela é útil quando os caminhos exatos importam; o grafo é útil quando o leitor quer investigar como módulos-fonte aparecem ao lado de requisitos, decisões, testes e evidências.
@@ -125,3 +139,5 @@ Os cortes seguintes são reutilizados intencionalmente ao longo do restante do e
 **Análise de mudanças de engenharia:** `STK-003 → SYS-003 → FUN-005 → COMP-BASELINE → SRC-BASELINE / SRC-DIFF / SRC-IMPACT → TC-011 → EVD-011`.
 
 **Usabilidade do índice lateral:** `SYS-002 → FUN-009 → ADR-007 → COMP-EXTENSION → SRC-MARGIN-SIDEBAR → TC-014 → EVD-014`.
+
+**Distribuição extension-first:** `STK-008 → SYS-009 → FUN-018 / FUN-019 / NFR-008 / NFR-009 → ADR-019 → COMP-EXTENSION → SRC-QUARTO-INTEGRATION / SRC-BOOTSTRAP → TC-025…TC-031 → EVD-025…EVD-031`.

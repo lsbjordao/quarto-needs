@@ -69,6 +69,14 @@
       "has-evidence-path": true,
       "verification-count": 1
     },
+    "FUN-018": {
+      "has-evidence-path": true,
+      "verification-count": 4
+    },
+    "FUN-019": {
+      "has-evidence-path": true,
+      "verification-count": 2
+    },
     "NFR-001": {
       "has-evidence-path": true,
       "verification-count": 1
@@ -96,6 +104,14 @@
     "NFR-007": {
       "has-evidence-path": true,
       "verification-count": 4
+    },
+    "NFR-008": {
+      "has-evidence-path": true,
+      "verification-count": 1
+    },
+    "NFR-009": {
+      "has-evidence-path": true,
+      "verification-count": 1
     },
     "SYS-001": {
       "has-evidence-path": true,
@@ -128,6 +144,10 @@
     "SYS-008": {
       "has-evidence-path": true,
       "verification-count": 5
+    },
+    "SYS-009": {
+      "has-evidence-path": true,
+      "verification-count": 3
     }
   },
   "findings": [],
@@ -136,6 +156,23 @@
     "version": "0.1.0"
   },
   "objects": [
+    {
+      "attributes": {
+        "tags": "architecture;c4"
+      },
+      "body": "Authors, reviews, and approves engineering objects; reads generated views to understand traceability and coverage.",
+      "contentFingerprint": "25a3e986756dfea09f69c0fc46921027569d1bf9c9ce670a41e8b8fe7f850d95",
+      "id": "ACTOR-ENGINEER",
+      "location": {
+        "anchor": "ACTOR-ENGINEER",
+        "file": "architecture.qmd",
+        "line": 13
+      },
+      "rationale": "",
+      "status": "approved",
+      "title": "Requirements engineer",
+      "type": "actor"
+    },
     {
       "attributes": {
         "date": "2026-08-29",
@@ -149,7 +186,7 @@
       "location": {
         "anchor": "ADR-001",
         "file": "architecture.qmd",
-        "line": 109
+        "line": 155
       },
       "rationale": "",
       "status": "accepted",
@@ -169,7 +206,7 @@
       "location": {
         "anchor": "ADR-002",
         "file": "architecture.qmd",
-        "line": 142
+        "line": 188
       },
       "rationale": "",
       "status": "accepted",
@@ -189,7 +226,7 @@
       "location": {
         "anchor": "ADR-003",
         "file": "architecture.qmd",
-        "line": 169
+        "line": 215
       },
       "rationale": "",
       "status": "accepted",
@@ -209,7 +246,7 @@
       "location": {
         "anchor": "ADR-004",
         "file": "architecture.qmd",
-        "line": 189
+        "line": 235
       },
       "rationale": "",
       "status": "accepted",
@@ -229,7 +266,7 @@
       "location": {
         "anchor": "ADR-005",
         "file": "architecture.qmd",
-        "line": 209
+        "line": 255
       },
       "rationale": "",
       "status": "accepted",
@@ -249,7 +286,7 @@
       "location": {
         "anchor": "ADR-006",
         "file": "architecture.qmd",
-        "line": 229
+        "line": 275
       },
       "rationale": "",
       "status": "accepted",
@@ -269,7 +306,7 @@
       "location": {
         "anchor": "ADR-007",
         "file": "architecture.qmd",
-        "line": 249
+        "line": 295
       },
       "rationale": "",
       "status": "accepted",
@@ -338,6 +375,186 @@
     },
     {
       "attributes": {
+        "date": "2026-09-02",
+        "decision-makers": "Quarto-Needs maintainers",
+        "revisit-after": "2027-09-02",
+        "tags": "documentation;architecture;viewpoints;arc42"
+      },
+      "body": "### Context and Problem Statement\n\n`ARCHITECTURE.md` and this self-hosted example both describe the system, but neither page declares its audience, the concern it answers, or when it must be revisited. As the product grew from a single pipeline into CLI/core/Quarto/LSP/VS Code/interoperability surfaces, an undeclared set of ad hoc pages risks duplicating content and drifting silently.\n\n### Decision Drivers\n\n- give every architecture page an explicit audience, concern, and update trigger;\n- avoid forcing one notation (C4, UML, or 4+1) to answer every question;\n- keep the index navigable without becoming a second copy of this case study.\n\n### Decision Outcome\n\nOrganize `docs/architecture/` as a small set of ISO/IEC/IEEE 42010-style viewpoints, indexed by an arc42-lite structure. Each page records its audience, concern, notation, and source in `viewpoints.md`; diagrams are chosen per concern rather than committing the whole set to one modeling language.\n\n### Consequences\n\nThe documentation set gains a stable table of contents and a contract per page, at the cost of keeping `viewpoints.md` current whenever a page's purpose changes.\n\n### Confirmation\n\n`TC-002` confirms the presentation/rendering path this documentation set builds on.",
+      "contentFingerprint": "17a78820bbaed8beebe9d474f20722d2ee9b193b9ed48a68e2ac65f16806d615",
+      "id": "ADR-011",
+      "location": {
+        "anchor": "ADR-011",
+        "file": "architecture.qmd",
+        "line": 323
+      },
+      "rationale": "",
+      "status": "accepted",
+      "title": "Document Quarto-Needs itself through explicit viewpoints, indexed arc42-lite",
+      "type": "architecture-decision"
+    },
+    {
+      "attributes": {
+        "date": "2026-09-02",
+        "decision-makers": "Quarto-Needs maintainers",
+        "revisit-after": "2027-09-02",
+        "tags": "architecture;types;extensibility"
+      },
+      "body": "### Context and Problem Statement\n\nPhase 6 needed `system`/`container`/`component`/`actor`/`external-system` roles for C4 views. A fixed Python enum for architectural roles would hardcode one project's vocabulary into the core, contradicting the existing decision to keep traceability as a typed property graph with project-declared types (`ADR-003`).\n\n### Decision Outcome\n\nArchitectural roles are ordinary entries under `[types.*]` in project configuration, validated the same way as every other type, never a hardcoded enumeration in `config.py`. `ARC001` and the C4 projection match on these configured types plus the fixed C4 layer order, never on a Python-level role constant.\n\n### Consequences\n\nA project can rename or extend its architectural vocabulary without a core code change; C4 support depends on a project actually declaring the expected types, which the C4 projection and `ARC001` already report explicitly when a focus type is unsupported.\n\n### Confirmation\n\n`TC-004` confirms decision and rule governance, including `ARC001`'s layer-adjacency checks.",
+      "contentFingerprint": "b136db5bcadc4e438e51acbee98f92ff0600757af0ddac1b55240929db673d5c",
+      "id": "ADR-012",
+      "location": {
+        "anchor": "ADR-012",
+        "file": "architecture.qmd",
+        "line": 349
+      },
+      "rationale": "",
+      "status": "accepted",
+      "title": "Model architectural roles as configurable types, not a fixed enumeration",
+      "type": "architecture-decision"
+    },
+    {
+      "attributes": {
+        "date": "2026-09-02",
+        "decision-makers": "Quarto-Needs maintainers",
+        "revisit-after": "2027-09-02",
+        "tags": "architecture;hierarchy;relations"
+      },
+      "body": "### Context and Problem Statement\n\n`decomposes` already expressed parent-to-child containment, but nothing let a child self-declare its parent: every container had to enumerate its own components by hand, an error-prone, one-directional bookkeeping burden.\n\n### Decision Outcome\n\nAdd `part-of` as `decomposes`'s genuine inverse (child-authored, `(part, whole)` roles, its own `v1_name` so `relation_policies` can target one direction independently). Enforce fixed-layer adjacency (`system > container > component > source-module`) with the `ARC001` rule over both authored directions.\n\n### Consequences\n\nComponents and source modules author their own placement; `ARC001` catches layer-skipping or same-layer edges as a structural error, and non-C4 types are simply ignored by the rule rather than rejected.\n\n### Confirmation\n\n`TC-004`.",
+      "contentFingerprint": "e018f5d9593b1e05a253dd37480b924478ff2895491f04aa95ae9cf89164fe06",
+      "id": "ADR-013",
+      "location": {
+        "anchor": "ADR-013",
+        "file": "architecture.qmd",
+        "line": 369
+      },
+      "rationale": "",
+      "status": "accepted",
+      "title": "Represent architecture hierarchy and containment through a first-class part-of relation",
+      "type": "architecture-decision"
+    },
+    {
+      "attributes": {
+        "date": "2026-09-02",
+        "decision-makers": "Quarto-Needs maintainers",
+        "revisit-after": "2027-09-02",
+        "tags": "architecture;relations;traceability"
+      },
+      "body": "### Context and Problem Statement\n\nAn external documentation-strategy review proposed adding an `ArchitectureElement realized-by ImplementationArtifact` relation (and its inverse `realizes`) to connect components to the source modules that implement them, reasoning that containment and \"is realized by\" are conceptually distinct. By the time this decision was recorded, `part-of` already connected every `source-module` to its owning `component` (see `implementation.qmd`), and `ARC001` already treats that edge as the bottom rung of the same fixed C4 layer ladder used for `container`/`system`.\n\n### Considered Options\n\n- introduce `realized-by`/`realizes` as a new relation family, kept parallel to `part-of`;\n- keep `part-of` as the single relation connecting a source module to its owning component, exactly as it already connects a component to its container and a container to its system.\n\n### Decision Outcome\n\nDo not introduce `realized-by`/`realizes`. `part-of` already means \"the child sits inside this parent at the next C4 layer up\" for every layer, including `source-module -> component`. A second relation expressing the same fact between the same two objects would let the two edges disagree with no rule capable of detecting the contradiction, and would fragment `ARC001`'s single layer-adjacency check across two relation families.\n\n### Consequences\n\nArchitecture-to-implementation traceability continues to read entirely through `part-of` plus `implements`/`implemented-by` (code to requirement); no new relation, rule, or projection code exists for this concern.\n\n### Confirmation\n\n`TC-004`.",
+      "contentFingerprint": "52a6b7defdf2671f3e44da28114b5863fe6ee986bc0c93dccc9bafeb08304f0f",
+      "id": "ADR-014",
+      "location": {
+        "anchor": "ADR-014",
+        "file": "architecture.qmd",
+        "line": 389
+      },
+      "rationale": "",
+      "status": "accepted",
+      "title": "Reuse part-of instead of introducing a separate realized-by/realizes relation",
+      "type": "architecture-decision"
+    },
+    {
+      "attributes": {
+        "date": "2026-09-02",
+        "decision-makers": "Quarto-Needs maintainers",
+        "revisit-after": "2027-09-02",
+        "tags": "architecture;c4;projection"
+      },
+      "body": "### Context and Problem Statement\n\nA hand-maintained C4 diagram drifts the moment the underlying `part-of`/`depends-on` graph changes, and a second, independently authored diagram risks disagreeing with the engineering graph it claims to depict.\n\n### Decision Outcome\n\n`build_c4_view` computes every C4 level as one `select_graph` depth-1 call over an allowlisted set of relations for that level; `c4_mermaid_source`/`c4_code_table_markdown` render that projection as text; `write_c4_projections` writes one JSON file per view under `.quarto-needs/graphs/`. No C4 view is authored directly; the `need-c4` shortcode only ever reads a pre-rendered projection file.\n\n### Consequences\n\nEvery C4 diagram in this documentation set is reproducible from the graph and cannot silently diverge from it; adding an object or `part-of` edge is sufficient to update the corresponding view on the next build.\n\n### Confirmation\n\n`TC-006`.",
+      "contentFingerprint": "b9569b0462ce440229433c8fd65f8e7f4a28e4f656d74b35cb5634f937a502b9",
+      "id": "ADR-015",
+      "location": {
+        "anchor": "ADR-015",
+        "file": "architecture.qmd",
+        "line": 414
+      },
+      "rationale": "",
+      "status": "accepted",
+      "title": "Derive C4/architecture projections from the canonical snapshot, never hand-author them",
+      "type": "architecture-decision"
+    },
+    {
+      "attributes": {
+        "date": "2026-09-02",
+        "decision-makers": "Quarto-Needs maintainers",
+        "revisit-after": "2027-09-02",
+        "tags": "architecture;renderer-independence"
+      },
+      "body": "### Context and Problem Statement\n\nC4/UML-flavored diagram text (Mermaid) is one presentation of the architecture graph; a second, unrelated presentation — the interactive Cytoscape exploration view — already exists over the same public projection.\n\n### Decision Outcome\n\nMermaid source, the Code-level Markdown table, and the interactive Cytoscape view are alternate renderers over the same `graph_projection.py` output; none of them is treated as the canonical architecture model, and none of the three defines relation semantics of its own.\n\n### Consequences\n\nA future renderer (a different diagram language, a static image export) can consume the same projection without touching `analysis.py`, `relations.py`, or the C4 projection code.\n\n### Confirmation\n\n`TC-002`.",
+      "contentFingerprint": "8c2697673a5ea90a78ff2e2041c35d1f0877c0d2cc3b737ac98629f11aa3e5c1",
+      "id": "ADR-016",
+      "location": {
+        "anchor": "ADR-016",
+        "file": "architecture.qmd",
+        "line": 434
+      },
+      "rationale": "",
+      "status": "accepted",
+      "title": "Keep the architecture model renderer-independent",
+      "type": "architecture-decision"
+    },
+    {
+      "attributes": {
+        "date": "2026-09-02",
+        "decision-makers": "Quarto-Needs maintainers",
+        "revisit-after": "2027-09-02",
+        "tags": "architecture;generated-artifacts;boundary"
+      },
+      "body": "### Context and Problem Statement\n\nGenerated files (`.quarto-needs/needs.json`, `.quarto-needs/graphs/*.json`, `generated-index.lua`) live inside the same project tree as authored `.qmd` declarations. Without an explicit rule, a contributor could hand-edit a generated file, or a generated file could be mistaken for a second authoring surface.\n\n### Decision Outcome\n\nEvery path under a project's `.quarto-needs/` output directory is generated-only: the CLI build step recreates it in full on every run, `generated-index.lua` is explicitly excluded from the extension-asset sync so it is never treated as an authoring source, and stale `c4-*.json` files are removed before a projection is rewritten. `docs/architecture/generated/` follows the same rule for this documentation set's own diagrams.\n\n### Consequences\n\nReviewers and contributors can rely on \"is it under `.quarto-needs/` (or `docs/architecture/generated/`)?\" as a sufficient test for \"may I hand-edit this file?\"; the answer is always no.\n\n### Confirmation\n\n`TC-006`.",
+      "contentFingerprint": "f19f05b9b20fdbf1cad68a213f3ab96c7dfd0fbe58654248d8d83bff363ed24b",
+      "id": "ADR-017",
+      "location": {
+        "anchor": "ADR-017",
+        "file": "architecture.qmd",
+        "line": 454
+      },
+      "rationale": "",
+      "status": "accepted",
+      "title": "Draw an explicit boundary between authored architecture declarations and generated projections",
+      "type": "architecture-decision"
+    },
+    {
+      "attributes": {
+        "date": "2026-09-02",
+        "decision-makers": "Quarto-Needs maintainers",
+        "revisit-after": "2027-09-02",
+        "tags": "architecture;c4;execution-units"
+      },
+      "body": "### Context and Problem Statement\n\nThis example's own `component` objects mix logical responsibility (parser, rule engine) with what are really deployable/executable units; a naive C4 projection that mapped every `type=component` to a C4 Component would blur the distinction between \"runs as a process\" and \"is a logical piece of a process.\"\n\n### Decision Outcome\n\n`system` and `container` are configured as distinct types representing deployable/executable units; `component` remains the logical decomposition inside a container. `build_c4_view` requires a `system` focus for Context/Container and a `container` focus for Component, so a logical component can never itself be treated as a container boundary.\n\n### Consequences\n\nAdding a new deployable unit means declaring a new `container` (or `system`), not repurposing an existing `component`; `ARC001`'s fixed layer order (`system > container > component > source-module`) enforces this separation structurally.\n\n### Confirmation\n\n`TC-004`.",
+      "contentFingerprint": "3c36dc8126ab975ed804caccd672e0ce03412232301124b1ab8faa0e550fafb8",
+      "id": "ADR-018",
+      "location": {
+        "anchor": "ADR-018",
+        "file": "architecture.qmd",
+        "line": 474
+      },
+      "rationale": "",
+      "status": "accepted",
+      "title": "Classify execution units (system, container) separately from logical components",
+      "type": "architecture-decision"
+    },
+    {
+      "attributes": {
+        "date": "2026-09-03",
+        "decision-makers": "Quarto-Needs maintainers",
+        "revisit-after": "2027-09-03",
+        "tags": "distribution;extension;bootstrap;managed-runtime"
+      },
+      "body": "### Context and Problem Statement\n\nThe extension needs a Python semantic engine, but users install only the extension. The old contract asked for three separate pieces — a global pip install, a CLI on PATH, and a hand-authored pre-render — each one an independent chance to be missing, stale, or wrong for the extension's version.\n\n### Decision Outcome\n\nThe extension manifest contributes the project pre-render itself. A standard-library bootstrap provisions `quarto-needs==<extension version>` into `.quarto-needs/runtime/<version>/<interpreter-identity>/` through staged, lock-protected, atomic installs, validates the actually imported version, and invokes the same canonical pre-render service the CLI uses. A valid cached runtime renders offline; a provisioning failure fails the render with the needed version, the missing runtime, and both recovery actions.\n\n### Consequences\n\nRendering has exactly one installation responsibility, and extension and engine versions cannot drift silently. First-use provisioning still requires Python and pip, which remain documented platform prerequisites; the residual availability risk is carried explicitly by `RISK-013` rather than hidden.\n\n### Confirmation\n\n`TC-025` proves the clean first render, `TC-026` the offline second render, and `TC-029` concurrent-safe provisioning.",
+      "contentFingerprint": "d1016c72685c2ddf144bce19d0c5981d11c1a5d982933fcfaea299be766d6636",
+      "id": "ADR-019",
+      "location": {
+        "anchor": "ADR-019",
+        "file": "architecture.qmd",
+        "line": 494
+      },
+      "rationale": "",
+      "status": "accepted",
+      "title": "Provision a project-local managed runtime through an extension bootstrap",
+      "type": "architecture-decision"
+    },
+    {
+      "attributes": {
         "tags": "python;semantics;graph"
       },
       "body": "Builds the canonical engineering graph, resolves relation semantics, and produces immutable analysis snapshots.",
@@ -346,7 +563,7 @@
       "location": {
         "anchor": "COMP-ANALYSIS",
         "file": "architecture.qmd",
-        "line": 13
+        "line": 53
       },
       "rationale": "",
       "status": "implemented",
@@ -363,7 +580,7 @@
       "location": {
         "anchor": "COMP-BASELINE",
         "file": "architecture.qmd",
-        "line": 43
+        "line": 83
       },
       "rationale": "",
       "status": "implemented",
@@ -380,7 +597,7 @@
       "location": {
         "anchor": "COMP-CLI",
         "file": "architecture.qmd",
-        "line": 25
+        "line": 65
       },
       "rationale": "",
       "status": "implemented",
@@ -397,7 +614,7 @@
       "location": {
         "anchor": "COMP-EXTENSION",
         "file": "architecture.qmd",
-        "line": 31
+        "line": 71
       },
       "rationale": "",
       "status": "implemented",
@@ -431,7 +648,7 @@
       "location": {
         "anchor": "COMP-GRAPH",
         "file": "architecture.qmd",
-        "line": 37
+        "line": 77
       },
       "rationale": "",
       "status": "implemented",
@@ -448,7 +665,7 @@
       "location": {
         "anchor": "COMP-I18N",
         "file": "architecture.qmd",
-        "line": 49
+        "line": 89
       },
       "rationale": "",
       "status": "implemented",
@@ -482,7 +699,7 @@
       "location": {
         "anchor": "COMP-PARSER",
         "file": "architecture.qmd",
-        "line": 7
+        "line": 47
       },
       "rationale": "",
       "status": "implemented",
@@ -499,12 +716,48 @@
       "location": {
         "anchor": "COMP-RULES",
         "file": "architecture.qmd",
-        "line": 19
+        "line": 59
       },
       "rationale": "",
       "status": "implemented",
       "title": "Governance rule engine",
       "type": "component"
+    },
+    {
+      "attributes": {
+        "tags": "architecture;c4",
+        "technology": "Python 3.12"
+      },
+      "body": "The installable `quarto-needs` library and CLI: parsing, analysis, governance rules, graph projection, baselines, and localization checks.",
+      "contentFingerprint": "9326e373a5021e31a708a9a5e15f0c45610c5a27a2a9d843befbd240cd6a5944",
+      "id": "CONTAINER-PYTHON-PKG",
+      "location": {
+        "anchor": "CONTAINER-PYTHON-PKG",
+        "file": "architecture.qmd",
+        "line": 33
+      },
+      "rationale": "",
+      "status": "approved",
+      "title": "Python package",
+      "type": "container"
+    },
+    {
+      "attributes": {
+        "tags": "architecture;c4",
+        "technology": "Quarto/Pandoc Lua filters"
+      },
+      "body": "The `_extensions/quarto-needs/` bundle: build-time Lua filters and the browser-side JavaScript they ship, together as one installed Quarto extension.",
+      "contentFingerprint": "5d43771b4c25ba3f81f4b5e39f14b3744eddc54bdfae4b071a6e39211bcf06be",
+      "id": "CONTAINER-QUARTO-EXT",
+      "location": {
+        "anchor": "CONTAINER-QUARTO-EXT",
+        "file": "architecture.qmd",
+        "line": 39
+      },
+      "rationale": "",
+      "status": "approved",
+      "title": "Quarto presentation extension",
+      "type": "container"
     },
     {
       "attributes": {
@@ -948,6 +1201,173 @@
     },
     {
       "attributes": {
+        "artifact": ".quarto-needs/evidence/pytest.json",
+        "provider": "pytest",
+        "tags": "pytest;extension;distribution;machine-evidence"
+      },
+      "body": "`TC-025` is bound to the executable regression rendering a clean consumer project end to end through the extension's own bootstrap.",
+      "contentFingerprint": "ec889b81ab86068770fe8368a00b362134b846531e7622e16e6363b1c9c4de81",
+      "id": "EVD-025",
+      "location": {
+        "anchor": "EVD-025",
+        "file": "verification.qmd",
+        "line": 187
+      },
+      "rationale": "",
+      "status": "verified",
+      "title": "Extension-first clean render machine evidence",
+      "type": "evidence"
+    },
+    {
+      "attributes": {
+        "artifact": ".quarto-needs/evidence/pytest.json",
+        "provider": "pytest",
+        "tags": "pytest;extension;offline;machine-evidence"
+      },
+      "body": "`TC-026` is bound to the executable regression proving the package index is a first-render dependency only.",
+      "contentFingerprint": "d5c838149044d365a5fb14a7013c63dfa142ddb7c0fa88ffdb616423cbe9b0ff",
+      "id": "EVD-026",
+      "location": {
+        "anchor": "EVD-026",
+        "file": "verification.qmd",
+        "line": 199
+      },
+      "rationale": "",
+      "status": "verified",
+      "title": "Offline second render machine evidence",
+      "type": "evidence"
+    },
+    {
+      "attributes": {
+        "artifact": ".quarto-needs/evidence/pytest.json",
+        "provider": "pytest",
+        "tags": "pytest;extension;version-skew;machine-evidence"
+      },
+      "body": "`TC-027` is bound to the executable regression proving system package skew cannot affect extension rendering.",
+      "contentFingerprint": "c73bad8f997bb97d90115831da258c42983f101c5fdcf47bfb3677db14ee70e7",
+      "id": "EVD-027",
+      "location": {
+        "anchor": "EVD-027",
+        "file": "verification.qmd",
+        "line": 211
+      },
+      "rationale": "",
+      "status": "verified",
+      "title": "Version skew isolation machine evidence",
+      "type": "evidence"
+    },
+    {
+      "attributes": {
+        "artifact": ".quarto-needs/evidence/pytest.json",
+        "provider": "pytest",
+        "tags": "pytest;extension;corruption;machine-evidence"
+      },
+      "body": "`TC-028` is bound to the executable regression proving a marker alone is never proof of a usable runtime.",
+      "contentFingerprint": "db11bd46db5de994153fa2a04a8cbfb59d153029755d003b1603ca2c893562e1",
+      "id": "EVD-028",
+      "location": {
+        "anchor": "EVD-028",
+        "file": "verification.qmd",
+        "line": 223
+      },
+      "rationale": "",
+      "status": "verified",
+      "title": "Runtime corruption machine evidence",
+      "type": "evidence"
+    },
+    {
+      "attributes": {
+        "artifact": ".quarto-needs/evidence/pytest.json",
+        "provider": "pytest",
+        "tags": "pytest;extension;concurrency;machine-evidence"
+      },
+      "body": "`TC-029` is bound to the executable regression racing real processes on one project.",
+      "contentFingerprint": "8e0231ab41a0577abc59a64b74728938b470c1a515c590dae41879294d1246cd",
+      "id": "EVD-029",
+      "location": {
+        "anchor": "EVD-029",
+        "file": "verification.qmd",
+        "line": 235
+      },
+      "rationale": "",
+      "status": "verified",
+      "title": "Concurrent provisioning machine evidence",
+      "type": "evidence"
+    },
+    {
+      "attributes": {
+        "artifact": ".quarto-needs/evidence/pytest.json",
+        "provider": "pytest",
+        "tags": "pytest;extension;paths;machine-evidence"
+      },
+      "body": "`TC-030` is bound to the executable release-gate regression rendering from a path with spaces.",
+      "contentFingerprint": "60819d3c579c1e5b0625517762577fe7a2c66bd67e54e33bf346b29f993eb852",
+      "id": "EVD-030",
+      "location": {
+        "anchor": "EVD-030",
+        "file": "verification.qmd",
+        "line": 247
+      },
+      "rationale": "",
+      "status": "verified",
+      "title": "Spaces-path machine evidence",
+      "type": "evidence"
+    },
+    {
+      "attributes": {
+        "artifact": ".quarto-needs/evidence/pytest.json",
+        "provider": "pytest",
+        "tags": "pytest;extension;compatibility;machine-evidence"
+      },
+      "body": "`TC-031` is bound to the executable regression pinning the manifest's declared floor against silent revision.",
+      "contentFingerprint": "26762d55f953ef1b7b22207e87ec771aa8a22d3d6167d908c9a48401b8d3a340",
+      "id": "EVD-031",
+      "location": {
+        "anchor": "EVD-031",
+        "file": "verification.qmd",
+        "line": 259
+      },
+      "rationale": "",
+      "status": "verified",
+      "title": "Quarto floor declaration machine evidence",
+      "type": "evidence"
+    },
+    {
+      "attributes": {
+        "tags": "architecture;c4;github"
+      },
+      "body": "Hosts the project's issues, which Quarto-Needs federates as read-only, provenance-bound external observations (see `interoperability.qmd`).",
+      "contentFingerprint": "e3068d687f943e7236fd76ba7d7316f6aed490f6704217b8e8cb844eea016e8a",
+      "id": "EXT-GITHUB",
+      "location": {
+        "anchor": "EXT-GITHUB",
+        "file": "architecture.qmd",
+        "line": 19
+      },
+      "rationale": "",
+      "status": "approved",
+      "title": "GitHub",
+      "type": "external-system"
+    },
+    {
+      "attributes": {
+        "tags": "architecture;c4;oslc"
+      },
+      "body": "An external OSLC Requirements Management provider Quarto-Needs federates from as a read-only, provenance-bound source (see `interoperability.qmd`).",
+      "contentFingerprint": "4d464b0b11fccb573ed3cfc4346abf00a085a4d5e924d9da46aee3f69ab4126f",
+      "id": "EXT-OSLC",
+      "location": {
+        "anchor": "EXT-OSLC",
+        "file": "architecture.qmd",
+        "line": 25
+      },
+      "rationale": "",
+      "status": "approved",
+      "title": "OSLC-compliant requirements management tool",
+      "type": "external-system"
+    },
+    {
+      "attributes": {
         "priority": "critical",
         "tags": "parser;authoring;graph"
       },
@@ -1254,6 +1674,42 @@
     },
     {
       "attributes": {
+        "priority": "high",
+        "tags": "extension;bootstrap;provisioning;render"
+      },
+      "body": "An active extension shall provision its exact paired engine version into a project-local runtime on first render, validate what it actually installed, and run the same canonical pre-render service the CLI uses.\n\n### Rationale\n\nAutomatic exact provisioning removes the manual installation step and the extension/engine version-drift class of failure at once.",
+      "contentFingerprint": "d2361b2a81cc0905d706b87c82d93fbe87c22a03c5420eef49a62dcd81a68240",
+      "id": "FUN-018",
+      "location": {
+        "anchor": "FUN-018",
+        "file": "requirements.qmd",
+        "line": 149
+      },
+      "rationale": "Automatic exact provisioning removes the manual installation step and the extension/engine version-drift class of failure at once.",
+      "status": "approved",
+      "title": "Invoke an exact managed engine automatically during rendering",
+      "type": "functional-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "extension;render;cli-independence"
+      },
+      "body": "Ordinary rendering shall not require a quarto-needs package or a quarto-needs CLI on PATH, and a differently-versioned ambient installation shall never be substituted for the managed runtime.\n\n### Rationale\n\nA render's correctness cannot depend on whatever else happens to be installed on the machine.",
+      "contentFingerprint": "9360fce835688b21579ee004e49d187364ab4161948051f5b799b1e8cb614e15",
+      "id": "FUN-019",
+      "location": {
+        "anchor": "FUN-019",
+        "file": "requirements.qmd",
+        "line": 159
+      },
+      "rationale": "A render's correctness cannot depend on whatever else happens to be installed on the machine.",
+      "status": "approved",
+      "title": "Render without a globally installed engine",
+      "type": "functional-requirement"
+    },
+    {
+      "attributes": {
         "tags": "qmd;authoring;source"
       },
       "body": "The author-facing contract for declaring typed engineering objects and relations in ordinary Quarto Markdown.",
@@ -1262,7 +1718,7 @@
       "location": {
         "anchor": "IF-001",
         "file": "architecture.qmd",
-        "line": 57
+        "line": 97
       },
       "rationale": "",
       "status": "implemented",
@@ -1279,7 +1735,7 @@
       "location": {
         "anchor": "IF-002",
         "file": "architecture.qmd",
-        "line": 63
+        "line": 103
       },
       "rationale": "",
       "status": "implemented",
@@ -1296,7 +1752,7 @@
       "location": {
         "anchor": "IF-003",
         "file": "architecture.qmd",
-        "line": 69
+        "line": 109
       },
       "rationale": "",
       "status": "implemented",
@@ -1313,7 +1769,7 @@
       "location": {
         "anchor": "IF-004",
         "file": "architecture.qmd",
-        "line": 75
+        "line": 115
       },
       "rationale": "",
       "status": "implemented",
@@ -1482,6 +1938,42 @@
     },
     {
       "attributes": {
+        "priority": "high",
+        "tags": "provisioning;isolation;atomicity;concurrency"
+      },
+      "body": "Managed runtime provisioning shall not modify the global Python environment, shall publish a runtime only after full validation, and shall remain safe under concurrent first renders.\n\n### Rationale\n\nA first render must never mutate anything outside the project or leave a half-installed runtime behind.",
+      "contentFingerprint": "d592244e5df4d2127e869ef18d5d6cb9af1301b82e1847db0493b35a03311717",
+      "id": "NFR-008",
+      "location": {
+        "anchor": "NFR-008",
+        "file": "requirements.qmd",
+        "line": 169
+      },
+      "rationale": "A first render must never mutate anything outside the project or leave a half-installed runtime behind.",
+      "status": "approved",
+      "title": "Keep provisioning project-local, atomic, and concurrency-safe",
+      "type": "non-functional-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "provisioning;offline;caching"
+      },
+      "body": "Once a valid runtime exists, rendering shall reuse it without network access and without any provisioning attempt.\n\n### Rationale\n\nThe package index is a first-render dependency only; everyday rendering must work offline.",
+      "contentFingerprint": "5ae90e333e4db622b7a0eb815cd4a03c89c77bd92f60c0400bea40ecd0f85346",
+      "id": "NFR-009",
+      "location": {
+        "anchor": "NFR-009",
+        "file": "requirements.qmd",
+        "line": 179
+      },
+      "rationale": "The package index is a first-render dependency only; everyday rendering must work offline.",
+      "status": "approved",
+      "title": "Support offline rendering from a valid cached runtime",
+      "type": "non-functional-requirement"
+    },
+    {
+      "attributes": {
         "priority": "critical",
         "tags": "semantics;drift;architecture"
       },
@@ -1491,7 +1983,7 @@
       "location": {
         "anchor": "RISK-001",
         "file": "architecture.qmd",
-        "line": 83
+        "line": 123
       },
       "rationale": "",
       "status": "approved",
@@ -1509,7 +2001,7 @@
       "location": {
         "anchor": "RISK-002",
         "file": "architecture.qmd",
-        "line": 89
+        "line": 129
       },
       "rationale": "",
       "status": "approved",
@@ -1527,7 +2019,7 @@
       "location": {
         "anchor": "RISK-003",
         "file": "architecture.qmd",
-        "line": 95
+        "line": 135
       },
       "rationale": "",
       "status": "approved",
@@ -1545,7 +2037,7 @@
       "location": {
         "anchor": "RISK-004",
         "file": "architecture.qmd",
-        "line": 101
+        "line": 141
       },
       "rationale": "",
       "status": "approved",
@@ -1590,6 +2082,24 @@
     },
     {
       "attributes": {
+        "priority": "high",
+        "tags": "distribution;provisioning;python;pip;first-render"
+      },
+      "body": "A clean machine without a usable interpreter, without pip, or without a reachable package index cannot provision the engine on first render. A silent or vague failure there would strand new users at their very first command.",
+      "contentFingerprint": "c12730a0cfad503c44bf49663ee4c6c611f333270bcdbb07c0118c4c38ae610e",
+      "id": "RISK-013",
+      "location": {
+        "anchor": "RISK-013",
+        "file": "architecture.qmd",
+        "line": 147
+      },
+      "rationale": "",
+      "status": "approved",
+      "title": "First-use provisioning depends on Python, pip, and package availability",
+      "type": "risk"
+    },
+    {
+      "attributes": {
         "language": "Python",
         "layer": "semantic-core",
         "path": "src/quarto_needs/analysis.py",
@@ -1626,6 +2136,26 @@
       "rationale": "",
       "status": "implemented",
       "title": "Baseline module",
+      "type": "source-module"
+    },
+    {
+      "attributes": {
+        "language": "Python",
+        "layer": "integration",
+        "path": "_extensions/quarto-needs/bootstrap.py",
+        "tags": "extension;bootstrap;provisioning;distribution"
+      },
+      "body": "Provisions the exact paired engine into a project-local runtime with staged, lock-protected, atomic installs, validates the imported version against the extension's own, renders offline from a valid cache, and invokes the canonical pre-render service.",
+      "contentFingerprint": "9a7a4de56e996c954f49cfc13f96534f1358ea370d2d2c7b37d7f5859e782d9c",
+      "id": "SRC-BOOTSTRAP",
+      "location": {
+        "anchor": "SRC-BOOTSTRAP",
+        "file": "implementation.qmd",
+        "line": 115
+      },
+      "rationale": "",
+      "status": "implemented",
+      "title": "Managed-runtime bootstrap",
       "type": "source-module"
     },
     {
@@ -2051,6 +2581,26 @@
     {
       "attributes": {
         "language": "Python",
+        "layer": "integration",
+        "path": "src/quarto_needs/quarto_integration.py",
+        "tags": "extension;render;canonical;distribution"
+      },
+      "body": "The one semantic build operation behind both `quarto-needs scan` and the extension bootstrap: analyze the project, materialize queries, precompute the quality report, and write every canonical artifact Quarto consumes.",
+      "contentFingerprint": "e48b9784b2c9c66fe40bcd2f8979410325ae3bdd7376bbba0398b241ec58debe",
+      "id": "SRC-QUARTO-INTEGRATION",
+      "location": {
+        "anchor": "SRC-QUARTO-INTEGRATION",
+        "file": "implementation.qmd",
+        "line": 109
+      },
+      "rationale": "",
+      "status": "implemented",
+      "title": "Canonical Quarto pre-render application service",
+      "type": "source-module"
+    },
+    {
+      "attributes": {
+        "language": "Python",
         "layer": "semantic-core",
         "path": "src/quarto_needs/queries.py",
         "tags": "query;views;graph"
@@ -2229,6 +2779,23 @@
     },
     {
       "attributes": {
+        "tags": "quarto;installation;distribution;onboarding"
+      },
+      "body": "Authors activate a Quarto extension to use it. Requiring a separate package install, a CLI on PATH, and a hand-authored pre-render makes ordinary adoption fragile and gives the extension and its engine room to drift apart.",
+      "contentFingerprint": "3e046023a380137444b1ae9a9acbfd78f0c3f33ef9305e277b2964374f5cb189",
+      "id": "STK-008",
+      "location": {
+        "anchor": "STK-008",
+        "file": "drivers.qmd",
+        "line": 37
+      },
+      "rationale": "",
+      "status": "approved",
+      "title": "Quarto authors need the extension to be the whole installation",
+      "type": "stakeholder-need"
+    },
+    {
+      "attributes": {
         "priority": "critical",
         "tags": "graph;semantics;traceability"
       },
@@ -2238,7 +2805,7 @@
       "location": {
         "anchor": "SYS-001",
         "file": "drivers.qmd",
-        "line": 39
+        "line": 45
       },
       "rationale": "A single graph provides the semantic substrate for queries, governance, baselines, impact analysis, and generated views.",
       "status": "approved",
@@ -2256,7 +2823,7 @@
       "location": {
         "anchor": "SYS-002",
         "file": "drivers.qmd",
-        "line": 49
+        "line": 55
       },
       "rationale": "The documentation remains useful to humans while the same source carries formal engineering semantics.",
       "status": "approved",
@@ -2274,7 +2841,7 @@
       "location": {
         "anchor": "SYS-003",
         "file": "drivers.qmd",
-        "line": 59
+        "line": 65
       },
       "rationale": "Requirements-as-code becomes operational only when the same project state produces the same engineering verdict.",
       "status": "approved",
@@ -2292,7 +2859,7 @@
       "location": {
         "anchor": "SYS-004",
         "file": "drivers.qmd",
-        "line": 69
+        "line": 75
       },
       "rationale": "A decision is neither a requirement nor an implementation artifact; preserving it explicitly makes architectural reasoning traceable.",
       "status": "approved",
@@ -2310,7 +2877,7 @@
       "location": {
         "anchor": "SYS-005",
         "file": "drivers.qmd",
-        "line": 79
+        "line": 85
       },
       "rationale": "The engineering graph must remain a single source of truth even when documentation serves multilingual teams.",
       "status": "approved",
@@ -2328,7 +2895,7 @@
       "location": {
         "anchor": "SYS-006",
         "file": "drivers.qmd",
-        "line": 89
+        "line": 95
       },
       "rationale": "Exploration should be powerful without exposing arbitrary source data or moving engineering meaning into the browser.",
       "status": "approved",
@@ -2370,6 +2937,41 @@
       "status": "approved",
       "title": "Federate GitHub issues as read-only, provenance-bound observations",
       "type": "system-requirement"
+    },
+    {
+      "attributes": {
+        "priority": "high",
+        "tags": "distribution;extension;installation;provisioning"
+      },
+      "body": "Quarto-Needs shall provision and invoke an exact, compatible semantic engine from the activated extension during ordinary rendering, without a global package installation, a CLI on PATH, or a user-authored pre-render.\n\n### Rationale\n\nOne installation responsibility keeps adoption honest: the extension a user adds is the component that works, and its engine cannot silently drift from it.",
+      "contentFingerprint": "afab8c560ff1f819019b44c3ec9730ff470137fa5190ce86de657f3cf074b7d8",
+      "id": "SYS-009",
+      "location": {
+        "anchor": "SYS-009",
+        "file": "drivers.qmd",
+        "line": 105
+      },
+      "rationale": "One installation responsibility keeps adoption honest: the extension a user adds is the component that works, and its engine cannot silently drift from it.",
+      "status": "approved",
+      "title": "Deliver the semantic engine through the activated extension itself",
+      "type": "system-requirement"
+    },
+    {
+      "attributes": {
+        "tags": "architecture;c4"
+      },
+      "body": "The engineering-traceability tool this case study documents: a requirements/decisions/risk/test/evidence graph authored in Quarto Markdown, analyzed by a Python core, and presented through a Quarto extension.",
+      "contentFingerprint": "5552c9bac92ecabc7dbb3b370302393cbc2452c0575a9477e47f163f7d4b61c6",
+      "id": "SYS-QUARTO-NEEDS",
+      "location": {
+        "anchor": "SYS-QUARTO-NEEDS",
+        "file": "architecture.qmd",
+        "line": 7
+      },
+      "rationale": "",
+      "status": "approved",
+      "title": "Quarto-Needs",
+      "type": "system"
     },
     {
       "attributes": {
@@ -2794,11 +3396,149 @@
       "status": "passed",
       "title": "GitHub rate-limit classification regression",
       "type": "test-case"
+    },
+    {
+      "attributes": {
+        "pytest-nodeid": "tests/test_extension_first_distribution.py::test_a_clean_consumer_project_needs_no_engine_installation",
+        "tags": "pytest;extension;distribution;provisioning;render"
+      },
+      "body": "Render a real consumer project that has no installed package, no CLI on PATH, and no hand-authored pre-render, and verify the managed runtime is provisioned, the graph is produced, and cards and shortcodes resolve.",
+      "contentFingerprint": "dd9ae5af48201971aea63cd27d1aaa3ec238780dfba378041be15b6fb5dad9c3",
+      "id": "TC-025",
+      "location": {
+        "anchor": "TC-025",
+        "file": "verification.qmd",
+        "line": 181
+      },
+      "rationale": "",
+      "status": "passed",
+      "title": "Extension-first clean render",
+      "type": "test-case"
+    },
+    {
+      "attributes": {
+        "pytest-nodeid": "tests/test_extension_first_distribution.py::test_a_second_render_succeeds_without_any_engine_source",
+        "tags": "pytest;extension;distribution;offline"
+      },
+      "body": "After one successful provisioning, render again with no engine source and no package index and verify the cached exact runtime is reused with no provisioning attempt.",
+      "contentFingerprint": "72343ec0e0d4a268084d00040acb617bbf5151c5ac6a2908c38f06a23f3f546c",
+      "id": "TC-026",
+      "location": {
+        "anchor": "TC-026",
+        "file": "verification.qmd",
+        "line": 193
+      },
+      "rationale": "",
+      "status": "passed",
+      "title": "Offline second render",
+      "type": "test-case"
+    },
+    {
+      "attributes": {
+        "pytest-nodeid": "tests/test_extension_bootstrap.py::test_a_wrong_global_engine_never_wins_over_the_managed_runtime",
+        "tags": "pytest;extension;version-skew;isolation"
+      },
+      "body": "Construct an environment where an importable global engine reports a wrong version and verify the managed runtime's exact version wins the import.",
+      "contentFingerprint": "6265ff7aa50746e74605eab8ee9fafb8689248ff9b47a864da5202c3fe6c56d5",
+      "id": "TC-027",
+      "location": {
+        "anchor": "TC-027",
+        "file": "verification.qmd",
+        "line": 205
+      },
+      "rationale": "",
+      "status": "passed",
+      "title": "Version skew isolation",
+      "type": "test-case"
+    },
+    {
+      "attributes": {
+        "pytest-nodeid": "tests/test_extension_bootstrap.py::test_a_corrupted_runtime_is_reprovisioned",
+        "tags": "pytest;extension;corruption;reprovisioning"
+      },
+      "body": "Corrupt managed runtime content and verify the runtime is rejected and safely reprovisioned instead of trusted.",
+      "contentFingerprint": "5b17607fd42c6cb78dfabeb17dd4a27d75e8f509c201e85338f6fc9fb494e4cb",
+      "id": "TC-028",
+      "location": {
+        "anchor": "TC-028",
+        "file": "verification.qmd",
+        "line": 217
+      },
+      "rationale": "",
+      "status": "passed",
+      "title": "Runtime corruption",
+      "type": "test-case"
+    },
+    {
+      "attributes": {
+        "pytest-nodeid": "tests/test_extension_bootstrap.py::test_two_concurrent_bootstrap_processes_produce_one_installation",
+        "tags": "pytest;extension;concurrency;atomicity"
+      },
+      "body": "Start two bootstrap processes against the same clean project and verify one atomic publication, no partial runtime, and no duplicate or corrupt installation.",
+      "contentFingerprint": "c0011b4ff5ecf14ff4a6a81d96e52726130d8a006d502ac1d29f4d653e307b5f",
+      "id": "TC-029",
+      "location": {
+        "anchor": "TC-029",
+        "file": "verification.qmd",
+        "line": 229
+      },
+      "rationale": "",
+      "status": "passed",
+      "title": "Concurrent provisioning",
+      "type": "test-case"
+    },
+    {
+      "attributes": {
+        "pytest-nodeid": "tests/test_extension_first_distribution.py::test_the_project_path_may_contain_spaces",
+        "tags": "pytest;extension;paths;spaces;release-gate"
+      },
+      "body": "Render a real consumer project whose absolute path contains spaces and verify the contributed relative `quarto run` command still resolves.",
+      "contentFingerprint": "2d7f6fc8c4f49360d4380816f2f66efb436aa2ec4bed138047b8abf45ff9d182",
+      "id": "TC-030",
+      "location": {
+        "anchor": "TC-030",
+        "file": "verification.qmd",
+        "line": 241
+      },
+      "rationale": "",
+      "status": "passed",
+      "title": "Project path with spaces",
+      "type": "test-case"
+    },
+    {
+      "attributes": {
+        "pytest-nodeid": "tests/test_extension_distribution_contract.py::test_manifest_declares_the_quarto_floor",
+        "tags": "pytest;extension;quarto;compatibility"
+      },
+      "body": "Verify the extension manifest keeps declaring its supported Quarto floor. The floor itself is exercised on the minimum version by the opt-in `QUARTO_NEEDS_MIN_QUARTO_BIN` render gate.",
+      "contentFingerprint": "b8db78142e6a93a5e71451065926bf24d9c579cae12511b66b435a7806699999",
+      "id": "TC-031",
+      "location": {
+        "anchor": "TC-031",
+        "file": "verification.qmd",
+        "line": 253
+      },
+      "rationale": "",
+      "status": "passed",
+      "title": "Declared Quarto floor",
+      "type": "test-case"
     }
   ],
-  "referenceDate": "2026-09-01",
+  "referenceDate": "2026-09-03",
   "relationCatalogVersion": "4",
   "relations": [
+    {
+      "attributes": {},
+      "authoredFingerprint": "ec2b682ad5aaa5e69eded382e2d56c429bfce91621804b033242f2194535fbc7",
+      "authoredName": "depends-on",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "dependency",
+      "semanticFingerprint": "376493c1048ff317b31baa5d25dfc3fdb1fbe4e1932bcf4815dce6ae0706172d",
+      "source": "ACTOR-ENGINEER",
+      "sourceRole": "dependent",
+      "target": "SYS-QUARTO-NEEDS",
+      "targetRole": "dependency"
+    },
     {
       "attributes": {},
       "authoredFingerprint": "78600aa39f4c57b053ac97b02cddecab1706bbc6aaf0b46a6c18d1ffa01f0028",
@@ -3602,6 +4342,678 @@
       "sourceRole": "decision",
       "target": "TC-024",
       "targetRole": "confirmation"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "f827cc211d767ab46520f661b49b896b8e3446107126fbc76516b0e148adc12a",
+      "authoredName": "addresses",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "decision-addressing",
+      "semanticFingerprint": "7f5d11522a62b27a8bbe40212d6b68cd571e7d4406fbb76e89c4cb01d30b4e13",
+      "source": "ADR-011",
+      "sourceRole": "decision",
+      "target": "RISK-001",
+      "targetRole": "driver"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "3598abe586b8a9a771971ad0dc1615d149a27ddc52123277fb9f93a0cf6f1b58",
+      "authoredName": "addresses",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "decision-addressing",
+      "semanticFingerprint": "b45eff1dc8f2e7a61dcfba1e55249774d2283da83afb4740b8190b3e75a65e69",
+      "source": "ADR-011",
+      "sourceRole": "decision",
+      "target": "STK-002",
+      "targetRole": "driver"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "822908896497c3aaf2873da56a3003a32b8a058b5e3a079f7611f9708d9d5b30",
+      "authoredName": "addresses",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "decision-addressing",
+      "semanticFingerprint": "8eb26c038979fadfe2732070bf0a578999ea3a4b037ed3bb69bde632e79128a8",
+      "source": "ADR-011",
+      "sourceRole": "decision",
+      "target": "SYS-002",
+      "targetRole": "driver"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "4359e15d1becee5cdfa8f43f38f10ab6fa554d0c586f4a2c63c0830c78ed8c7f",
+      "authoredName": "applies-to",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decision-scope",
+      "semanticFingerprint": "95ecac06c15aaed03c3e76f5a766c565bc1af7614d9e289f1d3e3d84773e1f93",
+      "source": "ADR-011",
+      "sourceRole": "decision",
+      "target": "COMP-EXTENSION",
+      "targetRole": "architecture-element"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "15c162c3e20528452b6b7715b1d032a6f8cc78b6001ca7e6bbbde0d7d6531831",
+      "authoredName": "confirmed-by",
+      "impactDirection": "both",
+      "semanticFamily": "decision-confirmation",
+      "semanticFingerprint": "3da6264a299380ad5123c07c7b8227cd1b656787bb724669969d7188660b3380",
+      "source": "ADR-011",
+      "sourceRole": "decision",
+      "target": "TC-002",
+      "targetRole": "confirmation"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "da1ceed032f533db35471229a407337b2733319f7893e629e1e0b5296f49dc69",
+      "authoredName": "addresses",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "decision-addressing",
+      "semanticFingerprint": "b40680230b129ad554ce59a3f174912d7c8128a9cb7ad53b03b3ab25f67a5674",
+      "source": "ADR-012",
+      "sourceRole": "decision",
+      "target": "RISK-001",
+      "targetRole": "driver"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "fa8392c3a9f4cef71511c419d8a71132e8ad8d8fbc4aeb3682e83f2443ee8fe6",
+      "authoredName": "addresses",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "decision-addressing",
+      "semanticFingerprint": "9773443c7c7aedb1e6d59735d5695d744123ebcd9dd37bb47f354f675b75ffdb",
+      "source": "ADR-012",
+      "sourceRole": "decision",
+      "target": "SYS-004",
+      "targetRole": "driver"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "146be2b5908d4d9af5fa1f9c4157c5c2c296361173d50a233ff43284991fedc2",
+      "authoredName": "applies-to",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decision-scope",
+      "semanticFingerprint": "4a2f6fb17458f53a2b0588986142da66e4c5a2d291daf4cc15cf2c19fc398f73",
+      "source": "ADR-012",
+      "sourceRole": "decision",
+      "target": "COMP-ANALYSIS",
+      "targetRole": "architecture-element"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "b14fc0c0630f33e9670c4ad31ebb7dfe84763fa7e5289e7c1de7282d357a0759",
+      "authoredName": "applies-to",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decision-scope",
+      "semanticFingerprint": "2b9507402621f47947ec69ab3d1ca6ea5e1757e28e19ff0389753cd981421a20",
+      "source": "ADR-012",
+      "sourceRole": "decision",
+      "target": "COMP-RULES",
+      "targetRole": "architecture-element"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "a9ff4102839e873d2a30e64454275248b0e8748e1fbeb51977a71ad5fe9cf285",
+      "authoredName": "confirmed-by",
+      "impactDirection": "both",
+      "semanticFamily": "decision-confirmation",
+      "semanticFingerprint": "59ea18f0677768d02c8083341836805667e396b4775592867f67c7c44b0507d4",
+      "source": "ADR-012",
+      "sourceRole": "decision",
+      "target": "TC-004",
+      "targetRole": "confirmation"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "30ce3ab215e025ea31ed5f04dfd2427d2a5196a4ea5d6ec077a65be04977af96",
+      "authoredName": "addresses",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "decision-addressing",
+      "semanticFingerprint": "e18a9430a8c5fb16b06664d27d787853905d1c40cc1a5c16e950bcfc99d859bb",
+      "source": "ADR-013",
+      "sourceRole": "decision",
+      "target": "RISK-001",
+      "targetRole": "driver"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "cadba8302f0861962a5c0120eedcb289af24440131a10ff0f360cb03a7e3561a",
+      "authoredName": "addresses",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "decision-addressing",
+      "semanticFingerprint": "758b807da5f98218673b441066710dc8afee886bc2c82f7b81f90c2f14cf97d4",
+      "source": "ADR-013",
+      "sourceRole": "decision",
+      "target": "SYS-004",
+      "targetRole": "driver"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "b0a02bd74ae988bcc164d017c7545eabe80f5408b1f46dc3a0091f55ae8648d1",
+      "authoredName": "applies-to",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decision-scope",
+      "semanticFingerprint": "b81764a940872845c9bf68789a2dd82e8817b240e07a246f37ce21d953e95514",
+      "source": "ADR-013",
+      "sourceRole": "decision",
+      "target": "COMP-ANALYSIS",
+      "targetRole": "architecture-element"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "2154fc941fdfc9cc99e58f5496864903dc7f978dfe0a0e9cfd5169f26e68808f",
+      "authoredName": "applies-to",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decision-scope",
+      "semanticFingerprint": "41cb2ef444ca8ef0ea752cefd506d8fbacdb96bf48beb036ead288caf853a3cb",
+      "source": "ADR-013",
+      "sourceRole": "decision",
+      "target": "COMP-RULES",
+      "targetRole": "architecture-element"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "0f9bb5e5f1cd327c3fc6d9db5b068511a918d9a6d160271563e774c3cda7507f",
+      "authoredName": "confirmed-by",
+      "impactDirection": "both",
+      "semanticFamily": "decision-confirmation",
+      "semanticFingerprint": "04743e2ddabca9eed434295f6a5caa5d43537ae8ce9d1fab903da24796505d05",
+      "source": "ADR-013",
+      "sourceRole": "decision",
+      "target": "TC-004",
+      "targetRole": "confirmation"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "e61a2713f9ec867f297dd4fa3930f2ff43a94b35c75ae8d0324c7b9c504bf371",
+      "authoredName": "addresses",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "decision-addressing",
+      "semanticFingerprint": "458e67a919061f36832456b83cde35e7423ae3e3c63d4def4fae4556a96843ce",
+      "source": "ADR-014",
+      "sourceRole": "decision",
+      "target": "RISK-001",
+      "targetRole": "driver"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "18653b1f6dfa728d0b347b510d1b93e583fed93508ab78cbc046ee08850a45e5",
+      "authoredName": "applies-to",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decision-scope",
+      "semanticFingerprint": "fbfc3bc0dfa8212f4ffae796a2927276bb2be2079993bb485c0b4b376c31728e",
+      "source": "ADR-014",
+      "sourceRole": "decision",
+      "target": "COMP-ANALYSIS",
+      "targetRole": "architecture-element"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "f1b124e064b95232e83409d836fdeead283a395bbbe273f498b3cde9229e301f",
+      "authoredName": "applies-to",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decision-scope",
+      "semanticFingerprint": "601f5a5e9b2564757f194d63252d8bcb097437090b28688c128cd54152245628",
+      "source": "ADR-014",
+      "sourceRole": "decision",
+      "target": "COMP-RULES",
+      "targetRole": "architecture-element"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "b4891d1020e6e3829cd0bdfe30fed12dbdfaccfb2c6ae9298dd471a6c18bba2c",
+      "authoredName": "confirmed-by",
+      "impactDirection": "both",
+      "semanticFamily": "decision-confirmation",
+      "semanticFingerprint": "04fc1b6c032e4d02737d1a8206f5286d430ef3e184813d2639a5aac9c31099a8",
+      "source": "ADR-014",
+      "sourceRole": "decision",
+      "target": "TC-004",
+      "targetRole": "confirmation"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "e240c32e66d949c32fe964a8172d79ab56150acada03b5a3d68932e11775d479",
+      "authoredName": "addresses",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "decision-addressing",
+      "semanticFingerprint": "f411d1f581b872b3c9c378b3036b51f39d5514b7e26f11d3f7dedd66219e0b64",
+      "source": "ADR-015",
+      "sourceRole": "decision",
+      "target": "RISK-001",
+      "targetRole": "driver"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "2981030bfdafcb524d494d02d24f279f7678c410bb6530b514ecd8d8df46dca5",
+      "authoredName": "addresses",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "decision-addressing",
+      "semanticFingerprint": "7524d67a986d1ffc01716beb6565ebdafdff1e9db23c083084db1157ab501b89",
+      "source": "ADR-015",
+      "sourceRole": "decision",
+      "target": "RISK-002",
+      "targetRole": "driver"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "7b2699c895e15999ad55f7f15395a95c7d55a1bfae0c9cff360b8560dda8f65a",
+      "authoredName": "addresses",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "decision-addressing",
+      "semanticFingerprint": "d71bf15449ef2842de4a1a8e6d8b389184397fd87f69c41e8e446f2916ddfac7",
+      "source": "ADR-015",
+      "sourceRole": "decision",
+      "target": "SYS-006",
+      "targetRole": "driver"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "24dae89f2dd84a852da6712600f3818bf3a9ad7660070c167a8a488fd5bc08e0",
+      "authoredName": "applies-to",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decision-scope",
+      "semanticFingerprint": "776a5d366cf384404766ba95c7353f988253b993b49c6774a79d2248eca5a346",
+      "source": "ADR-015",
+      "sourceRole": "decision",
+      "target": "COMP-GRAPH",
+      "targetRole": "architecture-element"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "75699d0e9d283fc80b156fb8c9e36abc711cbb5a78046a8dded0e1051d00376c",
+      "authoredName": "confirmed-by",
+      "impactDirection": "both",
+      "semanticFamily": "decision-confirmation",
+      "semanticFingerprint": "5f81a6c9224a08892e6bdfc49939e35e9268a87f5a1c4d19f3be96740e98ce31",
+      "source": "ADR-015",
+      "sourceRole": "decision",
+      "target": "TC-006",
+      "targetRole": "confirmation"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "74ea2cf8e2abdcb3d249e56382411d07255f1451e63076fd039ca7e993b002fc",
+      "authoredName": "addresses",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "decision-addressing",
+      "semanticFingerprint": "9c1a60fa29cbe15e72306db01c562b4c9d8d68808e5c6204ba890c7855bc96ac",
+      "source": "ADR-016",
+      "sourceRole": "decision",
+      "target": "RISK-001",
+      "targetRole": "driver"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "094d7737d995235deb3dae9c3b90ae2aa7baac1dd92f98addf5662ab81714953",
+      "authoredName": "addresses",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "decision-addressing",
+      "semanticFingerprint": "97e7dd0b42518da5e38de9d73f229a50a3ab96048b9d6583d1efd16b5b9d0915",
+      "source": "ADR-016",
+      "sourceRole": "decision",
+      "target": "SYS-002",
+      "targetRole": "driver"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "e9ad65fa2afade0341884fbae198b12d790d76f188f2a01837821e7073998da7",
+      "authoredName": "applies-to",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decision-scope",
+      "semanticFingerprint": "5fcd95c22a13b9eb7e3e11ac5e207132012fbe1cfcdc4eca799abb7176a19346",
+      "source": "ADR-016",
+      "sourceRole": "decision",
+      "target": "COMP-EXTENSION",
+      "targetRole": "architecture-element"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "c02de670522ab35c6af56234a1aab2f0bec3f9b0c33aaeb08f6d1bbc211b8be5",
+      "authoredName": "applies-to",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decision-scope",
+      "semanticFingerprint": "0047af3ed043b069e13d1ca6a929e7fee78cc6fc7eb34783f0649ae276e540f1",
+      "source": "ADR-016",
+      "sourceRole": "decision",
+      "target": "COMP-GRAPH",
+      "targetRole": "architecture-element"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "781359a835a703d9e90ab27cff28b67cb678eb717cfbb2ba5708161285d9c2f1",
+      "authoredName": "confirmed-by",
+      "impactDirection": "both",
+      "semanticFamily": "decision-confirmation",
+      "semanticFingerprint": "75538d80ff4cc87b60383a3aa51ceea60f15c3dd1387ba4bf034ba37942c31db",
+      "source": "ADR-016",
+      "sourceRole": "decision",
+      "target": "TC-002",
+      "targetRole": "confirmation"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "31e66905abe918fa22c3324e3103769769dae14bed209abd4698a4fe4399931b",
+      "authoredName": "addresses",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "decision-addressing",
+      "semanticFingerprint": "94cf685bce9377b1a8dc83b50acc297df380e5288bd8b86760b6c216cbc94b51",
+      "source": "ADR-017",
+      "sourceRole": "decision",
+      "target": "RISK-002",
+      "targetRole": "driver"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "3f8853dbc466ca7de26dceee1c08d38bf60e32f3924fd8e4577f09fe682eeb2a",
+      "authoredName": "addresses",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "decision-addressing",
+      "semanticFingerprint": "d9bb5ff36d539051c5bc58d932a6175d544ba8632bc6210a7157aeec443145be",
+      "source": "ADR-017",
+      "sourceRole": "decision",
+      "target": "SYS-006",
+      "targetRole": "driver"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "64d1aed56b906d8d0e67c9f0286f713a2d6d4b37d9ca55b49af01e76e3afdc72",
+      "authoredName": "applies-to",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decision-scope",
+      "semanticFingerprint": "9186366a2870fb04220af23b95cf4f294c2afacae15e38fb0fe4a4ed12600b08",
+      "source": "ADR-017",
+      "sourceRole": "decision",
+      "target": "COMP-GRAPH",
+      "targetRole": "architecture-element"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "995fb713bf906eb52a1df7d1038ba0df2689c8479dc95da83179df0da1044cfd",
+      "authoredName": "confirmed-by",
+      "impactDirection": "both",
+      "semanticFamily": "decision-confirmation",
+      "semanticFingerprint": "c3d1815442b77148d9bf645e26c2a284269e54d957b0f19a8bf300e8d7318d3e",
+      "source": "ADR-017",
+      "sourceRole": "decision",
+      "target": "TC-006",
+      "targetRole": "confirmation"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "cd363c6874359937b17353e9bac6adf350af535cf216b0d6c5180a7e01ce407d",
+      "authoredName": "addresses",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "decision-addressing",
+      "semanticFingerprint": "b76e0614213e8d5e81dff4f4e42d8b7f2fc5988d931f9807a2f381f9cce079b9",
+      "source": "ADR-018",
+      "sourceRole": "decision",
+      "target": "RISK-001",
+      "targetRole": "driver"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "2772a01de439560e1cc110777b318499a4516a745bcc399f563366113b7231a2",
+      "authoredName": "addresses",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "decision-addressing",
+      "semanticFingerprint": "c69dacd1edd3b60ed2550e4de0e8eea895b0773053a81a386ceeef1417b6e504",
+      "source": "ADR-018",
+      "sourceRole": "decision",
+      "target": "SYS-004",
+      "targetRole": "driver"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "7e272d360c97f934ee0700b88a663dde0c77d8aa3d399f246a0742cb2c19d8c4",
+      "authoredName": "applies-to",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decision-scope",
+      "semanticFingerprint": "f562a5e6d37ed8c01e040732987630fb8b7d8d6fb2cba4b8551bc9d0f49021bf",
+      "source": "ADR-018",
+      "sourceRole": "decision",
+      "target": "COMP-ANALYSIS",
+      "targetRole": "architecture-element"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "1685871a7c52018a6af7b2b56639d8c121514d9e48a8d0feedbd9148c45d66a2",
+      "authoredName": "applies-to",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decision-scope",
+      "semanticFingerprint": "33c60145989b789eb9790249d2034d964daa9ef207d45ea0bf1f7f5f12fcc900",
+      "source": "ADR-018",
+      "sourceRole": "decision",
+      "target": "COMP-RULES",
+      "targetRole": "architecture-element"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "a8afd7ccafb2f740f00afac355465ad6806f1738b58ccbfbebc9ab0b7b60a5c8",
+      "authoredName": "confirmed-by",
+      "impactDirection": "both",
+      "semanticFamily": "decision-confirmation",
+      "semanticFingerprint": "b03ed186e2e8369109e34ddc10752f6d87092dc344284268b2c037a598386edd",
+      "source": "ADR-018",
+      "sourceRole": "decision",
+      "target": "TC-004",
+      "targetRole": "confirmation"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "fc897ed2e699aa8b653b1f771f8659df69e5e03e8b7bac627e890b272d2e2525",
+      "authoredName": "addresses",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "decision-addressing",
+      "semanticFingerprint": "d4cc3efd08264096ae9b05a88850d328bf3febb96bbfa5f2caf8c47e3b45dba4",
+      "source": "ADR-019",
+      "sourceRole": "decision",
+      "target": "RISK-013",
+      "targetRole": "driver"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "6703e84a606bed9d0b33e80c1626a3628f2a55364e913cf99e2bdc90063a5bcb",
+      "authoredName": "addresses",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "decision-addressing",
+      "semanticFingerprint": "0480a2128e21bd60cd4b113ebec8f7617e98371940482c414da478c3423761f7",
+      "source": "ADR-019",
+      "sourceRole": "decision",
+      "target": "SYS-009",
+      "targetRole": "driver"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "55cfff3c91609851d8d09166106e7d8e54c6c0aae6feb9488dcb811004c378d6",
+      "authoredName": "applies-to",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decision-scope",
+      "semanticFingerprint": "57b9eef5e3074a63cea6dbd7f6e02753fba4bee3090ab8929ac6d892d9c2819d",
+      "source": "ADR-019",
+      "sourceRole": "decision",
+      "target": "COMP-EXTENSION",
+      "targetRole": "architecture-element"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "ffda6fdaede1f6c9632fdae6ff0f5a84cf3124c68e01fdac0d0888392d0d0ae6",
+      "authoredName": "confirmed-by",
+      "impactDirection": "both",
+      "semanticFamily": "decision-confirmation",
+      "semanticFingerprint": "61c458711c3eb6e435c63a57efd0627e53cffb411c19682191692fdaf99a5bf6",
+      "source": "ADR-019",
+      "sourceRole": "decision",
+      "target": "TC-025",
+      "targetRole": "confirmation"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "36ae868cfee6c18d5ba2a61574388902d9f10e900e0637ed462d432c933fb263",
+      "authoredName": "confirmed-by",
+      "impactDirection": "both",
+      "semanticFamily": "decision-confirmation",
+      "semanticFingerprint": "d1ed8dd8626c442a4e44650110e83901f51d0f231f438e675060a6759352fee4",
+      "source": "ADR-019",
+      "sourceRole": "decision",
+      "target": "TC-026",
+      "targetRole": "confirmation"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "8d844f886940f5268df8483d5abc0bfb1febff2015bf5283ca5b016892057100",
+      "authoredName": "confirmed-by",
+      "impactDirection": "both",
+      "semanticFamily": "decision-confirmation",
+      "semanticFingerprint": "54d3e64749eb9a1f4cec9e5f2df171210d020fac8d9c0ae033e2e60d372a1e35",
+      "source": "ADR-019",
+      "sourceRole": "decision",
+      "target": "TC-029",
+      "targetRole": "confirmation"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "1f9734114bb9838d663495574212258b519a4202eca03dea1ccff1f9ef45d413",
+      "authoredName": "part-of",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decomposition",
+      "semanticFingerprint": "0038901e277abf5f19823c8ef0cc29bcfa45ae0658b94e2a7d1ae0ac850c88e3",
+      "source": "COMP-ANALYSIS",
+      "sourceRole": "part",
+      "target": "CONTAINER-PYTHON-PKG",
+      "targetRole": "whole"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "1914a07927c9e20813b9e0b665da762b917eefd5629dff013d8b8e18bfd41e53",
+      "authoredName": "part-of",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decomposition",
+      "semanticFingerprint": "5f2804c3496c5904814061f5fdaf92c6bd251066d227bae62c6185d16e0d6388",
+      "source": "COMP-BASELINE",
+      "sourceRole": "part",
+      "target": "CONTAINER-PYTHON-PKG",
+      "targetRole": "whole"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "42ef267082f70f2579eaab4e08a336b9362d95ca2519c77336f604ccf9f885c1",
+      "authoredName": "part-of",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decomposition",
+      "semanticFingerprint": "d2fff806e8578025ad2cedd4332ab5ac7a8b0e6f6b2708805f348cb6bdc3bc56",
+      "source": "COMP-CLI",
+      "sourceRole": "part",
+      "target": "CONTAINER-PYTHON-PKG",
+      "targetRole": "whole"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "9f9f93fc3525c74ed5b17c0cd4c6aa075c3f2f3915def2ce96e7eeb358631d8f",
+      "authoredName": "part-of",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decomposition",
+      "semanticFingerprint": "dd9f6b1a327c4f39f32bb933897829eba3301f0feebffea63833d8672a54bbfe",
+      "source": "COMP-EXTENSION",
+      "sourceRole": "part",
+      "target": "CONTAINER-QUARTO-EXT",
+      "targetRole": "whole"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "4b99e66a38a64050f18ed275e007599a4b939893c308bde4ebacacb64f6d822f",
+      "authoredName": "part-of",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decomposition",
+      "semanticFingerprint": "e90543dacaa2c44b8b3940a790b8b4bd0ffc49159d6f08eba1a1a0365597b5ac",
+      "source": "COMP-GRAPH",
+      "sourceRole": "part",
+      "target": "CONTAINER-PYTHON-PKG",
+      "targetRole": "whole"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "649eeaab30c51f973315a92f2e59bcbd44fe5e9ee627e4e62cea6068b2c1ee3d",
+      "authoredName": "part-of",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decomposition",
+      "semanticFingerprint": "ce612874aeb646c241a4261852ef58f0ca56f0a541eadf31aaefcc380e224708",
+      "source": "COMP-I18N",
+      "sourceRole": "part",
+      "target": "CONTAINER-PYTHON-PKG",
+      "targetRole": "whole"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "c3822ea945fcdf064a014c810ed48afb28e109cc7c01aa81ab1d660459f88a6b",
+      "authoredName": "part-of",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decomposition",
+      "semanticFingerprint": "8b46283fefa03e412cb78def4eee2d85879bf5633debcb2e74b540dc07c4387d",
+      "source": "COMP-PARSER",
+      "sourceRole": "part",
+      "target": "CONTAINER-PYTHON-PKG",
+      "targetRole": "whole"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "f18705a0aa1206dd60b078a613dfa0d72c7bf91eb3bf15137e2af8cdd3059115",
+      "authoredName": "part-of",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decomposition",
+      "semanticFingerprint": "f32a074089d1547ecd2f28b00a5c6f7ef3a4acaba34ff287a777c544d34e23f8",
+      "source": "COMP-RULES",
+      "sourceRole": "part",
+      "target": "CONTAINER-PYTHON-PKG",
+      "targetRole": "whole"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "71990ab3a884a97efad0cc22c3bfc033782adbbce0a472a267e00e465aa8cfc9",
+      "authoredName": "part-of",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decomposition",
+      "semanticFingerprint": "9ba401de86ca61830f4277dc0e70afdcb6e6ecc70849ffa2765592f9a3d0165c",
+      "source": "CONTAINER-PYTHON-PKG",
+      "sourceRole": "part",
+      "target": "SYS-QUARTO-NEEDS",
+      "targetRole": "whole"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "91834fe90cf0be6420432c254ffe2a4c7e25a28c4be3ae5df80966a1301d780c",
+      "authoredName": "part-of",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decomposition",
+      "semanticFingerprint": "1fc5b96e0bcf0a7f3c94ae220386249cec50fb1b553d83c6219b3fd6f6e6bd7b",
+      "source": "CONTAINER-QUARTO-EXT",
+      "sourceRole": "part",
+      "target": "SYS-QUARTO-NEEDS",
+      "targetRole": "whole"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "0f2c363659e85acd11a7b0a40977baea9ad8cdfbf9a305d16b875c50c9a8c1ab",
+      "authoredName": "depends-on",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "dependency",
+      "semanticFingerprint": "e25392a0b7f77bb5411693e0a4e828e162d209f4d3c059e16494a0517faa969d",
+      "source": "EXT-GITHUB",
+      "sourceRole": "dependent",
+      "target": "SYS-QUARTO-NEEDS",
+      "targetRole": "dependency"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "b7a6dc3dd9bfc0b6d00f015a43e947182278c8dfba3fe70f5901fa7b88cc790d",
+      "authoredName": "depends-on",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "dependency",
+      "semanticFingerprint": "b4591419b7b87ef24b603f18a336ae04f6c8712cac845f7594046a0054317716",
+      "source": "EXT-OSLC",
+      "sourceRole": "dependent",
+      "target": "SYS-QUARTO-NEEDS",
+      "targetRole": "dependency"
     },
     {
       "attributes": {},
@@ -4493,6 +5905,138 @@
     },
     {
       "attributes": {},
+      "authoredFingerprint": "feff20193981fe78ba41974c9dae92134d079c9fe42bdc09214c2075e9c25be3",
+      "authoredName": "derives-from",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "derivation",
+      "semanticFingerprint": "a585e04c9065ff12d0cab39e9b0ccf60d7cb6e546b9694920620ccd5d3dc84c1",
+      "source": "FUN-018",
+      "sourceRole": "derived",
+      "target": "SYS-009",
+      "targetRole": "source"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "573341c6cf8991cf2e11bf225579309fe11b5123965d57c87f1f41be293921f0",
+      "authoredName": "implemented-by",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "implementation",
+      "semanticFingerprint": "a902f725be80be56445832717633c9f1ec54f5033aff3e69ed1750f8947dc7c3",
+      "source": "FUN-018",
+      "sourceRole": "requirement",
+      "target": "COMP-EXTENSION",
+      "targetRole": "implementation-artifact"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "131263dab41bb25e700016ac7454e1f011b5abdb33f6b7d94818ef39b1cea548",
+      "authoredName": "mitigates",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "mitigation",
+      "semanticFingerprint": "756fa31d5c917cfbb321cf510d754e39a73b47b13dac12571297b1026255cffa",
+      "source": "FUN-018",
+      "sourceRole": "mitigation",
+      "target": "RISK-013",
+      "targetRole": "risk"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "05bba98255744cc319dd86589e9feb9e25110f136b3427ad0b137dc5448a87c7",
+      "authoredName": "verified-by",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "verification",
+      "semanticFingerprint": "fd31157ad044fc79ab438bfaa1da019d911791b85fa3ba249371be075d67bf39",
+      "source": "FUN-018",
+      "sourceRole": "requirement",
+      "target": "TC-025",
+      "targetRole": "test"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "0a7fcbd70c042895274003c945f246c855088f79378a84378cef766ac26328a3",
+      "authoredName": "verified-by",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "verification",
+      "semanticFingerprint": "8610b3fdec5cd5b9b386537429f08af294840554bb3f4f3b4bf5994dfc75d634",
+      "source": "FUN-018",
+      "sourceRole": "requirement",
+      "target": "TC-027",
+      "targetRole": "test"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "7983d4ea1dc3f8545c94f3d653a37bd68eecdedbca5a7cbb60edad763b59e9a1",
+      "authoredName": "verified-by",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "verification",
+      "semanticFingerprint": "db1c97f8b3b6e92a867f79a0400ddfcb6e1853a14cbca7aa7575416a072ebb53",
+      "source": "FUN-018",
+      "sourceRole": "requirement",
+      "target": "TC-028",
+      "targetRole": "test"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "1aad32d84cc1f871c4c66fb3a2f508a64c4d5105e94d08e9559d54f6a2d966f7",
+      "authoredName": "verified-by",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "verification",
+      "semanticFingerprint": "828d3151a0047c6858232266a50e832bb6e8c5ff34d7010a9e9c353daeea69c0",
+      "source": "FUN-018",
+      "sourceRole": "requirement",
+      "target": "TC-030",
+      "targetRole": "test"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "e229f1085b452aaf1114c6ede18df56d03a0a3a8e89f4302c8d1f97356f3c373",
+      "authoredName": "derives-from",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "derivation",
+      "semanticFingerprint": "19529c14782cb12fcbd76039fac0fb78fc522492529c38258eadd5c0b97278ae",
+      "source": "FUN-019",
+      "sourceRole": "derived",
+      "target": "SYS-009",
+      "targetRole": "source"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "2d6eeaa700f5a8f3c524f60f5407d0c3147ac6d1dccef632581246beb101e867",
+      "authoredName": "implemented-by",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "implementation",
+      "semanticFingerprint": "323051d6bdfb313566611aba1d2dabcaa151b87f3a5d4e4f122138f696620267",
+      "source": "FUN-019",
+      "sourceRole": "requirement",
+      "target": "COMP-EXTENSION",
+      "targetRole": "implementation-artifact"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "f352da5783700e20af26ee2bd8cfd308626a2895dfcb56b653487e2a14379d50",
+      "authoredName": "verified-by",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "verification",
+      "semanticFingerprint": "b0c1a3ea0f4516ffb51def2fea6149979811c225df94ac4152d32ac7436a5dba",
+      "source": "FUN-019",
+      "sourceRole": "requirement",
+      "target": "TC-025",
+      "targetRole": "test"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "98757d4d762ed3d8f00b45a495d75a87ef625ff4b4dfc4c0c116b0b22e8480fc",
+      "authoredName": "verified-by",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "verification",
+      "semanticFingerprint": "d8e58bbd8d786fe8c9e2511667bf0739804b54f422af5de465c03132403b16f7",
+      "source": "FUN-019",
+      "sourceRole": "requirement",
+      "target": "TC-027",
+      "targetRole": "test"
+    },
+    {
+      "attributes": {},
       "authoredFingerprint": "e9091549547a71951274c5b1e138996cb508eb5100266f2dddb2e601ee9dc5fb",
       "authoredName": "derives-from",
       "impactDirection": "target_to_source",
@@ -4913,6 +6457,102 @@
     },
     {
       "attributes": {},
+      "authoredFingerprint": "af4edfc3e9f70be1bfedbd44fc0078def88e5916f0c512642677aa29cadbfe34",
+      "authoredName": "derives-from",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "derivation",
+      "semanticFingerprint": "2d84bf02d94b09caecc917bc0de61bb4a81593634faa44dc553b6702664ce0fb",
+      "source": "NFR-008",
+      "sourceRole": "derived",
+      "target": "SYS-009",
+      "targetRole": "source"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "d76639405f09e44570e36620f2b383798d99dfea51a01dce1713be468e2bbebb",
+      "authoredName": "implemented-by",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "implementation",
+      "semanticFingerprint": "fe0b2be815409140bc092c57f11fab189ef5a3c527136387b207e0771db772d7",
+      "source": "NFR-008",
+      "sourceRole": "requirement",
+      "target": "COMP-EXTENSION",
+      "targetRole": "implementation-artifact"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "e28fbf76affaea14c26cb5f34dc2e207d5d36636845bb3d92b3a38c7882a3c1c",
+      "authoredName": "mitigates",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "mitigation",
+      "semanticFingerprint": "72cb214bf886c9b2b61393bd9ea2c94f64482917059f9b169867323bd94780a5",
+      "source": "NFR-008",
+      "sourceRole": "mitigation",
+      "target": "RISK-013",
+      "targetRole": "risk"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "d47da85b1e1f8998a603f234c0242432fa9359fc5b2769423829e9b888f5d7d8",
+      "authoredName": "verified-by",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "verification",
+      "semanticFingerprint": "8d0d4b031e104eca03ac1f3b242bacdefb5dd7e530ac2edc5ab998b08d5db1b8",
+      "source": "NFR-008",
+      "sourceRole": "requirement",
+      "target": "TC-029",
+      "targetRole": "test"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "6392ac3853f3f8594e178c4970372100df023d9f172cfcc979b7bc46d2a40658",
+      "authoredName": "derives-from",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "derivation",
+      "semanticFingerprint": "cd481519f8460c9ce671018588d78227dad27c611b77e074d81bf291cb3cb0e5",
+      "source": "NFR-009",
+      "sourceRole": "derived",
+      "target": "SYS-009",
+      "targetRole": "source"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "02f6ae58391fcaaf4bdf38d9c73453f8b9363bfe55d6e78cccb4fd65c2617d47",
+      "authoredName": "implemented-by",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "implementation",
+      "semanticFingerprint": "ff34475dd7cc06679c64b77ebd08b2be45589a35058c604a5b20cac1e95d3aa7",
+      "source": "NFR-009",
+      "sourceRole": "requirement",
+      "target": "COMP-EXTENSION",
+      "targetRole": "implementation-artifact"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "ea785f9d2183a458c71dc5653dd0c7365882a8fe29f61f6450ce17ef99949da2",
+      "authoredName": "mitigates",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "mitigation",
+      "semanticFingerprint": "bd14c056e9b7dddb1e3ad51b9e0ab48cbfc4564f6afd628c540bc943630e4836",
+      "source": "NFR-009",
+      "sourceRole": "mitigation",
+      "target": "RISK-013",
+      "targetRole": "risk"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "e60280d52e506f5fcbda12e7c946b424a74543b81c228735e9846cbd7d6f84a4",
+      "authoredName": "verified-by",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "verification",
+      "semanticFingerprint": "e474571e3afb4c5a48085569d271d9325f7eda1153ac5c76b68cf3818e48dd19",
+      "source": "NFR-009",
+      "sourceRole": "requirement",
+      "target": "TC-026",
+      "targetRole": "test"
+    },
+    {
+      "attributes": {},
       "authoredFingerprint": "2364db53d1b0a81895eaaf6e00383b09d553b5deb0f503a3678e3691eb7512da",
       "authoredName": "implements",
       "impactDirection": "target_to_source",
@@ -4961,6 +6601,18 @@
     },
     {
       "attributes": {},
+      "authoredFingerprint": "e37ea6ae7f8e8355ced7baee93ad8d24608e70b8513ef84056c9c8d7cee4ac4b",
+      "authoredName": "part-of",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decomposition",
+      "semanticFingerprint": "90c604db22a67b713338087947f4559e3aa74ab43bc8ba064aa0c24c0c73a03a",
+      "source": "SRC-ANALYSIS",
+      "sourceRole": "part",
+      "target": "COMP-ANALYSIS",
+      "targetRole": "whole"
+    },
+    {
+      "attributes": {},
       "authoredFingerprint": "89603184678bbfac51b846ca4f01784c1d4b8769ac8ec5eda4f91ecbcb10286f",
       "authoredName": "implements",
       "impactDirection": "target_to_source",
@@ -4985,6 +6637,78 @@
     },
     {
       "attributes": {},
+      "authoredFingerprint": "824d4d7de1aea11b8ae6252d2dc0b16312b49caa784fd22b5d7c65b658d1685e",
+      "authoredName": "part-of",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decomposition",
+      "semanticFingerprint": "b1464f776dfca050838c447b0a1a8ade0e6106ac0435cf7575681e0b6ac11f93",
+      "source": "SRC-BASELINE",
+      "sourceRole": "part",
+      "target": "COMP-BASELINE",
+      "targetRole": "whole"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "f749b12a3a26ebe0e82a2777206a8204c68fd2ddca2a40c6e4b7bcc4cb60effd",
+      "authoredName": "implements",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "implementation",
+      "semanticFingerprint": "ccef3e1c136c44541cc62f41cc05573a93ba5643a39a18da82930116fa662ec4",
+      "source": "SRC-BOOTSTRAP",
+      "sourceRole": "implementation-artifact",
+      "target": "FUN-018",
+      "targetRole": "requirement"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "4227119f0c50fcbcd636d28dc55733cf12ee4aabcc4debd33aa209e3bf68f585",
+      "authoredName": "implements",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "implementation",
+      "semanticFingerprint": "b96288088b52e4f74461b44738057bca8d945061fea40584a434ce7acc86a95e",
+      "source": "SRC-BOOTSTRAP",
+      "sourceRole": "implementation-artifact",
+      "target": "FUN-019",
+      "targetRole": "requirement"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "fe6c6fb722eec340c02b397dbde182261370bcffdfcebfb1fa07f7fccc217ef0",
+      "authoredName": "implements",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "implementation",
+      "semanticFingerprint": "15623746c907ef5c6fc324b796ba993274f567bcf8926913c695f6ae32829166",
+      "source": "SRC-BOOTSTRAP",
+      "sourceRole": "implementation-artifact",
+      "target": "NFR-008",
+      "targetRole": "requirement"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "2d9268ac22649c5c3f6a4ecf37422314dca3583af45135ffdf279af641e7491f",
+      "authoredName": "implements",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "implementation",
+      "semanticFingerprint": "573808d51fbc2623508ed7e5376496753b55ecdd1b286c75ff9f5f52574dbf13",
+      "source": "SRC-BOOTSTRAP",
+      "sourceRole": "implementation-artifact",
+      "target": "NFR-009",
+      "targetRole": "requirement"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "c02248d1e5e680aaa4c0ca1e68599c6699495f0db654af2bb1e755e76a13b807",
+      "authoredName": "part-of",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decomposition",
+      "semanticFingerprint": "e5a04827fd491340fb45bd84c70a1c1b2351a3455494fe917be0ba6cd4bea7d6",
+      "source": "SRC-BOOTSTRAP",
+      "sourceRole": "part",
+      "target": "COMP-EXTENSION",
+      "targetRole": "whole"
+    },
+    {
+      "attributes": {},
       "authoredFingerprint": "e7ba85eaede9d0d924b74c70eee8f89352684b296f0aaefe7ab49b81dfb35db8",
       "authoredName": "implements",
       "impactDirection": "target_to_source",
@@ -4994,6 +6718,18 @@
       "sourceRole": "implementation-artifact",
       "target": "FUN-005",
       "targetRole": "requirement"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "ced90058330f13cd16c30f5612ac55c927e36a3306374be65c86dffe7b4c2469",
+      "authoredName": "part-of",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decomposition",
+      "semanticFingerprint": "7c6346a29391a7eb023d1b78d569d5eb8e8f084b11a5d88bca6e6f6615474e1a",
+      "source": "SRC-DIFF",
+      "sourceRole": "part",
+      "target": "COMP-BASELINE",
+      "targetRole": "whole"
     },
     {
       "attributes": {},
@@ -5117,6 +6853,18 @@
     },
     {
       "attributes": {},
+      "authoredFingerprint": "ec1e5ec9c258e5b075f0ad5cd3bcc3ca07cca2c5fe141be2a87a2b88c168541c",
+      "authoredName": "part-of",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decomposition",
+      "semanticFingerprint": "f500a892346ff469a8e06d44c4464f099f48446220a97580e325bf002e765f69",
+      "source": "SRC-GRAPH-CONTEXT",
+      "sourceRole": "part",
+      "target": "COMP-GRAPH",
+      "targetRole": "whole"
+    },
+    {
+      "attributes": {},
       "authoredFingerprint": "561f22f9dd2e343dcfb13ab4d2c7c294aef64b6cd49d1371df8a8886950d5f04",
       "authoredName": "implements",
       "impactDirection": "target_to_source",
@@ -5126,6 +6874,18 @@
       "sourceRole": "implementation-artifact",
       "target": "FUN-004",
       "targetRole": "requirement"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "50419abb55962199e0e415cc19aa4b7c7c1405751af8d2938b06472411af1a84",
+      "authoredName": "part-of",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decomposition",
+      "semanticFingerprint": "52f09a36bd6e40d584ad89bb2af49ebc59c7221a015df04648fcf0bf48cdd88b",
+      "source": "SRC-GRAPH-EXPLORE",
+      "sourceRole": "part",
+      "target": "COMP-GRAPH",
+      "targetRole": "whole"
     },
     {
       "attributes": {},
@@ -5189,6 +6949,18 @@
     },
     {
       "attributes": {},
+      "authoredFingerprint": "f6d68914e219986b4e349d1e42f745c00538f0a56e5a57929f1d77d462aae981",
+      "authoredName": "part-of",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decomposition",
+      "semanticFingerprint": "4b101904003a7753684840a0ae4477d11c61fc9fff7770c770eec3fb3cce02bd",
+      "source": "SRC-GRAPH-OUTPUT",
+      "sourceRole": "part",
+      "target": "COMP-GRAPH",
+      "targetRole": "whole"
+    },
+    {
+      "attributes": {},
       "authoredFingerprint": "580209a003d73cec2636df17922f28abf7c0dcc5dc3bf748944830e1d3c4fd06",
       "authoredName": "implements",
       "impactDirection": "target_to_source",
@@ -5225,6 +6997,18 @@
     },
     {
       "attributes": {},
+      "authoredFingerprint": "4ad97857f8ebe85aafba15e98ed7c61e23e6eb8f3480e3b919228797b9674cef",
+      "authoredName": "part-of",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decomposition",
+      "semanticFingerprint": "1c3a6431e2f8a89b0e468375d86be76685ce255ace53cdddaffba5c1108ae1ef",
+      "source": "SRC-GRAPH-PROJECTION",
+      "sourceRole": "part",
+      "target": "COMP-GRAPH",
+      "targetRole": "whole"
+    },
+    {
+      "attributes": {},
       "authoredFingerprint": "81dd7d700b727258ecae075d9013fe05db521c96b76a5f22587d74b952a6aba3",
       "authoredName": "implements",
       "impactDirection": "target_to_source",
@@ -5237,6 +7021,18 @@
     },
     {
       "attributes": {},
+      "authoredFingerprint": "2e544395e068ad97293922fa2dab952d49770ab0999cc947e00899b8bad659d1",
+      "authoredName": "part-of",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decomposition",
+      "semanticFingerprint": "dba9deea6e05e154c0f43be3c87508f63d578a237a18e4e18fda9ce0f5018868",
+      "source": "SRC-IMPACT",
+      "sourceRole": "part",
+      "target": "COMP-BASELINE",
+      "targetRole": "whole"
+    },
+    {
+      "attributes": {},
       "authoredFingerprint": "f43241a3a1d7567de8904ff1d7f68a73f3683cd5ed0d8289268878f84073ee48",
       "authoredName": "implements",
       "impactDirection": "target_to_source",
@@ -5246,6 +7042,18 @@
       "sourceRole": "implementation-artifact",
       "target": "FUN-009",
       "targetRole": "requirement"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "1cc524bf0144d180c601d6a79d6e74f4b9cd653a3eba8ee8cae4206872f5e53e",
+      "authoredName": "part-of",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decomposition",
+      "semanticFingerprint": "ced972e201dcd335bd647bc87973ec71fee8fe651da29be461853213cf178d1e",
+      "source": "SRC-MARGIN-SIDEBAR",
+      "sourceRole": "part",
+      "target": "COMP-EXTENSION",
+      "targetRole": "whole"
     },
     {
       "attributes": {},
@@ -5537,6 +7345,18 @@
     },
     {
       "attributes": {},
+      "authoredFingerprint": "e547c8f4ce0ab88c60f364c90d127eab856701fd541d05df9174c3a833eab998",
+      "authoredName": "part-of",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decomposition",
+      "semanticFingerprint": "cfa31a0f9bf80d9a50d862d489e6517babb71513762a78a980e3b2936fcf05c1",
+      "source": "SRC-PARSER",
+      "sourceRole": "part",
+      "target": "COMP-PARSER",
+      "targetRole": "whole"
+    },
+    {
+      "attributes": {},
       "authoredFingerprint": "bb8ebfb28e5d325f522b834046186253fae099c8008a6b48b95a9e19d69c0d83",
       "authoredName": "implements",
       "impactDirection": "target_to_source",
@@ -5573,6 +7393,18 @@
     },
     {
       "attributes": {},
+      "authoredFingerprint": "0754cdab7a79b7232a7c644b4efae217771d1b429497453242c9bd99606fa45c",
+      "authoredName": "part-of",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decomposition",
+      "semanticFingerprint": "95b1ee324b1179c2792e2bfeb67673f3fd96bd4c8b2adf31f36a030c5bd0b559",
+      "source": "SRC-PRE-RENDER",
+      "sourceRole": "part",
+      "target": "COMP-I18N",
+      "targetRole": "whole"
+    },
+    {
+      "attributes": {},
       "authoredFingerprint": "f1c516e45f563f14a056389e6622edcd3a24dad76209688310770c5d2278f80d",
       "authoredName": "implements",
       "impactDirection": "target_to_source",
@@ -5582,6 +7414,54 @@
       "sourceRole": "implementation-artifact",
       "target": "SYS-003",
       "targetRole": "requirement"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "1f9226c0681c927b394a5e859a21b2b875b8d6b28498e63b9ea662597ecd03d1",
+      "authoredName": "part-of",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decomposition",
+      "semanticFingerprint": "9a6bc8aa3633c46660a364867dcb119b0d101cfa0c40c6f2a8a8004cff4649be",
+      "source": "SRC-QUALITY",
+      "sourceRole": "part",
+      "target": "COMP-RULES",
+      "targetRole": "whole"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "45eeb19fa1b72296b57a27317efeb1bb3f763a94809a71e1e26b1ef37faf3e89",
+      "authoredName": "implements",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "implementation",
+      "semanticFingerprint": "436ba26fe7589624dedd4298cdf30c80237f7c9360ac3b1c124369dd492f5184",
+      "source": "SRC-QUARTO-INTEGRATION",
+      "sourceRole": "implementation-artifact",
+      "target": "FUN-018",
+      "targetRole": "requirement"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "d99b7949500a9ede250a6f244caebbcda00c34dcf9981483c9d34dade917929c",
+      "authoredName": "implements",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "implementation",
+      "semanticFingerprint": "d5fa1df0fdb63ece2201fa96bfb7af4dae31532d3f6ba807dee20bc229bc60e1",
+      "source": "SRC-QUARTO-INTEGRATION",
+      "sourceRole": "implementation-artifact",
+      "target": "SYS-009",
+      "targetRole": "requirement"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "df2af91e41a1addc4cab13e86346d2c1993ca90d27e5a05711fae5697769f2ba",
+      "authoredName": "part-of",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decomposition",
+      "semanticFingerprint": "f53f6df5beb9b1f463e91d1ea7c637331b78857f0ef4d3ba6ff701d3fb716a88",
+      "source": "SRC-QUARTO-INTEGRATION",
+      "sourceRole": "part",
+      "target": "COMP-ANALYSIS",
+      "targetRole": "whole"
     },
     {
       "attributes": {},
@@ -5609,6 +7489,18 @@
     },
     {
       "attributes": {},
+      "authoredFingerprint": "d42ca8743f7e10d27440d1d62039633123ceb50fdd1a427ffb7516587f39d667",
+      "authoredName": "part-of",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decomposition",
+      "semanticFingerprint": "076a7e31a9b76aa77be3e458bdd9eab8f22c234b8b4e2f75a8e64cf00915e361",
+      "source": "SRC-QUERIES",
+      "sourceRole": "part",
+      "target": "COMP-ANALYSIS",
+      "targetRole": "whole"
+    },
+    {
+      "attributes": {},
       "authoredFingerprint": "5c1f7cee46362d85b30603c94a0b2fdb7859f2637dea4151d99502aa2eb7680a",
       "authoredName": "implements",
       "impactDirection": "target_to_source",
@@ -5633,6 +7525,18 @@
     },
     {
       "attributes": {},
+      "authoredFingerprint": "19524768aa442a3d86224809912a894c105699c7cc05fd8fe113ef21af83d9cd",
+      "authoredName": "part-of",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decomposition",
+      "semanticFingerprint": "728883b0d22c427e86877e7a0fab023f4974d04d2004b2d432d94ffaf3d18925",
+      "source": "SRC-RELATIONS",
+      "sourceRole": "part",
+      "target": "COMP-ANALYSIS",
+      "targetRole": "whole"
+    },
+    {
+      "attributes": {},
       "authoredFingerprint": "de3c431208d7bc3e1a2b40779f00ac3790cedc1acd7aeb424fcc3adfce923648",
       "authoredName": "implements",
       "impactDirection": "target_to_source",
@@ -5654,6 +7558,18 @@
       "sourceRole": "implementation-artifact",
       "target": "SYS-004",
       "targetRole": "requirement"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "461550d165138b85354ce91cba3adf9eaaaeba831b070fe3d2b21b64b57db678",
+      "authoredName": "part-of",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "decomposition",
+      "semanticFingerprint": "ed00575b84c85e4fc4937973b1a2cbe2615feb7dfce949bf80c00266f9d44a43",
+      "source": "SRC-RULES",
+      "sourceRole": "part",
+      "target": "COMP-RULES",
+      "targetRole": "whole"
     },
     {
       "attributes": {},
@@ -6065,6 +7981,66 @@
     },
     {
       "attributes": {},
+      "authoredFingerprint": "9d11f52702ac3780af555c130f2b48f32e0cacda210d3d5e6d4418d3d450d6ce",
+      "authoredName": "derives-from",
+      "impactDirection": "target_to_source",
+      "semanticFamily": "derivation",
+      "semanticFingerprint": "c078740965b36feb3109e0e858fa2b383c82bbb6cade8bce30195d1675dee965",
+      "source": "SYS-009",
+      "sourceRole": "derived",
+      "target": "STK-008",
+      "targetRole": "source"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "de090fd6734e9ab4b9dcc9d77adde0d92b9e42421cb57ea455474630175d224d",
+      "authoredName": "implemented-by",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "implementation",
+      "semanticFingerprint": "dd329f94286d32487e03a14c70199076d278495b4174548c4157127f254ae699",
+      "source": "SYS-009",
+      "sourceRole": "requirement",
+      "target": "COMP-EXTENSION",
+      "targetRole": "implementation-artifact"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "df01f6e6971e866f902e3db4dd1b4c2d4c038f32a7381c8505fafdf9cb0a07b3",
+      "authoredName": "verified-by",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "verification",
+      "semanticFingerprint": "e876de3a934fdbf14268b246f85412a9716483436e3a6c5a7a836eb51786a911",
+      "source": "SYS-009",
+      "sourceRole": "requirement",
+      "target": "TC-025",
+      "targetRole": "test"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "791dce22aa33f83f70112d6980919141455dd596ec3f4e0ff48894676b345a0e",
+      "authoredName": "verified-by",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "verification",
+      "semanticFingerprint": "7cc256490a657ca244783929aaf10b1f7c695ac914bd56ff76825198f7ab8c00",
+      "source": "SYS-009",
+      "sourceRole": "requirement",
+      "target": "TC-026",
+      "targetRole": "test"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "98dc8e7439db6812e014e1e2899ed499055ae814db412a2eb2368ef4b66d5e68",
+      "authoredName": "verified-by",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "verification",
+      "semanticFingerprint": "40b431687d4e97c87bedb8b4b6eae8c14b8dc924e01a86479a754ea8148823fd",
+      "source": "SYS-009",
+      "sourceRole": "requirement",
+      "target": "TC-031",
+      "targetRole": "test"
+    },
+    {
+      "attributes": {},
       "authoredFingerprint": "10393b29906daa798382a9313c7eb7ff1c2face31ef73015829bce99eba718c5",
       "authoredName": "evidenced-by",
       "impactDirection": "source_to_target",
@@ -6350,6 +8326,90 @@
       "sourceRole": "test",
       "target": "EVD-024",
       "targetRole": "evidence"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "066dafd9367208a08af721a43c79a7a30108654b232a108dd37eca4c7961b063",
+      "authoredName": "evidenced-by",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "evidence",
+      "semanticFingerprint": "25ee648c4c7bf04dba888801f07299f66a996b32439327bd9db2b89a83231ba9",
+      "source": "TC-025",
+      "sourceRole": "test",
+      "target": "EVD-025",
+      "targetRole": "evidence"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "c9bc97ddb0053c6d9aceb369e5521a70e949a0621a6fcabdd3d52cfd6d126800",
+      "authoredName": "evidenced-by",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "evidence",
+      "semanticFingerprint": "26a147d5a1aa4f0d29d6a26d8c34a29f6141f3759bc2ded2e7a07ed0259de01f",
+      "source": "TC-026",
+      "sourceRole": "test",
+      "target": "EVD-026",
+      "targetRole": "evidence"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "4c21aff65502a67942d02c119c279abd36039cf2f0d32cdf0604d39c21f4a47d",
+      "authoredName": "evidenced-by",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "evidence",
+      "semanticFingerprint": "10d598d1ad3dca3053b45aef8000766099364cd77b618b48da819ded6b32071a",
+      "source": "TC-027",
+      "sourceRole": "test",
+      "target": "EVD-027",
+      "targetRole": "evidence"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "ef605a6b8bfde0e1ef477310a52ed620eed5a57b7175c3bdd1e8d79d9c16712b",
+      "authoredName": "evidenced-by",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "evidence",
+      "semanticFingerprint": "8ee84a838cac4bdb57345752e9dc8400e32ec36d52466f3b5486ee086354b369",
+      "source": "TC-028",
+      "sourceRole": "test",
+      "target": "EVD-028",
+      "targetRole": "evidence"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "98401060ec967a13bfb55e2cef5f83a2ed272d02f1af0f7d650aaea1c008de64",
+      "authoredName": "evidenced-by",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "evidence",
+      "semanticFingerprint": "89e0a6034de2ec0601565fa6b8f11e51e8108a089c1c6915fd1523b773d7eefa",
+      "source": "TC-029",
+      "sourceRole": "test",
+      "target": "EVD-029",
+      "targetRole": "evidence"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "58c3d4dfd4ce34602bab30822fb392dd4886fbf13844f148dedcd58bc2352ddf",
+      "authoredName": "evidenced-by",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "evidence",
+      "semanticFingerprint": "6d67965fc2b08bfa8afcd8303ac9b847da3ddada42adfaef33eab0cfdc15c4b7",
+      "source": "TC-030",
+      "sourceRole": "test",
+      "target": "EVD-030",
+      "targetRole": "evidence"
+    },
+    {
+      "attributes": {},
+      "authoredFingerprint": "804fea27c356e68b2426aad60ed17e5352d9749937a877bac6e9eed28b1c7f23",
+      "authoredName": "evidenced-by",
+      "impactDirection": "source_to_target",
+      "semanticFamily": "evidence",
+      "semanticFingerprint": "8377117b59700cae88fca5b36ec3fce8ad7e215d4ba0b107053614b9935cf32a",
+      "source": "TC-031",
+      "sourceRole": "test",
+      "target": "EVD-031",
+      "targetRole": "evidence"
     }
   ],
   "report": {
@@ -6374,7 +8434,7 @@
       },
       {
         "actual": 100.0,
-        "denominator": 32,
+        "denominator": 37,
         "name": "min-implementation-trace",
         "passed": true,
         "scope": "approved-requirements",
@@ -6382,7 +8442,7 @@
       },
       {
         "actual": 100.0,
-        "denominator": 32,
+        "denominator": 37,
         "name": "min-implementation-effective",
         "passed": true,
         "scope": "approved-requirements",
@@ -6390,7 +8450,7 @@
       },
       {
         "actual": 100.0,
-        "denominator": 32,
+        "denominator": 37,
         "name": "min-verification-trace",
         "passed": true,
         "scope": "approved-requirements",
@@ -6398,7 +8458,7 @@
       },
       {
         "actual": 100.0,
-        "denominator": 32,
+        "denominator": 37,
         "name": "min-verification-successful",
         "passed": true,
         "scope": "approved-requirements",
@@ -6406,7 +8466,7 @@
       },
       {
         "actual": 100.0,
-        "denominator": 32,
+        "denominator": 37,
         "name": "min-evidence",
         "passed": true,
         "scope": "approved-requirements",
@@ -6426,7 +8486,7 @@
       "version": "0.1.0"
     },
     "profile": "strict",
-    "referenceDate": "2026-09-01",
+    "referenceDate": "2026-09-03",
     "schemaVersion": "1",
     "scopes": {
       "adr-path": {
@@ -6480,46 +8540,46 @@
         "breakdowns": {
           "priority": {
             "critical": 9,
-            "high": 21,
+            "high": 26,
             "medium": 2
           },
           "status": {
-            "approved": 32
+            "approved": 37
           },
           "type": {
-            "functional-requirement": 17,
-            "non-functional-requirement": 7,
-            "system-requirement": 8
+            "functional-requirement": 19,
+            "non-functional-requirement": 9,
+            "system-requirement": 9
           }
         },
         "coverage": {
           "evidence": {
-            "covered": 32,
+            "covered": 37,
             "percent": 100.0,
-            "total": 32
+            "total": 37
           },
           "implementation-effective": {
-            "covered": 32,
+            "covered": 37,
             "percent": 100.0,
-            "total": 32
+            "total": 37
           },
           "implementation-trace": {
-            "covered": 32,
+            "covered": 37,
             "percent": 100.0,
-            "total": 32
+            "total": 37
           },
           "verification-successful": {
-            "covered": 32,
+            "covered": 37,
             "percent": 100.0,
-            "total": 32
+            "total": 37
           },
           "verification-trace": {
-            "covered": 32,
+            "covered": 37,
             "percent": 100.0,
-            "total": 32
+            "total": 37
           }
         },
-        "denominator": 32,
+        "denominator": 37,
         "gaps": {
           "evidence": [],
           "implementation-effective": [],
@@ -6572,46 +8632,46 @@
         "breakdowns": {
           "priority": {
             "critical": 9,
-            "high": 21,
+            "high": 26,
             "medium": 2
           },
           "status": {
-            "approved": 32
+            "approved": 37
           },
           "type": {
-            "functional-requirement": 17,
-            "non-functional-requirement": 7,
-            "system-requirement": 8
+            "functional-requirement": 19,
+            "non-functional-requirement": 9,
+            "system-requirement": 9
           }
         },
         "coverage": {
           "evidence": {
-            "covered": 32,
+            "covered": 37,
             "percent": 100.0,
-            "total": 32
+            "total": 37
           },
           "implementation-effective": {
-            "covered": 32,
+            "covered": 37,
             "percent": 100.0,
-            "total": 32
+            "total": 37
           },
           "implementation-trace": {
-            "covered": 32,
+            "covered": 37,
             "percent": 100.0,
-            "total": 32
+            "total": 37
           },
           "verification-successful": {
-            "covered": 32,
+            "covered": 37,
             "percent": 100.0,
-            "total": 32
+            "total": 37
           },
           "verification-trace": {
-            "covered": 32,
+            "covered": 37,
             "percent": 100.0,
-            "total": 32
+            "total": 37
           }
         },
-        "denominator": 32,
+        "denominator": 37,
         "gaps": {
           "evidence": [],
           "implementation-effective": [],
@@ -6809,46 +8869,46 @@
         "breakdowns": {
           "priority": {
             "critical": 9,
-            "high": 21,
+            "high": 26,
             "medium": 2
           },
           "status": {
-            "approved": 32
+            "approved": 37
           },
           "type": {
-            "functional-requirement": 17,
-            "non-functional-requirement": 7,
-            "system-requirement": 8
+            "functional-requirement": 19,
+            "non-functional-requirement": 9,
+            "system-requirement": 9
           }
         },
         "coverage": {
           "evidence": {
-            "covered": 32,
+            "covered": 37,
             "percent": 100.0,
-            "total": 32
+            "total": 37
           },
           "implementation-effective": {
-            "covered": 32,
+            "covered": 37,
             "percent": 100.0,
-            "total": 32
+            "total": 37
           },
           "implementation-trace": {
-            "covered": 32,
+            "covered": 37,
             "percent": 100.0,
-            "total": 32
+            "total": 37
           },
           "verification-successful": {
-            "covered": 32,
+            "covered": 37,
             "percent": 100.0,
-            "total": 32
+            "total": 37
           },
           "verification-trace": {
-            "covered": 32,
+            "covered": 37,
             "percent": 100.0,
-            "total": 32
+            "total": 37
           }
         },
-        "denominator": 32,
+        "denominator": 37,
         "gaps": {
           "evidence": [],
           "implementation-effective": [],
@@ -6904,12 +8964,12 @@
       "structuralErrors": false
     }
   },
-  "representationFingerprint": "3a16bc7a9bc9c9f4fa6dda70ae786d71863fe19a7f02a84fa6bd71e208d60cca",
+  "representationFingerprint": "155791a2e42175fb11b79a5410700fd1c0c3ccfbf2430de280ca97c79235348a",
   "ruleSetVersion": "7",
   "schemaVersion": "1",
-  "semanticGraphFingerprint": "5b7f4b178835383c1b97fdeb005fde46c7ed902a0137d1a84ae4a2f4073a84cf",
+  "semanticGraphFingerprint": "e3eba1b50b2c76459bc54391fae94662f02a576fd0870b53404cee5227dd1bbb",
   "valid": true,
-  "variantFingerprint": "ff15f4bc7787791998ab68610d9927f8849ac96f181861b503f94219e4d88849",
+  "variantFingerprint": "d3382d307176a6e6cead88a84a2340e3f2cfe63ae6e0541d0e68eba6fbde46f7",
   "variants": {
     "assurance-slice": [
       "EVD-001",
@@ -6936,6 +8996,13 @@
       "EVD-022",
       "EVD-023",
       "EVD-024",
+      "EVD-025",
+      "EVD-026",
+      "EVD-027",
+      "EVD-028",
+      "EVD-029",
+      "EVD-030",
+      "EVD-031",
       "FUN-001",
       "FUN-002",
       "FUN-003",
@@ -6953,6 +9020,8 @@
       "FUN-015",
       "FUN-016",
       "FUN-017",
+      "FUN-018",
+      "FUN-019",
       "NFR-001",
       "NFR-002",
       "NFR-003",
@@ -6960,6 +9029,8 @@
       "NFR-005",
       "NFR-006",
       "NFR-007",
+      "NFR-008",
+      "NFR-009",
       "SYS-001",
       "SYS-002",
       "SYS-003",
@@ -6968,6 +9039,7 @@
       "SYS-006",
       "SYS-007",
       "SYS-008",
+      "SYS-009",
       "TC-001",
       "TC-002",
       "TC-003",
@@ -6991,7 +9063,14 @@
       "TC-021",
       "TC-022",
       "TC-023",
-      "TC-024"
+      "TC-024",
+      "TC-025",
+      "TC-026",
+      "TC-027",
+      "TC-028",
+      "TC-029",
+      "TC-030",
+      "TC-031"
     ]
   }
 }
