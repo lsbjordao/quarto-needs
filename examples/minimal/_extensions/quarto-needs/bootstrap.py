@@ -480,9 +480,20 @@ def ensure_runtime(
 
 
 def load_pre_render(target: Path):
-    """Import the managed engine's canonical pre-render service."""
-    if str(target) not in sys.path:
-        sys.path.insert(0, str(target))
+    """Import the managed engine's canonical pre-render service.
+
+    The managed runtime must win outright. Putting *target* first on
+    `sys.path` is only half of that: anything already imported would be
+    served from `sys.modules` regardless of path order, so a `quarto_needs`
+    that arrived from the ambient environment before this call is dropped
+    first. Otherwise a globally installed 0.1.0 could answer for an
+    extension pinned to 0.2.0 -- the skew this design exists to remove.
+    """
+    for name in [name for name in sys.modules if name.split(".")[0] == "quarto_needs"]:
+        del sys.modules[name]
+    while str(target) in sys.path:
+        sys.path.remove(str(target))
+    sys.path.insert(0, str(target))
     try:
         from quarto_needs.quarto_integration import run_quarto_pre_render
     except ImportError as error:
@@ -503,7 +514,28 @@ def check_python(version_info: tuple[int, ...] = sys.version_info[:2]) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    raise NotImplementedError("wired up in Task 5")
+    """Ensure the engine, then hand the project to it.
+
+    Load the runtime, invoke the canonical integration, forward its status.
+    Nothing here reimplements `scan`: the exit code returned is the one the
+    engine produced, so the extension path and the CLI path agree by
+    construction.
+
+    Every bootstrap failure is a render failure with an actionable message.
+    A document that rendered successfully while silently omitting its
+    engineering model is the worse outcome.
+    """
+    try:
+        check_python()
+        root = project_root()
+        version = extension_version()
+        identity = runtime_identity()
+        runtime_dir = ensure_runtime(root, version, identity)
+        run_quarto_pre_render = load_pre_render(site_packages(runtime_dir))
+    except BootstrapError as error:
+        print(f"Quarto-Needs: {error}", file=sys.stderr)
+        return 1
+    return run_quarto_pre_render(root)
 
 
 if __name__ == "__main__":

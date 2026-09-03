@@ -661,3 +661,169 @@ def test_a_truncated_engine_install_is_not_a_valid_runtime(tmp_path) -> None:
     bootstrap.write_marker(runtime_dir, "0.1.0", identity)
 
     assert not bootstrap.runtime_is_valid(runtime_dir, "0.1.0", identity)
+
+
+# --- Task 5: invoking the engine --------------------------------------------
+
+PROJECT_QMD = '''---
+title: "Bootstrap fixture"
+---
+
+::: {.need #REQ-1 type="functional-requirement" status="approved" priority="high"}
+## Authenticate the user
+
+The system shall authenticate the user.
+
+### Rationale
+Protect private data.
+:::
+
+::: {.need #TC-1 type="test-case" status="passed" verifies="REQ-1"}
+## Login test
+
+Signs a user in.
+:::
+'''
+
+
+def _consumer_project(root: Path) -> Path:
+    """A project holding the extension, the way `quarto add` leaves it."""
+    import shutil
+
+    root.mkdir(parents=True, exist_ok=True)
+    (root / "index.qmd").write_text(PROJECT_QMD, encoding="utf-8")
+    extension = root / "_extensions" / "quarto-needs"
+    extension.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(ROOT / "_extensions" / "quarto-needs", extension)
+    return root
+
+
+def _run_bootstrap(root: Path, *, extra_path: Path | None = None):
+    """Run bootstrap.py as its own process, the way Quarto runs it."""
+    import os
+    import subprocess
+
+    environment = dict(os.environ)
+    environment["QUARTO_NEEDS_ENGINE_SOURCE"] = str(ROOT)
+    environment["QUARTO_PROJECT_DIR"] = str(root)
+    environment.pop("PYTHONPATH", None)
+    if extra_path is not None:
+        environment["PYTHONPATH"] = str(extra_path)
+    return subprocess.run(
+        [sys.executable, str(root / "_extensions" / "quarto-needs" / "bootstrap.py")],
+        capture_output=True,
+        text=True,
+        env=environment,
+        cwd=str(root),
+        timeout=600,
+    )
+
+
+@pytest.mark.slow
+def test_the_bootstrap_builds_the_graph_end_to_end(tmp_path) -> None:
+    root = _consumer_project(tmp_path / "consumer")
+
+    completed = _run_bootstrap(root)
+
+    assert completed.returncode == 0, completed.stderr
+    graph = json.loads(
+        (root / ".quarto-needs" / "needs.json").read_text(encoding="utf-8")
+    )
+    assert {item["id"] for item in graph["objects"]} == {"REQ-1", "TC-1"}
+    assert graph["schemaVersion"] == "1"
+
+
+@pytest.mark.slow
+def test_a_wrong_global_engine_never_wins_over_the_managed_runtime(tmp_path) -> None:
+    """The skew this design removes, proved rather than asserted.
+
+    An importable `quarto_needs` reporting a different version sits first in
+    the ambient environment via PYTHONPATH. The managed runtime must still
+    be the engine that runs.
+    """
+    root = _consumer_project(tmp_path / "consumer")
+    ambient = tmp_path / "ambient"
+    _plant_engine(ambient, "0.0.1-global")
+
+    # Sanity: without the bootstrap, that ambient copy is what imports.
+    import subprocess
+
+    probe = subprocess.run(
+        [sys.executable, "-c", "import quarto_needs; print(quarto_needs.__version__)"],
+        capture_output=True,
+        text=True,
+        env={"PYTHONPATH": str(ambient), "PATH": "/usr/bin:/bin"},
+    )
+    assert probe.stdout.strip() == "0.0.1-global", probe
+
+    completed = _run_bootstrap(root, extra_path=ambient)
+
+    assert completed.returncode == 0, completed.stderr
+    # The wrong engine could not have produced this graph.
+    graph = json.loads(
+        (root / ".quarto-needs" / "needs.json").read_text(encoding="utf-8")
+    )
+    assert {item["id"] for item in graph["objects"]} == {"REQ-1", "TC-1"}
+
+    marker = json.loads(
+        next(
+            (root / ".quarto-needs" / "runtime").rglob("installed.json")
+        ).read_text(encoding="utf-8")
+    )
+    assert marker["engineVersion"] == bootstrap.extension_version()
+
+
+@pytest.mark.slow
+def test_the_bootstrap_and_the_cli_write_identical_artifacts(tmp_path) -> None:
+    """Artifact parity: same project, two invocation paths, same bytes.
+
+    This is the phase's core promise -- changing who invokes the engine must
+    change nothing the project produces.
+    """
+    from quarto_needs import cli
+
+    via_bootstrap = _consumer_project(tmp_path / "via-bootstrap")
+    via_cli = tmp_path / "via-cli"
+    via_cli.mkdir()
+    (via_cli / "index.qmd").write_text(PROJECT_QMD, encoding="utf-8")
+
+    assert _run_bootstrap(via_bootstrap).returncode == 0
+    assert cli.build(via_cli, quiet=True) == 0
+
+    def artifacts(root: Path) -> dict[str, bytes]:
+        base = root / ".quarto-needs"
+        return {
+            path.relative_to(base).as_posix(): path.read_bytes()
+            for path in sorted(base.rglob("*"))
+            # The runtime tree is provisioning state, not a semantic artifact.
+            if path.is_file() and "runtime" not in path.relative_to(base).parts
+        }
+
+    assert artifacts(via_bootstrap) == artifacts(via_cli)
+
+
+@pytest.mark.slow
+def test_an_unsatisfiable_engine_source_fails_the_render(tmp_path) -> None:
+    """A bootstrap failure must stop the build, not render an empty graph."""
+    import os
+    import subprocess
+
+    root = _consumer_project(tmp_path / "consumer")
+    environment = dict(os.environ)
+    environment["QUARTO_NEEDS_ENGINE_SOURCE"] = str(tmp_path / "missing")
+    environment["QUARTO_PROJECT_DIR"] = str(root)
+
+    completed = subprocess.run(
+        [sys.executable, str(root / "_extensions" / "quarto-needs" / "bootstrap.py")],
+        capture_output=True,
+        text=True,
+        env=environment,
+        cwd=str(root),
+        timeout=600,
+    )
+
+    assert completed.returncode != 0
+    assert "does not exist" in completed.stderr
+    assert not (root / ".quarto-needs" / "needs.json").exists(), (
+        "wrote a graph despite failing to provision an engine"
+    )
