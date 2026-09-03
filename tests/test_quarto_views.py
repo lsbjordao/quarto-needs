@@ -775,6 +775,7 @@ def build_overlays_fixture_project(tmp_path: Path, *, with_baseline: bool = True
     return project
 
 
+@pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
 def test_need_graph_embeds_the_overlay_artifact_when_a_baseline_exists(tmp_path: Path) -> None:
     project = build_overlays_fixture_project(tmp_path)
     subprocess.run(
@@ -792,6 +793,7 @@ def test_need_graph_embeds_the_overlay_artifact_when_a_baseline_exists(tmp_path:
     assert '"classification": "direct"' in html
 
 
+@pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
 def test_need_graph_omits_the_overlay_artifact_without_a_baseline(tmp_path: Path) -> None:
     project = build_overlays_fixture_project(tmp_path, with_baseline=False)
     subprocess.run(
@@ -805,6 +807,7 @@ def test_need_graph_omits_the_overlay_artifact_without_a_baseline(tmp_path: Path
     assert "data-need-graph-overlays" not in html
 
 
+@pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
 def test_need_graph_static_table_lists_node_attributes_not_just_edges(tmp_path: Path) -> None:
     """The static table is the primary operable representation for
     keyboard/screen-reader readers, independent of whether the canvas's own
@@ -829,6 +832,7 @@ def test_need_graph_static_table_lists_node_attributes_not_just_edges(tmp_path: 
     assert "passed" in html
 
 
+@pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
 def test_need_graph_static_table_rows_carry_a_stable_row_id(tmp_path: Path) -> None:
     """Each row needs a stable id the client can find without fragile
     text-matching, and the two same-classed tables need a way to tell node
@@ -852,6 +856,7 @@ def test_need_graph_static_table_rows_carry_a_stable_row_id(tmp_path: Path) -> N
     assert re.search(r'data-need-graph-row-id="REQ-1\|[^"]+\|TC-1"', html)
 
 
+@pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
 def test_need_graph_renders_a_table_with_zero_edges_without_crashing(tmp_path: Path) -> None:
     """Pandoc's from_simple_table omits bodies[1] entirely when a table has
     zero data rows — table_block's row-id attribution originally assumed
@@ -885,6 +890,7 @@ def test_need_graph_renders_a_table_with_zero_edges_without_crashing(tmp_path: P
     assert html.count("need-graph-table") == 2
 
 
+@pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
 def test_named_query_view_gets_its_own_overlay_when_allowlisted(tmp_path: Path) -> None:
     """Known limitation item 2: overlays covered only the default view
     before this. A project that lists a query in [graph] overlay-queries
