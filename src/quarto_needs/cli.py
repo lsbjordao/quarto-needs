@@ -5,9 +5,7 @@ import json
 import os
 import sys
 from collections import deque
-from collections.abc import Iterable
 from pathlib import Path
-from typing import TextIO
 
 from . import diff as diff_module
 from . import evidence as evidence_module
@@ -15,7 +13,7 @@ from . import impact as impact_module
 from .analysis import analyze_project
 from .baseline import DEFAULT_BASELINE_PATH, BaselineError, build_baseline, build_invalid_baseline, load_baseline, write_baseline
 from .config import NeedsConfig, load_config
-from .diagnostics import Finding
+from .diagnostics import print_findings
 from .export import _write_atomic_text, write_build_outputs, write_v1_graph
 from .exporters import csv_export, junit_export, markdown_export, sarif_export
 from .metrics import render_measure
@@ -30,12 +28,6 @@ class ConfigurationFailure(Exception):
 
 def _root(value: str | None) -> Path:
     return Path(value or os.getcwd()).resolve()
-
-
-def print_findings(findings: Iterable[Finding], stream: TextIO) -> None:
-    for finding in findings:
-        mark = "ERROR" if finding.severity == "error" else "WARN"
-        print(f"[{mark}] {finding.code}: {finding.message}", file=stream)
 
 
 def _reachable(
@@ -63,63 +55,16 @@ def _reachable(
 
 
 def build(root: Path, quiet: bool = False) -> int:
-    try:
-        config = load_config(root)
-    except ValueError as error:
-        if not quiet:
-            print(f"Configuration error: {error}", file=sys.stderr)
-        return 2
-    try:
-        result = analyze_project(root, config=config)
-        if result.snapshot is None:
-            if not quiet:
-                print_findings(result.findings, stream=sys.stderr)
-            return 1
-        queries = materialize_queries(config, result.snapshot)
-        # The Lua dashboard reads only what Python projects here, so a configured
-        # project ships its materialized queries and its precomputed report.
-        extra_extensions = (
-            {
-                "quartoNeeds": {
-                    "queries": {name: list(queries[name]) for name in sorted(queries)},
-                    "report": report_from_snapshot(
-                        result.snapshot, config, queries=queries
-                    ).to_dict(),
-                }
-            }
-            if config.present
-            else None
-        )
-        write_build_outputs(
-            root / ".quarto-needs" / "needs.json",
-            root / "_extensions" / "quarto-needs" / "generated-index.lua",
-            result.snapshot,
-            extra_extensions=extra_extensions,
-        )
-        from .graph_output import write_default_projection
+    """Run the canonical Quarto pre-render build.
 
-        write_default_projection(root, result.snapshot, config)
+    The implementation lives in `quarto_integration` because the extension
+    bootstrap calls it too; `scan` and the extension must be the same
+    operation, not two that agree today. This wrapper stays because it is
+    the established name for callers inside and outside the repository.
+    """
+    from .quarto_integration import run_quarto_pre_render
 
-        from .graph_output import write_c4_projections
-
-        write_c4_projections(root, result.snapshot)
-    except OSError as error:
-        # Reading the project or writing either artifact failed; both are
-        # operational, not validation, failures.
-        print(f"Could not scan {root}: {error}", file=sys.stderr)
-        return 3
-    if not quiet:
-        metrics = result.snapshot.metrics
-        print(
-            f"Quarto-Needs: {len(result.snapshot.objects)} objects, "
-            f"{len(result.findings)} findings"
-        )
-        print(
-            f"Requirements: {metrics['requirements']} | "
-            f"implemented: {metrics['implementation_coverage']}% | "
-            f"verified: {metrics['verification_coverage']}%"
-        )
-    return 1 if any(f.severity == "error" for f in result.findings) else 0
+    return run_quarto_pre_render(root, quiet=quiet)
 
 
 def _print_quality_text(report: QualityReport) -> None:

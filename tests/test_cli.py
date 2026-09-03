@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from quarto_needs import cli
+from quarto_needs import cli, quarto_integration
 
 
 def write_valid_project(root: Path) -> None:
@@ -76,7 +76,11 @@ def test_each_command_analyzes_project_once(
         calls += 1
         return real_analyze(root, **kwargs)
 
+    # `scan` runs its analysis inside the canonical pre-render service and
+    # the other commands run theirs in the CLI, so count across both: the
+    # invariant is one analysis per command, wherever it is issued from.
     monkeypatch.setattr(cli, "analyze_project", counted)
+    monkeypatch.setattr(quarto_integration, "analyze_project", counted)
 
     assert cli.main(["--root", str(tmp_path), *arguments]) == 0
     assert calls == 1
@@ -541,7 +545,7 @@ def test_build_projects_the_report_with_one_analysis(
         calls += 1
         return real_analyze(root, **kwargs)
 
-    monkeypatch.setattr(cli, "analyze_project", counted)
+    monkeypatch.setattr(quarto_integration, "analyze_project", counted)
 
     assert cli.build(tmp_path, quiet=True) == 0
     assert calls == 1

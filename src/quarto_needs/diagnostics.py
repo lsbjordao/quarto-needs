@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Mapping
+from typing import Mapping, TextIO
 
 from .snapshot import LocationRecord, freeze_json, thaw_json
 
@@ -47,3 +48,16 @@ class Finding:
         if self.properties:
             result["properties"] = thaw_json(self.properties)
         return result
+
+
+def print_findings(findings: Iterable[Finding], stream: TextIO) -> None:
+    """Write findings as one human-readable line each.
+
+    Lives beside `Finding` rather than in the CLI because the CLI is not the
+    only caller: the Quarto pre-render service reports the same findings the
+    same way, and routing that through the command-line module would make
+    every consumer of a diagnostic depend on the command-line surface.
+    """
+    for finding in findings:
+        mark = "ERROR" if finding.severity == "error" else "WARN"
+        print(f"[{mark}] {finding.code}: {finding.message}", file=stream)
