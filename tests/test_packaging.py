@@ -2,8 +2,12 @@ from __future__ import annotations
 
 import re
 import sys
-import tomllib
 from pathlib import Path
+
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib
 
 import quarto_needs
 
@@ -142,3 +146,26 @@ def test_the_release_workflow_refuses_a_tag_that_disagrees_with_the_package() ->
     workflow = RELEASE_WORKFLOW.read_text(encoding="utf-8")
 
     assert "Verify the tag matches the packaged version" in workflow
+
+
+def test_tomli_is_declared_for_python_versions_that_need_it() -> None:
+    """`config.py` and `oslc_profiles.py` fall back to `import tomli as
+    tomllib` on Python < 3.11, since `tomllib` is standard library only
+    from 3.11 onward. `requires-python` is ">=3.10", so that fallback is a
+    real runtime path for a real supported version -- and until now `tomli`
+    was not declared as a dependency anywhere, meaning `pip install
+    quarto-needs` on Python 3.10 would have installed a package whose own
+    config loader crashes with ModuleNotFoundError the first time it runs.
+
+    It happened to work locally and in CI's own test collection only
+    because something else transitively pulled `tomli` in; that is luck,
+    not a contract.
+    """
+    pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    dependencies = pyproject["project"]["dependencies"]
+
+    tomli_entries = [dep for dep in dependencies if dep.split(";")[0].strip().split(">")[0].split("=")[0].strip() == "tomli"]
+    assert tomli_entries, "tomli must be declared as a dependency for Python < 3.11"
+    assert "python_version" in tomli_entries[0] and "3.11" in tomli_entries[0], (
+        f"tomli should be conditional on Python < 3.11, got: {tomli_entries[0]!r}"
+    )

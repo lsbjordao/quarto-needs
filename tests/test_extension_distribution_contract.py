@@ -18,11 +18,16 @@ Plan: docs/superpowers/plans/2026-09-02-extension-first-distribution.md (Task 1)
 from __future__ import annotations
 
 import re
-import tomllib
+import sys
 from pathlib import Path
 
 import pytest
 import yaml
+
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "_extensions" / "quarto-needs" / "_extension.yml"
