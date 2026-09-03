@@ -9,6 +9,8 @@ from pathlib import Path
 
 import pytest
 
+from quarto_needs.cli_entry import main as cli_main
+
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -23,13 +25,7 @@ def copy_fixture_project(tmp_path: Path, name: str) -> Path:
 def build_c4_fixture_project(tmp_path: Path) -> Path:
     """Scan C4 source before Quarto consumes the generated projections."""
     project = copy_fixture_project(tmp_path, "c4")
-    subprocess.run(
-        [".venv/bin/quarto-needs", "--root", str(project), "scan"],
-        cwd=ROOT,
-        check=True,
-        text=True,
-        capture_output=True,
-    )
+    assert cli_main(["--root", str(project), "scan"]) == 0
     return project
 
 
@@ -775,13 +771,7 @@ def build_overlays_fixture_project(tmp_path: Path, *, with_baseline: bool = True
             ),
             encoding="utf-8",
         )
-    subprocess.run(
-        [".venv/bin/quarto-needs", "--root", str(project), "scan"],
-        cwd=ROOT,
-        check=True,
-        text=True,
-        capture_output=True,
-    )
+    assert cli_main(["--root", str(project), "scan"]) == 0
     return project
 
 
@@ -885,10 +875,7 @@ def test_need_graph_renders_a_table_with_zero_edges_without_crashing(tmp_path: P
         "{{< need-graph >}}\n",
         encoding="utf-8",
     )
-    subprocess.run(
-        [".venv/bin/quarto-needs", "--root", str(project), "scan"],
-        cwd=ROOT, check=True, text=True, capture_output=True,
-    )
+    assert cli_main(["--root", str(project), "scan"]) == 0
     subprocess.run(
         ["quarto", "render", str(project)],
         cwd=ROOT, check=True, text=True, capture_output=True,
@@ -927,24 +914,15 @@ def test_named_query_view_gets_its_own_overlay_when_allowlisted(tmp_path: Path) 
         '{{< need-graph view="reqs-only" id="reqs-view" >}}\n',
         encoding="utf-8",
     )
-    subprocess.run(
-        [".venv/bin/quarto-needs", "--root", str(project), "scan"],
-        cwd=ROOT, check=True, text=True, capture_output=True,
-    )
-    subprocess.run(
-        [".venv/bin/quarto-needs", "--root", str(project), "baseline", "create"],
-        cwd=ROOT, check=True, text=True, capture_output=True,
-    )
+    assert cli_main(["--root", str(project), "scan"]) == 0
+    assert cli_main(["--root", str(project), "baseline", "create"]) == 0
     (project / "index.qmd").write_text(
         (project / "index.qmd").read_text(encoding="utf-8").replace(
             "Original body.", "Revised body."
         ),
         encoding="utf-8",
     )
-    subprocess.run(
-        [".venv/bin/quarto-needs", "--root", str(project), "scan"],
-        cwd=ROOT, check=True, text=True, capture_output=True,
-    )
+    assert cli_main(["--root", str(project), "scan"]) == 0
     subprocess.run(
         ["quarto", "render", str(project)],
         cwd=ROOT, check=True, text=True, capture_output=True,
