@@ -5,21 +5,6 @@ local MAX_NODES = 100
 local MAX_EDGES = 300
 local MAX_DEPTH = 10
 
-local palettes = {
-  ["stakeholder-need"] = "fill:#f1f5f9,stroke:#475569,color:#1e293b",
-  ["system-requirement"] = "fill:#dbeafe,stroke:#1d4ed8,color:#1e3a8a",
-  ["functional-requirement"] = "fill:#dbeafe,stroke:#2563eb,color:#1e3a8a",
-  ["non-functional-requirement"] = "fill:#ede9fe,stroke:#7c3aed,color:#4c1d95",
-  ["test-case"] = "fill:#ccfbf1,stroke:#0f766e,color:#134e4a",
-  evidence = "fill:#dcfce7,stroke:#15803d,color:#14532d",
-  risk = "fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d",
-  threat = "fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d",
-  component = "fill:#fef3c7,stroke:#b45309,color:#78350f",
-  interface = "fill:#ffedd5,stroke:#c2410c,color:#7c2d12",
-}
-
-local fallback_palette = "fill:#f8fafc,stroke:#64748b,color:#1e293b"
-
 local function text(value)
   if value == nil then return "" end
   return pandoc.utils.stringify(value)
@@ -58,8 +43,7 @@ local function sorted_relations(relations, allowed)
 end
 
 local function palette_for(object_type, views)
-  local slug = views.slug(object_type)
-  return palettes[slug] or fallback_palette
+  return views.type_palette(object_type)
 end
 
 local function add_warning(warnings, message)

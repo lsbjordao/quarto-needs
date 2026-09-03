@@ -25,6 +25,35 @@ function M.slug(value)
   return text(value):lower():gsub("[^%w]+", "-"):gsub("^-", ""):gsub("-$", "")
 end
 
+-- Shared with needs.css's `.need-badge.need-type-*` rules: the same hex
+-- values, so a node's mermaid diagram color always matches its card badge
+-- color on the same page. Any renderer that draws a typed node (need-flow,
+-- need-graph's static fallback) should read from here rather than keep its
+-- own palette, or the two would silently drift apart.
+local TYPE_PALETTE = {
+  ["stakeholder-need"] = "fill:#f1f5f9,stroke:#475569,color:#1e293b",
+  ["system-requirement"] = "fill:#dbeafe,stroke:#1d4ed8,color:#1e3a8a",
+  ["functional-requirement"] = "fill:#dbeafe,stroke:#2563eb,color:#1e3a8a",
+  ["non-functional-requirement"] = "fill:#ede9fe,stroke:#7c3aed,color:#4c1d95",
+  ["test-case"] = "fill:#ccfbf1,stroke:#0f766e,color:#134e4a",
+  evidence = "fill:#dcfce7,stroke:#15803d,color:#14532d",
+  risk = "fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d",
+  threat = "fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d",
+  component = "fill:#fef3c7,stroke:#b45309,color:#78350f",
+  interface = "fill:#ffedd5,stroke:#c2410c,color:#7c2d12",
+  ["architecture-decision"] = "fill:#e6fffb,stroke:#0f5f5b,color:#134e4a",
+  actor = "fill:#fce7f3,stroke:#be185d,color:#831843",
+  ["external-system"] = "fill:#e0e7ff,stroke:#4338ca,color:#312e81",
+  system = "fill:#e0f2fe,stroke:#0369a1,color:#0c4a6e",
+  container = "fill:#ecfccb,stroke:#4d7c0f,color:#365314",
+  ["source-module"] = "fill:#f5f5f4,stroke:#57534e,color:#292524",
+}
+local TYPE_PALETTE_FALLBACK = "fill:#f8fafc,stroke:#64748b,color:#1e293b"
+
+function M.type_palette(object_type)
+  return TYPE_PALETTE[M.slug(object_type)] or TYPE_PALETTE_FALLBACK
+end
+
 local ASSETS_FLAG = "__quarto_needs_assets_added_v1"
 function M.ensure_assets()
   if rawget(_G, ASSETS_FLAG) or not quarto.doc.is_format("html:js") then return end

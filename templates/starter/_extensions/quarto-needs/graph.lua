@@ -61,13 +61,23 @@ local function edge_label(edge)
   return escape_mermaid(text(edge.label) .. suffix)
 end
 
-local function mermaid_source(projection)
+function M.mermaid_source(projection)
   local lines = {"flowchart LR"}
+  local classes = {}
   for _, node in ipairs(projection.nodes) do
+    local class_name = "need_type_" .. views.slug(node.type):gsub("-", "_")
     table.insert(lines, '  ' .. node_ref(node.id) .. '["' .. node_label(node) .. '"]')
+    table.insert(lines, '  class ' .. node_ref(node.id) .. ' ' .. class_name)
+    classes[class_name] = views.type_palette(node.type)
   end
   for _, edge in ipairs(projection.edges) do
     table.insert(lines, '  ' .. node_ref(edge.source) .. ' -->|"' .. edge_label(edge) .. '"| ' .. node_ref(edge.target))
+  end
+  local class_names = {}
+  for class_name in pairs(classes) do class_names[#class_names + 1] = class_name end
+  table.sort(class_names)
+  for _, class_name in ipairs(class_names) do
+    table.insert(lines, '  classDef ' .. class_name .. ' ' .. classes[class_name])
   end
   return table.concat(lines, "\n")
 end
@@ -315,7 +325,7 @@ function M.render_shortcode(args, kwargs)
   end
 
   local blocks = {}
-  local source = mermaid_source(projection)
+  local source = M.mermaid_source(projection)
   local description = views.tr("Traceability graph for ", "Grafo de rastreabilidade para ") .. instance_id
   local rendered = false
   if views.is_html_format() then
