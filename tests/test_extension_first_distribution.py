@@ -205,3 +205,48 @@ def test_the_manifest_command_is_relative_to_the_project(tmp_path) -> None:
 
     assert "quarto run _extensions/quarto-needs/bootstrap.py" in manifest
     assert str(ROOT) not in manifest, "an absolute path leaked into the manifest"
+
+
+# --- Minimum supported Quarto ----------------------------------------------
+
+MINIMUM_QUARTO_ENV = "QUARTO_NEEDS_MIN_QUARTO_BIN"
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(
+    not os.environ.get(MINIMUM_QUARTO_ENV),
+    reason=f"set {MINIMUM_QUARTO_ENV} to a Quarto 1.6.0 binary to run the floor gate",
+)
+def test_the_declared_quarto_floor_actually_renders(tmp_path) -> None:
+    """`quarto-required: ">=1.6.0"` is a claim, so prove it on 1.6.0 itself.
+
+    Metadata extensions predate the floor, but "predates" is not "works":
+    whether Quarto 1.6.0 merges a contributed `project.pre-render` and
+    resolves a relative `quarto run` is a fact about that release. Keeping
+    the floor requires this to pass; if it ever stops passing, the floor
+    moves, deliberately and with documentation, rather than the test being
+    weakened.
+
+    The project path contains spaces here too, so the release gate is
+    covered on the minimum version and not only the current one.
+    """
+    binary = Path(os.environ[MINIMUM_QUARTO_ENV]).resolve()
+    assert binary.is_file(), binary
+
+    project = consumer_project(tmp_path / "Minimum Quarto Consumer")
+    completed = subprocess.run(
+        [str(binary), "render"],
+        cwd=str(project),
+        capture_output=True,
+        text=True,
+        env={
+            "PATH": f"{binary.parent}:/usr/local/bin:/usr/bin:/bin",
+            "HOME": os.environ.get("HOME", str(project)),
+            "LANG": os.environ.get("LANG", "C.UTF-8"),
+            "QUARTO_NEEDS_ENGINE_SOURCE": os.environ["QUARTO_NEEDS_ENGINE_SOURCE"],
+        },
+        timeout=900,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    assert_render_contract(project)

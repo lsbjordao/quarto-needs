@@ -969,3 +969,108 @@ def test_named_query_view_gets_its_own_overlay_when_allowlisted(tmp_path: Path) 
     # shortcode's chosen instance id, used only for the embed attribute.
     assert overlays["view"] == "need-graph-query-reqs-only"
     assert overlays["diff"]["nodes"] == {"REQ-1": "modified"}
+
+
+@pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
+def test_need_c4_diagram_never_exceeds_the_content_column(tmp_path: Path):
+    """A C4 diagram must fit the page, the way need-flow already does.
+
+    The inline SVG carries its intrinsic width and height so the whole
+    diagram survives (Quarto's mermaid-to-PNG path screenshots at ~800px and
+    crops wider ones). Intrinsic size is exactly what overflows the content
+    column when the diagram is large, so it needs the same treatment
+    need-flow gets: a scroll container, and CSS scaling it down to the
+    available width instead of letting it push the page sideways.
+
+    The retractable sidebar exists to give this content more room; a diagram
+    that ignores the column width defeats that.
+    """
+    project = build_c4_fixture_project(tmp_path)
+    subprocess.run(
+        ["quarto", "render", str(project)],
+        cwd=ROOT,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    html = (project / "_site" / "index.html").read_text(encoding="utf-8")
+
+    assert "need-c4-figure" in html
+    # The diagram sits inside a scroll container rather than loose in the flow.
+    scroll = re.search(
+        r'<div[^>]*class="[^"]*need-c4-scroll[^"]*"[^>]*>(.*?)</div>', html, re.S
+    )
+    assert scroll, "the C4 diagram is not wrapped in a scroll container"
+    assert "need-c4-figure" in scroll.group(1)
+
+    css = (ROOT / "_extensions" / "quarto-needs" / "needs.css").read_text(
+        encoding="utf-8"
+    )
+    block = css.split(".need-c4-scroll", 1)[1]
+    assert "max-width: 100%" in block
+    assert "height: auto" in block
+
+
+@pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
+def test_need_graph_diagram_never_exceeds_the_content_column(tmp_path: Path):
+    """The static graph diagram must fit the page, like need-flow does.
+
+    `need-graph` renders a Mermaid SVG as its no-JavaScript fallback. That
+    SVG carries intrinsic width and height so the whole diagram survives,
+    which is also exactly what pushes a large traceability graph past the
+    content column and forces the page to scroll sideways.
+    """
+    project = build_overlays_fixture_project(tmp_path, with_baseline=False)
+    subprocess.run(
+        ["quarto", "render", str(project)],
+        cwd=ROOT,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    html = (project / "_site" / "index.html").read_text(encoding="utf-8")
+
+    assert "need-graph-figure" in html
+    scroll = re.search(
+        r'<div[^>]*class="[^"]*need-graph-scroll[^"]*"[^>]*>(.*?)</div>', html, re.S
+    )
+    assert scroll, "the graph diagram is not wrapped in a scroll container"
+    assert "need-graph-figure" in scroll.group(1)
+
+    css = (ROOT / "_extensions" / "quarto-needs" / "needs.css").read_text(
+        encoding="utf-8"
+    )
+    block = css.split(".need-graph-scroll", 1)[1]
+    assert "max-width: 100%" in block
+    assert "height: auto" in block
+
+
+@pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
+def test_need_graph_labels_never_leak_a_lua_null_sentinel(tmp_path: Path):
+    """A node with no priority must not render `userdata: 0x...` in its label.
+
+    The public projection writes `"priority": null` for an object that
+    declares none. Quarto's Lua JSON decoder represents null as a userdata
+    sentinel, not `nil`, so a truthiness guard lets it through and
+    `tostring` stamps the pointer into the diagram label.
+    """
+    project = build_overlays_fixture_project(tmp_path, with_baseline=False)
+    projection = json.loads(
+        next((project / ".quarto-needs" / "graphs").glob("need-graph-*.json")).read_text(
+            encoding="utf-8"
+        )
+    )
+    assert any(node.get("priority") is None for node in projection["nodes"]), (
+        "fixture no longer exercises a null priority"
+    )
+
+    subprocess.run(
+        ["quarto", "render", str(project)],
+        cwd=ROOT,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    html = (project / "_site" / "index.html").read_text(encoding="utf-8")
+
+    assert "userdata" not in html

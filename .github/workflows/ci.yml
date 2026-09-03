@@ -126,7 +126,9 @@ jobs:
         uses: quarto-dev/quarto-actions/setup@v2
         with:
           version: "1.10.18"
-      - name: Verify the installed path
+      - name: Verify both installation paths
+        # check-install runs the extension-first scenario (the primary one)
+        # and the CLI-installed scenario (still supported).
         run: make check-install
 
   quarto-minimum:
@@ -155,6 +157,12 @@ jobs:
         run: make render-minimal-example
       - name: Verify rendered output
         run: test -f examples/minimal/_book/index.html
+      - name: Verify the extension-first path on the declared minimum Quarto
+        # `quarto-required: ">=1.6.0"` is a claim about the metadata
+        # contribution and the relative `quarto run` command. Metadata
+        # extensions predate the floor, but predating it is not the same as
+        # working on it, so the floor is gated here rather than assumed.
+        run: make check-extension-first
 
   quality:
     name: Quality artifacts
