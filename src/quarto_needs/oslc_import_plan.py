@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import PurePosixPath
 from types import MappingProxyType
 from typing import Literal, Mapping
@@ -89,7 +89,7 @@ class ImportPlanItem:
     target_path: str | None
     source_digest: str
     fetched_at: str
-    changes: Mapping[str, Mapping[str, object]] = MappingProxyType({})
+    changes: Mapping[str, Mapping[str, object]] = field(default_factory=lambda: MappingProxyType({}))
     message: str = ""
 
     def __post_init__(self) -> None:

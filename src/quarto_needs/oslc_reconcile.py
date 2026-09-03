@@ -58,7 +58,7 @@ class ReconciliationItem:
     status: ReconciliationStatus
     canonical_id: str | None
     external_identifier: str | None
-    differences: Mapping[str, Mapping[str, object]] = MappingProxyType({})
+    differences: Mapping[str, Mapping[str, object]] = field(default_factory=lambda: MappingProxyType({}))
     message: str = ""
 
     def to_dict(self) -> dict[str, object]:

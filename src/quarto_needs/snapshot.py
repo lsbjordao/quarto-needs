@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import TYPE_CHECKING
 
@@ -174,8 +174,8 @@ class AnalysisSnapshot:
     configuration_fingerprint: str = ""
     semantic_graph_fingerprint: str = ""
     representation_fingerprint: str = ""
-    derived: Mapping[str, Mapping[str, object]] = MappingProxyType({})
-    variants: Mapping[str, tuple[str, ...]] = MappingProxyType({})
+    derived: Mapping[str, Mapping[str, object]] = field(default_factory=lambda: MappingProxyType({}))
+    variants: Mapping[str, tuple[str, ...]] = field(default_factory=lambda: MappingProxyType({}))
     variant_fingerprint: str = ""
 
     def __post_init__(self) -> None:

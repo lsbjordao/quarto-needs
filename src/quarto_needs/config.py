@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
 from pathlib import Path
 from types import MappingProxyType
@@ -103,14 +103,14 @@ class NeedsConfig:
     gates: Gates
     graph: GraphSettings = GraphSettings()
     present: bool = False
-    id_prefixes: Mapping[str, str] = MappingProxyType({})
-    type_roles: Mapping[str, str] = MappingProxyType({})
-    allowed_statuses: Mapping[str, tuple[str, ...]] = MappingProxyType({})
-    policy_sources: Mapping[str, Mapping[str, Any]] = MappingProxyType({})
-    attribute_schemas: Mapping[str, Mapping[str, Any]] = MappingProxyType({})
-    constraint_sources: Mapping[str, Mapping[str, Any]] = MappingProxyType({})
-    derived_sources: Mapping[str, Mapping[str, Any]] = MappingProxyType({})
-    variant_sources: Mapping[str, Mapping[str, Any]] = MappingProxyType({})
+    id_prefixes: Mapping[str, str] = field(default_factory=lambda: MappingProxyType({}))
+    type_roles: Mapping[str, str] = field(default_factory=lambda: MappingProxyType({}))
+    allowed_statuses: Mapping[str, tuple[str, ...]] = field(default_factory=lambda: MappingProxyType({}))
+    policy_sources: Mapping[str, Mapping[str, Any]] = field(default_factory=lambda: MappingProxyType({}))
+    attribute_schemas: Mapping[str, Mapping[str, Any]] = field(default_factory=lambda: MappingProxyType({}))
+    constraint_sources: Mapping[str, Mapping[str, Any]] = field(default_factory=lambda: MappingProxyType({}))
+    derived_sources: Mapping[str, Mapping[str, Any]] = field(default_factory=lambda: MappingProxyType({}))
+    variant_sources: Mapping[str, Mapping[str, Any]] = field(default_factory=lambda: MappingProxyType({}))
 
     def canonical_document(self) -> dict[str, object]:
         try:

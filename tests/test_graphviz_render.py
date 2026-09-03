@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import shutil
 import subprocess
+
+import pytest
 
 from quarto_needs.graph_projection import GraphProjection, PublicEdge, PublicNode
 from quarto_needs.graphviz_render import dot_source
@@ -33,6 +36,7 @@ def test_dot_source_keeps_semantic_labels_visible() -> None:
     assert 'label="Depends on"' in source
 
 
+@pytest.mark.skipif(shutil.which("dot") is None, reason="Graphviz is not installed")
 def test_dot_source_is_accepted_by_graphviz(tmp_path) -> None:
     dot_file = tmp_path / "graph.dot"
     dot_file.write_text(dot_source(_projection()), encoding="utf-8")
