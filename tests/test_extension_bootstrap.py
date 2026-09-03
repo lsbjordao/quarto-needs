@@ -827,3 +827,151 @@ def test_an_unsatisfiable_engine_source_fails_the_render(tmp_path) -> None:
     assert not (root / ".quarto-needs" / "needs.json").exists(), (
         "wrote a graph despite failing to provision an engine"
     )
+
+
+# --- Task 8: hardening --------------------------------------------------
+
+
+def test_the_first_run_offline_failure_names_everything_the_spec_requires(
+    tmp_path,
+) -> None:
+    """§11: a first-run failure must be actionable, not merely "it failed".
+
+    No cached runtime and an unreachable engine source is the worst case: the
+    render has nothing to fall back on. The message must say which engine
+    version was needed, that no managed runtime exists, that provisioning
+    failed, and how to recover -- an online render or a local engine source.
+    """
+    identity = bootstrap.runtime_identity()
+
+    def unreachable(target: Path, source: str) -> None:
+        raise bootstrap.BootstrapError(
+            "Installing the Quarto-Needs engine (quarto-needs==9.9.9) failed:\n"
+            "ERROR: No matching distribution found for quarto-needs==9.9.9"
+        )
+
+    with pytest.raises(bootstrap.BootstrapError) as caught:
+        bootstrap.ensure_runtime(tmp_path, "9.9.9", identity, installer=unreachable)
+
+    message = str(caught.value)
+    assert "9.9.9" in message, "must name the required engine version"
+    assert "no managed runtime" in message.lower(), "must say none exists yet"
+    assert "could not be provisioned" in message.lower() or "failed" in message.lower()
+    assert "QUARTO_NEEDS_ENGINE_SOURCE" in message, "must name the recovery path"
+    assert "online" in message.lower() or "network" in message.lower(), (
+        "must mention rendering once with network access as the other recovery"
+    )
+
+
+def test_a_runtime_valid_for_one_version_does_not_satisfy_a_request_for_another(
+    tmp_path,
+) -> None:
+    """An update from 0.1.0 to 0.2.0 must reprovision, not reuse silently."""
+    identity = bootstrap.runtime_identity()
+
+    def planting(version: str):
+        return lambda target, source: _plant_engine(target, version)
+
+    old_dir = bootstrap.ensure_runtime(
+        tmp_path, "0.1.0", identity, installer=planting("0.1.0")
+    )
+    assert bootstrap.runtime_is_valid(old_dir, "0.1.0", identity)
+    assert not bootstrap.runtime_is_valid(old_dir, "0.2.0", identity)
+
+
+@pytest.mark.slow
+def test_two_concurrent_bootstrap_processes_produce_one_installation(tmp_path) -> None:
+    """Two real processes race on the same clean project.
+
+    Both must end up with a valid runtime; neither may see a partial one; and
+    the losing process's wait for the lock must not itself corrupt anything.
+    This is the scenario the lock exists for, run for real rather than only
+    at the unit level.
+    """
+    import subprocess
+
+    root = _consumer_project(tmp_path / "consumer")
+
+    def launch():
+        environment = dict(os.environ)
+        environment["QUARTO_NEEDS_ENGINE_SOURCE"] = str(ROOT)
+        environment["QUARTO_PROJECT_DIR"] = str(root)
+        environment.pop("PYTHONPATH", None)
+        return subprocess.Popen(
+            [
+                sys.executable,
+                str(root / "_extensions" / "quarto-needs" / "bootstrap.py"),
+            ],
+            cwd=str(root),
+            env=environment,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+
+    import os
+
+    first = launch()
+    second = launch()
+    first_out, first_err = first.communicate(timeout=600)
+    second_out, second_err = second.communicate(timeout=600)
+
+    assert first.returncode == 0, first_err
+    assert second.returncode == 0, second_err
+
+    identity = bootstrap.runtime_identity()
+    version = bootstrap.extension_version()
+    runtime_dir = bootstrap.runtime_directory(root, version, identity)
+    assert bootstrap.runtime_is_valid(runtime_dir, version, identity)
+
+    # Exactly one final publication: no `.staging-*` leftovers from either
+    # process, and no second sibling runtime directory for this identity.
+    staging_leftovers = list(bootstrap.runtime_root(root).glob(".staging-*"))
+    assert staging_leftovers == [], staging_leftovers
+    siblings = list((bootstrap.runtime_root(root) / version).iterdir())
+    assert siblings == [bootstrap.runtime_directory(root, version, identity)], siblings
+
+
+def test_a_missing_pip_module_is_detected_before_any_network_attempt(
+    monkeypatch, tmp_path
+) -> None:
+    """No pip: fail with a diagnosis, never fall back to a global ensurepip."""
+
+    def broken(target, source):
+        return [sys.executable, "-c", "import sys; sys.exit(1)"]
+
+    monkeypatch.setattr(bootstrap, "provision_command", broken)
+
+    with pytest.raises(bootstrap.BootstrapError):
+        bootstrap.install_engine(tmp_path, "quarto-needs==0.1.0")
+
+    # No ensurepip invocation is ever constructed by the bootstrap.
+    source = (ROOT / "_extensions" / "quarto-needs" / "bootstrap.py").read_text(
+        encoding="utf-8"
+    )
+    assert "ensurepip" not in source
+
+
+def test_install_engine_honors_pip_index_url_from_the_environment(
+    monkeypatch, tmp_path
+) -> None:
+    """The release rehearsal points pip at TestPyPI without touching bootstrap.py.
+
+    `install_engine`'s subprocess inherits the parent environment rather than
+    replacing it, so `PIP_INDEX_URL`/`PIP_EXTRA_INDEX_URL` -- pip's own
+    mechanism -- reach the install without the bootstrap needing an index-url
+    parameter of its own. That absence is deliberate: spec §16 forbids
+    accepting an index/URL from project configuration. This proves the
+    inherited environment is really what pip subprocess sees, using a bogus
+    index whose distinctive failure could only come from pip having tried it.
+    """
+    monkeypatch.setenv("PIP_INDEX_URL", "https://example.invalid/simple/")
+    monkeypatch.delenv("PIP_EXTRA_INDEX_URL", raising=False)
+
+    with pytest.raises(bootstrap.BootstrapError) as caught:
+        bootstrap.install_engine(tmp_path, "quarto-needs==0.1.0")
+
+    message = str(caught.value)
+    assert "example.invalid" in message, (
+        "pip did not appear to use the PIP_INDEX_URL override at all"
+    )

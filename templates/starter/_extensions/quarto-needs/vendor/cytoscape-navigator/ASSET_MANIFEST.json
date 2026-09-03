@@ -1,0 +1,10 @@
+{
+  "name": "cytoscape-navigator",
+  "version": "2.0.2",
+  "license": "MIT",
+  "licenseFile": "LICENSE",
+  "main": "cytoscape-navigator.js",
+  "integrity": "sha256-12c9a9571287836897301adb4973e302bf85041beb03d838c35a3b0775cd24a5",
+  "sourceUrl": "https://unpkg.com/cytoscape-navigator@2.0.2/cytoscape-navigator.js",
+  "fetchedAt": "2026-09-02"
+}

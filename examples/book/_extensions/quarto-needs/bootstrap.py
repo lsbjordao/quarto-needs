@@ -394,7 +394,12 @@ def install_engine(target: Path, source: str) -> None:
             f"Quarto-Needs engine: {error}"
         )
     if completed.returncode != 0:
-        detail = (completed.stderr or completed.stdout or "").strip()
+        # pip splits diagnostically useful output across both streams --
+        # "Looking in indexes: ..." is stdout, the actual failure is
+        # stderr -- and keeping only one drops exactly the line a release
+        # rehearsal needs to confirm which index pip actually queried.
+        parts = [part.strip() for part in (completed.stdout, completed.stderr) if part.strip()]
+        detail = "\n".join(parts)
         raise BootstrapError(
             f"Installing the Quarto-Needs engine ({source}) failed:\n{detail}"
         )
@@ -473,7 +478,21 @@ def ensure_runtime(
     with exclusive_lock(lock_path(root)):
         if runtime_is_valid(runtime_dir, version, identity):
             return runtime_dir
-        return provision_runtime(root, version, identity, installer=installer)
+        try:
+            return provision_runtime(root, version, identity, installer=installer)
+        except BootstrapError as error:
+            # The worst case: no cached runtime, and provisioning just
+            # failed. The render has nothing to fall back on, so the message
+            # must be a complete diagnosis rather than a bare exception --
+            # which engine version was needed, that no runtime exists yet,
+            # that provisioning failed, and both ways to recover.
+            raise BootstrapError(
+                f"Quarto-Needs {version} has no managed runtime at {runtime_dir}, "
+                f"and it could not be provisioned:\n{error}\n\n"
+                "To recover, either render once with network access so the "
+                f"engine can be installed, or set {ENGINE_SOURCE_ENV} to a "
+                "local checkout or wheel of quarto-needs and render again."
+            ) from error
 
 
 # --- Engine invocation ------------------------------------------------------

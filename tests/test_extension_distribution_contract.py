@@ -91,6 +91,12 @@ def test_manifest_contributes_its_own_pre_render() -> None:
     ]
 
 
+def test_quickstart_points_at_the_zero_friction_starter_template() -> None:
+    quickstart = QUICKSTART.read_text(encoding="utf-8")
+
+    assert "quarto use template lsbjordao/quarto-needs/templates/starter" in quickstart
+
+
 def test_manifest_declares_the_quarto_floor() -> None:
     assert _manifest()["quarto-required"] == ">=1.6.0"
 
@@ -98,20 +104,33 @@ def test_manifest_declares_the_quarto_floor() -> None:
 # --- The two-piece install, as documented today -----------------------------
 
 
-def test_quickstart_tells_the_user_to_pip_install_the_engine_today() -> None:
+def test_quickstart_leads_with_the_extension_not_a_pip_install() -> None:
+    """Migrated in Task 10. This previously pinned the opposite.
+
+    The quickstart used to open with `pip install quarto-needs` and frame
+    Quarto-Needs as two installations. It now opens with `quarto add`, and
+    the pip install moves to an explicitly optional CLI/editor-tooling
+    section further down the page.
+    """
     quickstart = QUICKSTART.read_text(encoding="utf-8")
 
-    assert "pip install quarto-needs" in quickstart
-    assert re.search(r"ships as two pieces", quickstart), (
-        "the quickstart currently frames Quarto-Needs as two installations"
-    )
+    assert quickstart.index("quarto add lsbjordao/quarto-needs") < quickstart.index(
+        "pip install quarto-needs"
+    ), "the extension must be the first install step, not pip"
+    assert "## Optional: the standalone CLI and editor tooling" in quickstart
 
 
-def test_quickstart_tells_the_user_to_author_the_pre_render_hook_today() -> None:
+def test_quickstart_authors_no_pre_render_hook() -> None:
+    """Migrated in Task 10. This previously pinned the opposite: a hand-authored
+    `pre-render: quarto-needs scan` line in the documented `_quarto.yml`.
+
+    Activating the filter now installs the pre-render step itself, so the
+    documented project file must not tell the reader to author one.
+    """
     quickstart = QUICKSTART.read_text(encoding="utf-8")
 
-    assert "pre-render: quarto-needs scan" in quickstart
-    assert "## 3. Wire the pre-render hook" in quickstart
+    assert "pre-render: quarto-needs scan" not in quickstart
+    assert "Activating the filter also installs the" in quickstart
 
 
 def test_quickstart_documents_extension_activation() -> None:

@@ -98,6 +98,64 @@ jobs:
           quarto-needs --help >/dev/null
           ./tools/check_installed_path.sh
 
+      # The CLI path above proves the package itself installs and runs. This
+      # proves the *other* thing a release ships: an extension whose
+      # contributed bootstrap can provision this exact candidate with no
+      # local source override -- the path an ordinary Quarto user actually
+      # takes. PIP_INDEX_URL/PIP_EXTRA_INDEX_URL are pip's own mechanism;
+      # the bootstrap subprocess inherits them from this job's environment
+      # without any index-url parameter of its own (the bootstrap
+      # deliberately accepts no index/URL from project configuration).
+      - name: Provision the published candidate through the extension bootstrap
+        env:
+          PIP_INDEX_URL: https://test.pypi.org/simple/
+          PIP_EXTRA_INDEX_URL: https://pypi.org/simple/
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          WORK="$(mktemp -d)/Release Rehearsal Consumer"
+          mkdir -p "$WORK/_extensions"
+          cp -r _extensions/quarto-needs "$WORK/_extensions/"
+          cat > "$WORK/_quarto.yml" <<'YAML'
+          project:
+            type: default
+          filters:
+            - quarto-needs
+          YAML
+          cat > "$WORK/index.qmd" <<'QMD'
+          ---
+          title: "Release rehearsal"
+          ---
+
+          ::: {.need #REQ-1 type=functional-requirement status=approved priority=high}
+          ## Authenticate the user
+
+          The system shall authenticate the user.
+
+          ### Rationale
+          Protect private data.
+          :::
+
+          Count: {{< need-count types="functional-requirement" >}}
+          QMD
+          for attempt in 1 2 3 4 5; do
+            if ( cd "$WORK" && quarto render . ); then
+              break
+            fi
+            echo "TestPyPI has not indexed ${VERSION} yet; retrying in 30s"
+            sleep 30
+          done
+          grep -q 'data-need-count="1"' "$WORK/index.html"
+          grep -q 'need-card' "$WORK/index.html"
+          MARKER="$(find "$WORK/.quarto-needs/runtime" -name installed.json | head -1)"
+          [[ -n "$MARKER" ]]
+          python3 -c "
+          import json
+          marker = json.load(open('$MARKER'))
+          assert marker['engineVersion'] == '${VERSION}', marker
+          print('extension bootstrap provisioned', marker['engineVersion'], 'from TestPyPI')
+          "
+
   publish:
     name: Publish to PyPI
     needs: rehearse
@@ -119,3 +177,76 @@ jobs:
 
       - name: Publish
         uses: pypa/gh-action-pypi-publish@release/v1
+
+  verify-production:
+    name: Verify the production package renders through the extension
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: "1.10.18"
+
+      # No QUARTO_NEEDS_ENGINE_SOURCE, no index override: this is the exact
+      # experience of the person who runs `quarto add` and `quarto render`
+      # the moment this release goes live. It is the last gate, run after
+      # publication rather than before, because it is the only step that can
+      # prove the artifact people will actually download works -- everything
+      # before this rehearsed against a build or a test index.
+      - name: Render a fresh project against the real published package
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          WORK="$(mktemp -d)/Production Verification Consumer"
+          mkdir -p "$WORK/_extensions"
+          cp -r _extensions/quarto-needs "$WORK/_extensions/"
+          cat > "$WORK/_quarto.yml" <<'YAML'
+          project:
+            type: default
+          filters:
+            - quarto-needs
+          YAML
+          cat > "$WORK/index.qmd" <<'QMD'
+          ---
+          title: "Production verification"
+          ---
+
+          ::: {.need #REQ-1 type=functional-requirement status=approved priority=high}
+          ## Authenticate the user
+
+          The system shall authenticate the user.
+
+          ### Rationale
+          Protect private data.
+          :::
+
+          Count: {{< need-count types="functional-requirement" >}}
+          QMD
+          for attempt in 1 2 3 4 5; do
+            if ( cd "$WORK" && quarto render . ); then
+              break
+            fi
+            echo "PyPI has not indexed ${VERSION} yet; retrying in 30s"
+            sleep 30
+          done
+          grep -q 'data-need-count="1"' "$WORK/index.html"
+          grep -q 'need-card' "$WORK/index.html"
+          MARKER="$(find "$WORK/.quarto-needs/runtime" -name installed.json | head -1)"
+          [[ -n "$MARKER" ]]
+          python3 -c "
+          import json
+          marker = json.load(open('$MARKER'))
+          assert marker['engineVersion'] == '${VERSION}', marker
+          print('production package', marker['engineVersion'], 'renders through the extension')
+          "
