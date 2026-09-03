@@ -1,4 +1,4 @@
-.PHONY: setup setup-branding setup-babelquarto test branding-assets branding-check scan check coverage example preview-example sync-example check-example render-example render-example-all render-example-multilingual render-manual-multilingual preview-self-example sync-self-example check-self-example evidence-self-example render-self-example baseline-example diff-example impact-example check-install check-extension-first check-cli-install minimal-check render-minimal-example check-minimal-example
+.PHONY: setup setup-branding setup-babelquarto test branding-assets branding-check scan check coverage example preview-example sync-example check-example render-example render-example-all render-example-multilingual render-manual-multilingual preview-self-example sync-self-example check-self-example evidence-self-example render-self-example baseline-example diff-example impact-example check-install check-extension-first check-cli-install check-release-build minimal-check render-minimal-example check-minimal-example
 .DEFAULT_GOAL := test
 
 VENV_PYTHON := .venv/bin/python
@@ -143,3 +143,12 @@ check-extension-first:
 # The CLI-installed path, still supported for engineering and CI users.
 check-cli-install:
 	./tools/check_installed_path.sh
+
+# The build and metadata checks from the release workflow, run locally:
+# the plan requires every release gate to have a meaningful local path,
+# because Actions availability is not a given. Upload steps stay
+# workflow-only; nothing here publishes anything.
+check-release-build:
+	rm -rf dist
+	$(VENV_PYTHON) -m build
+	$(VENV_PYTHON) -m twine check dist/*
