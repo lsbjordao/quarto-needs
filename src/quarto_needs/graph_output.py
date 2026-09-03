@@ -26,6 +26,7 @@ from .graph_projection import (
     build_impact_overlay,
     select_graph,
 )
+from .graphviz_render import dot_source
 from .queries import DEFAULT_QUERY_NAME, query_ids
 from .relations import DEFAULT_RELATION_CATALOG, TRAVERSAL_PROFILES
 from .snapshot import AnalysisSnapshot
@@ -284,6 +285,9 @@ def write_default_projection(
     graph_dir.mkdir(parents=True, exist_ok=True)
     for stale in graph_dir.glob(f"{QUERY_VIEW_PREFIX}*.json"):
         stale.unlink()
+    for stale in graph_dir.glob(f"{QUERY_VIEW_PREFIX}*.dot"):
+        stale.unlink()
+    (graph_dir / f"{DEFAULT_VIEW_ID}.dot").unlink(missing_ok=True)
 
     projection = build_default_projection(
         snapshot, config, baseline_path=_baseline_path(root, config)
@@ -293,6 +297,7 @@ def write_default_projection(
         target,
         render_public_projection(projection, config, snapshot=snapshot),
     )
+    _atomic_text(graph_dir / f"{DEFAULT_VIEW_ID}.dot", dot_source(projection))
     write_graph_overlays(root, snapshot, config)
 
     manifest: dict[str, str] = {}
@@ -313,6 +318,7 @@ def write_default_projection(
                 snapshot=snapshot,
             ),
         )
+        _atomic_text(graph_dir / f"{view_id}.dot", dot_source(query_projection))
         manifest[query_name] = view_id
 
     _atomic_text(

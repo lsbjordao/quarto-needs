@@ -351,6 +351,9 @@ def test_default_projection_is_written_and_embeds_projection(tmp_path) -> None:
     assert payload["schemaVersion"] == "graph-public-v1"
     assert payload["view"]["mode"] == "catalog"
     assert [node["id"] for node in payload["nodes"]] == ["ADV-1", "ADV-2"]
+    dot = target.with_suffix(".dot")
+    assert dot.is_file()
+    assert '"ADV-1"' in dot.read_text(encoding="utf-8")
 
 
 def test_write_c4_projections_writes_one_file_per_system_and_container_level(tmp_path) -> None:
