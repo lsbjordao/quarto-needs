@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import sys
 import tomllib
 from pathlib import Path
 
@@ -47,3 +48,32 @@ def test_the_showcase_extension_matches_the_canonical_one() -> None:
     )
 
     assert installed == canonical
+
+
+def test_the_bootstrap_provisions_the_version_the_extension_declares() -> None:
+    """The managed runtime installs `quarto-needs==<extension version>`.
+
+    Version parity stops being tidiness in the extension-first distribution
+    and becomes a resolvable-install precondition: the bootstrap reads its
+    own manifest to decide what to provision, so a bootstrap that read a
+    different version would install an engine the extension was never tested
+    against. Assert it reads what the manifest declares, and that the exact
+    pin -- not a range, not `latest` -- is what it asks for.
+    """
+    import importlib.util
+
+    path = ROOT / "_extensions" / "quarto-needs" / "bootstrap.py"
+    spec = importlib.util.spec_from_file_location("quarto_needs_bootstrap", path)
+    assert spec and spec.loader
+    bootstrap = importlib.util.module_from_spec(spec)
+    previous = sys.dont_write_bytecode
+    sys.dont_write_bytecode = True
+    try:
+        spec.loader.exec_module(bootstrap)
+    finally:
+        sys.dont_write_bytecode = previous
+
+    canonical = extension_version(ROOT / "_extensions" / "quarto-needs" / "_extension.yml")
+
+    assert bootstrap.extension_version() == canonical
+    assert bootstrap.engine_source(canonical) == f"quarto-needs=={canonical}"
