@@ -11,7 +11,6 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "_extensions" / "quarto-needs" / "data.lua"
-GRAPH = ROOT / "tests" / "fixtures" / "views" / ".quarto-needs" / "needs.json"
 
 
 LUA_CACHE_ASSERTIONS = r'''
@@ -37,7 +36,11 @@ function Pandoc(doc)
   assert(data.get(first, "MISSING") == nil, "unknown IDs must not resolve")
   assert(#data.outgoing(first, "REQ-APPROVED", "derives-from") == 0, "filters must be exact")
   assert(#data.outgoing(first, "REQ-APPROVED") == 1, "an omitted filter must keep every relation")
-  assert(#data.incoming(first, "REQ-APPROVED") == 0, "backlinks must not invent edges")
+  -- TC-LOGIN reciprocally authors `verifies`, so REQ-APPROVED has exactly one
+  -- incoming edge: the authored one, never a re-invented inverse of its own
+  -- `verified-by`.
+  assert(#data.incoming(first, "REQ-APPROVED") == 1, "the authored verifies edge is the only backlink")
+  assert(#data.incoming(first, "REQ-APPROVED", "verified-by") == 0, "an authored edge must not duplicate as its own inverse")
 
   local borrowed = data.outgoing(first, "REQ-APPROVED", "verified-by")
   table.remove(borrowed)
@@ -140,9 +143,13 @@ def run_lua_assertions(tmp_path: Path, assertions: str, substitutions: dict[str,
 
 
 @pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
-def test_graph_is_read_once_and_indexed_per_process(tmp_path: Path):
+def test_graph_is_read_once_and_indexed_per_process(
+    tmp_path: Path, views_fixture_graph: Path
+):
     """Repeated loads share one decoded graph, one open, and immutable adjacency."""
-    run_lua_assertions(tmp_path, LUA_CACHE_ASSERTIONS, {"__GRAPH_PATH__": GRAPH})
+    run_lua_assertions(
+        tmp_path, LUA_CACHE_ASSERTIONS, {"__GRAPH_PATH__": views_fixture_graph}
+    )
 
 
 @pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
@@ -163,9 +170,9 @@ def test_link_target_resolves_by_format_and_source_page(tmp_path: Path):
     run_lua_assertions(tmp_path, LUA_LINK_ASSERTIONS, {})
 
 
-def write_graph_with_generator_version(path: Path, version: str) -> Path:
-    """Copy the fixture graph, rewriting only the generator version."""
-    payload = json.loads(GRAPH.read_text(encoding="utf-8"))
+def write_graph_with_generator_version(graph: Path, path: Path, version: str) -> Path:
+    """Copy a fixture graph, rewriting only the generator version."""
+    payload = json.loads(graph.read_text(encoding="utf-8"))
     payload["extensions"]["quartoNeeds"]["generator"]["version"] = version
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     return path
@@ -179,7 +186,9 @@ def extension_version() -> str:
 
 
 @pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
-def test_incompatible_engine_version_refuses_to_load(tmp_path: Path):
+def test_incompatible_engine_version_refuses_to_load(
+    tmp_path: Path, views_fixture_graph: Path
+):
     """A graph written by an engine the extension cannot read must say so.
 
     The extension and the engine are separate installs a user updates
@@ -196,8 +205,12 @@ def test_incompatible_engine_version_refuses_to_load(tmp_path: Path):
         tmp_path,
         LUA_VERSION_SKEW_ASSERTIONS,
         {
-            "__SKEWED_GRAPH_PATH__": write_graph_with_generator_version(tmp_path / "skewed.json", "9.9.9"),
-            "__PATCH_SKEW_GRAPH_PATH__": write_graph_with_generator_version(tmp_path / "patch.json", patch_skew),
+            "__SKEWED_GRAPH_PATH__": write_graph_with_generator_version(
+                views_fixture_graph, tmp_path / "skewed.json", "9.9.9"
+            ),
+            "__PATCH_SKEW_GRAPH_PATH__": write_graph_with_generator_version(
+                views_fixture_graph, tmp_path / "patch.json", patch_skew
+            ),
             "__EXTENSION_VERSION__": current,
         },
     )

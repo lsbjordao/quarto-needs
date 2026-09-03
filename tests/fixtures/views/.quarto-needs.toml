@@ -21,3 +21,10 @@ any = [
   { relation = "verified-by", direction = "in", op = "exists" },
 ]
 sort = ["id:asc"]
+
+# REQ-APPROVED is approved and carries only a verification relation, so this
+# default-off rule produces a real finding on it. The inspector shortcodes
+# assert that findings reach the rendered card, which needs a finding the
+# engine genuinely emits from this fixture's content.
+[rules.REQ011]
+enabled = true

@@ -547,10 +547,10 @@ def test_dashboard_renders_precomputed_scopes_with_denominators(tmp_path: Path):
     html = render_views(tmp_path)
 
     assert "Quality dashboard" in html
-    assert "Whole catalog (2 requirements)" in html
+    assert "Whole catalog (3 requirements)" in html
     assert "Approved requirements (1 requirements)" in html
     assert "Verification successful" in html
-    assert "50.0% (1 of 2)" in html
+    assert "33.3% (1 of 3)" in html
     # Gap entries link back to the underlying objects.
     gaps = html.split("Implementation-effective gaps", 1)[1][:2000]
     assert 'href="#REQ-APPROVED"' in gaps
@@ -568,9 +568,9 @@ def test_dashboard_renders_distributions_and_finding_counts(tmp_path: Path):
     assert "Needs by status" in catalog
     assert "Needs by priority" in catalog
     assert "functional-requirement" in catalog
-    # The catalog holds one approved and one draft requirement.
+    # The catalog holds one approved and two draft requirements.
     assert re.search(r"<td>approved</td>\s*<td>1</td>", catalog)
-    assert re.search(r"<td>draft</td>\s*<td>1</td>", catalog)
+    assert re.search(r"<td>draft</td>\s*<td>2</td>", catalog)
 
     assert "Findings by severity" in html
     findings = html.split("Findings by severity", 1)[1][:1500]
@@ -616,7 +616,7 @@ def test_dashboard_is_static_content_in_docx(tmp_path: Path):
     assert "Quality dashboard" in text
     assert "Whole catalog" in text
     assert "Verification successful" in text
-    assert "50.0% (1 of 2)" in text
+    assert "33.3% (1 of 3)" in text
     assert "Needs by type" in text
     assert "Findings by severity" in text
 
@@ -656,8 +656,8 @@ def test_inspector_renders_a_labelled_static_region(tmp_path: Path):
     assert "Inspector: REQ-APPROVED" in html
     assert "Declared in index.qmd:7" in html
     assert "Attributes" in html
-    assert "REQ002" in html
-    assert "Requirement has no rationale" in html
+    assert "REQ011" in html
+    assert "is approved but has no implementation relation" in html
 
 
 @pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
@@ -676,7 +676,7 @@ def test_inspector_is_static_content_in_docx(tmp_path: Path):
     assert "Inspector: REQ-APPROVED" in text
     assert "Declared in index.qmd:7" in text
     assert "Attributes" in text
-    assert "Requirement has no rationale" in text
+    assert "is approved but has no implementation relation" in text
 
 
 @pytest.mark.skipif(
@@ -690,7 +690,7 @@ def test_inspector_is_static_content_in_pdf(tmp_path: Path):
     text = pdf_text(render_views_to(tmp_path, "pdf"))
 
     assert "Inspector: REQ-APPROVED" in text
-    assert "Requirement has no rationale" in text
+    assert "is approved but has no implementation relation" in text
 
 
 @pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
