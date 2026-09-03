@@ -267,6 +267,12 @@ def _plant_engine(target: Path, version: str) -> None:
     (package / "__init__.py").write_text(
         f'__version__ = "{version}"\n', encoding="utf-8"
     )
+    # Validation imports the entry point, so a stand-in engine must expose
+    # one -- the same thing a real install provides.
+    (package / "quarto_integration.py").write_text(
+        "def run_quarto_pre_render(root, quiet=False):\n    return 0\n",
+        encoding="utf-8",
+    )
 
 
 # --- Python prerequisite ----------------------------------------------------
@@ -461,3 +467,197 @@ def test_provisioning_never_writes_into_the_final_directory_first(tmp_path) -> N
     bootstrap.provision_runtime(tmp_path, "0.1.0", identity, installer=observing)
 
     assert seen == [False], "installed straight into the published location"
+
+
+# --- Engine source validation (Task 4) --------------------------------------
+
+
+def test_an_engine_source_pointing_nowhere_is_rejected(monkeypatch, tmp_path) -> None:
+    """A typo in the override must fail loudly, not fall back to the index.
+
+    Falling back would quietly install a published engine while the operator
+    believed they were testing a local build.
+    """
+    monkeypatch.setenv(bootstrap.ENGINE_SOURCE_ENV, str(tmp_path / "nope"))
+
+    with pytest.raises(bootstrap.BootstrapError, match="does not exist"):
+        bootstrap.engine_source("0.1.0")
+
+
+def test_a_remote_engine_source_is_refused(monkeypatch) -> None:
+    """This slice accepts a local path only -- never an arbitrary URL."""
+    monkeypatch.setenv(
+        bootstrap.ENGINE_SOURCE_ENV, "https://example.invalid/quarto_needs.whl"
+    )
+
+    with pytest.raises(bootstrap.BootstrapError, match="local filesystem path"):
+        bootstrap.engine_source("0.1.0")
+
+
+def test_an_existing_local_engine_source_is_accepted(monkeypatch, tmp_path) -> None:
+    source = tmp_path / "checkout"
+    source.mkdir()
+    monkeypatch.setenv(bootstrap.ENGINE_SOURCE_ENV, str(source))
+
+    assert bootstrap.engine_source("0.1.0") == str(source)
+
+
+# --- Installer failures -----------------------------------------------------
+
+
+def test_missing_pip_reports_which_interpreter_lacks_it(monkeypatch, tmp_path) -> None:
+    def no_pip(target, source):
+        return ["/nonexistent/interpreter", "-m", "pip", "install"]
+
+    monkeypatch.setattr(bootstrap, "provision_command", no_pip)
+
+    with pytest.raises(bootstrap.BootstrapError, match="Could not run pip"):
+        bootstrap.install_engine(tmp_path, "quarto-needs==0.1.0")
+
+
+def test_a_failing_install_surfaces_what_pip_printed(monkeypatch, tmp_path) -> None:
+    def failing(target, source):
+        return [
+            sys.executable,
+            "-c",
+            "import sys; print('No matching distribution found', file=sys.stderr);"
+            " raise SystemExit(1)",
+        ]
+
+    monkeypatch.setattr(bootstrap, "provision_command", failing)
+
+    with pytest.raises(bootstrap.BootstrapError) as caught:
+        bootstrap.install_engine(tmp_path, "quarto-needs==9.9.9")
+
+    assert "No matching distribution found" in str(caught.value)
+    assert "quarto-needs==9.9.9" in str(caught.value)
+
+
+# --- ensure_runtime: the full algorithm -------------------------------------
+
+
+def test_a_valid_cached_runtime_triggers_no_installation(tmp_path) -> None:
+    """The offline guarantee: a good runtime never contacts an index."""
+    identity = bootstrap.runtime_identity()
+    calls: list[str] = []
+
+    def counting(target: Path, source: str) -> None:
+        calls.append(source)
+        _plant_engine(target, "0.1.0")
+
+    first = bootstrap.ensure_runtime(tmp_path, "0.1.0", identity, installer=counting)
+    assert calls == ["quarto-needs==0.1.0"]
+
+    second = bootstrap.ensure_runtime(tmp_path, "0.1.0", identity, installer=counting)
+
+    assert second == first
+    assert calls == ["quarto-needs==0.1.0"], "reinstalled a runtime that was already valid"
+
+
+def test_a_corrupted_runtime_is_reprovisioned(tmp_path) -> None:
+    """A marker that outlived its site-packages must not be trusted."""
+    identity = bootstrap.runtime_identity()
+    calls: list[str] = []
+
+    def counting(target: Path, source: str) -> None:
+        calls.append(source)
+        _plant_engine(target, "0.1.0")
+
+    runtime_dir = bootstrap.ensure_runtime(
+        tmp_path, "0.1.0", identity, installer=counting
+    )
+    # Wipe the engine but leave the marker: exactly what a partially cleaned
+    # cache directory looks like.
+    import shutil
+
+    shutil.rmtree(bootstrap.site_packages(runtime_dir))
+    assert bootstrap.read_marker(runtime_dir) is not None
+
+    bootstrap.ensure_runtime(tmp_path, "0.1.0", identity, installer=counting)
+
+    assert len(calls) == 2, "trusted a runtime whose engine was gone"
+    assert bootstrap.runtime_is_valid(runtime_dir, "0.1.0", identity)
+
+
+def test_ensure_runtime_releases_the_lock_after_a_failed_install(tmp_path) -> None:
+    identity = bootstrap.runtime_identity()
+
+    def failing(target: Path, source: str) -> None:
+        raise bootstrap.BootstrapError("install failed")
+
+    with pytest.raises(bootstrap.BootstrapError, match="install failed"):
+        bootstrap.ensure_runtime(tmp_path, "0.1.0", identity, installer=failing)
+
+    assert not bootstrap.lock_path(tmp_path).exists()
+    # A later render can still provision.
+    bootstrap.ensure_runtime(
+        tmp_path,
+        "0.1.0",
+        identity,
+        installer=lambda target, source: _plant_engine(target, "0.1.0"),
+    )
+
+
+def test_an_updated_extension_provisions_beside_the_old_runtime(tmp_path) -> None:
+    """Updating must not mutate an existing runtime in place."""
+    identity = bootstrap.runtime_identity()
+
+    def planting(version: str):
+        return lambda target, source: _plant_engine(target, version)
+
+    old = bootstrap.ensure_runtime(
+        tmp_path, "0.1.0", identity, installer=planting("0.1.0")
+    )
+    new = bootstrap.ensure_runtime(
+        tmp_path, "0.2.0", identity, installer=planting("0.2.0")
+    )
+
+    assert old != new
+    assert bootstrap.runtime_is_valid(old, "0.1.0", identity)
+    assert bootstrap.runtime_is_valid(new, "0.2.0", identity)
+
+
+# --- Real provisioning ------------------------------------------------------
+
+
+@pytest.mark.slow
+def test_the_real_installer_provisions_this_checkout(tmp_path) -> None:
+    """Provision the engine for real, from this source tree.
+
+    Everything above injects an installer. This one runs the actual
+    `python -m pip install --target` path the extension will use, against
+    the local-source override -- which is exactly how it is meant to work
+    before the package is published.
+    """
+    identity = bootstrap.runtime_identity()
+    version = bootstrap.extension_version()
+
+    import os
+
+    os.environ[bootstrap.ENGINE_SOURCE_ENV] = str(ROOT)
+    try:
+        runtime_dir = bootstrap.ensure_runtime(tmp_path, version, identity)
+    finally:
+        os.environ.pop(bootstrap.ENGINE_SOURCE_ENV, None)
+
+    assert bootstrap.runtime_is_valid(runtime_dir, version, identity)
+    installed = bootstrap.site_packages(runtime_dir) / "quarto_needs" / "__init__.py"
+    assert installed.is_file(), "the engine was not installed into the runtime"
+
+
+def test_a_truncated_engine_install_is_not_a_valid_runtime(tmp_path) -> None:
+    """An importable package with the engine missing must not validate.
+
+    `pip` interrupted part way can leave `quarto_needs/__init__.py` in place
+    with the rest absent. Validating on the top-level package alone would
+    call that a good runtime and hand the render an engine it cannot invoke.
+    """
+    identity = bootstrap.runtime_identity()
+    runtime_dir = bootstrap.runtime_directory(tmp_path, "0.1.0", identity)
+    target = bootstrap.site_packages(runtime_dir)
+    package = target / "quarto_needs"
+    package.mkdir(parents=True)
+    (package / "__init__.py").write_text('__version__ = "0.1.0"\n', encoding="utf-8")
+    bootstrap.write_marker(runtime_dir, "0.1.0", identity)
+
+    assert not bootstrap.runtime_is_valid(runtime_dir, "0.1.0", identity)

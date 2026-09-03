@@ -186,10 +186,15 @@ def probe_engine(target: Path) -> tuple[str, str] | None:
     resolved inside the managed runtime rather than from an unrelated
     `quarto-needs` that happens to be installed on the system.
     """
+    # Import the entry point the bootstrap will actually call, not merely
+    # the top-level package: a truncated install can leave an importable
+    # `quarto_needs/__init__.py` with the rest of the engine missing, and a
+    # runtime that cannot be invoked is not a runtime.
     script = (
         "import json, sys\n"
         f"sys.path.insert(0, {str(target)!r})\n"
         "import quarto_needs\n"
+        "from quarto_needs.quarto_integration import run_quarto_pre_render\n"
         "print(json.dumps({'version': quarto_needs.__version__,"
         " 'file': quarto_needs.__file__}))\n"
     )
@@ -317,11 +322,27 @@ def engine_source(version: str) -> str:
     Unset means `quarto-needs==<version>` exactly. Never a floor, never a
     range, and never `latest`: the extension and the engine ship together,
     so anything looser reintroduces the skew this replaces.
+
+    The override takes a local filesystem path only. A remote URL is refused
+    in this slice, and a path that does not exist is an error rather than a
+    silent fallback to the package index -- falling back would install a
+    published engine while the operator believed they were testing a local
+    build. Whatever the source, the installed engine still has to prove its
+    version afterwards; a path is never trusted for what its name claims.
     """
     override = os.environ.get(ENGINE_SOURCE_ENV)
-    if override:
-        return override
-    return f"quarto-needs=={version}"
+    if not override:
+        return f"quarto-needs=={version}"
+    if re.match(r"^[A-Za-z][A-Za-z0-9+.-]*://", override):
+        raise BootstrapError(
+            f"{ENGINE_SOURCE_ENV} must be a local filesystem path; refusing the "
+            f"remote source {override!r}."
+        )
+    if not Path(override).exists():
+        raise BootstrapError(
+            f"{ENGINE_SOURCE_ENV} points at {override!r}, which does not exist."
+        )
+    return override
 
 
 def provision_command(target: Path, source: str) -> list[str]:
@@ -426,6 +447,33 @@ def provision_runtime(
         raise
     promote(staging, runtime_dir)
     return runtime_dir
+
+
+def ensure_runtime(
+    root: Path,
+    version: str,
+    identity: dict[str, str],
+    *,
+    installer=install_engine,
+) -> Path:
+    """Return a runtime directory proven to hold the exact engine.
+
+    The fast path is the common one: a valid runtime is reused without
+    taking the lock and without contacting a package index, which is what
+    makes every render after the first work offline.
+
+    Otherwise the lock is taken and validity is rechecked underneath it,
+    because a concurrent render may have published a good runtime while this
+    one was waiting. That recheck is what turns two racing renders into one
+    installation rather than two.
+    """
+    runtime_dir = runtime_directory(root, version, identity)
+    if runtime_is_valid(runtime_dir, version, identity):
+        return runtime_dir
+    with exclusive_lock(lock_path(root)):
+        if runtime_is_valid(runtime_dir, version, identity):
+            return runtime_dir
+        return provision_runtime(root, version, identity, installer=installer)
 
 
 # --- Engine invocation ------------------------------------------------------
