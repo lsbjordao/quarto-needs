@@ -50,7 +50,7 @@ def test_the_showcase_extension_matches_the_canonical_one() -> None:
     assert installed == canonical
 
 
-def test_the_bootstrap_provisions_the_version_the_extension_declares() -> None:
+def test_the_bootstrap_provisions_the_version_the_extension_declares(monkeypatch) -> None:
     """The managed runtime installs `quarto-needs==<extension version>`.
 
     Version parity stops being tidiness in the extension-first distribution
@@ -74,6 +74,11 @@ def test_the_bootstrap_provisions_the_version_the_extension_declares() -> None:
         sys.dont_write_bytecode = previous
 
     canonical = extension_version(ROOT / "_extensions" / "quarto-needs" / "_extension.yml")
+
+    # The suite points the bootstrap at a locally built wheel so unpublished
+    # engines can be provisioned; this assertion is about the default, so it
+    # clears that override.
+    monkeypatch.delenv("QUARTO_NEEDS_ENGINE_SOURCE", raising=False)
 
     assert bootstrap.extension_version() == canonical
     assert bootstrap.engine_source(canonical) == f"quarto-needs=={canonical}"

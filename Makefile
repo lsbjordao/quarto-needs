@@ -2,6 +2,12 @@
 .DEFAULT_GOAL := test
 
 VENV_PYTHON := .venv/bin/python
+
+# Rendering an example now runs the extension's own bootstrap, which
+# provisions `quarto-needs==<extension version>` from the package index.
+# That version is not published, so the repository renders its examples
+# against this checkout through the documented local-source override.
+export QUARTO_NEEDS_ENGINE_SOURCE ?= $(CURDIR)
 AEGIS_REFERENCE_EPOCH = $(shell $(VENV_PYTHON) -c 'import json; from datetime import datetime, timezone; value=json.load(open("examples/book/baselines/quarto-needs.json", encoding="utf-8"))["referenceDate"]; print(int(datetime.fromisoformat(value).replace(tzinfo=timezone.utc).timestamp()))')
 
 .venv/bin/python:

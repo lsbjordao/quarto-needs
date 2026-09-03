@@ -536,8 +536,11 @@ def test_a_failing_install_surfaces_what_pip_printed(monkeypatch, tmp_path) -> N
 # --- ensure_runtime: the full algorithm -------------------------------------
 
 
-def test_a_valid_cached_runtime_triggers_no_installation(tmp_path) -> None:
+def test_a_valid_cached_runtime_triggers_no_installation(tmp_path, monkeypatch) -> None:
     """The offline guarantee: a good runtime never contacts an index."""
+    # The session points the bootstrap at a locally built wheel; this test
+    # is about the default source, so it clears that.
+    monkeypatch.delenv(bootstrap.ENGINE_SOURCE_ENV, raising=False)
     identity = bootstrap.runtime_identity()
     calls: list[str] = []
 
@@ -621,7 +624,7 @@ def test_an_updated_extension_provisions_beside_the_old_runtime(tmp_path) -> Non
 
 
 @pytest.mark.slow
-def test_the_real_installer_provisions_this_checkout(tmp_path) -> None:
+def test_the_real_installer_provisions_this_checkout(tmp_path, monkeypatch) -> None:
     """Provision the engine for real, from this source tree.
 
     Everything above injects an installer. This one runs the actual
@@ -632,13 +635,10 @@ def test_the_real_installer_provisions_this_checkout(tmp_path) -> None:
     identity = bootstrap.runtime_identity()
     version = bootstrap.extension_version()
 
-    import os
-
-    os.environ[bootstrap.ENGINE_SOURCE_ENV] = str(ROOT)
-    try:
-        runtime_dir = bootstrap.ensure_runtime(tmp_path, version, identity)
-    finally:
-        os.environ.pop(bootstrap.ENGINE_SOURCE_ENV, None)
+    # monkeypatch, not os.environ: popping the variable by hand unset the
+    # session-wide engine source and broke every later test that renders.
+    monkeypatch.setenv(bootstrap.ENGINE_SOURCE_ENV, str(ROOT))
+    runtime_dir = bootstrap.ensure_runtime(tmp_path, version, identity)
 
     assert bootstrap.runtime_is_valid(runtime_dir, version, identity)
     installed = bootstrap.site_packages(runtime_dir) / "quarto_needs" / "__init__.py"

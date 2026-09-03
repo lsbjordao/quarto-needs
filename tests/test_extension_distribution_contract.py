@@ -71,14 +71,23 @@ def test_manifest_contributes_filters_and_shortcodes() -> None:
     assert contributes["shortcodes"] == ["shortcodes.lua", "adr-shortcodes.lua"]
 
 
-def test_manifest_contributes_no_project_metadata_today() -> None:
-    """The starting point: the extension cannot install its own pre-render.
+def test_manifest_contributes_its_own_pre_render() -> None:
+    """Migrated in Task 6, and this is the assertion that records it.
 
-    Task 6 adds a `metadata.project.pre-render` contribution here. Until it
-    does, activating the extension gives the project filters and shortcodes
-    but no engine, which is precisely why the user has to wire one up.
+    This test previously pinned the opposite: the extension contributed no
+    project metadata, so activating it gave a project filters and shortcodes
+    but no engine -- which is exactly why the user had to wire one up. The
+    contribution is what removes that step.
+
+    `tests/test_extension_first_distribution.py` proves the contribution
+    actually works when real Quarto renders a project; this only pins what
+    the shipped manifest declares.
     """
-    assert "metadata" not in _manifest()["contributes"]
+    contributes = _manifest()["contributes"]
+
+    assert contributes["metadata"]["project"]["pre-render"] == [
+        "quarto run _extensions/quarto-needs/bootstrap.py"
+    ]
 
 
 def test_manifest_declares_the_quarto_floor() -> None:
