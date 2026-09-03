@@ -79,6 +79,9 @@ import json, sys
 graph = json.load(open('$GRAPH'))
 ids = {item['id'] for item in graph['objects']}
 assert ids == {'REQ-1', 'TC-1'}, f'unexpected objects: {ids}'
+# Pin the public schema marker too: a consumer reads this before the objects,
+# and a distribution change must not shift it.
+assert graph['schemaVersion'] == '1', f\"unexpected schemaVersion: {graph['schemaVersion']}\"
 " || { echo "FAIL: the emitted graph is not what the source declares" >&2; exit 1; }
 
 HTML="$PROJECT/index.html"

@@ -27,7 +27,9 @@ def runtime_assets(directory: Path) -> dict[Path, bytes]:
     return {
         path.relative_to(directory): path.read_bytes()
         for path in directory.rglob("*")
-        if path.is_file() and path.relative_to(directory) != Path("generated-index.lua")
+        if path.is_file()
+        and path.relative_to(directory) != Path("generated-index.lua")
+        and "__pycache__" not in path.parts
     }
 
 

@@ -1,0 +1,23 @@
+# The named queries this fixture's shortcodes reference.
+#
+# `index.qmd` calls `need-dashboard query="authentication-work"`,
+# `need-matrix query="traceable-pair"` and several
+# `query="approved-requirements"` shortcodes. Without this file the project
+# has no configuration, so the engine materializes no named queries and
+# emits no precomputed report -- and every view built on one renders empty.
+#
+# `approved-requirements` is the built-in default query and is deliberately
+# not redeclared here.
+
+[queries.authentication-work]
+all = [
+  { field = "tags", op = "contains", value = "authentication" },
+]
+sort = ["id:asc"]
+
+[queries.traceable-pair]
+any = [
+  { relation = "verified-by", direction = "out", op = "exists" },
+  { relation = "verified-by", direction = "in", op = "exists" },
+]
+sort = ["id:asc"]
