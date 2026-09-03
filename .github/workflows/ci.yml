@@ -126,6 +126,7 @@ jobs:
         uses: quarto-dev/quarto-actions/setup@v2
         with:
           version: "1.10.18"
+          tinytex: true
       - name: Verify both installation paths
         # check-install runs the extension-first scenario (the primary one)
         # and the CLI-installed scenario (still supported).
@@ -151,6 +152,7 @@ jobs:
         uses: quarto-dev/quarto-actions/setup@v2
         with:
           version: "1.6.0"
+          tinytex: true
       - name: Scan and check the minimal example
         run: make minimal-check
       - name: Render the minimal example
@@ -226,6 +228,14 @@ jobs:
           if-no-files-found: warn
       - name: Upload SARIF to code scanning
         if: always() && github.event_name != 'pull_request'
+        # Requires the repository's own Code scanning setting (Settings ->
+        # Security -> Code security) to be enabled; the workflow permission
+        # (security-events: write, above) is necessary but not sufficient.
+        # An unenabled setting is a deliberate choice, not a defect in the
+        # SARIF this job produced, so it must not fail the job over it --
+        # the quality-artifacts upload just above already succeeded and
+        # carries the same findings.
+        continue-on-error: true
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: artifacts/findings.sarif

@@ -20,7 +20,16 @@ setup-branding: .venv/bin/python
 	$(VENV_PYTHON) -m pip install -e ".[branding]"
 
 setup-babelquarto:
-	Rscript -e 'install.packages("babelquarto", repos=c("https://ropensci.r-universe.dev", "https://cloud.r-project.org"))'
+	# babelquarto itself is not on CRAN, so r-universe has to come first for
+	# it specifically -- but its transitive deps (curl, fs, httr, rmarkdown,
+	# bslib, sass, whoami) ARE on CRAN, and hardcoding a source-only mirror
+	# for them forces every one to compile, which fails on a bare Ubuntu
+	# runner missing libcurl/libuv headers. getOption("repos") carries
+	# whatever CI's `setup-r` action already configured -- RSPM's
+	# binary-serving mirror by default on Ubuntu -- so appending it here
+	# lets the CRAN deps resolve as binaries instead of overriding that
+	# with a source-only fallback.
+	Rscript -e 'install.packages("babelquarto", repos=c("https://ropensci.r-universe.dev", getOption("repos")))'
 
 test:
 	$(VENV_PYTHON) -m pytest -q

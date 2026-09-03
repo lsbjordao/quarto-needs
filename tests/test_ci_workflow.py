@@ -84,3 +84,65 @@ def test_quarto_is_pinned_to_a_stable_release() -> None:
     assert install["run"] == "make setup"
     assert setup["uses"] == "quarto-dev/quarto-actions/setup@v2"
     assert setup["with"]["version"] == "1.10.18"
+
+
+def test_pdf_rendering_jobs_install_tinytex() -> None:
+    """`install` and `quarto-minimum` both render PDF via check_extension_first_path.sh.
+
+    Found 2026-09-03: both failed with "No TeX installation was detected" --
+    `quarto-dev/quarto-actions/setup@v2` needs `tinytex: true` explicitly,
+    matching what the `quarto` job (which also renders PDF) already has.
+    """
+    jobs = parsed()["jobs"]
+    for name in ("install", "quarto-minimum"):
+        setup_steps = [
+            step
+            for step in jobs[name]["steps"]
+            if step.get("uses", "").startswith("quarto-dev/quarto-actions/setup")
+        ]
+        assert setup_steps, f"{name} has no Quarto setup step"
+        assert setup_steps[0]["with"].get("tinytex") is True, (
+            f"{name}'s Quarto setup must install TinyTeX for its PDF render"
+        )
+
+
+def test_sarif_upload_does_not_fail_the_build_when_code_scanning_is_off() -> None:
+    """Code scanning is a repository *setting*, not a workflow permission.
+
+    `security-events: write` is necessary but not sufficient -- GitHub also
+    requires Code scanning enabled under repo Settings -> Security, which
+    only the repository owner can toggle. Until then this step's own
+    findings are redundant with the quality-artifacts upload just before
+    it, so failing the whole job over it is not warranted.
+    """
+    quality = parsed()["jobs"]["quality"]
+    sarif_steps = [
+        step
+        for step in quality["steps"]
+        if step.get("uses") == "github/codeql-action/upload-sarif@v4"
+    ]
+    assert sarif_steps, "quality must still attempt the SARIF upload"
+    assert sarif_steps[0].get("continue-on-error") is True
+
+
+def test_babelquarto_install_lets_its_cran_dependencies_resolve_as_binaries() -> None:
+    """babelquarto isn't on CRAN, but its dependencies (curl, fs, httr,
+    rmarkdown, bslib, sass, whoami) are. Found 2026-09-03: hardcoding
+    `repos=c("https://ropensci.r-universe.dev", "https://cloud.r-project.org")`
+    replaces R's session default entirely, forcing those CRAN dependencies
+    through a source-only mirror -- `curl` and `fs` then fail to compile on
+    a bare Ubuntu runner missing libcurl/libuv headers, cascading through
+    every package that needs them.
+
+    `getOption("repos")` carries whatever `setup-r@v2` already configured --
+    Posit Package Manager's binary-serving mirror by default on Ubuntu --
+    so appending it (rather than replacing R's defaults outright) lets the
+    CRAN half resolve as binaries while r-universe still serves babelquarto
+    itself.
+    """
+    makefile = (Path(__file__).resolve().parents[1] / "Makefile").read_text(
+        encoding="utf-8"
+    )
+    target = makefile.split("setup-babelquarto:", 1)[1].split("\n\n", 1)[0]
+    assert "getOption(\"repos\")" in target
+    assert "https://ropensci.r-universe.dev" in target
