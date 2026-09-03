@@ -8,14 +8,23 @@ reports something else -- the gallery is lying and this module fails.
 
 Nothing here mutates the canonical self-hosted example; every fixture is
 its own project root.
+
+`suspect-after-change` is the one gallery member with no static directory:
+its whole point is two states of a project across a Git history, so it is
+built dynamically -- a throwaway repo in `tmp_path`, two commits -- rather
+than forced into a single checked-in snapshot.
 """
 from __future__ import annotations
 
+import os
+import shutil
+import subprocess
 from pathlib import Path
 
 import pytest
 
 from quarto_needs.analysis import analyze_project
+from quarto_needs.cli_entry import main as cli_main
 from quarto_needs.config import load_config
 from quarto_needs.localization import validate_localized_pair
 from quarto_needs.migrations.sphinx_needs import (
@@ -134,3 +143,100 @@ def test_migration_loss_is_planned_as_review_not_guessed() -> None:
     # The unmapped link is preserved as data, never silently dropped.
     candidate = {item.source_id: item for item in plan.candidates}["REQ_001"]
     assert candidate.unmapped_links.get("violates") == ("MIS_001",)
+
+
+# --- suspect-after-change: the one dynamic fixture in the gallery -----------
+
+
+def _git(repo: Path, *args: str, env: dict[str, str] | None = None) -> str:
+    merged = os.environ.copy()
+    if env:
+        merged.update(env)
+    completed = subprocess.run(
+        ["git", "-C", str(repo), *args],
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        encoding="utf-8",
+        env=merged,
+    )
+    return completed.stdout.strip()
+
+
+def _commit(repo: Path, message: str, timestamp: str) -> str:
+    env = {"GIT_AUTHOR_DATE": timestamp, "GIT_COMMITTER_DATE": timestamp}
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", message, env=env)
+    return _git(repo, "rev-parse", "HEAD")
+
+
+def _requirements_qmd(behavior: str) -> str:
+    return f'''# Requirements
+
+::: {{.need #REQ-1 type="functional-requirement" status="approved" verified-by="TC-1"}}
+## Authenticate the user
+
+{behavior}
+:::
+
+::: {{.need #TC-1 type="test-case" status="passed"}}
+## Login test
+
+Verifies REQ-1.
+:::
+'''
+
+
+def build_suspect_after_change_repository(repo: Path) -> tuple[Path, str, str]:
+    """A two-commit history: the second commit edits a verified requirement.
+
+    REQ-1 (approved, verified-by TC-1) changes its meaning between commits --
+    not a typo, an actual behavioral edit -- while TC-1 itself never moves.
+    That is exactly what `suspect` exists to catch: a verification relation
+    that still points at the requirement, but at a version of it nobody has
+    re-checked.
+    """
+    repo.mkdir(parents=True, exist_ok=True)
+    _git(repo, "init", "-q")
+    _git(repo, "config", "user.name", "Quarto Needs Teaching Fixture")
+    _git(repo, "config", "user.email", "quarto-needs@example.invalid")
+    (repo / "index.qmd").write_text(
+        _requirements_qmd(
+            "The system shall authenticate the user with a password."
+        ),
+        encoding="utf-8",
+    )
+    base = _commit(repo, "REQ-1: password authentication", "2026-09-01T10:00:00+00:00")
+    (repo / "index.qmd").write_text(
+        _requirements_qmd(
+            "The system shall authenticate the user with a password and a "
+            "second factor."
+        ),
+        encoding="utf-8",
+    )
+    head = _commit(repo, "REQ-1: require a second factor", "2026-09-03T10:00:00+00:00")
+    return repo, base, head
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git is required")
+def test_suspect_after_change_names_the_now_stale_verification(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Editing a verified requirement must mark its verification suspect.
+
+    TC-1 never changed. What changed is what it is supposed to be verifying,
+    which is precisely the gap `suspect` reports: TC-1 still says "passed"
+    for a version of REQ-1 that no longer exists.
+    """
+    repo, base, head = build_suspect_after_change_repository(tmp_path / "repo")
+
+    status = cli_main(
+        ["--root", str(repo), "suspect", "--git", f"{base}..{head}"]
+    )
+
+    assert status == 0
+    output = capsys.readouterr().out
+    assert "suspect TC-1" in output, output
+    assert "from REQ-1" in output, output
+    assert "REQ-1 --verified-by--> TC-1" in output, output

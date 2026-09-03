@@ -294,7 +294,7 @@ build/twine checks have a local `make check-release-build` path.
 
 ---
 
-# Phase 9 — Teaching, self-hosting, and failure scenarios 🚧 (first slice: the broken gallery — eight executable failure fixtures)
+# Phase 9 — Teaching, self-hosting, and failure scenarios 🚧 (first slice: the broken gallery — eight executable failure fixtures; second slice: suspect-after-change)
 
 `examples/quarto-needs/` increasingly acts as the official engineering model of Quarto-Needs itself. Significant features should update requirements/decisions/implementation/tests/evidence in the same change.
 
@@ -304,8 +304,15 @@ self-contained projects whose diagnostics are asserted by
 (ghost target, duplicate ID), the relation-typo trap, orphan requirements,
 overdue decisions, expired evidence, localization drift, and migration
 loss — each one teaching a different severity relationship to publication.
-Planned next slices: suspect-after-change (dynamic Git fixture),
-interchange loss, and editor/refactor failures.
+
+The second slice is `suspect-after-change`, the one gallery member with no
+checked-in directory: a project's `verified-by` edge can stay structurally
+valid while the requirement behind it changes meaning, and only comparing
+two engineering states catches that. Built dynamically as a two-commit Git
+history in `tests/test_teaching_fixtures.py`, reusing the same `suspect
+--git` path `test_git_range.py` already exercises, with a copy-paste
+reproduction recipe in `examples/broken/README.md`.
+Planned next slices: interchange loss and editor/refactor failures.
 
 Target vertical slice:
 

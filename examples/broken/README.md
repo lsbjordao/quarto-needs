@@ -28,6 +28,39 @@ quarto-needs --root examples/broken/missing-evidence check
 | `localization-drift/` | The pt-BR sibling quietly changes a requirement's status. | The semantic-parity check refuses the pair by name (`REQ-001`) before publication. |
 | `migration-loss/` | A Sphinx-Needs export with an unmapped type and an unmapped link field. | The import plan records `TYPE_UNMAPPED` and `LINK_FIELD_UNMAPPED` as review items — loss is planned, never guessed. |
 
+One member of the gallery has no directory: **suspect-after-change** is two
+states of a project across a Git history, not a single snapshot, so it is
+built dynamically instead of forced into a checked-in directory.
+`tests/test_teaching_fixtures.py::test_suspect_after_change_names_the_now_stale_verification`
+builds it. To explore by hand:
+
+```bash
+mkdir /tmp/suspect-demo && cd /tmp/suspect-demo
+git init -q
+cat > index.qmd <<'QMD'
+::: {.need #REQ-1 type="functional-requirement" status="approved" verified-by="TC-1"}
+## Authenticate the user
+
+The system shall authenticate the user with a password.
+:::
+
+::: {.need #TC-1 type="test-case" status="passed"}
+## Login test
+
+Verifies REQ-1.
+:::
+QMD
+git add -A && git commit -q -m "base"
+sed -i 's/with a password\./with a password and a second factor./' index.qmd
+git add -A && git commit -q -m "REQ-1: require a second factor"
+quarto-needs --root . suspect --git HEAD~1..HEAD
+```
+
+REQ-1 changed meaning; TC-1 never moved. `suspect` reports
+`suspect TC-1 from REQ-1 d=1 via REQ-1 --verified-by--> TC-1` — a
+verification that still points at REQ-1, but at a version of it nobody has
+re-checked.
+
 ## What each fixture is teaching
 
 **Errors block, warnings inform, info surfaces.** `invalid-relations/`
@@ -53,11 +86,13 @@ presentation text may differ across languages.
 central rule: content the mapping cannot express becomes a named review
 item on the plan, never a silent drop and never a guessed conversion.
 
+**A relation can survive its own premise.** `suspect-after-change` shows
+that `verified-by` staying structurally valid — TC-1 still names a real
+object — says nothing about whether the verification is still true. Only a
+second engineering state, compared explicitly, can surface that.
+
 ## Planned next slices
 
-- **suspect-after-change/** — a dynamically built Git fixture: two commits
-  where the second edits a verified requirement, and the suspect report
-  names the now-stale verification.
 - **interchange-loss/** — a ReqIF/JSON-LD export whose projection must
   document exactly which authored details stay behind.
 - **editor-refactor/** — an in-memory LSP buffer whose rename would
