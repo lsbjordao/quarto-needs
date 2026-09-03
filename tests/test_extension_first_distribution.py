@@ -85,6 +85,7 @@ def render(project: Path, *, offline: bool = False) -> subprocess.CompletedProce
     }
     if not offline:
         # The engine is unpublished, so provision it from this checkout.
+        # conftest.py's session fixture guarantees the override is set.
         environment["QUARTO_NEEDS_ENGINE_SOURCE"] = os.environ[
             "QUARTO_NEEDS_ENGINE_SOURCE"
         ]
@@ -190,6 +191,36 @@ filters:
         "the project's own pre-render hook did not run"
     )
     assert_render_contract(project)
+
+
+@pytest.mark.slow
+def test_the_obsolete_two_piece_pre_render_line_fails_without_the_cli(tmp_path) -> None:
+    """The documented migration note must stay true.
+
+    docs/quickstart.md tells upgraders to delete the old hand-authored
+    `pre-render: quarto-needs scan` line, because the extension-first install
+    never puts a `quarto-needs` command on PATH. This pins what actually
+    happens when the line is left in: the render fails loudly, rather than
+    silently rendering without a graph.
+    """
+    project = consumer_project(
+        tmp_path / "consumer",
+        quarto_yml="""project:
+  type: default
+  pre-render:
+    - quarto-needs scan
+
+filters:
+  - quarto-needs
+""",
+    )
+
+    completed = render(project)
+
+    assert completed.returncode != 0, (
+        "the obsolete pre-render line rendered successfully; the migration "
+        "note in docs/quickstart.md is wrong"
+    )
 
 
 @pytest.mark.slow
