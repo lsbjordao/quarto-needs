@@ -557,6 +557,8 @@ def test_a_valid_cached_runtime_triggers_no_installation(tmp_path, monkeypatch) 
     assert calls == ["quarto-needs==0.1.0"], "reinstalled a runtime that was already valid"
 
 
+@pytest.mark.requirement("FUN-018")
+@pytest.mark.quarto_need_test_case("TC-028")
 def test_a_corrupted_runtime_is_reprovisioned(tmp_path) -> None:
     """A marker that outlived its site-packages must not be trusted."""
     identity = bootstrap.runtime_identity()
@@ -734,6 +736,8 @@ def test_the_bootstrap_builds_the_graph_end_to_end(tmp_path) -> None:
 
 
 @pytest.mark.slow
+@pytest.mark.requirement("FUN-018", "FUN-019")
+@pytest.mark.quarto_need_test_case("TC-027")
 def test_a_wrong_global_engine_never_wins_over_the_managed_runtime(tmp_path) -> None:
     """The skew this design removes, proved rather than asserted.
 
@@ -880,6 +884,8 @@ def test_a_runtime_valid_for_one_version_does_not_satisfy_a_request_for_another(
 
 
 @pytest.mark.slow
+@pytest.mark.requirement("NFR-008")
+@pytest.mark.quarto_need_test_case("TC-029")
 def test_two_concurrent_bootstrap_processes_produce_one_installation(tmp_path) -> None:
     """Two real processes race on the same clean project.
 

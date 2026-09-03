@@ -115,6 +115,8 @@ def assert_render_contract(project: Path) -> None:
 
 
 @pytest.mark.slow
+@pytest.mark.requirement("SYS-009", "FUN-018", "FUN-019")
+@pytest.mark.quarto_need_test_case("TC-025")
 def test_a_clean_consumer_project_needs_no_engine_installation(tmp_path) -> None:
     """`quarto add` + activation + `quarto render`. Nothing else.
 
@@ -135,6 +137,8 @@ def test_a_clean_consumer_project_needs_no_engine_installation(tmp_path) -> None
 
 
 @pytest.mark.slow
+@pytest.mark.requirement("SYS-009", "NFR-009")
+@pytest.mark.quarto_need_test_case("TC-026")
 def test_a_second_render_succeeds_without_any_engine_source(tmp_path) -> None:
     """After one provisioning, rendering must not need an index again."""
     project = consumer_project(tmp_path / "consumer")
@@ -148,6 +152,8 @@ def test_a_second_render_succeeds_without_any_engine_source(tmp_path) -> None:
 
 
 @pytest.mark.slow
+@pytest.mark.requirement("FUN-018")
+@pytest.mark.quarto_need_test_case("TC-030")
 def test_the_project_path_may_contain_spaces(tmp_path) -> None:
     """A release gate: `quarto run` must survive a quoted project path."""
     project = consumer_project(tmp_path / "Quarto Needs Consumer Project")

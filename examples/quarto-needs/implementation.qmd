@@ -104,6 +104,20 @@ Traverses the union of baseline and current graphs and returns explicit auditabl
 Synchronizes extension assets, builds the engineering graph, checks localized semantic parity, and emits presentation-only title projections.
 :::
 
+## Extension-first distribution
+
+::: {.need #SRC-QUARTO-INTEGRATION type="source-module" status="implemented" path="src/quarto_needs/quarto_integration.py" language="Python" layer="integration" tags="extension;render;canonical;distribution" implements="FUN-018;SYS-009" part-of="COMP-ANALYSIS"}
+## Canonical Quarto pre-render application service
+
+The one semantic build operation behind both `quarto-needs scan` and the extension bootstrap: analyze the project, materialize queries, precompute the quality report, and write every canonical artifact Quarto consumes.
+:::
+
+::: {.need #SRC-BOOTSTRAP type="source-module" status="implemented" path="_extensions/quarto-needs/bootstrap.py" language="Python" layer="integration" tags="extension;bootstrap;provisioning;distribution" implements="FUN-018;FUN-019;NFR-008;NFR-009" part-of="COMP-EXTENSION"}
+## Managed-runtime bootstrap
+
+Provisions the exact paired engine into a project-local runtime with staged, lock-protected, atomic installs, validates the imported version against the extension's own, renders offline from a valid cache, and invokes the canonical pre-render service.
+:::
+
 ## A requirement-to-code view
 
 The table is useful when exact paths matter; the graph is useful when the reader wants to investigate how source modules sit beside requirements, decisions, tests, and evidence.
@@ -125,3 +139,5 @@ The following slices are intentionally reused throughout the rest of the case st
 **Engineering change analysis:** `STK-003 → SYS-003 → FUN-005 → COMP-BASELINE → SRC-BASELINE / SRC-DIFF / SRC-IMPACT → TC-011 → EVD-011`.
 
 **Margin TOC usability:** `SYS-002 → FUN-009 → ADR-007 → COMP-EXTENSION → SRC-MARGIN-SIDEBAR → TC-014 → EVD-014`.
+
+**Extension-first distribution:** `STK-008 → SYS-009 → FUN-018 / FUN-019 / NFR-008 / NFR-009 → ADR-019 → COMP-EXTENSION → SRC-QUARTO-INTEGRATION / SRC-BOOTSTRAP → TC-025…TC-031 → EVD-025…EVD-031`.

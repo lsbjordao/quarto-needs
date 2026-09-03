@@ -144,6 +144,12 @@ Projeções sem limite podem ficar lentas, visualmente ilegíveis e inadequadas 
 Arquivos localizados podem divergir silenciosamente de IDs, metadados e relações canônicos se a paridade semântica não for imposta.
 :::
 
+::: {.need #RISK-013 type="risk" status="approved" priority="high" tags="distribution;provisioning;python;pip;first-render"}
+## O provisionamento na primeira utilização depende de Python, pip e disponibilidade do pacote
+
+Uma máquina limpa sem interpretador utilizável, sem pip ou sem índice de pacotes acessível não consegue provisionar o motor na primeira renderização. Uma falha silenciosa ou vaga ali deixaria novos usuários travados no primeiro comando.
+:::
+
 ## Decisões de arquitetura
 
 ::: {.need #ADR-001 type="architecture-decision" status="accepted" date="2026-08-29" revisit-after="2027-08-29" decision-makers="Quarto-Needs maintainers" tags="python;semantics;architecture" addresses="SYS-001;SYS-003;NFR-005;RISK-001" applies-to="COMP-ANALYSIS;IF-002" confirmed-by="TC-001;TC-008"}
@@ -483,6 +489,26 @@ Adicionar uma nova unidade implantável significa declarar um novo `container` (
 ### Confirmação
 
 `TC-004`.
+:::
+
+::: {.need #ADR-019 type="architecture-decision" status="accepted" date="2026-09-03" revisit-after="2027-09-03" decision-makers="Quarto-Needs maintainers" tags="distribution;extension;bootstrap;managed-runtime" addresses="SYS-009;RISK-013" applies-to="COMP-EXTENSION" confirmed-by="TC-025;TC-026;TC-029"}
+## Provisionar um runtime gerenciado local ao projeto por meio de um bootstrap na extensão
+
+### Contexto e Declaração do Problema
+
+A extensão precisa de um motor semântico em Python, mas os usuários instalam apenas a extensão. O contrato antigo pedia três peças separadas — uma instalação global via pip, um CLI no PATH e um pre-render escrito à mão — cada uma uma chance independente de estar ausente, obsoleta ou errada para a versão da extensão.
+
+### Resultado da Decisão
+
+O manifesto da extensão contribui ele próprio o pre-render do projeto. Um bootstrap em biblioteca-padrão provisiona `quarto-needs==<extensão>` em `.quarto-needs/runtime/<versão>/<identidade-do-interpreter>` por meio de instalações em staging, protegidas por lock e atômicas, valida a versão de fato importada e invoca o mesmo serviço canônico de pre-render usado pelo CLI. Um runtime válido em cache renderiza offline; uma falha de provisionamento falha a renderização indicando a versão necessária, o runtime ausente e as duas ações de recuperação.
+
+### Consequências
+
+A renderização tem exatamente uma responsabilidade de instalação, e as versões de extensão e motor não podem entrar em deriva silenciosamente. O provisionamento na primeira utilização ainda exige Python e pip, que permanecem pré-requisitos de plataforma documentados; o risco residual de disponibilidade é carregado explicitamente por `RISK-013` em vez de ocultado.
+
+### Confirmação
+
+`TC-025` prova a primeira renderização limpa, `TC-026` a segunda renderização offline e `TC-029` o provisionamento concorrente seguro.
 :::
 
 ## Visualizações geradas de arquitetura

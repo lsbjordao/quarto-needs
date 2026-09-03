@@ -34,6 +34,12 @@ Os engenheiros precisam saber não apenas o que foi requerido, mas por que escol
 Traduções devem melhorar a comunicação sem criar modelos semânticos concorrentes nem duplicar a verdade de engenharia.
 :::
 
+::: {.need #STK-008 type="stakeholder-need" status="approved" tags="quarto;installation;distribution;onboarding"}
+## Autores Quarto precisam que a extensão seja toda a instalação
+
+Autores ativam uma extensão Quarto para usá-la. Exigir uma instalação separada de pacote, um CLI no PATH e um pre-render escrito à mão torna a adoção comum frágil e dá espaço para que a extensão e seu motor entrem em deriva.
+:::
+
 ## Requisitos de sistema
 
 ::: {.need #SYS-001 type="system-requirement" status="approved" priority="critical" tags="graph;semantics;traceability" derives-from="STK-001" implemented-by="COMP-ANALYSIS" verified-by="TC-001"}
@@ -94,6 +100,16 @@ O Quarto-Needs deve publicar projeções de grafo seguras para apresentação e 
 ### Justificativa
 
 A exploração deve ser poderosa sem expor dados arbitrários da fonte nem transferir o significado de engenharia para o navegador.
+:::
+
+::: {.need #SYS-009 type="system-requirement" status="approved" priority="high" tags="distribution;extension;installation;provisioning" derives-from="STK-008" implemented-by="COMP-EXTENSION" verified-by="TC-025;TC-026;TC-031"}
+## Entregar o motor semântico por meio da própria extensão ativada
+
+O Quarto-Needs deve provisionar e invocar um motor semântico exato e compatível a partir da extensão ativada durante a renderização comum, sem instalação global de pacote, sem CLI no PATH e sem pre-render escrito pelo usuário.
+
+### Justificativa
+
+Uma única responsabilidade de instalação mantém a adoção honesta: a extensão que o usuário adiciona é o componente que funciona, e seu motor não pode entrar em deriva silenciosamente.
 :::
 
 ## Lendo a primeira camada de derivação
