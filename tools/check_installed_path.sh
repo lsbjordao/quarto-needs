@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
-# Prove Quarto-Needs works the way a user installs it, not the way we develop it.
+# Prove the CLI-installed path still works: package on pip, console script on
+# PATH, project-authored `pre-render: quarto-needs scan`.
 #
-# Every other check in this repository runs from an editable install against the
-# in-tree Aegis book. That exercises the code but never the distribution: a
-# missing packaging entry, a broken console script, or an extension asset that
-# only resolves relative to the checkout would all pass CI and fail the first
-# person who runs `quarto add`.
+# This is no longer the primary user-installation scenario --
+# `tools/check_extension_first_path.sh` is, and it covers the path the
+# quickstart actually tells people to take. This one stays because that path
+# remains supported for engineering and CI users who want `quarto-needs diff`,
+# `impact` and `baseline` directly, and because it is what catches a missing
+# packaging entry or a broken console script.
 #
-# This builds the package, installs it non-editable into a clean environment,
+# It builds the package, installs it non-editable into a clean environment,
 # and renders a project created outside the repository.
 set -euo pipefail
 
@@ -69,7 +71,12 @@ Count: {{< need-count types="functional-requirement" >}}
 QMD
 
 echo "==> Rendering as an installed user would"
-( cd "$PROJECT" && quarto render . )
+# The extension contributes its own pre-render now, so this project runs both
+# its authored `quarto-needs scan` and the extension bootstrap. The bootstrap
+# deliberately ignores the CLI installed above -- an ambient engine must never
+# stand in for the managed one -- so it needs the local source for the
+# unpublished paired version.
+( cd "$PROJECT" && QUARTO_NEEDS_ENGINE_SOURCE="$REPO" quarto render . )
 
 echo "==> Asserting the results"
 GRAPH="$PROJECT/.quarto-needs/needs.json"

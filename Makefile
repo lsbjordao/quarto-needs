@@ -1,4 +1,4 @@
-.PHONY: setup setup-branding setup-babelquarto test branding-assets branding-check scan check coverage example preview-example sync-example check-example render-example render-example-all render-example-multilingual render-manual-multilingual preview-self-example sync-self-example check-self-example evidence-self-example render-self-example baseline-example diff-example impact-example check-install minimal-check render-minimal-example check-minimal-example
+.PHONY: setup setup-branding setup-babelquarto test branding-assets branding-check scan check coverage example preview-example sync-example check-example render-example render-example-all render-example-multilingual render-manual-multilingual preview-self-example sync-self-example check-self-example evidence-self-example render-self-example baseline-example diff-example impact-example check-install check-extension-first check-cli-install minimal-check render-minimal-example check-minimal-example
 .DEFAULT_GOAL := test
 
 VENV_PYTHON := .venv/bin/python
@@ -126,5 +126,13 @@ diff-example:
 impact-example:
 	SOURCE_DATE_EPOCH=$(AEGIS_REFERENCE_EPOCH) PYTHONPATH=src $(VENV_PYTHON) -m quarto_needs.cli --root examples/book impact examples/book/baselines/quarto-needs.json
 
-check-install:
+check-install: check-extension-first check-cli-install
+
+# The primary user-installation scenario: an activated extension that
+# provisions its own engine. No package install, no CLI on PATH.
+check-extension-first:
+	./tools/check_extension_first_path.sh
+
+# The CLI-installed path, still supported for engineering and CI users.
+check-cli-install:
 	./tools/check_installed_path.sh

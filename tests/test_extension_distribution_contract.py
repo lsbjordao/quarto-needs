@@ -27,7 +27,8 @@ ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "_extensions" / "quarto-needs" / "_extension.yml"
 PYPROJECT = ROOT / "pyproject.toml"
 QUICKSTART = ROOT / "docs" / "quickstart.md"
-INSTALLED_PATH_CHECK = ROOT / "tools" / "check_installed_path.sh"
+CLI_PATH_CHECK = ROOT / "tools" / "check_installed_path.sh"
+EXTENSION_FIRST_CHECK = ROOT / "tools" / "check_extension_first_path.sh"
 
 
 def _manifest() -> dict:
@@ -128,31 +129,48 @@ def test_quickstart_documents_extension_activation() -> None:
 # --- What the installed-path check depends on today -------------------------
 
 
-def test_installed_path_check_requires_a_python_package_install_today() -> None:
-    script = INSTALLED_PATH_CHECK.read_text(encoding="utf-8")
+def test_the_cli_path_check_still_covers_the_package_install() -> None:
+    """The CLI-installed path stays supported, and stays tested.
 
-    assert "pip install --quiet \"$REPO\"" in script, (
-        "the installed-user scenario currently begins by installing the package"
-    )
-
-
-def test_installed_path_check_requires_the_cli_on_path_today() -> None:
-    script = INSTALLED_PATH_CHECK.read_text(encoding="utf-8")
-
-    assert 'command -v quarto-needs' in script
-    assert 'export PATH="$WORK/venv/bin:$PATH"' in script
-
-
-def test_installed_path_fixture_authors_a_quarto_needs_pre_render_today() -> None:
-    """The fixture project wires the engine by hand.
-
-    Phase 8B's acceptance contract is this exact project *without* the
-    `pre-render` line, so this assertion is the one Task 7 inverts.
+    Extension-first distribution does not remove the Python distribution:
+    engineering users still install it for `diff`, `impact` and `baseline`.
+    This scenario is what catches a missing packaging entry or a broken
+    console script.
     """
-    script = INSTALLED_PATH_CHECK.read_text(encoding="utf-8")
+    script = CLI_PATH_CHECK.read_text(encoding="utf-8")
 
+    assert 'pip install --quiet "$REPO"' in script
+    assert "command -v quarto-needs" in script
     assert "pre-render: quarto-needs scan" in script
+
+
+def test_the_cli_path_check_is_no_longer_the_primary_scenario() -> None:
+    """Migrated in Task 7. This previously pinned the opposite.
+
+    The two-piece install used to be the only installed-user scenario the
+    repository tested, which made it the de facto contract.
+    """
+    script = CLI_PATH_CHECK.read_text(encoding="utf-8")
+
+    assert "no longer the primary user-installation scenario" in script
+    assert "check_extension_first_path.sh" in script
+
+
+def test_the_primary_check_installs_no_engine_and_authors_no_pre_render() -> None:
+    """The phase's acceptance contract, as an executable scenario.
+
+    The absence of `pre-render: quarto-needs scan` from the consumer project
+    is the whole point, so it is asserted directly rather than inferred.
+    """
+    script = EXTENSION_FIRST_CHECK.read_text(encoding="utf-8")
+
     assert "filters:\n  - quarto-needs" in script
+    assert "pre-render: quarto-needs scan" not in script
+    # It must prove the engine is absent rather than hope it is.
+    assert "a quarto-needs executable is on PATH" in script
+    assert "importable from the ambient interpreter" in script
+    # And prove the cached runtime needs no index on the second render.
+    assert "PIP_NO_INDEX=1" in script
 
 
 # --- The render golden that must survive the migration ----------------------
@@ -165,7 +183,7 @@ def test_installed_consumer_check_asserts_the_observable_render_contract() -> No
     same graph, the same resolved shortcode, the same card, and no leaked
     failure text. Task 7 rewrites the scenario around them, not through them.
     """
-    script = INSTALLED_PATH_CHECK.read_text(encoding="utf-8")
+    script = CLI_PATH_CHECK.read_text(encoding="utf-8")
 
     # The engine ran and wrote the canonical graph where consumers read it.
     assert ".quarto-needs/needs.json" in script

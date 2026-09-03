@@ -9,3 +9,13 @@ contributes:
   shortcodes:
     - shortcodes.lua
     - adr-shortcodes.lua
+  # Activating the extension installs its engine step too, so a project
+  # never has to author `pre-render: quarto-needs scan` or put the CLI on
+  # PATH. The command is relative on purpose: Quarto's absolute extension
+  # path resolution is not dependable across supported versions, and a
+  # relative `quarto run` is verified to work with spaces in the project
+  # path. A project's own pre-render hooks still run, and run first.
+  metadata:
+    project:
+      pre-render:
+        - quarto run _extensions/quarto-needs/bootstrap.py

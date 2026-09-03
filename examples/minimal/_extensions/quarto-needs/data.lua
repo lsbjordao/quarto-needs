@@ -15,6 +15,10 @@ end
 local function text(value)
   if value == nil then return "" end
   if type(value) == "string" then return value end
+  -- A JSON `null` does not decode to nil here: it arrives as a userdata
+  -- sentinel, which is truthy and whose tostring is a pointer. Without this
+  -- branch an absent field renders as "userdata: 0x55f0..." in the output.
+  if type(value) == "userdata" then return "" end
   if type(value) == "table" then return pandoc.utils.stringify(value) end
   return tostring(value)
 end

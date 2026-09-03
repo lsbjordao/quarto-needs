@@ -80,14 +80,14 @@ function M.render_shortcode(args, kwargs)
     if views.is_html_format() then
       local svg = views.diagram_inline_svg(backend, decoded.source, description, "need-c4-figure")
       if svg then
-        return pandoc.RawBlock("html", svg)
+        return pandoc.Div({pandoc.RawBlock("html", svg)}, pandoc.Attr("", {"need-c4-scroll"}))
       end
     else
       local image_name = views.render_diagram_asset(backend, decoded.source, "quarto-needs-c4-" .. backend)
       if image_name then
-        return pandoc.Para({
+        return pandoc.Div({pandoc.Para({
           pandoc.Image({pandoc.Str(description)}, image_name, "", pandoc.Attr("", {"need-c4-figure"}, {role="img"}))
-        })
+        })}, pandoc.Attr("", {"need-c4-scroll"}))
       end
     end
     -- No local {backend} tool installed (or it failed): fall back to the
@@ -99,14 +99,14 @@ function M.render_shortcode(args, kwargs)
   if views.is_html_format() then
     local svg = views.mermaid_inline_svg(decoded.source, description, "need-c4-figure")
     if svg then
-      return pandoc.RawBlock("html", svg)
+      return pandoc.Div({pandoc.RawBlock("html", svg)}, pandoc.Attr("", {"need-c4-scroll"}))
     end
   end
   local image_name, render_error = views.render_mermaid_asset(decoded.source, "quarto-needs-c4")
   if image_name then
-    return pandoc.Para({
+    return pandoc.Div({pandoc.Para({
       pandoc.Image({pandoc.Str(description)}, image_name, "", pandoc.Attr("", {"need-c4-figure"}, {role="img"}))
-    })
+    })}, pandoc.Attr("", {"need-c4-scroll"}))
   end
   quarto.log.warning(render_error or "c4 render failed")
   return views.warning(views.tr(

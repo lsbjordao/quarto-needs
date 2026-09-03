@@ -12,6 +12,10 @@ local views = dofile(script_dir() .. "views.lua")
 local function text(value)
   if value == nil then return "" end
   if type(value) == "string" then return value end
+  -- A JSON `null` does not decode to nil here: it arrives as a userdata
+  -- sentinel, which is truthy and whose tostring is a pointer. Without this
+  -- branch an absent field renders as "userdata: 0x55f0..." in the output.
+  if type(value) == "userdata" then return "" end
   if type(value) == "table" then return pandoc.utils.stringify(value) end
   return tostring(value)
 end
@@ -317,7 +321,7 @@ function M.render_shortcode(args, kwargs)
   if views.is_html_format() then
     local svg = views.mermaid_inline_svg(source, description, "need-graph-figure")
     if svg then
-      table.insert(blocks, pandoc.RawBlock("html", svg))
+      table.insert(blocks, pandoc.Div({pandoc.RawBlock("html", svg)}, pandoc.Attr("", {"need-graph-scroll"})))
       rendered = true
     end
   end
@@ -325,7 +329,7 @@ function M.render_shortcode(args, kwargs)
     local image_name = views.render_mermaid_asset(source, "quarto-needs-graph")
     if image_name then
       local image = pandoc.Image({pandoc.Str(description)}, image_name, "", pandoc.Attr("", {"need-graph-figure"}, {role="img"}))
-      table.insert(blocks, pandoc.Para({image}))
+      table.insert(blocks, pandoc.Div({pandoc.Para({image})}, pandoc.Attr("", {"need-graph-scroll"})))
     else
       table.insert(blocks, views.warning(views.tr("Could not render this graph diagram.", "Não foi possível renderizar este diagrama de grafo.")))
     end
