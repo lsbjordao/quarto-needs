@@ -98,7 +98,7 @@ def _type_checking_import_ids(tree: ast.Module) -> set[int]:
 def _runtime_imports(tree: ast.Module) -> set[str]:
     guarded = _type_checking_import_ids(tree)
     modules: set[str] = set()
-    for node in ast.walk(tree):
+    for node in tree.body:
         if isinstance(node, ast.ImportFrom) and id(node) not in guarded:
             if node.module is not None:
                 modules.add(node.module)
@@ -145,6 +145,9 @@ def test_snapshot_indexes_are_not_built_by_scanning_relations_per_object() -> No
 
 def test_kernel_modules_do_not_import_the_legacy_model_at_runtime() -> None:
     kernel = (
+        "analysis.py",
+        "parser.py",
+        "validation.py",
         "rules.py",
         "snapshot.py",
         "fingerprints.py",

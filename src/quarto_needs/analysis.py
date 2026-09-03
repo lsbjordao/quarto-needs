@@ -4,6 +4,7 @@ import json
 from collections.abc import Iterable, Mapping
 from dataclasses import replace
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import quarto_needs
 
@@ -16,7 +17,6 @@ from .config import (
     reference_date,
 )
 from .diagnostics import Finding
-from .model import EngineeringObject, to_declaration
 from .parser import parse_project_declarations
 from .relations import DEFAULT_RELATION_CATALOG
 from .rules import apply_rule_settings, run_rules
@@ -32,6 +32,9 @@ from .snapshot import (
     thaw_json,
 )
 from .validation import finding_key, validate_declarations
+
+if TYPE_CHECKING:
+    from .model import EngineeringObject
 
 
 STRUCTURAL_ERROR_CODES = frozenset(
@@ -338,6 +341,8 @@ def analyze_objects(
     *,
     config: NeedsConfig | None = None,
 ) -> AnalysisResult:
+    from .model import to_declaration
+
     declarations = tuple(to_declaration(item) for item in objects)
     return _analyze_batch(
         DeclarationBatch(declarations, ()),

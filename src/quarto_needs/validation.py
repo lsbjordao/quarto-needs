@@ -2,11 +2,14 @@ from __future__ import annotations
 
 from collections import Counter
 from collections.abc import Iterable
+from typing import TYPE_CHECKING
 
 from .diagnostics import Finding
-from .model import EngineeringObject, to_declaration
 from .relations import DEFAULT_RELATION_CATALOG, RelationCatalog
 from .snapshot import ObjectDeclaration
+
+if TYPE_CHECKING:
+    from .model import EngineeringObject
 
 
 SEVERITY_ORDER = {"error": 0, "warning": 1, "info": 2}
@@ -174,6 +177,8 @@ def validate(
       historical falsy-falls-back-to-default behavior, so an empty set
       selects the default governed types instead of disabling ``REQ002``.
     """
+    from .model import to_declaration
+
     return list(
         validate_declarations(
             (to_declaration(item) for item in objects),

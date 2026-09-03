@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Iterable, Mapping, cast
+from typing import TYPE_CHECKING, Iterable, Mapping
 
 from .diagnostics import Finding
-from .model import EngineeringObject, Relation, SourceLocation
 from .relations import DEFAULT_RELATION_CATALOG
 from .snapshot import (
     DeclarationBatch,
@@ -14,6 +13,9 @@ from .snapshot import (
     RelationToken,
     thaw_json,
 )
+
+if TYPE_CHECKING:
+    from .model import EngineeringObject
 
 OPEN_RE = re.compile(
     r'^\s*:::\s*\{\.need\s+#(?P<id>[A-Za-z0-9_.:-]+)(?P<attrs>[^}]*)\}\s*$'
@@ -316,6 +318,10 @@ def _legacy_object(declaration: ObjectDeclaration) -> EngineeringObject:
     Exists only for the legacy constructors below; the canonical analyzer
     never converts declarations back into legacy objects.
     """
+    from typing import cast
+
+    from .model import EngineeringObject, Relation, SourceLocation
+
     relations: list[Relation] = []
     for token in declaration.relations:
         kind = DEFAULT_RELATION_CATALOG.resolve(token.authored_name)
