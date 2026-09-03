@@ -95,6 +95,31 @@ def test_c4003_flags_a_containment_cycle() -> None:
     assert "SYS-A" in cycle.message and "CONTAINER-B" in cycle.message
 
 
+def test_c4003_deduplicates_cycles_with_multiple_entry_points() -> None:
+    # Regression: a cycle reachable from multiple external elements should
+    # produce exactly one diagnostic, not one per entry point, and that
+    # diagnostic should be deterministic (start at lexicographically smallest).
+    # Scenario: A→B→A cycle, with X→A and Y→B as external entry points.
+    view = _view(
+        "container",
+        "SYS-1",
+        [
+            _element("SYS-1", C4ElementRole.SOFTWARE_SYSTEM),
+            _element("A", C4ElementRole.CONTAINER, parent_id="B"),
+            _element("B", C4ElementRole.CONTAINER, parent_id="A"),
+            _element("X", C4ElementRole.COMPONENT, parent_id="A"),
+            _element("Y", C4ElementRole.COMPONENT, parent_id="B"),
+        ],
+    )
+    diagnostics = validate_c4_view(view)
+    c4003_diagnostics = [item for item in diagnostics if item.code == "C4003"]
+    assert len(c4003_diagnostics) == 1, f"Expected exactly one C4003, got {len(c4003_diagnostics)}"
+    # Should start at A (lexicographically smaller than B)
+    diagnostic = c4003_diagnostics[0]
+    assert diagnostic.object_id == "A", f"Expected object_id='A', got {diagnostic.object_id}"
+    assert "A -> B -> A" in diagnostic.message, f"Unexpected message: {diagnostic.message}"
+
+
 def test_c4006_flags_a_relationship_pointing_outside_the_view() -> None:
     view = _view(
         "system-context",

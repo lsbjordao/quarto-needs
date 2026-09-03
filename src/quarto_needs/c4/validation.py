@@ -32,6 +32,24 @@ class C4Diagnostic:
         }
 
 
+def _canonicalize_cycle(cycle: tuple[str, ...]) -> tuple[str, ...]:
+    """Rotate a cycle tuple to start at its lexicographically smallest member.
+
+    The cycle is represented as (a, b, c, a) — the last element repeats the first
+    to show closure. This function rotates so the smallest element is first while
+    preserving the circular order and the closing repeat.
+    """
+    if len(cycle) < 2:
+        return cycle
+    # All but the last (closing) repeat
+    body = cycle[:-1]
+    # Find the index of the minimum element
+    min_idx = body.index(min(body))
+    # Rotate body to start at min, then re-append the closing repeat
+    rotated = body[min_idx:] + body[:min_idx]
+    return rotated + (rotated[0],)
+
+
 def _containment_cycles(view: C4View) -> list[tuple[str, ...]]:
     parents = {
         element.id: element.parent_id
@@ -50,8 +68,10 @@ def _containment_cycles(view: C4View) -> list[tuple[str, ...]]:
             node = parents.get(node)
         if node is not None:
             cycle = tuple(path[path.index(node):]) + (node,)
-            if cycle not in cycles:
-                cycles.append(cycle)
+            # Canonicalize to start at lexicographically smallest member
+            canonical_cycle = _canonicalize_cycle(cycle)
+            if canonical_cycle not in cycles:
+                cycles.append(canonical_cycle)
         seen.update(path)
     return cycles
 
