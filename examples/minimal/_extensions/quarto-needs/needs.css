@@ -81,6 +81,13 @@ section.need-card-section > .need-heading {
   margin-bottom: .5rem;
   margin-top: .9rem;
 }
+/* The card's tag row hugs the description right above it (the paragraph's
+   own margin-bottom does the spacing) and keeps the following sections,
+   subtitles and relation rules at arm's length below. */
+.need-card > .need-card-tags {
+  margin-bottom: .55rem;
+  margin-top: 0;
+}
 .need-badge {
   display: inline-block;
   padding: .1rem .42rem;

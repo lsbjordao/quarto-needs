@@ -1024,6 +1024,42 @@ def test_tag_badges_deep_link_to_the_configured_tags_page(tmp_path: Path) -> Non
 
 
 @pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
+def test_need_card_carries_its_tags_below_the_description(tmp_path: Path) -> None:
+    """A need card renders its own tag row directly below the description
+    paragraph — authored subsections and the relation sections stack
+    underneath the tags, never above them."""
+    project = tmp_path / "card-tags"
+    project.mkdir()
+    shutil.copytree(ROOT / "_extensions", project / "_extensions")
+    (project / "_quarto.yml").write_text(
+        "project:\n  type: website\n  output-dir: _site\n\n"
+        'website:\n  title: "Card tags fixture"\n\n'
+        "format:\n  html: default\n\nfilters:\n  - quarto-needs\n",
+        encoding="utf-8",
+    )
+    (project / "index.qmd").write_text(
+        '---\ntitle: "Card tags fixture"\n---\n\n'
+        '::: {.need #REQ-1 type="functional-requirement" status="approved" tags="security,login"}\n\n'
+        "## Authenticate\nThe system shall authenticate users before access.\n\n"
+        "### Rationale\nStolen credentials are the leading entry point.\n:::\n",
+        encoding="utf-8",
+    )
+    assert cli_main(["--root", str(project), "scan"]) == 0
+    subprocess.run(
+        ["quarto", "render", str(project)],
+        cwd=ROOT, check=True, text=True, capture_output=True,
+    )
+    html = (project / "_site" / "index.html").read_text(encoding="utf-8")
+    card_start = html.index('data-need-id="REQ-1"')
+    pos_description = html.index("The system shall authenticate", card_start)
+    pos_tags = html.index("need-card-tags", card_start)
+    pos_rationale = html.index("Rationale", card_start)
+    assert card_start < pos_description < pos_tags < pos_rationale
+    assert 'class="need-badge need-tag need-tag-security"' in html
+    assert 'class="need-badge need-tag need-tag-login"' in html
+
+
+@pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
 def test_need_graph_renders_a_table_with_zero_edges_without_crashing(tmp_path: Path) -> None:
     """Pandoc's from_simple_table omits bodies[1] entirely when a table has
     zero data rows — table_block's row-id attribution originally assumed

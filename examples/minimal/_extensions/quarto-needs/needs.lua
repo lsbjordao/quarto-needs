@@ -6,6 +6,7 @@ end
 
 local views = dofile(extension_dir() .. "views.lua")
 local relations = dofile(extension_dir() .. "relations.lua")
+local tags = dofile(extension_dir() .. "tags.lua")
 
 local function value(attrs, key, default)
   local v = attrs.attributes[key]
@@ -33,6 +34,11 @@ function Div(el)
   if date == "" and graph_object and type(graph_object.attributes) == "table" then
     date = pandoc.utils.stringify(graph_object.attributes.date or "")
   end
+  local tags_value = value(el, "tags", "")
+  if tags_value == "" and graph_object and type(graph_object.attributes) == "table" then
+    tags_value = graph_object.attributes.tags
+  end
+  local card_tags = tags.parse_tags(tags_value)
 
   local heading_index = nil
   local heading_level = 3
@@ -99,6 +105,21 @@ function Div(el)
     end
   else
     table.insert(body, views.warning(message))
+  end
+
+  -- The card carries its own tag row directly below the description (the
+  -- first paragraph), so authored subsections and the relation sections
+  -- stack underneath it. A card without a paragraph shows the tags first.
+  if #card_tags > 0 then
+    local tags_block = pandoc.Div(
+      {pandoc.Plain(tags.badge_line(card_tags))},
+      pandoc.Attr("", {"need-card-tags"})
+    )
+    local insert_at = 1
+    for i, block in ipairs(body) do
+      if block.t == "Para" then insert_at = i + 1; break end
+    end
+    table.insert(body, insert_at, tags_block)
   end
 
   return {

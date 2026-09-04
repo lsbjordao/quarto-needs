@@ -26,10 +26,8 @@ end
 -- Raw `tags` attributes may be "a;b", "a,b" or a real list, matching the
 -- normalization the Python engine applies to projections. Values are deduped
 -- by slug, since the slug is what both the badge class and the ?tag= param
--- carry.
-local function object_tags(object)
-  local attributes = type(object.attributes) == "table" and object.attributes or {}
-  local raw = attributes.tags
+-- carry. Shared by the tag index and the need cards' own tag rows.
+function M.parse_tags(raw)
   local tags, seen = {}, {}
   local function add(value)
     local tag = text(value):gsub("^%s+", ""):gsub("%s+$", "")
@@ -46,7 +44,14 @@ local function object_tags(object)
   return tags
 end
 
-local function tag_badges(tags)
+function M.object_tags(object)
+  local attributes = type(object.attributes) == "table" and object.attributes or {}
+  return M.parse_tags(attributes.tags)
+end
+
+-- One line of tag badges for a parsed tag list; badges deep-link into the
+-- configured tags page when `quarto-needs: tags-page:` is set (views.badge).
+function M.badge_line(tags)
   local inlines = {}
   for _, entry in ipairs(tags) do
     if #inlines > 0 then table.insert(inlines, pandoc.Space()) end
@@ -71,7 +76,7 @@ function M.render_shortcode(args, kwargs)
 
   local chips, seen = {}, {}
   for _, object in ipairs(objects) do
-    for _, entry in ipairs(object_tags(object)) do
+    for _, entry in ipairs(M.object_tags(object)) do
       if not seen[entry.slug] then
         seen[entry.slug] = true
         chips[#chips + 1] = entry
@@ -117,7 +122,7 @@ function M.render_shortcode(args, kwargs)
       {pandoc.Str(text(object.title))},
       views.badge("type", object.type),
       views.badge("status", object.status),
-      tag_badges(object_tags(object)),
+      M.badge_line(M.object_tags(object)),
     }
   end
   local table_id = views.reserve_view_id("need-tags", views.kwarg(kwargs, "id"))
