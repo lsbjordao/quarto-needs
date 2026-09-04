@@ -194,9 +194,9 @@
         style: {
           "curve-style": "bezier",
           "target-arrow-shape": "triangle",
-          "target-arrow-color": "#64748b",
-          "line-color": "#64748b",
-          width: 1.5,
+          "target-arrow-color": "#e2e8f0",
+          "line-color": "#e2e8f0",
+          width: 2.5,
           label: "data(label)",
           "font-size": 9,
           "text-rotation": "autorotate",

@@ -103,7 +103,7 @@ def test_cytoscape_navigator_license_is_recorded() -> None:
 
 def test_navigator_is_loaded_after_cytoscape_core_and_before_graph_js() -> None:
     views = VIEWS_LUA.read_text(encoding="utf-8")
-    assert 'version = "0.1.8"' in views
+    assert 'version = "0.1.9"' in views
     assert views.index('"vendor/cytoscape/cytoscape.min.js"') < views.index(
         '"vendor/cytoscape-navigator/cytoscape-navigator.js"'
     )

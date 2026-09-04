@@ -1,6 +1,6 @@
 /* Interactive need-graph styling: canvas, controls, and status. */
 .need-graph-container {
-  --qn-graph-edge: color-mix(in srgb, var(--bs-body-color, #212529) 62%, transparent);
+  --qn-graph-edge: color-mix(in srgb, var(--bs-body-color, #212529) 82%, transparent);
   --qn-graph-label: var(--bs-body-color, #212529);
   --qn-graph-label-bg: var(--bs-body-bg, #fff);
   margin: 1.2rem 0;

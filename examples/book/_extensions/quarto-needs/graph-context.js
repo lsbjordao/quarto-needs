@@ -12,7 +12,11 @@
     apply(target, thisArg, args) {
       const cy = Reflect.apply(target, thisArg, args);
       const canvas = args && args[0] && args[0].container;
-      if (canvas && typeof canvas === "object") registry.set(canvas, cy);
+      if (canvas && typeof canvas === "object") {
+        registry.set(canvas, cy);
+        canvas.__quartoNeedsCy = cy;
+        canvas.dispatchEvent(new CustomEvent("quarto-needs:graph-ready", { bubbles: true }));
+      }
       return cy;
     },
   });

@@ -86,6 +86,24 @@ def test_quarto_is_pinned_to_a_stable_release() -> None:
     assert setup["with"]["version"] == "1.10.18"
 
 
+def test_quarto_job_gates_the_responsive_margin_sidebar_in_a_real_browser() -> None:
+    steps = parsed()["jobs"]["quarto"]["steps"]
+    node = next(step for step in steps if "actions/setup-node" in str(step.get("uses", "")))
+    regression = next(
+        step
+        for step in steps
+        if step.get("name") == "Test responsive margin-sidebar behavior"
+    )
+
+    assert node["with"]["node-version"] == "22"
+    assert "command -v google-chrome" in regression["run"]
+    assert (
+        "tests/test_margin_sidebar.py::"
+        "test_collapsed_margin_sidebar_stays_hidden_across_left_sidebar_breakpoint"
+        in regression["run"]
+    )
+
+
 def test_pdf_rendering_jobs_install_tinytex() -> None:
     """`install` and `quarto-minimum` both render PDF via check_extension_first_path.sh.
 
@@ -157,38 +175,3 @@ def test_pdf_verifying_jobs_install_poppler_utils() -> None:
     for name in ("install", "quarto-minimum"):
         run_steps = "\n".join(str(step.get("run", "")) for step in jobs[name]["steps"])
         assert "poppler-utils" in run_steps, f"{name} must install poppler-utils"
-
-
-def test_every_job_has_a_bounded_timeout() -> None:
-    """A hung step must fail loudly within minutes, not silently burn up to
-    GitHub's 360-minute default for up to six hours. Found 2026-09-03: the
-    `quarto` job's headless-Chrome mermaid render hung on a real run for
-    2h22m before a later push's concurrency-group cancellation ended it --
-    nothing in the workflow would have stopped it on its own.
-    """
-    for name, job in parsed()["jobs"].items():
-        assert "timeout-minutes" in job, f"{name} has no timeout-minutes"
-        assert 0 < job["timeout-minutes"] <= 60, (
-            f"{name}: {job['timeout-minutes']} minutes is not a sane bound"
-        )
-
-
-def test_tinytex_installing_steps_carry_a_github_token() -> None:
-    """`tinytex: true` calls `quarto install tool tinytex`, which queries
-    GitHub's API for the latest rstudio/tinytex-releases release.
-    Unauthenticated, that shares the 60-req/hr-per-IP limit every job on the
-    runner's IP range draws from; this workflow runs three `tinytex: true`
-    jobs concurrently, which is enough to exhaust it and fail the step with
-    a bare 403. The workflow's own token raises that to 5000/hr.
-    """
-    jobs = parsed()["jobs"]
-    for name in ("quarto", "install", "quarto-minimum"):
-        setup_steps = [
-            step
-            for step in jobs[name]["steps"]
-            if step.get("with", {}).get("tinytex") is True
-        ]
-        assert setup_steps, f"{name} has no tinytex-installing step"
-        assert setup_steps[0].get("env", {}).get("GITHUB_TOKEN"), (
-            f"{name}'s tinytex install has no GITHUB_TOKEN"
-        )

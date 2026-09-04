@@ -105,7 +105,11 @@
     const cy = canvas.__quartoNeedsCy;
     if (!cy || typeof cy.style !== "function") return false;
     const dark = graphSurfaceIsDark(canvas);
-    const edge = dark ? "#b8c2cc" : "#64748b";
+    // Dark-mode edges sit *below* the nodes' own #94a3b8 borders: the theme
+    // leaves node borders untouched, so edges brighter than that (the earlier
+    // #e2e8f0 was nearly label-bright and outshouted the nodes) invert the
+    // intended figure/ground hierarchy.
+    const edge = dark ? "#8b98a9" : "#64748b";
     const label = dark ? "#f1f5f9" : "#1f2937";
     const labelBackground = dark ? "#212529" : "#ffffff";
     cy.style()
@@ -115,6 +119,7 @@
       .style({
         "line-color": edge,
         "target-arrow-color": edge,
+        width: dark ? 1.5 : 1,
         color: label,
         "text-background-color": labelBackground,
         "text-background-opacity": dark ? 0.88 : 0.72,
@@ -163,6 +168,7 @@
       }
     }, true);
     document.addEventListener("quarto:themeChanged", scheduleGraphThemeRefresh);
+    document.addEventListener("quarto-needs:graph-ready", scheduleGraphThemeRefresh);
     const media = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)");
     if (media && typeof media.addEventListener === "function") {
       media.addEventListener("change", scheduleGraphThemeRefresh);

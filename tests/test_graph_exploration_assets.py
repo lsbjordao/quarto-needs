@@ -13,7 +13,7 @@ def read(root: Path, name: str) -> str:
 def test_exploration_client_is_loaded_after_base_graph() -> None:
     views = read(EXTENSION, "views.lua")
 
-    assert 'version = "0.1.8"' in views
+    assert 'version = "0.1.9"' in views
     assert views.index('"graph-context.js"') < views.index('"graph.js"')
     assert views.index('"graph.js"') < views.index('"graph-explore.js"')
     assert views.index('"graph-explore.js"') < views.index('"graph-modes.js"')
@@ -344,7 +344,7 @@ def test_find_edge_miss_is_skipped_not_crashed() -> None:
 def test_state_client_is_loaded_last() -> None:
     views = read(EXTENSION, "views.lua")
 
-    assert 'version = "0.1.8"' in views
+    assert 'version = "0.1.9"' in views
     assert views.index('"graph-modes.js"') < views.index('"graph-state.js"')
 
 

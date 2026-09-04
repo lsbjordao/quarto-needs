@@ -565,8 +565,15 @@ def test_dashboard_renders_distributions_and_finding_counts(tmp_path: Path):
     assert "Needs by priority" in catalog
     assert "functional-requirement" in catalog
     # The catalog holds one approved and two draft requirements.
-    assert re.search(r"<td>approved</td>\s*<td>1</td>", catalog)
-    assert re.search(r"<td>draft</td>\s*<td>2</td>", catalog)
+    assert re.search(
+        r'<td><span class="need-badge need-status need-status-approved">approved</span></td>\s*<td>1</td>',
+        catalog,
+    )
+    assert re.search(
+        r'<td><span class="need-badge need-status need-status-draft">draft</span></td>\s*<td>2</td>',
+        catalog,
+    )
+    assert 'need-badge need-priority need-priority-high' in catalog
 
     assert "Findings by severity" in html
     findings = html.split("Findings by severity", 1)[1][:1500]
@@ -854,6 +861,47 @@ def test_need_graph_static_table_rows_carry_a_stable_row_id(tmp_path: Path) -> N
     # exact key graph-modes.js's own findEdge() already keys overlay entries
     # by — not the translated display label a reader sees in the cell.
     assert re.search(r'data-need-graph-row-id="REQ-1\|[^"]+\|TC-1"', html)
+
+
+@pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
+def test_need_graph_static_table_renders_status_and_priority_as_badges(tmp_path: Path) -> None:
+    """Every other table surface (need-table, dashboard, need headers) routes
+    type/status/priority through views.badge, so the values carry the
+    predefined need-type-*/need-status-*/need-priority-* styles. The static
+    graph table flattened every cell to bare text, making it the one table
+    where those values rendered unstyled. Scoped to the node table because
+    the need block on the same page legitimately emits the same badge classes
+    for its own header — page-wide assertions cannot tell the two apart."""
+    project = tmp_path / "graph-badges"
+    project.mkdir()
+    shutil.copytree(ROOT / "_extensions", project / "_extensions")
+    (project / "_quarto.yml").write_text(
+        "project:\n  type: website\n  output-dir: _site\n\n"
+        'website:\n  title: "Graph badge fixture"\n\n'
+        "format:\n  html: default\n\nfilters:\n  - quarto-needs\n",
+        encoding="utf-8",
+    )
+    (project / "index.qmd").write_text(
+        '---\ntitle: "Graph badge fixture"\n---\n\n'
+        '::: {.need #REQ-1 type="functional-requirement" status="approved" priority="high"}\n\n'
+        "## Authenticate\nNo relations at all.\n:::\n\n"
+        "{{< need-graph >}}\n",
+        encoding="utf-8",
+    )
+    assert cli_main(["--root", str(project), "scan"]) == 0
+    subprocess.run(
+        ["quarto", "render", str(project)],
+        cwd=ROOT, check=True, text=True, capture_output=True,
+    )
+    html = (project / "_site" / "index.html").read_text(encoding="utf-8")
+    match = re.search(
+        r'<table[^>]*data-need-graph-role="node".*?</table>', html, re.DOTALL
+    )
+    assert match, "static node table not found"
+    node_table = match.group(0)
+    assert 'class="need-badge need-type need-type-functional-requirement"' in node_table
+    assert 'class="need-badge need-status need-status-approved"' in node_table
+    assert 'class="need-badge need-priority need-priority-high"' in node_table
 
 
 @pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")

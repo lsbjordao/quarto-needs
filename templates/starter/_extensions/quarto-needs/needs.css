@@ -175,6 +175,24 @@ div:has(> table.need-matrix) {
   height: auto;
   display: block;
 }
+html[data-bs-theme="dark"] .need-flow-scroll svg.need-flow .flowchart-link,
+html[data-bs-theme="dark"] .need-flow-scroll svg.need-flow .edgePath .path,
+html[data-bs-theme="dark"] .need-c4-scroll svg.need-c4-figure .flowchart-link,
+html[data-bs-theme="dark"] .need-c4-scroll svg.need-c4-figure .edgePath .path,
+html[data-bs-theme="dark"] .need-graph-scroll svg.need-graph-figure .flowchart-link,
+html[data-bs-theme="dark"] .need-graph-scroll svg.need-graph-figure .edgePath .path {
+  stroke: #e2e8f0 !important;
+  stroke-width: 2px !important;
+}
+html[data-bs-theme="dark"] .need-flow-scroll svg.need-flow marker path,
+html[data-bs-theme="dark"] .need-flow-scroll svg.need-flow marker polygon,
+html[data-bs-theme="dark"] .need-c4-scroll svg.need-c4-figure marker path,
+html[data-bs-theme="dark"] .need-c4-scroll svg.need-c4-figure marker polygon,
+html[data-bs-theme="dark"] .need-graph-scroll svg.need-graph-figure marker path,
+html[data-bs-theme="dark"] .need-graph-scroll svg.need-graph-figure marker polygon {
+  fill: #e2e8f0 !important;
+  stroke: #e2e8f0 !important;
+}
 /* C4 diagrams get the same treatment as need-flow. The inline SVG keeps its
    intrinsic width and height so the whole diagram survives Quarto's
    mermaid-to-PNG path, which screenshots at ~800px and crops wider ones --

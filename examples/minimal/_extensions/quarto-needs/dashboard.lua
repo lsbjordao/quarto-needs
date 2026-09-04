@@ -50,6 +50,10 @@ local function words(value)
   return inlines
 end
 local function count(value) return string.format("%d", math.floor(tonumber(value) or 0)) end
+local function breakdown_value(dimension, value)
+  if dimension == "status" or dimension == "priority" then return views.badge(dimension, value) end
+  return {pandoc.Str(text(value))}
+end
 local function before(left,right)
   local a,b=left:lower(),right:lower(); if a~=b then return a<b end; return left<right
 end
@@ -83,7 +87,7 @@ local function scope_blocks(graph,name,data)
     local counts=data.breakdowns and data.breakdowns[dimension]
     if type(counts)=="table" then
       local keys={}; for key in pairs(counts) do keys[#keys+1]=text(key) end; table.sort(keys,before)
-      local distribution={}; for _,key in ipairs(keys) do distribution[#distribution+1]={{pandoc.Str(key)},{pandoc.Str(count(counts[key]))}} end
+      local distribution={}; for _,key in ipairs(keys) do distribution[#distribution+1]={breakdown_value(dimension, key),{pandoc.Str(count(counts[key]))}} end
       if #distribution>0 then content[#content+1]=pandoc.Para({pandoc.Strong(words(breakdown_label(dimension)))}); content[#content+1]=views.table(nil,{{pandoc.Str(L("Value","Valor"))},{pandoc.Str(L("Needs","Objetos"))}},distribution,nil) end
     end
   end

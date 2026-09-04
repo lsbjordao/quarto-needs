@@ -60,7 +60,7 @@ function M.ensure_assets()
   rawset(_G, ASSETS_FLAG, true)
   quarto.doc.add_html_dependency({
     name = "quarto-needs",
-    version = "0.1.8",
+    version = "0.1.9",
     stylesheets = {"needs.css", "vendor/cytoscape-navigator/cytoscape.js-navigator.css", "graph.css"},
     scripts = {
       "needs.js",
@@ -203,7 +203,7 @@ local function normalize_mermaid_svg(html)
 end
 
 local function with_temp_mermaid(source, temp_name, mermaid_format, collect)
-  local labeled = "%%{init: {\"htmlLabels\": false}}%%\n" .. source
+  local labeled = "%%{init: {\"htmlLabels\": false,\"themeVariables\":{\"lineColor\":\"#e2e8f0\",\"arrowheadColor\":\"#e2e8f0\"}}}%%\n" .. source
   local ok, result = pcall(pandoc.system.with_temporary_directory, temp_name, function(directory)
     local input = pandoc.path.join({directory, "diagram.qmd"})
     local output = io.open(input, "wb")

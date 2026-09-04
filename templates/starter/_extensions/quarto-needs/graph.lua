@@ -278,7 +278,16 @@ end
 local function table_block(headers, rows, kind, row_ids)
   local function cells_block(cells)
     local result = {}
-    for _, value in ipairs(cells) do table.insert(result, pandoc.Plain({pandoc.Str(value)})) end
+    -- A cell value that is already a list of Inlines (badge spans from
+    -- views.badge for the status/priority columns) is wrapped directly;
+    -- anything else stays the plain-text Str it always was.
+    for _, value in ipairs(cells) do
+      if type(value) == "table" then
+        table.insert(result, pandoc.Plain(value))
+      else
+        table.insert(result, pandoc.Plain({pandoc.Str(value)}))
+      end
+    end
     return result
   end
   local aligns, widths = {}, {}
@@ -355,8 +364,12 @@ function M.render_shortcode(args, kwargs)
     views.tr("Tags", "Tags"), views.tr("Change", "Mudança"),
   }
   local node_rows, node_row_ids = {}, {}
+  -- Type/status/priority go through the shared badge generator, the same
+  -- convention need-table and dashboard cells already follow, so the values
+  -- carry the predefined need-type-*/need-status-*/need-priority-* styles
+  -- here too.
   for _, row in ipairs(node_table_rows(projection)) do
-    table.insert(node_rows, {row.id, row.title, row.type, row.status, row.priority, row.tags, row.change})
+    table.insert(node_rows, {row.id, row.title, views.badge("type", row.type), views.badge("status", row.status), views.badge("priority", row.priority), row.tags, row.change})
     table.insert(node_row_ids, row.id)
   end
   table.insert(blocks, table_block(node_header, node_rows, "node", node_row_ids))
