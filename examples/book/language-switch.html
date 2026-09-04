@@ -77,19 +77,10 @@
       <li><a class="dropdown-item" href="${relativeHref(current, target)}">${targetLabel}</a></li>
     </ul>`;
 
-  const page = getComputedStyle(document.body);
-  const root = getComputedStyle(document.documentElement);
-  const transparent = new Set(["transparent", "rgba(0, 0, 0, 0)"]);
-  let pageBg = page.backgroundColor;
-  if (!pageBg || transparent.has(pageBg)) pageBg = root.getPropertyValue("--bs-body-bg").trim() || "#fff";
-  const pageFg = page.color || root.getPropertyValue("--bs-body-color").trim() || "#212529";
-  const pageBorder = root.getPropertyValue("--bs-border-color").trim() || "#dee2e6";
-  const pageHover = root.getPropertyValue("--bs-tertiary-bg").trim() || "#f8f9fa";
-
-  wrapper.style.setProperty("--qn-language-bg", pageBg);
-  wrapper.style.setProperty("--qn-language-fg", pageFg);
-  wrapper.style.setProperty("--qn-language-border", pageBorder);
-  wrapper.style.setProperty("--qn-language-hover", pageHover);
+  // Colors are intentionally not set here: language-switch.css resolves
+  // them through live Bootstrap theme variables, which stay correct across
+  // dark themes and runtime theme toggles. A snapshot taken at load time
+  // went stale on dark sites and left the switcher with light chrome.
 
   const place = () => {
     const secondarySearch = document.querySelector(
