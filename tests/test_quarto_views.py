@@ -983,10 +983,10 @@ def test_need_tags_renders_chip_index_and_full_table(tmp_path: Path) -> None:
 
 @pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
 def test_tag_badges_deep_link_to_the_configured_tags_page(tmp_path: Path) -> None:
-    """With `quarto-needs: tags-page:` set, the needs.lua Span handler wraps
-    every tag badge — here the graph table's — in a link to the configured
-    chapter pre-filtered with ?tag=<slug>. Resolution goes through the same
-    link_target logic as every other cross-page link."""
+    """With `quarto-needs: tags-page:` set, views.badge wraps every tag
+    badge — here the graph table's, rendered at shortcode time — in a link
+    to the configured chapter pre-filtered with ?tag=<slug>. Resolution goes
+    through the same link_target logic as every other cross-page link."""
     project = tmp_path / "tags-deeplink"
     project.mkdir()
     shutil.copytree(ROOT / "_extensions", project / "_extensions")
@@ -1021,6 +1021,51 @@ def test_tag_badges_deep_link_to_the_configured_tags_page(tmp_path: Path) -> Non
     node_table = match.group(0)
     assert '<a href="tags.html?tag=security" class="need-tag-link">' in node_table
     assert '<a href="tags.html?tag=login" class="need-tag-link">' in node_table
+    # The card's own tag row is rendered by needs.lua's Div handler — a
+    # separate pandoc Lua engine from the shortcode dispatch that wrapped the
+    # graph table above — so it must pick up tags-page through needs.lua's
+    # Meta handler instead of the shortcode-dispatch note.
+    card_html = html[html.index("need-card-tags") :]
+    card_html = card_html[: card_html.index("</div>")]
+    assert '<a href="tags.html?tag=security" class="need-tag-link">' in card_html
+    assert '<a href="tags.html?tag=login" class="need-tag-link">' in card_html
+
+
+@pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
+def test_card_tags_deep_link_even_without_any_shortcode(tmp_path: Path) -> None:
+    """A page carrying only need cards never runs the shortcode dispatch, so
+    needs.lua's Meta handler is the only thing that can park `tags-page:` in
+    the filter's Lua engine. Card tag badges deep-link even there."""
+    project = tmp_path / "card-deeplink"
+    project.mkdir()
+    shutil.copytree(ROOT / "_extensions", project / "_extensions")
+    (project / "_quarto.yml").write_text(
+        "project:\n  type: website\n  output-dir: _site\n\n"
+        'website:\n  title: "Card deep-link fixture"\n\n'
+        "format:\n  html: default\n\nfilters:\n  - quarto-needs\n\n"
+        "quarto-needs:\n  tags-page: tags\n",
+        encoding="utf-8",
+    )
+    (project / "index.qmd").write_text(
+        '---\ntitle: "Card deep-link fixture"\n---\n\n'
+        '::: {.need #REQ-1 type="functional-requirement" status="approved" tags="security,login"}\n\n'
+        "## Authenticate\nNo relations at all.\n:::\n",
+        encoding="utf-8",
+    )
+    (project / "tags.qmd").write_text(
+        '# Tags\n\n{{< need-tags >}}\n',
+        encoding="utf-8",
+    )
+    assert cli_main(["--root", str(project), "scan"]) == 0
+    subprocess.run(
+        ["quarto", "render", str(project)],
+        cwd=ROOT, check=True, text=True, capture_output=True,
+    )
+    html = (project / "_site" / "index.html").read_text(encoding="utf-8")
+    card_html = html[html.index("need-card-tags") :]
+    card_html = card_html[: card_html.index("</div>")]
+    assert '<a href="tags.html?tag=security" class="need-tag-link">' in card_html
+    assert '<a href="tags.html?tag=login" class="need-tag-link">' in card_html
 
 
 @pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")

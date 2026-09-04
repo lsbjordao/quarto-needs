@@ -613,15 +613,16 @@ function M.link(object, label, options)
 end
 
 -- The project's tag-index page, from `quarto-needs: tags-page:` (locale-
--- suffixed keys like `tags-page-pt-br` win over the plain one). User filters
--- run *before* Quarto expands shortcodes, so a Meta handler cannot carry the
--- setting to badge rendering — instead the shortcode dispatch hands every
--- handler's `meta` to note_shortcode_meta, which parks the resolved value on
--- _G, the only state every module's separate views.lua instances share.
+-- suffixed keys like `tags-page-pt-br` win over the plain one). Badge
+-- rendering happens in two separate pandoc Lua engines — the shortcode
+-- dispatch and each --lua-filter — and _G does not cross engines, so the
+-- resolved value must reach each on its own. The shortcode dispatch hands
+-- every handler's `meta` to note_shortcode_meta; filter-side rendering cannot
+-- wait for either note (quarto walks filter bodies before Meta handlers and
+-- may expand shortcodes after them), so tags_page() resolves through
+-- quarto.metadata — readable from body handlers — and parks the result.
 local TAGS_PAGE_FLAG = "__quarto_needs_tags_page_v1"
-function M.note_shortcode_meta(meta)
-  if rawget(_G, TAGS_PAGE_FLAG) ~= nil then return end
-  local options = type(meta) == "table" and meta["quarto-needs"] or nil
+local function park_tags_page(options)
   if type(options) ~= "table" then
     rawset(_G, TAGS_PAGE_FLAG, "")
     return
@@ -632,7 +633,18 @@ function M.note_shortcode_meta(meta)
   rawset(_G, TAGS_PAGE_FLAG, value == nil and "" or text(value))
 end
 
+function M.note_shortcode_meta(meta)
+  if rawget(_G, TAGS_PAGE_FLAG) ~= nil then return end
+  park_tags_page(type(meta) == "table" and meta["quarto-needs"] or nil)
+end
+
 function M.tags_page()
+  local parked = rawget(_G, TAGS_PAGE_FLAG)
+  if parked ~= nil then return parked end
+  local ok, options = pcall(function()
+    return type(quarto.metadata.get) == "function" and quarto.metadata.get("quarto-needs") or nil
+  end)
+  park_tags_page(ok and options or nil)
   return rawget(_G, TAGS_PAGE_FLAG) or ""
 end
 

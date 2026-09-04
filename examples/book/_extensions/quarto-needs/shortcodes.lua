@@ -69,10 +69,12 @@ local function render_need_flow(args,kwargs)
   local image=pandoc.Image({pandoc.Str(description)},image_name,"",pandoc.Attr("",{"need-flow"},{role="img"})); blocks[#blocks+1]=pandoc.Div({pandoc.Para({image})},pandoc.Attr("",{"need-flow-scroll"})); return pandoc.Div(blocks)
 end
 local function render_need_dashboard(args,kwargs) local graph_data,warning=graph_or_warning(); if not graph_data then return warning end; local blocks,message=dashboard.render(graph_data,kwargs); if not blocks then if message then return views.warning(message) end; return views.empty(L("Dashboard report unavailable.","Relatório do painel indisponível.")) end; local id=views.reserve_view_id("need-dashboard",views.kwarg(kwargs,"id")); return pandoc.Div(blocks,pandoc.Attr(id,{"need-dashboard"},{role="region"})) end
--- Every handler first parks the document meta where views.lua can reach it:
--- that is how `quarto-needs: tags-page:` gets from _quarto.yml to badge
--- rendering, which happens here at shortcode time (user filters run before
--- shortcodes, so a filter-phase Meta handler would be too late).
+-- Every handler first parks the document meta where this engine's views.lua
+-- can reach it: that is how `quarto-needs: tags-page:` gets from _quarto.yml
+-- to badge rendering at shortcode time. Filter-side rendering (the need
+-- cards) resolves the same value lazily off PANDOC_DOCUMENT instead — pandoc
+-- gives each filter its own Lua state and quarto walks filter bodies before
+-- Meta handlers, so nothing parked from here could reach them in time.
 local handlers={
   need=function(args,kwargs,meta) local id=pandoc.utils.stringify(args[1] or ""); if id=="" then return pandoc.Str(L("[missing need id]","[id ausente]")) end; local graph_data,message=views.load(); if not graph_data then return pandoc.Span({pandoc.Str(id)},pandoc.Attr("",{"need-ref","need-ref-missing"})) end; local object=views.get(graph_data,id); if not object then return pandoc.Span({pandoc.Str(id)},pandoc.Attr("",{"need-ref","need-ref-missing"})) end; local label=id; if kwargs and kwargs["title"] and pandoc.utils.stringify(kwargs["title"])=="true" then label=id.." — "..pandoc.utils.stringify(object.title) end; return views.link(object,label) end,
   ["need-table"]=render_need_table,["need-list"]=render_need_list,["need-count"]=render_need_count,["need-matrix"]=render_need_matrix,["need-backlinks"]=render_need_backlinks,["need-inspector"]=render_need_inspector,["need-flow"]=render_need_flow,["need-dashboard"]=render_need_dashboard,["need-graph"]=render_need_graph,["need-c4"]=render_need_c4,["need-tags"]=function(args,kwargs) return tags.render_shortcode(args,kwargs) end,
