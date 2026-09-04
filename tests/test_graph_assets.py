@@ -138,6 +138,21 @@ def test_graph_css_overrides_the_navigators_default_page_corner_panel() -> None:
     assert "position: absolute" in source
 
 
+def test_graph_mermaid_source_uses_compact_deterministic_node_aliases() -> None:
+    """Mermaid refuses any diagram over its fixed 50,000-character
+    maxTextSize — it renders an error bubble instead — and Quarto's render
+    pipeline offers no way to raise that ceiling. Encoding every node id as
+    two hex digits per character cost ~29k chars of pure identifiers on the
+    self-hosted verification view (57,950 total) and pushed the real
+    projection past the cap. Sequential aliases carry identical semantics
+    for a fraction of the bytes; they are memoized and assigned in the
+    projection's deterministic order, so output stays byte-stable."""
+    source = GRAPH_LUA.read_text(encoding="utf-8")
+    assert "%02X" not in source
+    assert "refs.map[identifier]" in source
+    assert 'alias = "n" .. refs.count' in source
+
+
 def test_graph_js_ships_expected_markers() -> None:
     source = GRAPH_JS.read_text(encoding="utf-8")
     assert "window.cytoscape" in source

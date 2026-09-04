@@ -31,9 +31,25 @@ local function ensure_clipboard_asset()
   })
 end
 
-local function node_ref(identifier)
-  local hex = text(identifier):gsub(".", function(char) return string.format("%02X", char:byte()) end)
-  return "need_" .. hex
+-- Mermaid node identifiers must be plain alphanumeric tokens. Encoding the
+-- full id as two hex digits per character doubled a real view's source size
+-- and pushed it past mermaid's fixed 50,000-character maxTextSize (which
+-- Quarto's render pipeline cannot raise), so mermaid drew its error bubble
+-- instead of the diagram. Aliases are memoized and assigned in the
+-- projection's deterministic first-appearance order, keeping output
+-- byte-stable for a fraction of the bytes.
+local function mermaid_refs()
+  return {count = 0, map = {}}
+end
+
+local function node_ref(refs, identifier)
+  local alias = refs.map[identifier]
+  if not alias then
+    refs.count = refs.count + 1
+    alias = "n" .. refs.count
+    refs.map[identifier] = alias
+  end
+  return alias
 end
 
 local function escape_mermaid(value)
@@ -62,16 +78,17 @@ local function edge_label(edge)
 end
 
 function M.mermaid_source(projection)
+  local refs = mermaid_refs()
   local lines = {"flowchart LR"}
   local classes = {}
   for _, node in ipairs(projection.nodes) do
     local class_name = "need_type_" .. views.slug(node.type):gsub("-", "_")
-    table.insert(lines, '  ' .. node_ref(node.id) .. '["' .. node_label(node) .. '"]')
-    table.insert(lines, '  class ' .. node_ref(node.id) .. ' ' .. class_name)
+    table.insert(lines, '  ' .. node_ref(refs, node.id) .. '["' .. node_label(node) .. '"]')
+    table.insert(lines, '  class ' .. node_ref(refs, node.id) .. ' ' .. class_name)
     classes[class_name] = views.type_palette(node.type)
   end
   for _, edge in ipairs(projection.edges) do
-    table.insert(lines, '  ' .. node_ref(edge.source) .. ' -->|"' .. edge_label(edge) .. '"| ' .. node_ref(edge.target))
+    table.insert(lines, '  ' .. node_ref(refs, edge.source) .. ' -->|"' .. edge_label(edge) .. '"| ' .. node_ref(refs, edge.target))
   end
   local class_names = {}
   for class_name in pairs(classes) do class_names[#class_names + 1] = class_name end
