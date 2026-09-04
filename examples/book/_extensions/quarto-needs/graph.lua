@@ -132,10 +132,22 @@ local function node_table_rows(projection)
     table.insert(rows, {
       id = text(node.id), title = text(node.title), type = text(node.type),
       status = text(node.status), priority = text(node.priority),
-      tags = table.concat(tags, ", "), change = text(node.change),
+      tags = tags, change = text(node.change),
     })
   end
   return rows
+end
+
+-- Each tag becomes its own badge span (views.badge's list-of-inlines shape,
+-- which table_block wraps directly), separated by spaces; needs.css's
+-- .need-tag rule keeps the badge outline on a transparent fill.
+local function tag_cell(tags)
+  local inlines = {}
+  for _, tag in ipairs(tags or {}) do
+    if #inlines > 0 then table.insert(inlines, pandoc.Space()) end
+    for _, badge in ipairs(views.badge("tag", tag)) do table.insert(inlines, badge) end
+  end
+  return inlines
 end
 
 local function summary_entries(projection)
@@ -363,13 +375,27 @@ function M.render_shortcode(args, kwargs)
     views.tr("Status", "Status"), views.tr("Priority", "Prioridade"),
     views.tr("Tags", "Tags"), views.tr("Change", "Mudança"),
   }
+  -- IDs name needs: link them to the needs they identify, the same
+  -- convention need-table's id column already follows. The link target
+  -- comes from the projected node's public `href` (site-relative, same one
+  -- the canvas tooltip's "Open need" uses); an id that survives as a bare
+  -- string (outside the selected node set, e.g. ghost overlay entries)
+  -- stays the plain text it always was.
+  local nodes_by_id = {}
+  for _, node in ipairs(projection.nodes) do nodes_by_id[text(node.id)] = node end
+  local function linked_cell(identifier)
+    local node = nodes_by_id[text(identifier)]
+    local href = node and text(node.href) or ""
+    if href == "" then return text(identifier) end
+    return {pandoc.Link({pandoc.Str(text(identifier))}, href, "")}
+  end
   local node_rows, node_row_ids = {}, {}
-  -- Type/status/priority go through the shared badge generator, the same
-  -- convention need-table and dashboard cells already follow, so the values
-  -- carry the predefined need-type-*/need-status-*/need-priority-* styles
-  -- here too.
+  -- Type/status/priority/tags go through the shared badge generator, the
+  -- same convention need-table and dashboard cells already follow, so the
+  -- values carry the predefined need-type-*/need-status-*/need-priority-*
+  -- styles here too (tags stay on needs.css's transparent .need-tag rule).
   for _, row in ipairs(node_table_rows(projection)) do
-    table.insert(node_rows, {row.id, row.title, views.badge("type", row.type), views.badge("status", row.status), views.badge("priority", row.priority), row.tags, row.change})
+    table.insert(node_rows, {linked_cell(row.id), row.title, views.badge("type", row.type), views.badge("status", row.status), views.badge("priority", row.priority), tag_cell(row.tags), row.change})
     table.insert(node_row_ids, row.id)
   end
   table.insert(blocks, table_block(node_header, node_rows, "node", node_row_ids))
@@ -380,7 +406,7 @@ function M.render_shortcode(args, kwargs)
   }
   local rows, edge_row_ids = {}, {}
   for _, row in ipairs(edge_table_rows(projection)) do
-    table.insert(rows, {row.source, row.relation, row.target, row.change, row.impact})
+    table.insert(rows, {linked_cell(row.source), row.relation, linked_cell(row.target), row.change, row.impact})
     table.insert(edge_row_ids, row.id)
   end
   table.insert(blocks, table_block(header, rows, "edge", edge_row_ids))

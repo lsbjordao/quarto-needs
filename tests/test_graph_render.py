@@ -269,8 +269,9 @@ def test_node_table_carries_type_status_priority_and_tags(tmp_path: Path) -> Non
     assert adv1.title
     assert adv1.type
     assert adv1.status
-    # tags is a comma-joined string, ready for a table cell — not a list.
-    assert isinstance(adv1.tags, str)
+    # tags stays the node's own per-tag sequence — the table cell wraps each
+    # one as its own badge span, it is never comma-joined.
+    assert adv1.tags == ("public-tag",)
 
 
 def test_node_table_change_column_matches_the_projection_catalog_is_blank(

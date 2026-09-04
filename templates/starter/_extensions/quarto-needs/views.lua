@@ -64,6 +64,7 @@ function M.ensure_assets()
     stylesheets = {"needs.css", "vendor/cytoscape-navigator/cytoscape.js-navigator.css", "graph.css"},
     scripts = {
       "needs.js",
+      "tags.js",
       "vendor/cytoscape/cytoscape.min.js",
       "vendor/cytoscape-navigator/cytoscape-navigator.js",
       "graph-context.js",
@@ -590,7 +591,17 @@ function M.next_id(prefix) return M.reserve_view_id(prefix) end
 function M.badge(kind, value)
   local raw = text(value)
   if raw == "" then return {} end
-  return {pandoc.Span({pandoc.Str(raw)}, pandoc.Attr("", {"need-badge", "need-" .. kind, "need-" .. kind .. "-" .. M.slug(raw)}))}
+  local slug = M.slug(raw)
+  local span = pandoc.Span({pandoc.Str(raw)}, pandoc.Attr("", {"need-badge", "need-" .. kind, "need-" .. kind .. "-" .. slug}))
+  -- A configured tags page turns tag badges into deep links into it
+  -- pre-filtered (?tag=<slug>), where need-tags applies the filter.
+  if kind == "tag" and M.is_html_format() then
+    local base = M.tags_page_href()
+    if base ~= "" then
+      return {pandoc.Link({span}, base .. "?tag=" .. slug, "", pandoc.Attr("", {"need-tag-link"}))}
+    end
+  end
+  return {span}
 end
 
 function M.link(object, label, options)
@@ -599,6 +610,48 @@ function M.link(object, label, options)
     current_input = options and options.current_input or current_input(),
   }
   return pandoc.Link({pandoc.Str(label or text(object.id))}, data.link_target(object, resolved), "")
+end
+
+-- The project's tag-index page, from `quarto-needs: tags-page:` (locale-
+-- suffixed keys like `tags-page-pt-br` win over the plain one). User filters
+-- run *before* Quarto expands shortcodes, so a Meta handler cannot carry the
+-- setting to badge rendering — instead the shortcode dispatch hands every
+-- handler's `meta` to note_shortcode_meta, which parks the resolved value on
+-- _G, the only state every module's separate views.lua instances share.
+local TAGS_PAGE_FLAG = "__quarto_needs_tags_page_v1"
+function M.note_shortcode_meta(meta)
+  if rawget(_G, TAGS_PAGE_FLAG) ~= nil then return end
+  local options = type(meta) == "table" and meta["quarto-needs"] or nil
+  if type(options) ~= "table" then
+    rawset(_G, TAGS_PAGE_FLAG, "")
+    return
+  end
+  local locale = M.language():lower()
+  local value = options["tags-page-" .. locale]
+  if value == nil then value = options["tags-page"] end
+  rawset(_G, TAGS_PAGE_FLAG, value == nil and "" or text(value))
+end
+
+function M.tags_page()
+  return rawget(_G, TAGS_PAGE_FLAG) or ""
+end
+
+-- Page-relative href of the configured tags page, resolved through the same
+-- link_target logic every other cross-page link uses (so babelquarto's
+-- mirrored trees and nested chapters behave identically). An empty result
+-- means "not configured" or "this is the tags page itself" — callers fall
+-- back to the bare page name or skip linking.
+function M.tags_page_href()
+  local page = M.tags_page()
+  if page == "" then return "" end
+  local base = page:gsub("%.qmd$", "")
+  local target = data.link_target(
+    {id = "", source = {file = base .. ".qmd"}},
+    {current_input = current_input()}
+  )
+  local relative = target:gsub("#.*$", "")
+  if relative == "" then relative = base .. ".html" end
+  return relative
 end
 
 function M.objects_by_id(objects)

@@ -241,6 +241,9 @@ def test_filtered_table_list_and_count_render(tmp_path: Path):
     assert "REQ-DRAFT" not in approved_table
     assert 'class="need-badge need-status need-status-approved"' in html
     assert "need-priority-high" in html
+    # The type column renders through the same shared badge generator as
+    # status/priority, so it carries the predefined need-type-* styles.
+    assert 'class="need-badge need-type need-type-functional-requirement"' in approved_table
     assert "need-table-search" not in html
     assert 'data-need-count="1"' in html
     assert "needs.js" in html
@@ -862,6 +865,23 @@ def test_need_graph_static_table_rows_carry_a_stable_row_id(tmp_path: Path) -> N
     # by — not the translated display label a reader sees in the cell.
     assert re.search(r'data-need-graph-row-id="REQ-1\|[^"]+\|TC-1"', html)
 
+    # Source/target cells link to the needs they name, the same convention
+    # need-table's id column already follows. The overlays fixture defines
+    # REQ-1 and TC-1 on the same page that hosts the graph, and the public
+    # projection href is site-relative, so both resolve to index.html anchors.
+    edge_table = re.search(
+        r'<table[^>]*data-need-graph-role="edge".*?</table>', html, re.DOTALL
+    ).group(0)
+    assert '<a href="index.html#REQ-1">REQ-1</a>' in edge_table
+    assert '<a href="index.html#TC-1">TC-1</a>' in edge_table
+
+    # The node table's own id column follows the same link convention.
+    node_table = re.search(
+        r'<table[^>]*data-need-graph-role="node".*?</table>', html, re.DOTALL
+    ).group(0)
+    assert '<a href="index.html#REQ-1">REQ-1</a>' in node_table
+    assert '<a href="index.html#TC-1">TC-1</a>' in node_table
+
 
 @pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
 def test_need_graph_static_table_renders_status_and_priority_as_badges(tmp_path: Path) -> None:
@@ -883,7 +903,7 @@ def test_need_graph_static_table_renders_status_and_priority_as_badges(tmp_path:
     )
     (project / "index.qmd").write_text(
         '---\ntitle: "Graph badge fixture"\n---\n\n'
-        '::: {.need #REQ-1 type="functional-requirement" status="approved" priority="high"}\n\n'
+        '::: {.need #REQ-1 type="functional-requirement" status="approved" priority="high" tags="security,login"}\n\n'
         "## Authenticate\nNo relations at all.\n:::\n\n"
         "{{< need-graph >}}\n",
         encoding="utf-8",
@@ -902,6 +922,105 @@ def test_need_graph_static_table_renders_status_and_priority_as_badges(tmp_path:
     assert 'class="need-badge need-type need-type-functional-requirement"' in node_table
     assert 'class="need-badge need-status need-status-approved"' in node_table
     assert 'class="need-badge need-priority need-priority-high"' in node_table
+    # Each tag is its own badge span, separated by spaces — no comma-joined
+    # text blob in the Tags cell.
+    assert 'class="need-badge need-tag need-tag-security"' in node_table
+    assert 'class="need-badge need-tag need-tag-login"' in node_table
+    assert "security, login" not in node_table
+    # No `quarto-needs: tags-page:` configured here, so badges stay plain
+    # spans — the deep-link wrapper must not appear.
+    assert "need-tag-link" not in html
+
+
+@pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
+def test_need_tags_renders_chip_index_and_full_table(tmp_path: Path) -> None:
+    """`{{< need-tags >}}` is the tag-index component: one chip per distinct
+    tag (plus the clear chip) and one table listing every object with its own
+    tag badges. The filtering itself is client-side — tags.js reads ?tag=,
+    what a clicked badge deep-links to — so the static HTML only has to carry
+    the chips, the rows, the status line, and the script itself."""
+    project = tmp_path / "tags-index"
+    project.mkdir()
+    shutil.copytree(ROOT / "_extensions", project / "_extensions")
+    (project / "_quarto.yml").write_text(
+        "project:\n  type: website\n  output-dir: _site\n\n"
+        'website:\n  title: "Tags fixture"\n\n'
+        "format:\n  html: default\n\nfilters:\n  - quarto-needs\n",
+        encoding="utf-8",
+    )
+    (project / "index.qmd").write_text(
+        '---\ntitle: "Tags fixture"\n---\n\n'
+        '::: {.need #REQ-1 type="functional-requirement" status="approved" tags="security,login"}\n\n'
+        "## Authenticate\nBody.\n:::\n\n"
+        '::: {.need #REQ-2 type="non-functional-requirement" status="draft" tags="security"}\n\n'
+        "## Auditability\nBody.\n:::\n",
+        encoding="utf-8",
+    )
+    (project / "tags.qmd").write_text(
+        '# Tags\n\n{{< need-tags >}}\n',
+        encoding="utf-8",
+    )
+    assert cli_main(["--root", str(project), "scan"]) == 0
+    subprocess.run(
+        ["quarto", "render", str(project)],
+        cwd=ROOT, check=True, text=True, capture_output=True,
+    )
+    html = (project / "_site" / "tags.html").read_text(encoding="utf-8")
+    assert 'data-need-tags="true"' in html
+    # One chip per distinct tag, plus the clear chip; hrefs are pure query
+    # strings so the component works from any output path.
+    assert 'class="need-badge need-tag need-tag-chip need-tag-chip-clear"' in html
+    assert 'data-need-tag="security"' in html
+    assert 'href="?tag=security"' in html
+    assert 'href="?tag=login"' in html
+    # The table lists every object with its tag badges, ready for tags.js to
+    # filter, and inherits need-table's search/sort enhancement.
+    assert 'href="_site/index.html#REQ-1"' in html or 'href="index.html#REQ-1"' in html
+    assert 'class="need-badge need-tag need-tag-security"' in html
+    assert "2 elements" in html
+    assert "tags.js" in html
+
+
+@pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
+def test_tag_badges_deep_link_to_the_configured_tags_page(tmp_path: Path) -> None:
+    """With `quarto-needs: tags-page:` set, the needs.lua Span handler wraps
+    every tag badge — here the graph table's — in a link to the configured
+    chapter pre-filtered with ?tag=<slug>. Resolution goes through the same
+    link_target logic as every other cross-page link."""
+    project = tmp_path / "tags-deeplink"
+    project.mkdir()
+    shutil.copytree(ROOT / "_extensions", project / "_extensions")
+    (project / "_quarto.yml").write_text(
+        "project:\n  type: website\n  output-dir: _site\n\n"
+        'website:\n  title: "Tags deep-link fixture"\n\n'
+        "format:\n  html: default\n\nfilters:\n  - quarto-needs\n\n"
+        "quarto-needs:\n  tags-page: tags\n",
+        encoding="utf-8",
+    )
+    (project / "index.qmd").write_text(
+        '---\ntitle: "Tags deep-link fixture"\n---\n\n'
+        '::: {.need #REQ-1 type="functional-requirement" status="approved" tags="security,login"}\n\n'
+        "## Authenticate\nNo relations at all.\n:::\n\n"
+        "{{< need-graph >}}\n",
+        encoding="utf-8",
+    )
+    (project / "tags.qmd").write_text(
+        '# Tags\n\n{{< need-tags >}}\n',
+        encoding="utf-8",
+    )
+    assert cli_main(["--root", str(project), "scan"]) == 0
+    subprocess.run(
+        ["quarto", "render", str(project)],
+        cwd=ROOT, check=True, text=True, capture_output=True,
+    )
+    html = (project / "_site" / "index.html").read_text(encoding="utf-8")
+    match = re.search(
+        r'<table[^>]*data-need-graph-role="node".*?</table>', html, re.DOTALL
+    )
+    assert match, "static node table not found"
+    node_table = match.group(0)
+    assert '<a href="tags.html?tag=security" class="need-tag-link">' in node_table
+    assert '<a href="tags.html?tag=login" class="need-tag-link">' in node_table
 
 
 @pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")

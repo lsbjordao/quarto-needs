@@ -1,0 +1,5 @@
+# Tags
+
+Every object in the model can carry free-form tags. This chapter is the tag index: the table below lists the whole graph, and picking a tag — here, or on any tag badge elsewhere in the book — filters it to the objects that carry that tag.
+
+{{< need-tags >}}

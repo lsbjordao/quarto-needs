@@ -73,6 +73,14 @@ section.need-card-section > .need-heading {
   margin-left: .9rem;
   margin-right: .9rem;
 }
+/* Bootstrap pins paragraphs to margin-top 0 / margin-bottom 1rem, which
+   glues a card's description to the header above it and doubles the gap
+   before the relation rules below. Re-center it vertically: more space on
+   top, less underneath. */
+.need-card > p {
+  margin-bottom: .5rem;
+  margin-top: .9rem;
+}
 .need-badge {
   display: inline-block;
   padding: .1rem .42rem;
@@ -110,6 +118,23 @@ section.need-card-section > .need-heading {
 .need-badge.need-type-container { color: #4d7c0f; background: #ecfccb; border-color: #bef264; }
 .need-badge.need-type-source-module { color: #57534e; background: #f5f5f4; border-color: #d6d3d1; }
 .need-badge.need-date { color: #475569; background: #f8fafc; border-color: #cbd5e1; font-variant-numeric: tabular-nums; }
+/* Tags are free-form metadata, not states on a palette: keep the badge
+   outline but leave the fill transparent, so a row of them never turns
+   into a wall of tinted pills — currentColor drives label and border. */
+.need-badge.need-tag { background: transparent; }
+/* With `quarto-needs: tags-page:` set, tag badges become deep links into
+   the tag index (?tag=<slug>); keep the badge look, not a hyperlink look. */
+a.need-tag-link { color: inherit; text-decoration: none; }
+a.need-tag-link:hover .need-badge { text-decoration: underline; }
+a.need-tag-link:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+/* The need-tags component: chip row, status line, and the filter state
+   (a class, not `hidden`, so need-table's search keeps composing). */
+.need-tags-chips { margin: 0 0 .5rem; }
+a.need-tag-chip { color: inherit; text-decoration: none; margin: 0 .3rem .3rem 0; }
+a.need-tag-chip:hover { text-decoration: underline; }
+a.need-tag-chip-active { font-weight: 700; box-shadow: 0 0 0 1px currentColor; }
+.need-tags-status { font-size: .85em; margin: 0 0 .75rem; opacity: .8; }
+.need-table tr.need-tag-filtered { display: none; }
 .need-table-container {
   margin: 1rem 0;
   max-width: 100%;
@@ -120,10 +145,23 @@ section.need-card-section > .need-heading {
 .need-table th button { color: inherit; font: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
 .need-table td a,
 .need-table td .need-badge,
-.need-table th .need-badge {
+.need-table th .need-badge,
+.need-graph-table td a,
+.need-graph-table td .need-badge {
   white-space: nowrap;
   overflow-wrap: normal;
   word-break: normal;
+}
+/* ID columns name objects, not prose: a hyphenated id like ADR-001 must never
+   wrap character-by-character. Pin the first column of both table surfaces to
+   a single line, at a slightly reduced size so wide ids still fit. */
+.need-table td:first-child,
+.need-graph-table td:first-child {
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+  font-size: .85em;
+  font-variant-numeric: tabular-nums;
 }
 .need-table td a {
   display: inline-block;

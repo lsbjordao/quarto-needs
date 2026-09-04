@@ -1,0 +1,5 @@
+# Tags
+
+Todo objeto do modelo pode carregar tags de forma livre. Este capítulo é o índice de tags: a tabela abaixo lista o grafo inteiro, e ao escolher uma tag — aqui, ou em qualquer badge de tag no resto do livro — ela é filtrada para os objetos que possuem aquela tag.
+
+{{< need-tags >}}

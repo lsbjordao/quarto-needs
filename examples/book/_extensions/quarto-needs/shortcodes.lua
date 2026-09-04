@@ -8,6 +8,7 @@ local inspector=dofile(script_dir().."inspector.lua")
 local dashboard=dofile(script_dir().."dashboard.lua")
 local graph=dofile(script_dir().."graph.lua")
 local c4=dofile(script_dir().."c4.lua")
+local tags=dofile(script_dir().."tags.lua")
 local function L(en,pt) return views.tr(en,pt) end
 local function graph_or_warning() views.ensure_assets(); local graph_data,message=views.load(); if not graph_data then return nil,views.warning(message) end; return graph_data end
 local function project_dir() local ok,directory=pcall(function() return quarto.project.directory end); if ok and type(directory)=="string" and directory~="" then return directory end; local input=PANDOC_STATE.input_files and PANDOC_STATE.input_files[1]; return input and input:match("(.*/)") or "." end
@@ -32,7 +33,7 @@ local function object_cell(graph_data,object,column)
   if column=="id" then return {views.link(object)} end
   if column=="title" then return {pandoc.Str(pandoc.utils.stringify(object.title))} end
   if column=="status" or column=="priority" then local value=column=="status" and object.status or (object.attributes or {}).priority; return views.badge(column,value) end
-  if column=="type" then return {pandoc.Str(pandoc.utils.stringify(object.type))} end
+  if column=="type" then return views.badge("type", object.type) end
   local targets=views.related(graph_data,pandoc.utils.stringify(object.id),column)
   if #targets>0 then local objects=views.objects_by_id(graph_data.objects); local inlines={}; for i,target in ipairs(targets) do if i>1 then inlines[#inlines+1]=pandoc.Str(", ") end; local related=objects[pandoc.utils.stringify(target)]; if related then inlines[#inlines+1]=views.link(related) else inlines[#inlines+1]=pandoc.Str(pandoc.utils.stringify(target)) end end; return inlines end
   return {pandoc.Str(pandoc.utils.stringify((object.attributes or {})[column] or ""))}
@@ -68,7 +69,16 @@ local function render_need_flow(args,kwargs)
   local image=pandoc.Image({pandoc.Str(description)},image_name,"",pandoc.Attr("",{"need-flow"},{role="img"})); blocks[#blocks+1]=pandoc.Div({pandoc.Para({image})},pandoc.Attr("",{"need-flow-scroll"})); return pandoc.Div(blocks)
 end
 local function render_need_dashboard(args,kwargs) local graph_data,warning=graph_or_warning(); if not graph_data then return warning end; local blocks,message=dashboard.render(graph_data,kwargs); if not blocks then if message then return views.warning(message) end; return views.empty(L("Dashboard report unavailable.","Relatório do painel indisponível.")) end; local id=views.reserve_view_id("need-dashboard",views.kwarg(kwargs,"id")); return pandoc.Div(blocks,pandoc.Attr(id,{"need-dashboard"},{role="region"})) end
-return {
+-- Every handler first parks the document meta where views.lua can reach it:
+-- that is how `quarto-needs: tags-page:` gets from _quarto.yml to badge
+-- rendering, which happens here at shortcode time (user filters run before
+-- shortcodes, so a filter-phase Meta handler would be too late).
+local handlers={
   need=function(args,kwargs,meta) local id=pandoc.utils.stringify(args[1] or ""); if id=="" then return pandoc.Str(L("[missing need id]","[id ausente]")) end; local graph_data,message=views.load(); if not graph_data then return pandoc.Span({pandoc.Str(id)},pandoc.Attr("",{"need-ref","need-ref-missing"})) end; local object=views.get(graph_data,id); if not object then return pandoc.Span({pandoc.Str(id)},pandoc.Attr("",{"need-ref","need-ref-missing"})) end; local label=id; if kwargs and kwargs["title"] and pandoc.utils.stringify(kwargs["title"])=="true" then label=id.." — "..pandoc.utils.stringify(object.title) end; return views.link(object,label) end,
-  ["need-table"]=render_need_table,["need-list"]=render_need_list,["need-count"]=render_need_count,["need-matrix"]=render_need_matrix,["need-backlinks"]=render_need_backlinks,["need-inspector"]=render_need_inspector,["need-flow"]=render_need_flow,["need-dashboard"]=render_need_dashboard,["need-graph"]=render_need_graph,["need-c4"]=render_need_c4,
+  ["need-table"]=render_need_table,["need-list"]=render_need_list,["need-count"]=render_need_count,["need-matrix"]=render_need_matrix,["need-backlinks"]=render_need_backlinks,["need-inspector"]=render_need_inspector,["need-flow"]=render_need_flow,["need-dashboard"]=render_need_dashboard,["need-graph"]=render_need_graph,["need-c4"]=render_need_c4,["need-tags"]=function(args,kwargs) return tags.render_shortcode(args,kwargs) end,
 }
+local M={}
+for name,render in pairs(handlers) do
+  M[name]=function(args,kwargs,meta) views.note_shortcode_meta(meta); return render(args,kwargs,meta) end
+end
+return M

@@ -114,7 +114,7 @@ class NodeRow:
     type: str
     status: str
     priority: str
-    tags: str
+    tags: tuple[str, ...]
     change: str
 
 
@@ -127,7 +127,7 @@ def node_table_rows(projection: GraphProjection) -> tuple[NodeRow, ...]:
             type=node.type,
             status=node.status,
             priority=node.priority or "",
-            tags=", ".join(node.tags),
+            tags=tuple(node.tags),
             change=node.change or "",
         )
         for node in projection.nodes

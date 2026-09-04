@@ -21,12 +21,17 @@ book:
     - interoperability.qmd
     - traceability.qmd
     - change.qmd
+    - tags.qmd
 
 format:
   html:
     theme: 
       light: cosmo
       dark: darkly
+    # The default article layout reserves wide screen/page gutters that pin the
+    # sidebar ~76px off the left edge and squeeze the content column; full
+    # keeps the sidebar at the edge and gives the room to the content.
+    page-layout: full
     css: language-switch.css
     include-after-body: language-switch.html
     mermaid-format: svg
@@ -36,6 +41,11 @@ filters:
 
 quarto-needs:
   margin-sidebar-toggle: true
+  # Tag badges anywhere in the book deep-link into the Tags chapter
+  # pre-filtered. The name resolves per language (babelquarto mirrors
+  # chapter names under pt-BR/); use a locale-suffixed key such as
+  # `tags-page-pt-br` only when a translation names its chapter differently.
+  tags-page: tags
 
 babelquarto:
   languagelinks: navbar
