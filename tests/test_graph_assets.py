@@ -309,6 +309,26 @@ def test_graph_css_sizes_the_canvas_to_fill_fullscreen() -> None:
     assert ".need-graph-container:fullscreen .need-graph-canvas" in source
 
 
+def test_graph_css_keeps_native_controls_readable_on_dark_themes() -> None:
+    """Native <select>/<input> ink stays at the UA's light-scheme default no
+    matter what the page theme does, so under a dark Quarto theme the mode,
+    filter, traversal, and search controls render black-on-dark. Every
+    toolbar control must carry the theme variables explicitly, and the
+    container must follow the page's dark scheme (data-bs-theme, quarto-dark)
+    so the dropdown popup and its arrow render dark too."""
+    source = GRAPH_CSS.read_text(encoding="utf-8")
+    rule_start = source.index(".need-graph-controls select")
+    rule_end = source.index("}", rule_start)
+    rule = source[rule_start:rule_end]
+    assert 'input[type="search"]' in rule
+    assert "var(--bs-body-bg" in rule
+    assert "var(--bs-body-color" in rule
+    assert "var(--bs-border-color" in rule
+    dark_start = source.index('[data-bs-theme="dark"] .need-graph-container')
+    dark_end = source.index("}", dark_start)
+    assert "color-scheme: dark" in source[dark_start:dark_end]
+
+
 def test_graph_lua_ships_a_png_export_button_after_fullscreen() -> None:
     lua = (ROOT / "_extensions" / "quarto-needs" / "graph.lua").read_text(encoding="utf-8")
     assert '<button type="button" class="need-graph-export-png">' in lua

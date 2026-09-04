@@ -37,6 +37,24 @@
   cursor: pointer;
 }
 .need-graph-controls button:hover { background: rgba(127, 127, 127, .08); }
+/* Native form controls keep the UA's light-scheme ink regardless of the
+   page theme: under a dark Quarto theme the mode, filter, traversal, and
+   search controls would render black-on-dark. Theme variables give them
+   real contrast, and the container following the page's dark scheme makes
+   the dropdown popup and its arrow render dark as well. */
+.need-graph-controls select,
+.need-graph-controls input[type="search"] {
+  font: inherit;
+  padding: .25rem .45rem;
+  border: 1px solid var(--bs-border-color, #d7dce2);
+  border-radius: .35rem;
+  background: var(--bs-body-bg, white);
+  color: var(--bs-body-color, inherit);
+  cursor: pointer;
+}
+.need-graph-container { color-scheme: light; }
+[data-bs-theme="dark"] .need-graph-container,
+.quarto-dark .need-graph-container { color-scheme: dark; }
 .need-graph-breadcrumbs {
   display: flex;
   flex-wrap: wrap;
