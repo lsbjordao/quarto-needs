@@ -2,7 +2,7 @@
 
 O artefato canônico é gerado em `.quarto-needs/needs.json` antes da renderização. O grafo pode atravessar necessidade, requisito, decisão arquitetural, arquitetura, teste e evidência sem trocar de modelo de dados.
 
-{{< need-flow root="STK-001" depth="5" relations="derives-from;addresses;applies-to;implemented-by;verified-by;confirmed-by;evidenced-by;mitigates" direction="LR" >}}
+{{< need-flow root="STK-001" depth="3" relations="derives-from;addresses;applies-to;implemented-by;verified-by;confirmed-by;evidenced-by;mitigates" direction="LR" >}}
 
 ## Consulta por CLI
 
@@ -25,4 +25,4 @@ A projeção abaixo é gerada no `build` e renderizada no navegador com Cytoscap
 
 O grafo abaixo mantém `STK-001` e apenas os descendentes de rastreabilidade alcançáveis a partir dele.
 
-{{< need-graph id="need-graph-stk-001" projection="need-graph-1" root="STK-001" depth="10" >}}
+{{< need-graph id="need-graph-stk-001" projection="need-graph-1" root="STK-001" depth="4" >}}

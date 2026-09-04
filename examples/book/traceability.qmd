@@ -2,7 +2,7 @@
 
 The canonical artifact is generated at `.quarto-needs/needs.json` before rendering. The graph can traverse needs, requirements, architecture decisions, architecture, tests, and evidence without changing data models.
 
-{{< need-flow root="STK-001" depth="5" relations="derives-from;addresses;applies-to;implemented-by;verified-by;confirmed-by;evidenced-by;mitigates" direction="LR" >}}
+{{< need-flow root="STK-001" depth="3" relations="derives-from;addresses;applies-to;implemented-by;verified-by;confirmed-by;evidenced-by;mitigates" direction="LR" >}}
 
 ## CLI query
 
@@ -25,4 +25,4 @@ The projection below is generated during the build and rendered in the browser w
 
 The graph below keeps `STK-001` and only the traceability descendants reachable from it.
 
-{{< need-graph id="need-graph-stk-001" projection="need-graph-1" root="STK-001" depth="10" >}}
+{{< need-graph id="need-graph-stk-001" projection="need-graph-1" root="STK-001" depth="4" >}}
