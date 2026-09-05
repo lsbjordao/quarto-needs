@@ -36,15 +36,24 @@ function Pandoc(doc)
 
   -- Every node carries a type-scoped class, and there is one classDef per
   -- type used -- the same shared palette flow.lua draws from, so a node's
-  -- color agrees with its card badge's color on the same page.
-  assert(source:find("class need_" .. ("REQ-1"):gsub(".", function(c) return string.format("%02X", c:byte()) end) .. " need_type_functional_requirement", 1, true),
+  -- color agrees with its card badge's color on the same page. Node refs
+  -- are compact sequential aliases (mermaid's fixed maxTextSize cannot be
+  -- raised through Quarto's render pipeline), assigned in the projection's
+  -- deterministic first-appearance order.
+  assert(source:find("class n1 need_type_functional_requirement", 1, true),
     "REQ-1 must carry its type class")
+  assert(source:find('n1["REQ-1 · Title REQ-1', 1, true),
+    "REQ-1's label must stay on its own alias")
+  assert(source:find("class n2 need_type_system", 1, true),
+    "SYS-1 must carry its type class")
   assert(source:find("classDef need_type_functional_requirement fill:#dbeafe,stroke:#2563eb,color:#1e3a8a", 1, true),
     "functional-requirement classDef must match the shared palette")
   assert(source:find("classDef need_type_system fill:#e0f2fe,stroke:#0369a1,color:#0c4a6e", 1, true),
     "system classDef must be defined, not left to fall back to gray")
   assert(source:find("classDef need_type_actor fill:#fce7f3,stroke:#be185d,color:#831843", 1, true),
     "actor classDef must be defined, not left to fall back to gray")
+  assert(source:find('n1 -->|"depends-on"| n2', 1, true),
+    "edges must reference their endpoints by the same aliases")
 
   -- classDef lines must be deterministically ordered, independent of
   -- traversal order, the same guarantee flow.lua already gives edges.
@@ -57,7 +66,7 @@ function Pandoc(doc)
   -- An undeclared type still gets a class and a classDef -- the shared
   -- fallback color, never bare, uncolored mermaid syntax.
   local unknown = graph.mermaid_source({nodes = {node("X-1", "not-a-real-type")}, edges = {}})
-  assert(unknown:find("class need_582D31 need_type_not_a_real_type", 1, true),
+  assert(unknown:find("class n1 need_type_not_a_real_type", 1, true),
     "an undeclared type must still carry a class")
   assert(unknown:find("classDef need_type_not_a_real_type fill:#f8fafc,stroke:#64748b,color:#1e293b", 1, true),
     "an unrecognized type must still resolve to the shared fallback color")
