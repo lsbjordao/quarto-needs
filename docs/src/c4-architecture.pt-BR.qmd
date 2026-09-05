@@ -1,0 +1,88 @@
+# Projeções de Arquitetura C4
+
+O Quarto-Needs integra o **modelo C4** (Context, Container, Component, Code) ao grafo canônico de engenharia. Em vez de criar diagramas em ferramentas externas de desenho que perdem a sincronia com os requisitos, os elementos arquiteturais são objetos de primeira classe conectados por relações tipadas.
+
+## Elementos de Arquitetura
+
+Elementos C4 são declarados através de blocos `.need` normais com tipos dedicados:
+
+| Tipo | Nível C4 | Prefixo Sugerido | Papel Semântico |
+|---|---|---|---|
+| `system` | Context / Container | `SYS-` | `architecture-element` |
+| `external-system` | Context | `EXT-` | `architecture-element` |
+| `actor` | Context | `ACTOR-` | `architecture-element` |
+| `container` | Container | `CONTAINER-` | `architecture-element` |
+| `component` | Component | `COMP-` | `architecture-element` |
+| `source-module` | Code | `SRC-` | `implementation-artifact` |
+
+## Relações Hierárquicas
+
+Diagramas C4 derivam sua estrutura de duas relações principais:
+
+1. **`part-of`**: define contenção estrutural.
+   - `container` é `part-of` um `system`
+   - `component` é `part-of` um `container`
+   - `source-module` é `part-of` um `component`
+2. **`depends-on`**: define interação e dependências entre elementos.
+
+Exemplo:
+
+```markdown
+::: {.need #SYS-APP type="system" status="approved"}
+## Aplicação Corporativa
+Plataforma central de gestão e transações.
+:::
+
+::: {.need #CONTAINER-API type="container" status="approved" technology="FastAPI / Python" part-of="SYS-APP"}
+## Contêiner REST API
+Processa lógica de negócio e integrações externas.
+:::
+
+::: {.need #COMP-AUTH type="component" status="implemented" part-of="CONTAINER-API"}
+## Serviço de Autenticação
+Valida tokens bearer e aplica políticas de permissão.
+:::
+```
+
+## Renderizando Diagramas C4
+
+Utilize o shortcode `{{< need-c4 >}}` para renderizar as visualizações:
+
+```markdown
+{{< need-c4 root="SYS-APP" level="context" >}}
+{{< need-c4 root="SYS-APP" level="container" >}}
+{{< need-c4 root="CONTAINER-API" level="component" >}}
+{{< need-c4 root="COMP-AUTH" level="code" >}}
+```
+
+### Níveis Suportados
+
+- **`context`**: Foca em um `system` e suas interações com `actor`s e `external-system`s.
+- **`container`**: Detalha um `system` mostrando seus `container`s e conexões externas.
+- **`component`**: Detalha um `container` revelando seus `component`s internos e dependências.
+- **`code`**: Materializa a superfície de implementação como uma tabela Markdown de artefatos `source-module`, caminhos de arquivo, linguagens e requisitos implementados.
+
+### Múltiplos Backends de Diagramação
+
+O Quarto-Needs suporta múltiplos backends através do argumento `backend`:
+
+```markdown
+{{< need-c4 root="SYS-APP" level="container" backend="mermaid" >}}
+{{< need-c4 root="SYS-APP" level="container" backend="plantuml" >}}
+{{< need-c4 root="SYS-APP" level="container" backend="structurizr" >}}
+{{< need-c4 root="SYS-APP" level="container" backend="d2" >}}
+```
+
+- **`mermaid`** (padrão): Embutido diretamente no HTML como SVG inline responsivo.
+- **`plantuml`**, **`structurizr`**, **`d2`**: Se a respectiva ferramenta estiver instalada localmente, pré-renderiza imagens SVG/PNG; caso contrário, faz fallback gracioso para o código-fonte do diagrama com realce de sintaxe.
+
+## Governança de Arquitetura (Regras C4)
+
+O motor de regras valida a integridade estrutural dos diagramas:
+
+| Regra | Verificação |
+|---|---|
+| `C4001` | Em uma visão Container, cada contêiner deve declarar seu sistema pai via `part-of` |
+| `C4002` | Em uma visão Component, cada componente deve declarar seu contêiner pai via `part-of` |
+| `C4003` | Relações entre elementos devem conter rótulo explicativo |
+| `C4004` | Violações de hierarquia (ex.: contenção cíclica ou limites órfãos) são rejeitadas |

@@ -92,6 +92,16 @@ tests/                        Regression and integration tests
 
 The manual is authored in `docs/src/` and rendered into `docs/`; the docs site is the GitHub Pages root. Design and product documentation that is not part of the manual lives under [`notes/`](notes/). For the end-user path, start with the published [`docs/`](docs/index.html) (the manual) or the standalone [`notes/quickstart.md`](notes/quickstart.md).
 
+Quick start for Quarto projects (zero-install extension):
+
+```bash
+# Add the extension to your Quarto project
+quarto add lsbjordao/quarto-needs
+
+# Render your book or document (provisions the paired engine automatically)
+quarto render
+```
+
 Contributor setup:
 
 ```bash
@@ -130,6 +140,15 @@ quarto-needs export --format reqif
 quarto-needs export --format jsonld
 ```
 
+Migrate from existing tools:
+
+```bash
+quarto-needs migrate sphinx-needs docs/needs.json --output requirements.qmd
+quarto-needs migrate doorstop ./reqs --output requirements.qmd
+quarto-needs migrate strictdoc ./docs --output requirements.qmd
+quarto-needs migrate openfasttrace ./trace.xml --output requirements.qmd
+```
+
 Discover a configured OSLC RM Service Provider through the bounded read-only adapter:
 
 ```bash
@@ -147,6 +166,15 @@ export MY_OSLC_TOKEN='...'
 quarto-needs oslc discover \
   https://provider.example/oslc/sp/requirements \
   --bearer-token-env MY_OSLC_TOKEN
+```
+
+Federate external GitHub issues:
+
+```bash
+export GITHUB_TOKEN='...'
+quarto-needs github fetch \
+  --repo owner/repo \
+  --bearer-token-env GITHUB_TOKEN
 ```
 
 Start the language server directly when integrating another editor:
@@ -186,6 +214,9 @@ Generated views are projections of the canonical graph:
 {{< need-dashboard >}}
 {{< need-inspector SYS-001 >}}
 {{< need-graph view="graph-exploration" >}}
+{{< need-c4 root="SYS-QUARTO-NEEDS" level="context" backend="mermaid" >}}
+{{< adr-table status="accepted" tags="security" >}}
+{{< adr-count status="accepted" >}}
 ```
 
 For a clickable tag index, author a chapter (say `tags.qmd`) containing `{{< need-tags >}}`: it renders a chip for every tag plus one table of all objects. Configure `quarto-needs: tags-page: tags` (locale-suffixed keys like `tags-page-pt-br` for translations) and every tag badge anywhere in the site becomes a link into that chapter with the filter already applied via `?tag=<slug>`.
@@ -203,7 +234,7 @@ def test_graph_exploration_assets():
 
 The pytest plugin emits deterministic provider output. `evidence-envelope-v1` then records SHA-256 digest, graph/configuration fingerprints, generation time, optional Git revision, and explicit expiry. `quarto-needs evidence check` validates both artifact integrity and semantic agreement with the current engineering graph.
 
-See [`docs/executable-evidence.qmd`](docs/executable-evidence.qmd) and [`docs/evidence-providers.qmd`](docs/evidence-providers.qmd).
+See [`docs/src/executable-evidence.qmd`](docs/src/executable-evidence.qmd) and [`docs/src/evidence-providers.qmd`](docs/src/evidence-providers.qmd).
 
 ## Interoperability philosophy
 
@@ -265,9 +296,9 @@ These are references and inspirations, not compatibility claims.
 
 The infographic is a **visual presentation snapshot**. [`notes/ROADMAP.md`](notes/ROADMAP.md) is the authoritative, continuously updated roadmap.
 
-Current status: **Phases 1, 2, 3 and 4.1 are implemented; Phase 4.2 is functionally implemented but release validation is blocked by the current runner/npm environment; Phase 5.1 ReqIF is implemented and locally validated; Phase 5.2 JSON-LD is functionally implemented with an independent execution gate pending; Phase 5.3 OSLC RM is actively implemented through the read-only federation/discovery foundation and its first CLI surface.**
+Current status: **Phases 1, 2, 3 and 4.1 are implemented. Phase 4.2 (thin VS Code client) is functionally implemented: its TypeScript build gates — type-check, compile, and VSIX packaging — pass locally against the real committed lockfile, while the Actions/Extension-Host release gate remains open for the infrastructure reason below. Phase 5.1 ReqIF is implemented and locally validated; Phase 5.2 JSON-LD is implemented and independently verified against a real PyLD; Phase 5.3 OSLC RM read-only federation is complete end to end, with remote writes deliberately deferred; Phase 5.4 migration adapters (Sphinx-Needs, Doorstop, StrictDoc, OpenFastTrace) and Phase 5.5 external service adapters (GitHub issues, with trust transitions and a reviewed apply step) are implemented. Phases 6 and 7 (architecture model/C4 projections and the interactive graph workbench) are delivered; Phase 8 has delivered its first two slices and the extension-first distribution slice (declaration-native validation, linear-time indexes, reproducible benchmarks to 50k objects, minimum-Quarto verification, and TestPyPI rehearsal for both the CLI and bootstrap paths), with the remaining measurement and release gates open; Phase 9's teaching slices (broken gallery, suspect-after-change, interchange-loss and editor-refactor) are delivered.**
 
-GitHub Actions currently terminates the Python and VS Code jobs before checkout (`steps: null`), so the project does not misrepresent that infrastructure failure as either a repository test failure or successful execution evidence.
+GitHub Actions currently terminates the Python-matrix and VS Code jobs before checkout (`steps: null`). That infrastructure condition is neither treated as a repository test failure nor as successful execution evidence, and the CI release gates cannot close until the account's Actions quota resets.
 
 ## Branding
 

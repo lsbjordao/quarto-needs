@@ -432,31 +432,13 @@ Verify that rate-limit exhaustion (a 403 carrying X-RateLimit-Remaining: 0) rais
 
 ## Federation slice
 
-```text
-STK-006
-   ↓
-SYS-007
-   ├── FUN-010 / NFR-006 → ADR-008 → discovery/federation modules → TC-015 → EVD-015
-   ├── FUN-012 / NFR-006 → ADR-008 → SRC-OSLC-QUERY             → TC-017 → EVD-017
-   ├── FUN-013 / NFR-006 → ADR-008 → SRC-OSLC-OBSERVE           → TC-018 → EVD-018
-   ├── FUN-011 / NFR-006 → ADR-009 → SRC-OSLC-RECONCILE         → TC-016 → EVD-016
-   └── FUN-011 / FUN-013 / NFR-006 → ADR-008 → SRC-OSLC-IMPORT  → TC-019 → EVD-019
-```
+{{< need-flow tags="oslc" direction="LR" >}}
 
 {{< need-table types="system-requirement;functional-requirement;non-functional-requirement;architecture-decision;component;interface;source-module;test-case;evidence" tags="oslc" columns="id;title;type;status" sort="id" >}}
 
 ## GitHub issues adapter slice
 
-```text
-STK-007
-   ↓
-SYS-008
-   ├── FUN-014 / NFR-007 → ADR-010 → SRC-GITHUB-ISSUES            → TC-020 → EVD-020
-   ├── FUN-015 / NFR-007 → ADR-010 → SRC-GITHUB-HTTP / -ISSUES    → TC-021 → EVD-021
-   ├── FUN-016 / NFR-007 → ADR-010 → SRC-GITHUB-ISSUES / -HTTP    → TC-022 → EVD-022
-   └── FUN-017           → ADR-010 → shared OSLC reconcile/import → TC-023 → EVD-023
-                                                    SRC-GITHUB-HTTP → TC-024 → EVD-024
-```
+{{< need-flow tags="github" direction="LR" >}}
 
 `FUN-017` deliberately implements against `SRC-OSLC-RECONCILE`/`SRC-OSLC-IMPORT`: the reconciliation and import-plan modules are source-agnostic, so GitHub observations flow through the unchanged OSLC contracts, and the slice's proof is tests pinning that reuse rather than a fork.
 

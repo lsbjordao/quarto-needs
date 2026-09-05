@@ -10,16 +10,11 @@ English (`*.qmd`) is the canonical engineering source. Brazilian Portuguese (`*.
 
 ## Living engineering model
 
-The current case study contains 86 engineering objects. In addition to needs, requirements, ADRs, architecture elements, risks, tests, and evidence, it models 14 real repository files as `source-module` objects.
+The current case study contains 183 engineering objects. In addition to needs, requirements, ADRs, architecture elements, risks, tests, and evidence, it models 28 real repository files as `source-module` objects.
 
 `source-module` deliberately means a physical implementation artifact, not an architecture component. Each module carries a repository `path`, implementation `language`, architectural `layer`, tags, and one or more canonical `implements` relations back to approved requirements. Regression tests verify that every declared path exists and that every source module participates in implementation traceability.
 
-Four representative modeled test cases are now bound to real pytest functions through `pytest-nodeid`:
-
-- `TC-004` — architecture-decision governance;
-- `TC-006` — public graph contract and safety;
-- `TC-009` — named-query graph views;
-- `TC-011` — baseline/impact propagation.
+Twenty-three representative modeled test cases are now bound to real pytest functions through `pytest-nodeid`, spanning decision governance (`TC-004`), localization parity (`TC-005`), public graph safety (`TC-006`), named graph views (`TC-009`), change impact (`TC-011`), margin-TOC usability (`TC-014`), OSLC federation (`TC-015`…`TC-019`), GitHub issues (`TC-020`…`TC-024`), and extension-first distribution (`TC-025`…`TC-031`).
 
 The corresponding pytest tests carry reciprocal `@pytest.mark.requirement(...)` and `@pytest.mark.quarto_need_test_case(...)` markers. This makes the linkage independently checkable from both the engineering model and the executable suite.
 
@@ -33,7 +28,7 @@ make evidence-self-example
 
 The target:
 
-1. executes the four pytest tests bound to the self-hosted model;
+1. executes the twenty-three pytest tests bound to the self-hosted model;
 2. writes `examples/quarto-needs/.quarto-needs/evidence/pytest.json`;
 3. runs `quarto-needs evidence check` against the current engineering graph.
 
@@ -43,12 +38,14 @@ The semantic evidence check fails when an executable test is not successful, a m
 
 ## Learning path
 
-The example is organized around four reusable vertical slices:
+The example is organized around six reusable vertical slices (two more, covering OSLC federation and GitHub issues federation, are traced in `interoperability.qmd`):
 
 1. interactive graph exploration;
 2. multilingual engineering;
 3. architecture decision management;
-4. baseline, diff, and impact analysis.
+4. baseline, diff, and impact analysis;
+5. margin-TOC usability;
+6. extension-first distribution.
 
 Each slice can be followed from stakeholder motivation through requirements and architecture into source modules, modeled verification, and evidence. The target evolution extends those slices further into executable tests, machine evidence, and Git/change-review state.
 

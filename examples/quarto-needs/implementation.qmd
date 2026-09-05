@@ -124,9 +124,9 @@ The table is useful when exact paths matter; the graph is useful when the reader
 
 {{< need-table query="implementation-surface" columns="id;title;path;language;layer" sort="id" >}}
 
-{{< need-graph view="requirement-to-code" id="requirement-to-code-view" >}}
+{{< need-graph view="requirement-to-code" id="requirement-to-code-view" root="FUN-004" depth="3" >}}
 
-## Five vertical slices
+## Six vertical slices
 
 The following slices are intentionally reused throughout the rest of the case study.
 

@@ -91,7 +91,7 @@ evidence-self-example:
 		.quarto-needs/evidence/pytest.json
 
 render-self-example: evidence-self-example
-	Rscript tools/render_multilingual.R examples/quarto-needs
+	Rscript tools/render_multilingual.R examples/quarto-needs --in-place
 	$(VENV_PYTHON) tools/normalize_multilingual_output.py examples/quarto-needs/_book --locale pt-BR
 
 render-manual-multilingual:

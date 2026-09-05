@@ -47,8 +47,9 @@ This is not a synthetic taxonomy. The objects describe capabilities and architec
 4. **Architecture** records the components, interfaces, risks, and ADRs that shape the implementation.
 5. **Implementation** traces approved obligations into real Python and JavaScript source modules.
 6. **Verification** connects requirements and decisions to executable checks and evidence.
-7. **Traceability** uses the interactive graph as an analysis instrument rather than a static diagram.
-8. **Change** teaches baseline, structured diff, and semantic impact analysis.
+7. **Interoperability** federates OSLC and GitHub external state as read-only, provenance-bound projections without importing remote semantics into the canonical graph.
+8. **Traceability** uses the interactive graph as an analysis instrument rather than a static diagram.
+9. **Change** teaches baseline, structured diff, and semantic impact analysis.
 
 ## Live overview
 

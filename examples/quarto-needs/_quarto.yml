@@ -4,7 +4,7 @@ project:
   pre-render: python3 _pre_render.py
 
 book:
-  title: "Engineering Quarto-Needs with Quarto-Needs"
+  title: "Requirements Engineering with Quarto-Needs"
   subtitle: "A self-hosted requirements, architecture, verification and traceability case study"
   navbar:
     search: true
@@ -59,6 +59,6 @@ babelquarto:
   mainlanguage: en
   languages: [pt-BR]
 
-title-pt-BR: "Engenharia do Quarto-Needs com Quarto-Needs"
+title-pt-BR: "Engenharia de Requisitos com Quarto-Needs"
 subtitle-pt-BR: "Um estudo de caso autocontido de requisitos, arquitetura, verificação e rastreabilidade"
 lang: en

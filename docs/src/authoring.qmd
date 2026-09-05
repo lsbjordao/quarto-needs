@@ -30,11 +30,33 @@ The book can project the graph with shortcodes such as:
 ```markdown
 {{< need NFR-001 title=true >}}
 {{< need-table types="architecture-decision" columns="id;title;status" >}}
+{{< need-matrix rows="functional-requirement" columns="test-case" relation="verified-by" >}}
 {{< need-flow root="NFR-001" depth="4" direction="LR" >}}
 {{< need-inspector ADR-002 >}}
+{{< need-graph view="graph-exploration" >}}
+{{< need-c4 root="SYS-001" level="context" >}}
+{{< adr-table status="accepted" >}}
+{{< adr-count status="accepted" >}}
 ```
 
 Views read the canonical artifact; they do not reimplement semantic rules in the renderer.
+
+## Tag index and deep linking
+
+For a clickable tag catalog, create a chapter (e.g. `tags.qmd`) containing:
+
+```markdown
+{{< need-tags >}}
+```
+
+This shortcode renders interactive tag chips and a consolidated table of all tagged objects. To link every tag badge across the site into this page, configure `_quarto.yml`:
+
+```yaml
+quarto-needs:
+  tags-page: tags
+```
+
+When configured, clicking any tag badge anywhere in the project navigates to `tags.html?tag=<slug>` with that tag pre-filtered.
 
 ## Prefix configuration
 

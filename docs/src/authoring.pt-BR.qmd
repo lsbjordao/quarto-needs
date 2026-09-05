@@ -9,7 +9,7 @@ A superfície de autoria permanece simples: objetos são declarados em blocos Di
 verified-by: TC-006
 implemented-by: COMP-002
 
-## Responder autorização dentro do objetivo de latência
+## Responder à autorização dentro do objetivo de latência
 
 A decisão de autorização deve permanecer dentro do SLO definido sob carga nominal.
 
@@ -30,11 +30,33 @@ O livro pode projetar o grafo com shortcodes como:
 ```markdown
 {{< need NFR-001 title=true >}}
 {{< need-table types="architecture-decision" columns="id;title;status" >}}
+{{< need-matrix rows="functional-requirement" columns="test-case" relation="verified-by" >}}
 {{< need-flow root="NFR-001" depth="4" direction="LR" >}}
 {{< need-inspector ADR-002 >}}
+{{< need-graph view="graph-exploration" >}}
+{{< need-c4 root="SYS-001" level="context" >}}
+{{< adr-table status="accepted" >}}
+{{< adr-count status="accepted" >}}
 ```
 
 As visualizações são leituras do artefato canônico; não reimplementam as regras de semântica no renderer.
+
+## Índice de tags e navegação direta
+
+Para um catálogo interativo de tags, crie um capítulo (ex.: `tags.qmd`) contendo:
+
+```markdown
+{{< need-tags >}}
+```
+
+Esse shortcode renderiza chips clicáveis de tags e uma tabela consolidada de todos os objetos com tags. Para transformar cada tag badge em um link direto para essa página em todo o site, configure no `_quarto.yml`:
+
+```yaml
+quarto-needs:
+  tags-page: tags
+```
+
+Com isso configurado, clicar em qualquer badge de tag em qualquer página navega diretamente para `tags.html?tag=<slug>` com o filtro já aplicado.
 
 ## Configuração de prefixos
 

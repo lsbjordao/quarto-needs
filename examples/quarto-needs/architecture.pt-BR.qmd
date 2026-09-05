@@ -13,7 +13,7 @@ A ferramenta de rastreabilidade de engenharia documentada por este estudo de cas
 ::: {.need #ACTOR-ENGINEER type="actor" status="approved" tags="architecture;c4" depends-on="SYS-QUARTO-NEEDS"}
 ## Engenheiro de requisitos
 
-Autora, revisa e aprova objetos de engenharia; lê as visões geradas para entender rastreabilidade e cobertura.
+Elabora, revisa e aprova objetos de engenharia; lê as visões geradas para entender rastreabilidade e cobertura.
 :::
 
 ::: {.need #EXT-GITHUB type="external-system" status="approved" tags="architecture;c4;github" depends-on="SYS-QUARTO-NEEDS"}
@@ -494,7 +494,7 @@ Adicionar uma nova unidade implantável significa declarar um novo `container` (
 ::: {.need #ADR-019 type="architecture-decision" status="accepted" date="2026-09-03" revisit-after="2027-09-03" decision-makers="Quarto-Needs maintainers" tags="distribution;extension;bootstrap;managed-runtime" addresses="SYS-009;RISK-013" applies-to="COMP-EXTENSION" confirmed-by="TC-025;TC-026;TC-029"}
 ## Provisionar um runtime gerenciado local ao projeto por meio de um bootstrap na extensão
 
-### Contexto e Declaração do Problema
+### Contexto e Problema
 
 A extensão precisa de um motor semântico em Python, mas os usuários instalam apenas a extensão. O contrato antigo pedia três peças separadas — uma instalação global via pip, um CLI no PATH e um pre-render escrito à mão — cada uma uma chance independente de estar ausente, obsoleta ou errada para a versão da extensão.
 

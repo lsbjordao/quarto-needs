@@ -143,12 +143,36 @@ a.need-tag-chip-active { font-weight: 700; box-shadow: 0 0 0 1px currentColor; }
 .need-tags-status { font-size: .85em; margin: 0 0 .75rem; opacity: .8; }
 .need-table tr.need-tag-filtered { display: none; }
 .need-table-container {
+  color-scheme: light;
   margin: 1rem 0;
   max-width: 100%;
   overflow-x: auto;
   overscroll-behavior-inline: contain;
 }
-.need-table-search { margin: 0 0 .5rem; max-width: 22rem; }
+[data-bs-theme="dark"] .need-table-container,
+.quarto-dark .need-table-container {
+  color-scheme: dark;
+}
+.need-table-search {
+  background: var(--bs-body-bg, white);
+  border: 1px solid var(--bs-border-color, #d7dce2);
+  border-radius: .35rem;
+  color: var(--bs-body-color, inherit);
+  font: inherit;
+  font-size: .9rem;
+  margin: 0 0 .5rem;
+  max-width: 22rem;
+  padding: .25rem .5rem;
+}
+.need-table-search::placeholder {
+  color: var(--bs-secondary-color, #6c757d);
+  opacity: .75;
+}
+.need-table-search:focus {
+  border-color: var(--bs-primary, #2563eb);
+  outline: 0;
+  box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+}
 .need-table th button { color: inherit; font: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
 .need-table td a,
 .need-table td .need-badge,

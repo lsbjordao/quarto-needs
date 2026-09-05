@@ -2,7 +2,7 @@
 
 Traceability is incomplete if requirements terminate at design. This chapter models verification as first-class engineering objects and connects successful tests to explicit evidence.
 
-The test cases below correspond to real classes of regression checks in the repository. Eight representative executable bindings now cover architecture decisions, multilingual semantic parity, public graph safety, named graph views, change impact, margin-TOC usability, OSLC federation orchestration, and explicit OSLC reconciliation identity. `make evidence-self-example` executes those tests, writes deterministic provider output, attests it against the current engineering snapshot, and validates `.quarto-needs/evidence/pytest.json` before the self-hosted book is rendered.
+The test cases below correspond to real classes of regression checks in the repository. Twenty-three executable bindings now cover architecture-decision governance, multilingual semantic parity, public graph safety, named graph views, change impact, margin-TOC usability, the OSLC federation path (orchestration, reconciliation identity, bounded query, member observation, import plan), the GitHub issues adapter (identity, cache, pagination, reconciliation, rate limits), and extension-first distribution (clean render, offline reuse, version-skew isolation, corruption, concurrency, spaces in paths, Quarto floor). `make evidence-self-example` executes those tests, writes deterministic provider output, attests it against the current engineering snapshot, and validates `.quarto-needs/evidence/pytest.json` before the self-hosted book is rendered.
 
 ## Test cases
 

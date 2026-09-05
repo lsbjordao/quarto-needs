@@ -1,0 +1,62 @@
+# Interoperability and Federation
+
+Interchange formats and external service integrations in Quarto-Needs are **adapters and projections** around the canonical engineering graph. External standards transport and federate requirements without compromising canonical identity or provenance.
+
+## Structured Interchange Formats
+
+### ReqIF 1.2
+
+Export the canonical requirements graph to ReqIF (Requirements Interchange Format) for exchange with enterprise tools like IBM DOORS, PTC Integrity, or Polarion:
+
+```bash
+quarto-needs export --format reqif --output requirements.reqif
+```
+
+The exporter maps typed engineering objects, attributes, and canonical relation families to standard ReqIF SpecObjects, SpecTypes, and SpecRelations.
+
+### JSON-LD 1.1
+
+Export the graph as Linked Data preserving semantic relation metadata:
+
+```bash
+quarto-needs export --format jsonld --output graph.jsonld
+```
+
+The JSON-LD projection uses deterministic IRIs, schema vocabularies, and full context mapping compatible with semantic web tooling.
+
+## Standards-Based Federation: OSLC RM
+
+Quarto-Needs provides a bounded read-only adapter for **OSLC Requirements Management (RM)**:
+
+1. **Service Discovery**: Discovers RM Service Providers, Service Catalogs, and advertised Resource Shapes:
+   ```bash
+   quarto-needs oslc discover https://provider.example/oslc/sp/requirements --format json
+   ```
+2. **Query Capability**: Executes bounded HTTP GET queries without recursively crawling members:
+   ```bash
+   quarto-needs oslc query https://provider.example/oslc/query/requirements
+   ```
+3. **Observation & Provenance**: Materializes query members as independently provenance-bearing external observations with SHA-256 digests and retrieval timestamps.
+4. **Reconciliation**: Reconciles observed remote resources against local canonical objects using explicit URI-to-ID bindings — preventing title collisions from causing accidental merges.
+
+Credentials are provided securely via environment variables:
+
+```bash
+export OSLC_TOKEN="..."
+quarto-needs oslc discover https://provider.example/oslc/sp/requirements --bearer-token-env OSLC_TOKEN
+```
+
+## External Issue Trackers: GitHub Issues
+
+Federate GitHub issues as read-only, provenance-bound external observations:
+
+```bash
+export GITHUB_TOKEN="..."
+quarto-needs github fetch   --repo organization/repository   --bearer-token-env GITHUB_TOKEN
+```
+
+The GitHub adapter:
+- Normalizes issues into external observation envelopes;
+- Handles pagination and conditional HTTP caching (`If-None-Match` / `304 Not Modified`);
+- Treats issue numbers as external data rather than overriding canonical IDs;
+- Requires explicit apply review before any local requirement creation.

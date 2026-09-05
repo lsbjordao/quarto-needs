@@ -1,0 +1,34 @@
+# Migração de Outras Ferramentas
+
+O Quarto-Needs inclui adaptadores de migração para importar requisitos de outros ecossistemas populares de docs-as-code para declarações limpas em Quarto Markdown.
+
+## Ferramentas Suportadas
+
+| Ferramenta de Origem | Formato de Entrada | Comando |
+|---|---|---|
+| **Sphinx-Needs** | `needs.json` | `quarto-needs migrate sphinx-needs <caminho> --output <arquivo>` |
+| **Doorstop** | Diretório de documentos YAML/JSON | `quarto-needs migrate doorstop <dir> --output <arquivo>` |
+| **StrictDoc** | Arquivos `.sdoc` / diretório | `quarto-needs migrate strictdoc <caminho> --output <arquivo>` |
+| **OpenFastTrace** | Troca de rastreabilidade em XML | `quarto-needs migrate openfasttrace <caminho> --output <arquivo>` |
+
+## Fluxo de Migração
+
+1. **Gerar Plano de Migração (Dry Run)**:
+   ```bash
+   quarto-needs migrate sphinx-needs docs/needs.json --output requirements.qmd --dry-run
+   ```
+2. **Executar a Migração**:
+   ```bash
+   quarto-needs migrate sphinx-needs docs/needs.json --output requirements.qmd
+   ```
+3. **Validar o Projeto Convertido**:
+   ```bash
+   quarto-needs scan
+   quarto-needs check
+   ```
+
+## Princípios de Mapeamento
+
+- **Identidade Estável**: IDs existentes (ex.: `REQ_001` ou `SYS-042`) são preservados.
+- **Tradução de Relações**: Links de origem (ex.: `links`, `derives`, `tests`) são mapeados para o catálogo canônico de relações do Quarto-Needs (`derives-from`, `verified-by`, `implemented-by`).
+- **Preservação de Markdown**: Descrições, justificativas e atributos são convertidos para divs nativos do Quarto/Pandoc (`::: {.need ...} ... :::`).

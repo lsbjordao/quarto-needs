@@ -126,7 +126,7 @@ A tabela é útil quando os caminhos exatos importam; o grafo é útil quando o 
 
 {{< need-graph view="requirement-to-code" id="requirement-to-code-view" >}}
 
-## Cinco cortes verticais
+## Seis cortes verticais
 
 Os cortes seguintes são reutilizados intencionalmente ao longo do restante do estudo de caso.
 

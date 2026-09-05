@@ -1,7 +1,13 @@
 args <- commandArgs(trailingOnly = TRUE)
 
+# Default: publish the staged output into the parent of the book project (the
+# GitHub Pages root), so docs/src -> docs/. With --in-place, publish it back
+# into the project's own _book/ instead, leaving the parent untouched.
+in_place <- "--in-place" %in% args
+args <- setdiff(args, "--in-place")
+
 if (length(args) != 1L) {
-  stop("usage: Rscript tools/render_multilingual.R <quarto-book-path>", call. = FALSE)
+  stop("usage: Rscript tools/render_multilingual.R <quarto-book-path> [--in-place]", call. = FALSE)
 }
 
 if (!requireNamespace("babelquarto", quietly = TRUE)) {
@@ -24,7 +30,15 @@ if (length(script_arg) != 1L) {
 }
 script_path <- normalizePath(sub("^--file=", "", script_arg[[1]]), mustWork = TRUE)
 repo_root <- normalizePath(file.path(dirname(script_path), ".."), mustWork = TRUE)
-project_path <- normalizePath(args[[1]], mustWork = TRUE)
+
+# Resolve relative book paths against the repository root, never the current
+# working directory: invoking the wrapper from inside a book project would
+# otherwise nest the output (e.g. <book>/examples/quarto-needs/_book).
+if (grepl("^/", args[[1]])) {
+  project_path <- normalizePath(args[[1]], mustWork = TRUE)
+} else {
+  project_path <- normalizePath(file.path(repo_root, args[[1]]), mustWork = TRUE)
+}
 output_dir <- "_book"
 
 render_multilingual <- function(project_path) {
@@ -69,15 +83,23 @@ render_multilingual <- function(project_path) {
     )
   }
 
-  # Publish the rendered book into the parent of the project directory (the
-  # GitHub Pages root, e.g. docs/), never into the project directory itself.
-  # The project directory (e.g. docs/src) holds only authored sources and must
-  # survive the publish step untouched.
-  publish_root <- dirname(project_path)
-  src_name <- basename(project_path)
-  for (entry in list.files(publish_root, all.files = TRUE, no.. = TRUE, full.names = TRUE)) {
-    if (identical(basename(entry), src_name)) next
-    unlink(entry, recursive = TRUE, force = TRUE)
+  # Publish the rendered book. Default: into the parent of the project
+  # directory (the GitHub Pages root, e.g. docs/), never into the project
+  # directory itself. With --in-place, into the project's own _book/. In both
+  # modes the project directory holds only authored sources and is not
+  # overwritten, but only the parent-publish mode clears the publish root's
+  # stale entries (everything that is not the project directory itself).
+  if (in_place) {
+    publish_root <- file.path(project_path, output_dir)
+    dir.create(publish_root, recursive = TRUE, showWarnings = FALSE)
+  } else {
+    publish_root <- dirname(project_path)
+    src_name <- basename(project_path)
+    publish_root_entries <- list.files(publish_root, all.files = TRUE, no.. = TRUE, full.names = TRUE)
+    for (entry in publish_root_entries) {
+      if (identical(basename(entry), src_name)) next
+      unlink(entry, recursive = TRUE, force = TRUE)
+    }
   }
   for (child in list.files(staged_output, all.files = TRUE, no.. = TRUE, full.names = TRUE)) {
     target <- file.path(publish_root, basename(child))

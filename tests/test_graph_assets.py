@@ -28,6 +28,7 @@ NAVIGATOR_JS = NAVIGATOR_VENDOR / "cytoscape-navigator.js"
 GRAPH_JS = ROOT / "_extensions" / "quarto-needs" / "graph.js"
 GRAPH_CSS = ROOT / "_extensions" / "quarto-needs" / "graph.css"
 GRAPH_LUA = ROOT / "_extensions" / "quarto-needs" / "graph.lua"
+NEEDS_CSS = ROOT / "_extensions" / "quarto-needs" / "needs.css"
 VIEWS_LUA = ROOT / "_extensions" / "quarto-needs" / "views.lua"
 NEEDS_JS = ROOT / "_extensions" / "quarto-needs" / "needs.js"
 MARGIN_SIDEBAR = ROOT / "_extensions" / "quarto-needs" / "margin-sidebar.js"
@@ -354,6 +355,23 @@ def test_graph_css_keeps_native_controls_readable_on_dark_themes() -> None:
     assert "var(--bs-body-color" in rule
     assert "var(--bs-border-color" in rule
     dark_start = source.index('[data-bs-theme="dark"] .need-graph-container')
+    dark_end = source.index("}", dark_start)
+    assert "color-scheme: dark" in source[dark_start:dark_end]
+
+
+def test_needs_css_keeps_table_search_readable_on_dark_themes() -> None:
+    """The table search input must carry explicit theme colors and dark color-scheme."""
+    source = NEEDS_CSS.read_text(encoding="utf-8")
+    search_start = source.index(".need-table-search {")
+    search_end = source.index("}", search_start)
+    search_rule = source[search_start:search_end]
+    assert "var(--bs-body-bg" in search_rule
+    assert "var(--bs-body-color" in search_rule
+    assert "var(--bs-border-color" in search_rule
+    placeholder_start = source.index(".need-table-search::placeholder")
+    placeholder_end = source.index("}", placeholder_start)
+    assert "var(--bs-secondary-color" in source[placeholder_start:placeholder_end]
+    dark_start = source.index('[data-bs-theme="dark"] .need-table-container')
     dark_end = source.index("}", dark_start)
     assert "color-scheme: dark" in source[dark_start:dark_end]
 

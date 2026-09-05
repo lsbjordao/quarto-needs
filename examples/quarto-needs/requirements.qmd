@@ -192,4 +192,4 @@ The package index is a first-render dependency only; everyday rendering must wor
 
 The graph-focused query is reusable across the book and is evaluated by the core before the renderer sees it.
 
-{{< need-graph view="graph-exploration" id="graph-requirements-view" >}}
+{{< need-graph view="graph-exploration" id="graph-requirements-view" root="SYS-001" depth="3" >}}

@@ -1,0 +1,34 @@
+# Migrating from Other Tools
+
+Quarto-Needs provides built-in migration adapters to import requirements from popular docs-as-code and requirements management ecosystems into clean Quarto Markdown declarations.
+
+## Supported Tools
+
+| Source Tool | Input Format | Command |
+|---|---|---|
+| **Sphinx-Needs** | `needs.json` | `quarto-needs migrate sphinx-needs <path> --output <file>` |
+| **Doorstop** | Directory of YAML/JSON documents | `quarto-needs migrate doorstop <dir> --output <file>` |
+| **StrictDoc** | `.sdoc` files / folder | `quarto-needs migrate strictdoc <path> --output <file>` |
+| **OpenFastTrace** | XML trace exchange | `quarto-needs migrate openfasttrace <path> --output <file>` |
+
+## Migration Workflow
+
+1. **Generate the Migration Plan**:
+   ```bash
+   quarto-needs migrate sphinx-needs docs/needs.json --output requirements.qmd --dry-run
+   ```
+2. **Execute the Migration**:
+   ```bash
+   quarto-needs migrate sphinx-needs docs/needs.json --output requirements.qmd
+   ```
+3. **Validate the Converted Project**:
+   ```bash
+   quarto-needs scan
+   quarto-needs check
+   ```
+
+## Mapping Principles
+
+- **Stable Identity**: Existing IDs (e.g. `REQ_001` or `SYS-042`) are preserved.
+- **Relation Translation**: Source links (e.g. `links`, `derives`, `tests`) are mapped into Quarto-Needs canonical relation catalog (`derives-from`, `verified-by`, `implemented-by`).
+- **Markdown Preservation**: Descriptions, rationales, and attributes are converted into standard Quarto Pandoc Divs (`::: {.need ...} ... :::`).

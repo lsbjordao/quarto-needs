@@ -47,8 +47,9 @@ Não se trata de uma taxonomia sintética. Os objetos descrevem capacidades e es
 4. **Arquitetura** registra componentes, interfaces, riscos e ADRs que moldam a implementação.
 5. **Implementação** rastreia obrigações aprovadas até módulos-fonte Python e JavaScript reais.
 6. **Verificação** conecta requisitos e decisões a verificações executáveis e evidências.
-7. **Rastreabilidade** usa o grafo interativo como instrumento de análise, e não como diagrama estático.
-8. **Mudança** ensina baseline, diff estruturado e análise semântica de impacto.
+7. **Interoperabilidade** federa estado externo de OSLC e GitHub como projeções somente leitura com proveniência, sem importar semântica remota para o grafo canônico.
+8. **Rastreabilidade** usa o grafo interativo como instrumento de análise, e não como diagrama estático.
+9. **Mudança** ensina baseline, diff estruturado e análise semântica de impacto.
 
 ## Visão geral ao vivo
 

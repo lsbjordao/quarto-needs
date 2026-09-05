@@ -14,6 +14,7 @@ book:
     - engineering-model.qmd
     - authoring.qmd
     - architecture-decisions.qmd
+    - c4-architecture.qmd
     - executable-evidence.qmd
     - evidence-providers.qmd
     - governance.qmd
@@ -21,6 +22,8 @@ book:
     - type-schemas.qmd
     - graph-constraints.qmd
     - derived-variants.qmd
+    - interoperability.qmd
+    - migrations.qmd
     - language-server.qmd
     - reference.qmd
 

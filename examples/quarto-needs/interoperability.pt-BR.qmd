@@ -370,31 +370,13 @@ Verifica que esgotamento de rate limit (um 403 com X-RateLimit-Remaining: 0) lev
 
 ## Fatia de federação
 
-```text
-STK-006
-   ↓
-SYS-007
-   ├── FUN-010 / NFR-006 → ADR-008 → descoberta/federação → TC-015 → EVD-015
-   ├── FUN-012 / NFR-006 → ADR-008 → SRC-OSLC-QUERY      → TC-017 → EVD-017
-   ├── FUN-013 / NFR-006 → ADR-008 → SRC-OSLC-OBSERVE    → TC-018 → EVD-018
-   ├── FUN-011 / NFR-006 → ADR-009 → SRC-OSLC-RECONCILE  → TC-016 → EVD-016
-   └── FUN-011 / FUN-013 / NFR-006 → ADR-008 → SRC-OSLC-IMPORT → TC-019 → EVD-019
-```
+{{< need-flow tags="oslc" direction="LR" >}}
 
 {{< need-table types="system-requirement;functional-requirement;non-functional-requirement;architecture-decision;component;interface;source-module;test-case;evidence" tags="oslc" columns="id;title;type;status" sort="id" >}}
 
 ## Fatia do adaptador de issues do GitHub
 
-```text
-STK-007
-   ↓
-SYS-008
-   ├── FUN-014 / NFR-007 → ADR-010 → SRC-GITHUB-ISSUES            → TC-020 → EVD-020
-   ├── FUN-015 / NFR-007 → ADR-010 → SRC-GITHUB-HTTP / -ISSUES    → TC-021 → EVD-021
-   ├── FUN-016 / NFR-007 → ADR-010 → SRC-GITHUB-ISSUES / -HTTP    → TC-022 → EVD-022
-   └── FUN-017           → ADR-010 → reconcile/import OSLC compartilhados → TC-023 → EVD-023
-                                                    SRC-GITHUB-HTTP → TC-024 → EVD-024
-```
+{{< need-flow tags="github" direction="LR" >}}
 
 `FUN-017` implementa deliberadamente contra `SRC-OSLC-RECONCILE`/`SRC-OSLC-IMPORT`: os módulos de reconciliação e plano de importação são source-agnostic, então observações do GitHub passam pelos contratos OSLC inalterados, e a prova da fatia são testes que pinam esse reuso em vez de um fork.
 

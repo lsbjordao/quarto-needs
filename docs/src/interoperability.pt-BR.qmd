@@ -1,0 +1,62 @@
+# Interoperabilidade e Federação
+
+Formatos de intercâmbio e integrações com serviços externos no Quarto-Needs são **adaptadores e projeções** sobre o grafo canônico de engenharia. Padrões externos transportam e federam requisitos sem comprometer a identidade ou a proveniência canônica.
+
+## Formatos Estruturados de Intercâmbio
+
+### ReqIF 1.2
+
+Exporte o grafo de requisitos para ReqIF (Requirements Interchange Format) para troca de informações com ferramentas corporativas como IBM DOORS, PTC Integrity ou Polarion:
+
+```bash
+quarto-needs export --format reqif --output requirements.reqif
+```
+
+O exportador mapeia objetos de engenharia, atributos e relações canônicas para SpecObjects, SpecTypes e SpecRelations do padrão ReqIF.
+
+### JSON-LD 1.1
+
+Exporte o grafo como Dados Conectados (Linked Data) preservando os metadados semânticos de relações:
+
+```bash
+quarto-needs export --format jsonld --output graph.jsonld
+```
+
+A projeção JSON-LD utiliza IRIs determinísticos, vocabulários de schema e mapeamento de contexto compatível com ferramentas da web semântica.
+
+## Federação Baseada em Padrões: OSLC RM
+
+O Quarto-Needs oferece um adaptador somente-leitura com limites estritos para **OSLC Requirements Management (RM)**:
+
+1. **Descoberta de Serviços**: Descobre provedores de serviço RM, catálogos e Resource Shapes:
+   ```bash
+   quarto-needs oslc discover https://provider.example/oslc/sp/requirements --format json
+   ```
+2. **Capacidade de Consulta**: Executa consultas HTTP GET delimitadas sem realizar crawling recursivo de membros:
+   ```bash
+   quarto-needs oslc query https://provider.example/oslc/query/requirements
+   ```
+3. **Observação e Proveniência**: Materializa membros de consulta como observações externas com digest SHA-256 e data de recuperação independentes.
+4. **Reconciliação**: Reconcilia recursos remotos observados com objetos canônicos locais via mapeamento explícito URI-para-ID — evitando que títulos idênticos causem fusões acidentais.
+
+Credenciais são passadas com segurança via variáveis de ambiente:
+
+```bash
+export OSLC_TOKEN="..."
+quarto-needs oslc discover https://provider.example/oslc/sp/requirements --bearer-token-env OSLC_TOKEN
+```
+
+## Rastreadores Externos: GitHub Issues
+
+Federe issues do GitHub como observações externas vinculadas a proveniência:
+
+```bash
+export GITHUB_TOKEN="..."
+quarto-needs github fetch   --repo organizacao/repositorio   --bearer-token-env GITHUB_TOKEN
+```
+
+O adaptador do GitHub:
+- Normaliza issues em envelopes de observação externa;
+- Suporta paginação e cache condicional HTTP (`If-None-Match` / `304 Not Modified`);
+- Mantém o número da issue como dado externo, sem sobrescrever IDs canônicos;
+- Exige revisão explícita antes de qualquer criação de requisito local.
