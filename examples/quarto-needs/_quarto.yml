@@ -10,6 +10,7 @@ book:
     search: true
   sidebar:
     collapse-level: 1
+  google-analytics: G-MC0B1CTHRZ
   chapters:
     - index.qmd
     - context.qmd
