@@ -95,8 +95,8 @@ render-self-example: evidence-self-example
 	$(VENV_PYTHON) tools/normalize_multilingual_output.py examples/quarto-needs/_book --locale pt-BR
 
 render-manual-multilingual:
-	Rscript tools/render_multilingual.R docs/manual
-	$(VENV_PYTHON) tools/normalize_multilingual_output.py docs/manual/_book --locale pt-BR
+	Rscript tools/render_multilingual.R docs/src
+	$(VENV_PYTHON) tools/normalize_multilingual_output.py docs --locale pt-BR
 
 check-install: check-extension-first check-cli-install
 

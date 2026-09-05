@@ -380,8 +380,8 @@
         "revisit-after": "2027-09-02",
         "tags": "documentation;architecture;viewpoints;arc42"
       },
-      "body": "### Context and Problem Statement\n\n`ARCHITECTURE.md` and this self-hosted example both describe the system, but neither page declares its audience, the concern it answers, or when it must be revisited. As the product grew from a single pipeline into CLI/core/Quarto/LSP/VS Code/interoperability surfaces, an undeclared set of ad hoc pages risks duplicating content and drifting silently.\n\n### Decision Drivers\n\n- give every architecture page an explicit audience, concern, and update trigger;\n- avoid forcing one notation (C4, UML, or 4+1) to answer every question;\n- keep the index navigable without becoming a second copy of this case study.\n\n### Decision Outcome\n\nOrganize `docs/architecture/` as a small set of ISO/IEC/IEEE 42010-style viewpoints, indexed by an arc42-lite structure. Each page records its audience, concern, notation, and source in `viewpoints.md`; diagrams are chosen per concern rather than committing the whole set to one modeling language.\n\n### Consequences\n\nThe documentation set gains a stable table of contents and a contract per page, at the cost of keeping `viewpoints.md` current whenever a page's purpose changes.\n\n### Confirmation\n\n`TC-002` confirms the presentation/rendering path this documentation set builds on.",
-      "contentFingerprint": "17a78820bbaed8beebe9d474f20722d2ee9b193b9ed48a68e2ac65f16806d615",
+      "body": "### Context and Problem Statement\n\n`ARCHITECTURE.md` and this self-hosted example both describe the system, but neither page declares its audience, the concern it answers, or when it must be revisited. As the product grew from a single pipeline into CLI/core/Quarto/LSP/VS Code/interoperability surfaces, an undeclared set of ad hoc pages risks duplicating content and drifting silently.\n\n### Decision Drivers\n\n- give every architecture page an explicit audience, concern, and update trigger;\n- avoid forcing one notation (C4, UML, or 4+1) to answer every question;\n- keep the index navigable without becoming a second copy of this case study.\n\n### Decision Outcome\n\nOrganize `notes/architecture/` as a small set of ISO/IEC/IEEE 42010-style viewpoints, indexed by an arc42-lite structure. Each page records its audience, concern, notation, and source in `viewpoints.md`; diagrams are chosen per concern rather than committing the whole set to one modeling language.\n\n### Consequences\n\nThe documentation set gains a stable table of contents and a contract per page, at the cost of keeping `viewpoints.md` current whenever a page's purpose changes.\n\n### Confirmation\n\n`TC-002` confirms the presentation/rendering path this documentation set builds on.",
+      "contentFingerprint": "3095491f106ef7ac0d5dd1da25f9a5340c538489b990629208c4a1ffa81c9c86",
       "id": "ADR-011",
       "location": {
         "anchor": "ADR-011",
@@ -500,8 +500,8 @@
         "revisit-after": "2027-09-02",
         "tags": "architecture;generated-artifacts;boundary"
       },
-      "body": "### Context and Problem Statement\n\nGenerated files (`.quarto-needs/needs.json`, `.quarto-needs/graphs/*.json`, `generated-index.lua`) live inside the same project tree as authored `.qmd` declarations. Without an explicit rule, a contributor could hand-edit a generated file, or a generated file could be mistaken for a second authoring surface.\n\n### Decision Outcome\n\nEvery path under a project's `.quarto-needs/` output directory is generated-only: the CLI build step recreates it in full on every run, `generated-index.lua` is explicitly excluded from the extension-asset sync so it is never treated as an authoring source, and stale `c4-*.json` files are removed before a projection is rewritten. `docs/architecture/generated/` follows the same rule for this documentation set's own diagrams.\n\n### Consequences\n\nReviewers and contributors can rely on \"is it under `.quarto-needs/` (or `docs/architecture/generated/`)?\" as a sufficient test for \"may I hand-edit this file?\"; the answer is always no.\n\n### Confirmation\n\n`TC-006`.",
-      "contentFingerprint": "f19f05b9b20fdbf1cad68a213f3ab96c7dfd0fbe58654248d8d83bff363ed24b",
+      "body": "### Context and Problem Statement\n\nGenerated files (`.quarto-needs/needs.json`, `.quarto-needs/graphs/*.json`, `generated-index.lua`) live inside the same project tree as authored `.qmd` declarations. Without an explicit rule, a contributor could hand-edit a generated file, or a generated file could be mistaken for a second authoring surface.\n\n### Decision Outcome\n\nEvery path under a project's `.quarto-needs/` output directory is generated-only: the CLI build step recreates it in full on every run, `generated-index.lua` is explicitly excluded from the extension-asset sync so it is never treated as an authoring source, and stale `c4-*.json` files are removed before a projection is rewritten. `notes/architecture/generated/` follows the same rule for this documentation set's own diagrams.\n\n### Consequences\n\nReviewers and contributors can rely on \"is it under `.quarto-needs/` (or `notes/architecture/generated/`)?\" as a sufficient test for \"may I hand-edit this file?\"; the answer is always no.\n\n### Confirmation\n\n`TC-006`.",
+      "contentFingerprint": "754c17ec85063c3c6f759cd235719c39adf8b6874fb13a6d41f52dc3366c9d63",
       "id": "ADR-017",
       "location": {
         "anchor": "ADR-017",
@@ -3524,7 +3524,7 @@
       "type": "test-case"
     }
   ],
-  "referenceDate": "2026-09-03",
+  "referenceDate": "2026-09-05",
   "relationCatalogVersion": "4",
   "relations": [
     {
@@ -8486,7 +8486,7 @@
       "version": "0.1.0"
     },
     "profile": "strict",
-    "referenceDate": "2026-09-03",
+    "referenceDate": "2026-09-05",
     "schemaVersion": "1",
     "scopes": {
       "adr-path": {
@@ -8967,9 +8967,9 @@
   "representationFingerprint": "155791a2e42175fb11b79a5410700fd1c0c3ccfbf2430de280ca97c79235348a",
   "ruleSetVersion": "7",
   "schemaVersion": "1",
-  "semanticGraphFingerprint": "e3eba1b50b2c76459bc54391fae94662f02a576fd0870b53404cee5227dd1bbb",
+  "semanticGraphFingerprint": "be339c757a406804fb5104170407c820dd3aefecd53eb4141a306e38503d24e5",
   "valid": true,
-  "variantFingerprint": "d3382d307176a6e6cead88a84a2340e3f2cfe63ae6e0541d0e68eba6fbde46f7",
+  "variantFingerprint": "78e26619872291f35b018539e0a783d2ef3228413cec818b7e7b355ea0b6b938",
   "variants": {
     "assurance-slice": [
       "EVD-001",

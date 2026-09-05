@@ -6,7 +6,7 @@ import xml.etree.ElementTree as ET
 
 
 ROOT = Path(__file__).resolve().parents[1]
-BRANDING = ROOT / "docs" / "assets" / "branding"
+BRANDING = ROOT / "notes" / "assets" / "branding"
 
 
 def _png_size(path: Path) -> tuple[int, int]:
@@ -42,7 +42,7 @@ def test_packaged_application_icons_are_synchronized() -> None:
 
 def test_documentation_does_not_depend_on_retired_branding_rasters() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    branding_doc = (ROOT / "docs" / "branding.md").read_text(encoding="utf-8")
+    branding_doc = (ROOT / "notes" / "branding.md").read_text(encoding="utf-8")
     retired = (
         "quarto-needs-logo.webp",
         "quarto-needs-symbol.webp",

@@ -1,6 +1,6 @@
 """Public artifact schema contract tests.
 
-Companion to ``docs/schema-compatibility.md``: every public-versioned
+Companion to ``notes/schema-compatibility.md``: every public-versioned
 artifact must carry its version identifier, ship a parseable JSON Schema,
 and expose only allowlist-constructed fields. These tests fail when an
 artifact silently loses its version marker or when an internal field leaks

@@ -48,16 +48,7 @@ def test_the_showcase_extension_matches_the_canonical_one() -> None:
     """
     canonical = extension_version(ROOT / "_extensions" / "quarto-needs" / "_extension.yml")
     installed = extension_version(
-        ROOT / "examples" / "book" / "_extensions" / "quarto-needs" / "_extension.yml"
-    )
-
-    assert installed == canonical
-
-
-def test_the_minimal_example_extension_matches_the_canonical_one() -> None:
-    canonical = extension_version(ROOT / "_extensions" / "quarto-needs" / "_extension.yml")
-    installed = extension_version(
-        ROOT / "examples" / "minimal" / "_extensions" / "quarto-needs" / "_extension.yml"
+        ROOT / "examples" / "quarto-needs" / "_extensions" / "quarto-needs" / "_extension.yml"
     )
 
     assert installed == canonical

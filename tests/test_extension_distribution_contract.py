@@ -31,7 +31,7 @@ else:
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "_extensions" / "quarto-needs" / "_extension.yml"
 PYPROJECT = ROOT / "pyproject.toml"
-QUICKSTART = ROOT / "docs" / "quickstart.md"
+QUICKSTART = ROOT / "notes" / "quickstart.md"
 CLI_PATH_CHECK = ROOT / "tools" / "check_installed_path.sh"
 EXTENSION_FIRST_CHECK = ROOT / "tools" / "check_extension_first_path.sh"
 

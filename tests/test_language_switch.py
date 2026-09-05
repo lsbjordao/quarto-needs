@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 # roster changes over time; the self-hosted example is the only one today.
 PROJECTS = tuple(
     project
-    for project in ("docs/manual", "examples/quarto-needs")
+    for project in ("docs/src", "examples/quarto-needs")
     if (ROOT / project / "language-switch.css").is_file()
 )
 

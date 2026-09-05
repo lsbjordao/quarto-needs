@@ -107,7 +107,7 @@ def test_coverage_adapter_applies_explicit_threshold(tmp_path: Path) -> None:
 def test_quarto_lint_and_type_check_adapters_preserve_tool_identity() -> None:
     quarto = quarto_render_evidence(
         quarto_version="1.8.24",
-        target="docs/manual",
+        target="docs/src",
         exit_code=0,
         requirements=["FUN-001"],
     )

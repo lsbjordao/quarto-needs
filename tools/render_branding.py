@@ -58,7 +58,7 @@ def _render(svg: Path, target: Path, size: int) -> None:
 
 
 def _expected(root: Path) -> tuple[tuple[Path, int], ...]:
-    branding = root / "docs" / "assets" / "branding"
+    branding = root / "notes" / "assets" / "branding"
     return (
         (branding / "quarto-needs-app-icon-256.png", 256),
         (branding / "quarto-needs-app-icon-512.png", 512),
@@ -74,7 +74,7 @@ def main() -> int:
     args = parser.parse_args()
 
     root = Path(__file__).resolve().parents[1]
-    svg = root / "docs" / "assets" / "branding" / "quarto-needs-app-icon.svg"
+    svg = root / "notes" / "assets" / "branding" / "quarto-needs-app-icon.svg"
     if not svg.exists():
         raise SystemExit(f"canonical branding source is missing: {svg}")
 

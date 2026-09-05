@@ -112,4 +112,4 @@ second engineering state, compared explicitly, can surface that.
 ## Planned next slices
 
 - RSP (ReSpec proposal-style) parsing and the remaining transformables from
-  the migration gallery — tracked on `docs/ROADMAP.md` under Phase 9.
+  the migration gallery — tracked on `notes/ROADMAP.md` under Phase 9.

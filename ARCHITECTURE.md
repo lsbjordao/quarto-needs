@@ -1,6 +1,6 @@
 # Architecture
 
-Full architecture documentation lives in [`docs/architecture/`](docs/architecture/index.md), organized as explicit viewpoints indexed by an arc42-lite structure (see [`docs/architecture/viewpoints.md`](docs/architecture/viewpoints.md) and `ADR-011` in the self-hosted example). This page is a short summary of the same pipeline for readers who land here first.
+Full architecture documentation lives in [`notes/architecture/`](notes/architecture/index.md), organized as explicit viewpoints indexed by an arc42-lite structure (see [`notes/architecture/viewpoints.md`](notes/architecture/viewpoints.md) and `ADR-011` in the self-hosted example). This page is a short summary of the same pipeline for readers who land here first.
 
 Quarto-Needs follows a ports-and-adapters style architecture. The requirements graph is canonical; Quarto is one authoring/rendering adapter.
 
@@ -35,7 +35,7 @@ Relations are first-class typed edges. The model is deliberately
 renderer-independent. `EngineeringObject` is a retained compatibility DTO
 that convenience APIs adapt into the canonical pipeline — canonical
 analysis never converts declarations into it (see
-[`docs/architecture/domain-model.md`](docs/architecture/domain-model.md)).
+[`notes/architecture/domain-model.md`](notes/architecture/domain-model.md)).
 
 ## Canonical pipeline
 

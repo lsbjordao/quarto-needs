@@ -335,7 +335,7 @@ The static document remains usable without JavaScript, while HTML readers gain a
 
 ### Decision Outcome
 
-Organize `docs/architecture/` as a small set of ISO/IEC/IEEE 42010-style viewpoints, indexed by an arc42-lite structure. Each page records its audience, concern, notation, and source in `viewpoints.md`; diagrams are chosen per concern rather than committing the whole set to one modeling language.
+Organize `notes/architecture/` as a small set of ISO/IEC/IEEE 42010-style viewpoints, indexed by an arc42-lite structure. Each page records its audience, concern, notation, and source in `viewpoints.md`; diagrams are chosen per concern rather than committing the whole set to one modeling language.
 
 ### Consequences
 
@@ -460,11 +460,11 @@ Generated files (`.quarto-needs/needs.json`, `.quarto-needs/graphs/*.json`, `gen
 
 ### Decision Outcome
 
-Every path under a project's `.quarto-needs/` output directory is generated-only: the CLI build step recreates it in full on every run, `generated-index.lua` is explicitly excluded from the extension-asset sync so it is never treated as an authoring source, and stale `c4-*.json` files are removed before a projection is rewritten. `docs/architecture/generated/` follows the same rule for this documentation set's own diagrams.
+Every path under a project's `.quarto-needs/` output directory is generated-only: the CLI build step recreates it in full on every run, `generated-index.lua` is explicitly excluded from the extension-asset sync so it is never treated as an authoring source, and stale `c4-*.json` files are removed before a projection is rewritten. `notes/architecture/generated/` follows the same rule for this documentation set's own diagrams.
 
 ### Consequences
 
-Reviewers and contributors can rely on "is it under `.quarto-needs/` (or `docs/architecture/generated/`)?" as a sufficient test for "may I hand-edit this file?"; the answer is always no.
+Reviewers and contributors can rely on "is it under `.quarto-needs/` (or `notes/architecture/generated/`)?" as a sufficient test for "may I hand-edit this file?"; the answer is always no.
 
 ### Confirmation
 

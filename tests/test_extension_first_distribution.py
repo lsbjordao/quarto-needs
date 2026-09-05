@@ -223,7 +223,7 @@ filters:
 def test_the_obsolete_two_piece_pre_render_line_fails_without_the_cli(tmp_path) -> None:
     """The documented migration note must stay true.
 
-    docs/quickstart.md tells upgraders to delete the old hand-authored
+    notes/quickstart.md tells upgraders to delete the old hand-authored
     `pre-render: quarto-needs scan` line, because the extension-first install
     never puts a `quarto-needs` command on PATH. This pins what actually
     happens when the line is left in: the render fails loudly, rather than
@@ -245,7 +245,7 @@ filters:
 
     assert completed.returncode != 0, (
         "the obsolete pre-render line rendered successfully; the migration "
-        "note in docs/quickstart.md is wrong"
+        "note in notes/quickstart.md is wrong"
     )
 
 

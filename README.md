@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/branding/quarto-needs-logo.svg" alt="Quarto-Needs" width="900">
+  <img src="notes/assets/branding/quarto-needs-logo.svg" alt="Quarto-Needs" width="900">
 </p>
 
 <p align="center">
@@ -82,17 +82,15 @@ _extensions/quarto-needs/     Quarto filters, shortcodes and browser assets
 editors/vscode/               Thin VS Code client for the Python LSP
 schemas/                      Versioned artifact schemas
 tools/                        Pre-render and release tooling
-docs/manual/                  User/manual documentation
-docs/ROADMAP.md               Authoritative product roadmap
-docs/assets/branding/         Project visual identity and roadmap artwork
+docs/                         Published manual site (GitHub Pages root) — rendered
+docs/src/                     Manual source (.qmd) — the book project
+notes/                        Product roadmap, design/architecture notes and branding assets
 examples/quarto-needs/        Self-hosted engineering model
 tests/                        Regression and integration tests
 .github/workflows/            CI workflows
 ```
 
-## Quick start
-
-For the end-user path, start with [`docs/quickstart.md`](docs/quickstart.md).
+The manual is authored in `docs/src/` and rendered into `docs/`; the docs site is the GitHub Pages root. Design and product documentation that is not part of the manual lives under [`notes/`](notes/). For the end-user path, start with the published [`docs/`](docs/index.html) (the manual) or the standalone [`notes/quickstart.md`](notes/quickstart.md).
 
 Contributor setup:
 
@@ -205,7 +203,7 @@ def test_graph_exploration_assets():
 
 The pytest plugin emits deterministic provider output. `evidence-envelope-v1` then records SHA-256 digest, graph/configuration fingerprints, generation time, optional Git revision, and explicit expiry. `quarto-needs evidence check` validates both artifact integrity and semantic agreement with the current engineering graph.
 
-See [`docs/manual/executable-evidence.qmd`](docs/manual/executable-evidence.qmd) and [`docs/manual/evidence-providers.qmd`](docs/manual/evidence-providers.qmd).
+See [`docs/executable-evidence.qmd`](docs/executable-evidence.qmd) and [`docs/evidence-providers.qmd`](docs/evidence-providers.qmd).
 
 ## Interoperability philosophy
 
@@ -215,7 +213,7 @@ Interchange formats are adapters, not authoring models.
 
 The first OSLC path is intentionally read-only. It uses GET-only bounded HTTP, same-origin redirects, conditional retrieval, content-addressed cache blobs, network-free JSON-LD/Turtle/RDFXML normalization, and deterministic RM discovery. POST/PUT/PATCH/DELETE remain deferred until conflict, concurrency, authorization, and audit contracts exist.
 
-Interchange status and acceptance records live in [`docs/ROADMAP.md`](docs/ROADMAP.md).
+Interchange status and acceptance records live in [`notes/ROADMAP.md`](notes/ROADMAP.md).
 
 ## Self-hosted engineering model
 
@@ -260,12 +258,12 @@ These are references and inspirations, not compatibility claims.
 ## Roadmap
 
 <p align="center">
-  <a href="docs/ROADMAP.md">
-    <img src="docs/assets/branding/quarto-needs-roadmap-infographic.svg" alt="Quarto-Needs engineering evolution roadmap" width="1000">
+  <a href="notes/ROADMAP.md">
+    <img src="notes/assets/branding/quarto-needs-roadmap-infographic.svg" alt="Quarto-Needs engineering evolution roadmap" width="1000">
   </a>
 </p>
 
-The infographic is a **visual presentation snapshot**. [`docs/ROADMAP.md`](docs/ROADMAP.md) is the authoritative, continuously updated roadmap.
+The infographic is a **visual presentation snapshot**. [`notes/ROADMAP.md`](notes/ROADMAP.md) is the authoritative, continuously updated roadmap.
 
 Current status: **Phases 1, 2, 3 and 4.1 are implemented; Phase 4.2 is functionally implemented but release validation is blocked by the current runner/npm environment; Phase 5.1 ReqIF is implemented and locally validated; Phase 5.2 JSON-LD is functionally implemented with an independent execution gate pending; Phase 5.3 OSLC RM is actively implemented through the read-only federation/discovery foundation and its first CLI surface.**
 
@@ -273,7 +271,7 @@ GitHub Actions currently terminates the Python and VS Code jobs before checkout 
 
 ## Branding
 
-The logo, symbol, extension icon, palette, and visual-roadmap assets live under [`docs/assets/branding/`](docs/assets/branding/). See [`docs/branding.md`](docs/branding.md) for the visual semantics and palette.
+The logo, symbol, extension icon, palette, and visual-roadmap assets live under [`notes/assets/branding/`](notes/assets/branding/). See [`notes/branding.md`](notes/branding.md) for the visual semantics and palette.
 
 ## License
 

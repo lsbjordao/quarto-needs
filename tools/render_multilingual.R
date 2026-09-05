@@ -69,11 +69,24 @@ render_multilingual <- function(project_path) {
     )
   }
 
-  final_output <- file.path(project_path, output_dir)
-  if (dir.exists(final_output)) {
-    unlink(final_output, recursive = TRUE, force = TRUE)
+  # Publish the rendered book into the parent of the project directory (the
+  # GitHub Pages root, e.g. docs/), never into the project directory itself.
+  # The project directory (e.g. docs/src) holds only authored sources and must
+  # survive the publish step untouched.
+  publish_root <- dirname(project_path)
+  src_name <- basename(project_path)
+  for (entry in list.files(publish_root, all.files = TRUE, no.. = TRUE, full.names = TRUE)) {
+    if (identical(basename(entry), src_name)) next
+    unlink(entry, recursive = TRUE, force = TRUE)
   }
-  fs::dir_copy(staged_output, final_output)
+  for (child in list.files(staged_output, all.files = TRUE, no.. = TRUE, full.names = TRUE)) {
+    target <- file.path(publish_root, basename(child))
+    if (dir.exists(child)) {
+      fs::dir_copy(child, target)
+    } else {
+      fs::file_copy(child, target)
+    }
+  }
 }
 
 render_multilingual(project_path)

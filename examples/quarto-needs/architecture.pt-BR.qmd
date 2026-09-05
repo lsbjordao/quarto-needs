@@ -335,7 +335,7 @@ O `ARCHITECTURE.md` e este exemplo self-hosted descrevem o sistema, mas nenhuma 
 
 ### Resultado da Decisão
 
-Organizar `docs/architecture/` como um pequeno conjunto de viewpoints no estilo ISO/IEC/IEEE 42010, indexado por uma estrutura arc42-lite. Cada página registra seu público, preocupação, notação e fonte em `viewpoints.md`; os diagramas são escolhidos por preocupação, em vez de comprometer todo o conjunto com uma única linguagem de modelagem.
+Organizar `notes/architecture/` como um pequeno conjunto de viewpoints no estilo ISO/IEC/IEEE 42010, indexado por uma estrutura arc42-lite. Cada página registra seu público, preocupação, notação e fonte em `viewpoints.md`; os diagramas são escolhidos por preocupação, em vez de comprometer todo o conjunto com uma única linguagem de modelagem.
 
 ### Consequências
 
@@ -460,11 +460,11 @@ Arquivos gerados (`.quarto-needs/needs.json`, `.quarto-needs/graphs/*.json`, `ge
 
 ### Resultado da Decisão
 
-Todo caminho sob o diretório de saída `.quarto-needs/` de um projeto é exclusivamente gerado: a etapa de build da CLI o recria por completo a cada execução, `generated-index.lua` é explicitamente excluído da sincronização de assets da extensão para nunca ser tratado como fonte de autoria, e arquivos `c4-*.json` obsoletos são removidos antes de uma projeção ser regravada. `docs/architecture/generated/` segue a mesma regra para os diagramas deste conjunto de documentação.
+Todo caminho sob o diretório de saída `.quarto-needs/` de um projeto é exclusivamente gerado: a etapa de build da CLI o recria por completo a cada execução, `generated-index.lua` é explicitamente excluído da sincronização de assets da extensão para nunca ser tratado como fonte de autoria, e arquivos `c4-*.json` obsoletos são removidos antes de uma projeção ser regravada. `notes/architecture/generated/` segue a mesma regra para os diagramas deste conjunto de documentação.
 
 ### Consequências
 
-Revisores e contribuidores podem confiar em "está sob `.quarto-needs/` (ou `docs/architecture/generated/`)?" como teste suficiente para "posso editar este arquivo manualmente?"; a resposta é sempre não.
+Revisores e contribuidores podem confiar em "está sob `.quarto-needs/` (ou `notes/architecture/generated/`)?" como teste suficiente para "posso editar este arquivo manualmente?"; a resposta é sempre não.
 
 ### Confirmação
 
