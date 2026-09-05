@@ -19,6 +19,7 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import pytest
@@ -26,7 +27,9 @@ import pytest
 from quarto_needs.analysis import analyze_project
 from quarto_needs.cli_entry import main as cli_main
 from quarto_needs.config import load_config
+from quarto_needs.exporters import jsonld_export, reqif_export
 from quarto_needs.localization import validate_localized_pair
+from quarto_needs.lsp_server import LspSession
 from quarto_needs.migrations.sphinx_needs import (
     build_migration_plan,
     load_needs_json,
@@ -143,6 +146,94 @@ def test_migration_loss_is_planned_as_review_not_guessed() -> None:
     # The unmapped link is preserved as data, never silently dropped.
     candidate = {item.source_id: item for item in plan.candidates}["REQ_001"]
     assert candidate.unmapped_links.get("violates") == ("MIS_001",)
+
+
+def test_interchange_loss_projections_document_exactly_what_stays_behind() -> None:
+    """Both projections report the same loss instead of pretending to round-trip."""
+    result = _analyze("interchange-loss")
+    assert result.snapshot is not None
+    assert not any(finding.severity == "error" for finding in result.findings)
+
+    root = ET.fromstring(reqif_export.render(result.snapshot))
+    notes = {
+        node.text
+        for node in root.findall(
+            f".//{{{reqif_export.REQIF_NS}}}PROJECTION-NOTE"
+        )
+    }
+    assert notes, "the ReqIF projection must document the details it drops"
+    assert any(
+        "object source locations stay behind" in note
+        and "REQ-A (index.qmd:1)" in note
+        for note in notes
+    ), notes
+    assert any(
+        "relation source locations stay behind" in note
+        and "REQ-A --verified-by--> TC-B" in note
+        for note in notes
+    ), notes
+
+    document = jsonld_export.build_document(result.snapshot)
+    projection_notes = document.get("quartoNeedsProjectionNotes")
+    assert projection_notes, "the JSON-LD projection must document the same loss"
+    assert any(
+        "object source locations stay behind" in note
+        and "REQ-A (index.qmd:1)" in note
+        for note in projection_notes
+    ), projection_notes
+    assert any(
+        "relation source locations stay behind" in note
+        and "REQ-A --verified-by--> TC-B" in note
+        for note in projection_notes
+    ), projection_notes
+
+    req_a = next(
+        node
+        for node in document["@graph"]
+        if node.get("canonicalId") == "REQ-A"
+    )
+    assert req_a["attributes"]["priority"] == "high", (
+        "attribute text itself must survive; only the documented loss is loss"
+    )
+
+
+def test_editor_refactor_rename_collision_is_refused_with_the_canonical_message() -> None:
+    """The in-memory buffer surfaces the same diagnostic as the engine.
+
+    Renaming REQ-2 onto the existing REQ-1 must be refused before anything
+    touches disk; the safe refactor onto a free identifier still returns a
+    complete, relation-aware edit.
+    """
+    root = BROKEN / "editor-refactor"
+    session = LspSession.load(root)
+    requirements = root / "requirements.qmd"
+    lines = requirements.read_text(encoding="utf-8").splitlines()
+    req2_line = next(index for index, line in enumerate(lines) if "REQ-2" in line)
+    position = {
+        "textDocument": {"uri": requirements.resolve().as_uri()},
+        "position": {"line": req2_line, "character": lines[req2_line].index("REQ-2") + 2},
+    }
+
+    prepared = session.handle("textDocument/prepareRename", position)
+    assert prepared["placeholder"] == "REQ-2"
+
+    with pytest.raises(ValueError, match="existing object ID REQ-1"):
+        session.handle(
+            "textDocument/rename",
+            {**position, "newName": "REQ-1"},
+        )
+
+    edit = session.handle(
+        "textDocument/rename",
+        {**position, "newName": "REQ-NEW"},
+    )
+    changes = edit["changes"]
+    assert requirements.resolve().as_uri() in changes
+    assert all(
+        item["newText"] == "REQ-NEW"
+        for items in changes.values()
+        for item in items
+    ), "a refactor onto a free identifier rewrites every reference"
 
 
 # --- suspect-after-change: the one dynamic fixture in the gallery -----------

@@ -1,0 +1,17 @@
+::: {.need #REQ-1 type="functional-requirement" status="approved" verified-by="TC-1"}
+## Requirement one
+
+The system shall authenticate the user.
+:::
+
+::: {.need #REQ-2 type="functional-requirement" status="approved"}
+## Requirement two
+
+The system shall authorize the user.
+:::
+
+::: {.need #TC-1 type="test-case" status="passed"}
+## Login test
+
+Verifies REQ-1.
+:::

@@ -1,19 +1,24 @@
-# The navbar language switch is project-level tooling shared byte-for-byte by
-# every multilingual project (docs/manual, examples/book,
-# examples/quarto-needs); these tests pin both that sync and its theming
-# contract.
-
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
-PROJECTS = ("docs/manual", "examples/book", "examples/quarto-needs")
+# The navbar language switch is project-level tooling shared byte-for-byte by
+# every multilingual project; these tests pin both that sync and its theming
+# contract. Membership is existence-checked because the multilingual example
+# roster changes over time; the self-hosted example is the only one today.
+PROJECTS = tuple(
+    project
+    for project in ("docs/manual", "examples/quarto-needs")
+    if (ROOT / project / "language-switch.css").is_file()
+)
 
 
 def _css(project: str) -> str:
-    return (ROOT / project / "language-switch.css").read_text(encoding="utf-8")
+    raw = (ROOT / project / "language-switch.css").read_text(encoding="utf-8")
+    return re.sub(r"/\*.*?\*/", "", raw, flags=re.S)
 
 
 def _html(project: str) -> str:
@@ -26,25 +31,41 @@ def test_language_switch_stays_in_sync_across_projects() -> None:
         assert _html(project) == _html(PROJECTS[0])
 
 
-def test_language_switch_resolves_colors_through_live_theme_variables() -> None:
-    """The switcher's colors must come from Bootstrap theme variables, the
-    same ones the rest of the UI uses, so a dark theme (or a runtime toggle)
-    yields a dark pill with light ink automatically. A fallback hardcoded to
-    a light value at the top level of the var() chain is the dark-theme
-    black-on-light / white-on-light bug this file exists to prevent."""
+def test_language_switch_pins_light_colors_and_scopes_dark_to_the_page_theme() -> None:
+    """Two traps force explicit scoping. First, Quarto loads both theme
+    bundles on dual-theme sites, and the dark theme's stylesheet declares its
+    dark palette on unscoped :root selectors that also apply in light mode —
+    var(--bs-body-bg) resolves to the dark background even on light pages,
+    which used to paint the switcher dark under a white navbar. Second,
+    quarto stamps data-bs-theme="dark" on the navbar element itself as a
+    style island, so an ancestor attribute selector matches in every page
+    theme. Light colors are therefore literal; dark colors are gated on
+    :root[data-bs-theme="dark"], which only matches when the whole page —
+    not just the navbar — is actually dark."""
     for project in PROJECTS:
         css = _css(project)
-        assert "var(--qn-language-bg, var(--bs-body-bg," in css
-        assert "var(--qn-language-fg, var(--bs-body-color," in css
-        assert "var(--qn-language-hover, var(--bs-tertiary-bg," in css
-        assert "var(--qn-language-border, var(--bs-border-color," in css
-        for variable, light in (
-            ("--qn-language-bg", "#fff)"),
-            ("--qn-language-fg", "#212529)"),
-            ("--qn-language-hover", "#f8f9fa)"),
-            ("--qn-language-border", "#dee2e6)"),
-        ):
-            assert f"var({variable}, {light}" not in css
+        dark_gated = css.count("body.quarto-dark #quarto-needs-language-switch")
+        assert dark_gated >= 3, (
+            "button, hover, and menu must have dark overrides gated on the "
+            "page-level dark state (quarto's toggle class), not a navbar-local one"
+        )
+        assert css.count(':root[data-bs-theme="dark"] #quarto-needs-language-switch') >= dark_gated, (
+            "bootstrap attribute mode must be gated alongside quarto's toggle class"
+        )
+        bare_dark = len(
+            re.findall(r'(?<!:root)(?<!quarto-dark )\[data-bs-theme="dark"\] #quarto-needs-language-switch', css)
+        )
+        assert bare_dark == 0, "dark rules must not match a navbar-local style island"
+        # Light chrome is literal, not variable-driven.
+        assert "background: #fff !important" in css
+        assert "color: #212529 !important" in css
+        assert "background: #f8f9fa !important" in css
+        # Dark chrome resolves through variables only inside dark-scoped rules.
+        for variable in ("--bs-body-bg", "--bs-body-color", "--bs-tertiary-bg"):
+            first_dark_use = css.index(f"var({variable}")
+            assert css.count(f"var({variable}", 0, first_dark_use) == 0, (
+                f"{variable} must never apply outside a dark-scoped rule"
+            )
 
 
 def test_language_switch_does_not_snapshot_page_colors_in_js() -> None:

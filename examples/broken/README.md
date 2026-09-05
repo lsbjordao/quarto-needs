@@ -27,6 +27,8 @@ quarto-needs --root examples/broken/missing-evidence check
 | `expired-evidence/` | Evidence carrying an `expires` date in the past (REQ015 enabled). | Warning on `EVD-001`; freshness is re-checked, never assumed. |
 | `localization-drift/` | The pt-BR sibling quietly changes a requirement's status. | The semantic-parity check refuses the pair by name (`REQ-001`) before publication. |
 | `migration-loss/` | A Sphinx-Needs export with an unmapped type and an unmapped link field. | The import plan records `TYPE_UNMAPPED` and `LINK_FIELD_UNMAPPED` as review items — loss is planned, never guessed. |
+| `interchange-loss/` | Treating the ReqIF/JSON-LD export as a lossless round trip. | The project scans clean, and both projections document inside the export exactly which authored details stay behind (source `file:line` provenance, and in ReqIF non-string cells) via `PROJECTION-NOTE` / `quartoNeedsProjectionNotes`. |
+| `editor-refactor/` | Renaming `REQ-2` onto the existing `REQ-1` in an unsaved buffer. | The LSP rename refuses with `Cannot rename REQ-2 to existing object ID REQ-1`, surfacing the engine's canonical diagnostic instead of writing a `REQ004` duplicate; a rename onto a free identifier still edits every reference. |
 
 One member of the gallery has no directory: **suspect-after-change** is two
 states of a project across a Git history, not a single snapshot, so it is
@@ -86,6 +88,22 @@ presentation text may differ across languages.
 central rule: content the mapping cannot express becomes a named review
 item on the plan, never a silent drop and never a guessed conversion.
 
+**The projection is not a round trip.** `interchange-loss/` scans clean and
+exports clean — that is the trap. ReqIF and JSON-LD are read-only views, so
+the loss that every export carries (the authored `file:line` provenance of
+each object and relation, and in ReqIF the typed structure of attribute
+cells) is documented *inside the export itself*: `PROJECTION-NOTE` entries
+under `TOOL-EXTENSIONS` in ReqIF, and the `quartoNeedsProjectionNotes`
+member in JSON-LD. A consumer can read exactly which authored details stayed
+behind, which is what makes the loss explicit instead of accidental.
+
+**The editor refuses to author the failure.** `editor-refactor/` shows a
+rename in an unsaved buffer colliding with an existing ID. The LSP refuses
+it with the engine's canonical message (`Cannot rename REQ-2 to existing
+object ID REQ-1`) — the same diagnostic vocabulary as every other gate — so
+a "merge by rename" can never become a `REQ004` duplicate on disk. Renaming
+onto a free identifier still rewrites every declaration and reference.
+
 **A relation can survive its own premise.** `suspect-after-change` shows
 that `verified-by` staying structurally valid — TC-1 still names a real
 object — says nothing about whether the verification is still true. Only a
@@ -93,7 +111,5 @@ second engineering state, compared explicitly, can surface that.
 
 ## Planned next slices
 
-- **interchange-loss/** — a ReqIF/JSON-LD export whose projection must
-  document exactly which authored details stay behind.
-- **editor-refactor/** — an in-memory LSP buffer whose rename would
-  collide, proving the editor surfaces the same canonical diagnostics.
+- RSP (ReSpec proposal-style) parsing and the remaining transformables from
+  the migration gallery — tracked on `docs/ROADMAP.md` under Phase 9.

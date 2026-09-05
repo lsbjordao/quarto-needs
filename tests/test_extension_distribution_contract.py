@@ -12,8 +12,7 @@ in `test_installed_consumer_check_asserts_the_observable_render_contract` is
 the part that must survive the migration unchanged, because it describes
 what the user sees rather than how the engine got there.
 
-Spec: docs/superpowers/specs/2026-09-02-extension-first-distribution-design.md
-Plan: docs/superpowers/plans/2026-09-02-extension-first-distribution.md (Task 1)
+Contract: Phase 8B extension-first distribution (pre-migration pin).
 """
 from __future__ import annotations
 

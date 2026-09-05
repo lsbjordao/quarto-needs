@@ -11,8 +11,7 @@ queries, and a C4 hierarchy -- across every artifact family `scan` writes,
 and then assert the CLI path and the service path produce byte-identical
 output and the same exit status.
 
-Spec: docs/superpowers/specs/2026-09-02-extension-first-distribution-design.md (§7)
-Plan: docs/superpowers/plans/2026-09-02-extension-first-distribution.md (Task 2)
+Contract: Phase 8B extension-first distribution (pre-render service slice).
 """
 from __future__ import annotations
 

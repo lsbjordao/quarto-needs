@@ -220,6 +220,27 @@ div:has(> table.need-matrix) {
   height: auto;
   display: block;
 }
+/* Edge ink must stay readable on light pages regardless of how the baked
+   SVG resolves currentColor, so pin it to the page's body ink here; the
+   dark block below then overrides for dark pages. */
+.need-flow-scroll svg.need-flow .flowchart-link,
+.need-flow-scroll svg.need-flow .edgePath .path,
+.need-c4-scroll svg.need-c4-figure .flowchart-link,
+.need-c4-scroll svg.need-c4-figure .edgePath .path,
+.need-graph-scroll svg.need-graph-figure .flowchart-link,
+.need-graph-scroll svg.need-graph-figure .edgePath .path {
+  stroke: var(--bs-body-color, #212529) !important;
+  stroke-width: 2px !important;
+}
+.need-flow-scroll svg.need-flow marker path,
+.need-flow-scroll svg.need-flow marker polygon,
+.need-c4-scroll svg.need-c4-figure marker path,
+.need-c4-scroll svg.need-c4-figure marker polygon,
+.need-graph-scroll svg.need-graph-figure marker path,
+.need-graph-scroll svg.need-graph-figure marker polygon {
+  fill: var(--bs-body-color, #212529) !important;
+  stroke: var(--bs-body-color, #212529) !important;
+}
 html[data-bs-theme="dark"] .need-flow-scroll svg.need-flow .flowchart-link,
 html[data-bs-theme="dark"] .need-flow-scroll svg.need-flow .edgePath .path,
 html[data-bs-theme="dark"] .need-c4-scroll svg.need-c4-figure .flowchart-link,

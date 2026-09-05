@@ -153,6 +153,20 @@ def test_graph_mermaid_source_uses_compact_deterministic_node_aliases() -> None:
     assert 'alias = "n" .. refs.count' in source
 
 
+def test_mermaid_edge_ink_follows_the_page_theme() -> None:
+    """One baked SVG serves both theme variants. A literal light edge color
+    (the previous #e2e8f0) is near-invisible on light backgrounds; SVG
+    currentColor follows each page's ink, so edges render dark on light
+    pages and light on dark ones."""
+    source = VIEWS_LUA.read_text(encoding="utf-8")
+    directive_line = next(
+        line for line in source.splitlines() if "themeVariables" in line
+    )
+    assert "lineColor" in directive_line
+    assert directive_line.count("currentColor") == 2
+    assert "e2e8f0" not in source
+
+
 def test_graph_js_ships_expected_markers() -> None:
     source = GRAPH_JS.read_text(encoding="utf-8")
     assert "window.cytoscape" in source

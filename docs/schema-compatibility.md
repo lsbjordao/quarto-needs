@@ -1,7 +1,6 @@
 # Public artifact & schema compatibility policy
 
-**Status:** adopted by the core-stabilization phase
-(`docs/superpowers/specs/2026-09-02-core-stabilization-design.md`, section 12).
+**Status:** adopted by the core-stabilization phase.
 
 Quarto-Needs emits machine-consumable artifacts. This document defines which
 of them are promised as stable contracts, how each may evolve before 1.0, and

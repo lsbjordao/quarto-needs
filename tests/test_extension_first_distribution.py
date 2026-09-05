@@ -10,8 +10,7 @@ contributed `metadata.project.pre-render`, whether a relative `quarto run`
 command resolves, and what happens to a project's own hooks are all facts
 about Quarto, not about our YAML.
 
-Spec: docs/superpowers/specs/2026-09-02-extension-first-distribution-design.md
-Plan: docs/superpowers/plans/2026-09-02-extension-first-distribution.md (Task 6)
+Contract: Phase 8B extension-first distribution (consumer-projects slice).
 """
 from __future__ import annotations
 

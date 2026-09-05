@@ -15,7 +15,7 @@ authored relations. Everything semantic lives in the engine it loads.
 Importing this module has no side effects, so tests can exercise each piece
 in isolation; `main()` is the only thing that touches the filesystem.
 
-Spec: docs/superpowers/specs/2026-09-02-extension-first-distribution-design.md
+Contract: Phase 8B extension-first distribution.
 """
 from __future__ import annotations
 

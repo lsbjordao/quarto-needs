@@ -34,4 +34,4 @@ An ADR is not a document maintained in parallel with the requirements process. I
 
 ## Manual conventions
 
-Examples use short IDs (`REQ-001`, `ADR-001`, `TC-001`). Prefixes are configurable per type and may include domain namespaces when needed. The Aegis example, for instance, does not repeat `IAM-` because the project itself already establishes that context.
+Examples use short IDs (`REQ-001`, `ADR-001`, `TC-001`). Prefixes are configurable per type and may include domain namespaces when needed (for example `IAM-REQ-001`), though a project that already establishes the domain through its own name usually keeps the IDs short.

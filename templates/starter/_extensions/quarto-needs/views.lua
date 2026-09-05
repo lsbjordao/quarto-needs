@@ -204,7 +204,11 @@ local function normalize_mermaid_svg(html)
 end
 
 local function with_temp_mermaid(source, temp_name, mermaid_format, collect)
-  local labeled = "%%{init: {\"htmlLabels\": false,\"themeVariables\":{\"lineColor\":\"#e2e8f0\",\"arrowheadColor\":\"#e2e8f0\"}}}%%\n" .. source
+  -- Edge ink must follow the page, not a literal: one baked SVG serves both
+  -- theme variants, and a literal light gray is invisible on light pages.
+  -- SVG currentColor resolves against whatever ink the page hands the
+  -- figure, so lines render dark on light pages and light on dark ones.
+  local labeled = "%%{init: {\"htmlLabels\": false,\"themeVariables\":{\"lineColor\":\"currentColor\",\"arrowheadColor\":\"currentColor\"}}}%%\n" .. source
   local ok, result = pcall(pandoc.system.with_temporary_directory, temp_name, function(directory)
     local input = pandoc.path.join({directory, "diagram.qmd"})
     local output = io.open(input, "wb")

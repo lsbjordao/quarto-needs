@@ -10,7 +10,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "_extensions" / "quarto-needs"
-EXAMPLE_EXTENSION = ROOT / "examples" / "book" / "_extensions" / "quarto-needs"
+EXAMPLE_EXTENSION = ROOT / "examples" / "quarto-needs" / "_extensions" / "quarto-needs"
 PRE_RENDER = ROOT / "tools" / "quarto_needs_pre_render.py"
 
 
@@ -86,7 +86,7 @@ def test_the_starter_template_ships_one_working_need():
 
 @pytest.mark.parametrize(
     "example",
-    ["book", "minimal"],
+    ["quarto-needs"],
 )
 def test_every_example_extension_matches_the_canonical_assets(example: str):
     """Every committed example extension copy stays in sync with the source.

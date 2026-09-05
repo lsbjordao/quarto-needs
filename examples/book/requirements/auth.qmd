@@ -1,4 +1,0 @@
-# Migrated catalog
-
-Authentication content has been incorporated into the complete Aegis IAM
-functional-requirements catalog. This page is retained only as a migration reference.

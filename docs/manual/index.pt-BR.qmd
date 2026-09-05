@@ -34,4 +34,4 @@ ADR não é um documento paralelo ao processo de requisitos. No Quarto-Needs, um
 
 ## Convenções do manual
 
-Os exemplos usam IDs curtos (`REQ-001`, `ADR-001`, `TC-001`). Prefixos são configuráveis por tipo e podem incluir namespaces de domínio quando isso for necessário. O exemplo Aegis, por exemplo, não repete `IAM-` porque o próprio projeto já define esse contexto.
+Os exemplos usam IDs curtos (`REQ-001`, `ADR-001`, `TC-001`). Prefixos são configuráveis por tipo e podem incluir namespaces de domínio quando isso for necessário (por exemplo `IAM-REQ-001`), embora um projeto que já estabeleça o domínio pelo próprio nome geralmente mantenha os IDs curtos.

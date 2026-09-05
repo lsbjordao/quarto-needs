@@ -1,9 +1,0 @@
-project:
-  type: default
-  output-dir: _book
-  pre-render: python3 _pre_render.py
-
-format:
-  html:
-    theme: default
-    toc: true

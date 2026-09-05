@@ -8,6 +8,7 @@ from pathlib import Path
 
 from ..export import _write_atomic_text
 from ..snapshot import AnalysisSnapshot, thaw_json
+from .projection_notes import projection_loss_notes, reqif_flattening_note
 
 REQIF_SPECIFICATION_VERSION = "1.2"
 REQIF_HEADER_VERSION = "1.0"
@@ -316,7 +317,16 @@ def render(snapshot: AnalysisSnapshot) -> str:
         _add_text(object_node, "SPEC-OBJECT-REF", _object_id(item.id))
 
     ET.SubElement(content, _q("SPEC-RELATION-GROUPS"))
-    ET.SubElement(root, _q("TOOL-EXTENSIONS"))
+
+    tool_extensions = ET.SubElement(root, _q("TOOL-EXTENSIONS"))
+    notes = list(projection_loss_notes(snapshot))
+    flattening = reqif_flattening_note(snapshot)
+    if flattening:
+        notes.append(flattening)
+    if notes:
+        projection_notes = ET.SubElement(tool_extensions, _q("PROJECTION-NOTES"))
+        for note in notes:
+            _add_text(projection_notes, "PROJECTION-NOTE", note)
 
     ET.indent(root, space="  ")
     return (

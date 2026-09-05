@@ -86,7 +86,6 @@ docs/manual/                  User/manual documentation
 docs/ROADMAP.md               Authoritative product roadmap
 docs/assets/branding/         Project visual identity and roadmap artwork
 examples/quarto-needs/        Self-hosted engineering model
-examples/book/                Aegis IAM external-domain showcase
 tests/                        Regression and integration tests
 .github/workflows/            CI workflows
 ```
@@ -216,7 +215,7 @@ Interchange formats are adapters, not authoring models.
 
 The first OSLC path is intentionally read-only. It uses GET-only bounded HTTP, same-origin redirects, conditional retrieval, content-addressed cache blobs, network-free JSON-LD/Turtle/RDFXML normalization, and deterministic RM discovery. POST/PUT/PATCH/DELETE remain deferred until conflict, concurrency, authorization, and audit contracts exist.
 
-See [`docs/phase-5-reqif.md`](docs/phase-5-reqif.md), [`docs/phase-5-jsonld.md`](docs/phase-5-jsonld.md), and [`docs/phase-5-oslc.md`](docs/phase-5-oslc.md).
+Interchange status and acceptance records live in [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 ## Self-hosted engineering model
 

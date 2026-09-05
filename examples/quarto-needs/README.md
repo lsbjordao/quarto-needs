@@ -2,10 +2,7 @@
 
 This example uses Quarto-Needs to model the engineering of Quarto-Needs itself.
 
-It complements, rather than replaces, `examples/book/` (Aegis IAM):
-
-- **Aegis IAM** demonstrates Quarto-Needs in an external application domain.
-- **Engineering Quarto-Needs with Quarto-Needs** demonstrates requirements engineering, architecture decisions, implementation traceability, executable verification, machine evidence, risks, and change analysis using the product's own real design.
+The case study demonstrates requirements engineering, architecture decisions, implementation traceability, executable verification, machine evidence, risks, and change analysis using the product's own real design.
 
 ## Languages
 

@@ -31,10 +31,10 @@ jobs:
         run: python -m pip install -e ".[test]"
       - name: Run test suite
         run: python -m pytest -q
-      - name: Scan Aegis showcase
-        run: quarto-needs --root examples/book scan
-      - name: Check Aegis showcase
-        run: quarto-needs --root examples/book check
+      - name: Scan self-hosted example
+        run: quarto-needs --root examples/quarto-needs scan
+      - name: Check self-hosted example
+        run: quarto-needs --root examples/quarto-needs check
 
   vscode:
     name: VS Code language client
@@ -112,13 +112,13 @@ jobs:
           command -v google-chrome
           .venv/bin/python -m pytest -q tests/test_margin_sidebar.py::test_collapsed_margin_sidebar_stays_hidden_across_left_sidebar_breakpoint
       - name: Synchronize extension and graph
-        run: make sync-example
-      - name: Render multilingual Aegis HTML plus canonical DOCX and PDF
-        run: make render-example-all
+        run: make sync-self-example
+      - name: Render multilingual self-hosted HTML
+        run: make render-self-example
       - name: Render multilingual Quarto-Needs manual
         run: make render-manual-multilingual
-      - name: Enforce showcase gates
-        run: make check-example
+      - name: Enforce example gates
+        run: make check-self-example
 
   install:
     name: Installed consumer path
@@ -172,12 +172,6 @@ jobs:
           tinytex: true
       - name: Install poppler-utils
         run: sudo apt-get update && sudo apt-get install -y poppler-utils
-      - name: Scan and check the minimal example
-        run: make minimal-check
-      - name: Render the minimal example
-        run: make render-minimal-example
-      - name: Verify rendered output
-        run: test -f examples/minimal/_book/index.html
       - name: Verify the extension-first path on the declared minimum Quarto
         # `quarto-required: ">=1.6.0"` is a claim about the metadata
         # contribution and the relative `quarto run` command. Metadata
@@ -214,9 +208,9 @@ jobs:
         run: |
           mkdir -p artifacts
           RANGE="$BASE_SHA..$HEAD_SHA"
-          quarto-needs --root examples/book pr-report --git "$RANGE" --recompute-with current --format json > artifacts/pr-report.json
-          quarto-needs --root examples/book github-report --git "$RANGE" --recompute-with current --format markdown > artifacts/pr-summary.md
-          quarto-needs --root examples/book github-report --git "$RANGE" --recompute-with current --format annotations > artifacts/pr-annotations.txt
+          quarto-needs --root examples/quarto-needs pr-report --git "$RANGE" --recompute-with current --format json > artifacts/pr-report.json
+          quarto-needs --root examples/quarto-needs github-report --git "$RANGE" --recompute-with current --format markdown > artifacts/pr-summary.md
+          quarto-needs --root examples/quarto-needs github-report --git "$RANGE" --recompute-with current --format annotations > artifacts/pr-annotations.txt
           cat artifacts/pr-summary.md >> "$GITHUB_STEP_SUMMARY"
           cat artifacts/pr-annotations.txt
       - name: Generate deterministic quality artifacts
@@ -224,12 +218,12 @@ jobs:
           SOURCE_DATE_EPOCH: "1787702400"
         run: |
           mkdir -p artifacts
-          quarto-needs --root examples/book export --format json --output "$GITHUB_WORKSPACE/artifacts/needs.json"
-          quarto-needs --root examples/book export --format csv --output "$GITHUB_WORKSPACE/artifacts/csv"
-          quarto-needs --root examples/book export --format sarif --output "$GITHUB_WORKSPACE/artifacts/findings.sarif"
-          quarto-needs --root examples/book export --format junit --output "$GITHUB_WORKSPACE/artifacts/gates.xml"
-          quarto-needs --root examples/book export --format markdown --output "$GITHUB_WORKSPACE/artifacts/summary.md" --baseline examples/book/baselines/quarto-needs.json
-          quarto-needs --root examples/book quality --format json --output "$GITHUB_WORKSPACE/artifacts/quality.json"
+          quarto-needs --root examples/quarto-needs export --format json --output "$GITHUB_WORKSPACE/artifacts/needs.json"
+          quarto-needs --root examples/quarto-needs export --format csv --output "$GITHUB_WORKSPACE/artifacts/csv"
+          quarto-needs --root examples/quarto-needs export --format sarif --output "$GITHUB_WORKSPACE/artifacts/findings.sarif"
+          quarto-needs --root examples/quarto-needs export --format junit --output "$GITHUB_WORKSPACE/artifacts/gates.xml"
+          quarto-needs --root examples/quarto-needs export --format markdown --output "$GITHUB_WORKSPACE/artifacts/summary.md" --baseline examples/quarto-needs/baselines/quarto-needs.json
+          quarto-needs --root examples/quarto-needs quality --format json --output "$GITHUB_WORKSPACE/artifacts/quality.json"
       - name: Publish job summary
         if: always()
         run: |

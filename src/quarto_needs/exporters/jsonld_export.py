@@ -7,6 +7,7 @@ from urllib.parse import quote
 
 from ..export import _write_atomic_text
 from ..snapshot import AnalysisSnapshot, thaw_json
+from .projection_notes import projection_loss_notes
 
 JSONLD_CONTEXT_VERSION = "1"
 QN_NAMESPACE = "urn:quarto-needs:v1:"
@@ -15,6 +16,7 @@ _CONTEXT = {
     "@version": 1.1,
     "qn": {"@id": QN_NAMESPACE, "@prefix": True},
     "quartoNeedsJsonLdVersion": "qn:jsonLdProjectionVersion",
+    "quartoNeedsProjectionNotes": "qn:projectionNotes",
     "canonicalId": "qn:canonicalId",
     "objectType": "qn:objectType",
     "title": "qn:title",
@@ -122,11 +124,13 @@ def build_document(snapshot: AnalysisSnapshot) -> dict[str, object]:
             }
         )
 
+    notes = tuple(projection_loss_notes(snapshot))
+
     return {
         "@context": _CONTEXT,
         "@graph": graph,
         "quartoNeedsJsonLdVersion": JSONLD_CONTEXT_VERSION,
-    }
+    } | ({"quartoNeedsProjectionNotes": list(notes)} if notes else {})
 
 
 def render(snapshot: AnalysisSnapshot) -> str:

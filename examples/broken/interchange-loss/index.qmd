@@ -1,0 +1,17 @@
+::: {.need #REQ-A type="system-requirement" status="approved" verified-by="TC-B" priority="high"}
+## Authenticate the user
+
+The service shall authenticate the user before issuing any session.
+:::
+
+::: {.need #REQ-B type="system-requirement" status="approved" verified-by="TC-B"}
+## Authorize the user
+
+The service shall authorize each requested operation.
+:::
+
+::: {.need #TC-B type="test-case" status="passed"}
+## End-to-end authentication and authorization test
+
+Exercises REQ-A and REQ-B.
+:::

@@ -12,7 +12,7 @@ nothing about how it was invoked. Everything semantic lives further in
 further out (Lua filters, browser assets), and consumes the artifacts written
 here rather than being reached back into.
 
-Spec: docs/superpowers/specs/2026-09-02-extension-first-distribution-design.md (§7)
+Contract: Phase 8B extension-first distribution.
 """
 from __future__ import annotations
 

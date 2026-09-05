@@ -1,0 +1,11 @@
+[types.functional-requirement]
+role = "requirement"
+allowed-statuses = ["draft", "approved"]
+
+[types.test-case]
+role = "verification"
+allowed-statuses = ["draft", "passed"]
+
+[relations."verified-by"]
+allowed-source-types = ["functional-requirement"]
+allowed-target-types = ["test-case"]

@@ -1,8 +1,7 @@
 """Executable semantic-kernel boundary contract.
 
-These tests turn the dependency rules from
-``docs/superpowers/specs/2026-09-02-core-stabilization-design.md`` into AST
-and dataclass assertions so the boundary cannot silently regress:
+These tests turn the core-stabilization dependency rules into AST and
+dataclass assertions so the boundary cannot silently regress:
 
 * canonical analysis works on declarations/snapshot records and never
   routes through ``EngineeringObject`` (only the explicitly named

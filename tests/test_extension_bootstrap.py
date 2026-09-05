@@ -7,10 +7,9 @@ proof that a cached runtime is usable, and the lock -- because by the time
 this code is wrong, every render in the project is failing.
 
 Nothing here reaches the network. Provisioning is exercised through an
-injected installer; Task 4 covers the real one.
+injected installer; the real one is covered by the distribution tests.
 
-Spec: docs/superpowers/specs/2026-09-02-extension-first-distribution-design.md
-Plan: docs/superpowers/plans/2026-09-02-extension-first-distribution.md (Task 3)
+Contract: Phase 8B extension-first distribution (bootstrap slice).
 """
 from __future__ import annotations
 

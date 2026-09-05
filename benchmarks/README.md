@@ -1,8 +1,7 @@
 # Core benchmarks
 
 Reproducible performance measurements for the Quarto-Needs semantic core
-(phase: `docs/superpowers/specs/2026-09-02-core-stabilization-design.md`,
-section 11 — Performance contract).
+(roadmap Phase 8, section 11 — Performance contract).
 
 ## Running
 

@@ -1,7 +1,13 @@
-/* Colors resolve through live Bootstrap theme variables (--bs-*), so dark
-   themes — and runtime theme toggles — restyle the switcher automatically.
-   The --qn-language-* hooks remain available for deliberate per-project
-   overrides. */
+/* Two traps force explicit scoping here. First, Quarto loads both theme
+   bundles on dual-theme sites, and the dark theme's stylesheet declares its
+   dark palette on unscoped :root selectors that also apply in light mode —
+   var(--bs-body-bg) resolves dark even on light pages. Second, quarto stamps
+   data-bs-theme="dark" on the navbar element itself as a style island, so an
+   ancestor attribute selector matches in every page theme. Light colors are
+   therefore literal; dark colors resolve through variables gated on
+   :root[data-bs-theme="dark"] (bootstrap attribute mode) or body.quarto-dark
+   (quarto's toggle class), which only match when the whole page is actually
+   dark — never the navbar island alone. */
 #quarto-needs-language-switch {
   display: inline-flex;
   align-items: center;
@@ -16,10 +22,10 @@
   gap: .38rem;
   min-height: 2rem;
   padding: .3rem .68rem !important;
-  border: 1px solid var(--qn-language-border, var(--bs-border-color, #dee2e6)) !important;
+  border: 1px solid #dee2e6 !important;
   border-radius: 999px;
-  background: var(--qn-language-bg, var(--bs-body-bg, #fff)) !important;
-  color: var(--qn-language-fg, var(--bs-body-color, #212529)) !important;
+  background: #fff !important;
+  color: #212529 !important;
   font-size: .82rem;
   font-weight: 650;
   letter-spacing: .02em;
@@ -42,33 +48,72 @@
 #quarto-needs-language-switch #languages-button:hover,
 #quarto-needs-language-switch #languages-button:focus-visible,
 #quarto-needs-language-switch #languages-button[aria-expanded="true"] {
-  background: var(--qn-language-hover, var(--bs-tertiary-bg, #f8f9fa)) !important;
-  color: var(--qn-language-fg, var(--bs-body-color, #212529)) !important;
-  border-color: var(--qn-language-border, var(--bs-border-color, #dee2e6)) !important;
+  background: #f8f9fa !important;
+  color: #212529 !important;
+  border-color: #dee2e6 !important;
   box-shadow: 0 2px 6px rgba(0, 0, 0, .08);
 }
 
 #quarto-needs-language-switch .dropdown-menu {
   min-width: 12rem;
   padding: .35rem;
-  border: 1px solid var(--qn-language-border, var(--bs-border-color, #dee2e6)) !important;
+  border: 1px solid #dee2e6 !important;
   border-radius: .7rem;
-  background: var(--qn-language-bg, var(--bs-body-bg, #fff)) !important;
-  color: var(--qn-language-fg, var(--bs-body-color, #212529)) !important;
+  background: #fff !important;
+  color: #212529 !important;
   box-shadow: 0 .35rem 1rem rgba(0, 0, 0, .10);
 }
 
 #quarto-needs-language-switch .dropdown-item {
   border-radius: .45rem;
   padding: .45rem .65rem;
-  color: var(--qn-language-fg, var(--bs-body-color, #212529)) !important;
+  color: #212529 !important;
   background: transparent !important;
 }
 
 #quarto-needs-language-switch .dropdown-item:hover,
 #quarto-needs-language-switch .dropdown-item:focus {
-  background: var(--qn-language-hover, var(--bs-tertiary-bg, #f8f9fa)) !important;
-  color: var(--qn-language-fg, var(--bs-body-color, #212529)) !important;
+  background: #f8f9fa !important;
+  color: #212529 !important;
+}
+
+body.quarto-dark #quarto-needs-language-switch #languages-button,
+:root[data-bs-theme="dark"] #quarto-needs-language-switch #languages-button {
+  background: var(--bs-body-bg, #222) !important;
+  color: var(--bs-body-color, #dee2e6) !important;
+  border-color: var(--bs-border-color, #495057) !important;
+}
+
+body.quarto-dark #quarto-needs-language-switch #languages-button:hover,
+body.quarto-dark #quarto-needs-language-switch #languages-button:focus-visible,
+body.quarto-dark #quarto-needs-language-switch #languages-button[aria-expanded="true"],
+:root[data-bs-theme="dark"] #quarto-needs-language-switch #languages-button:hover,
+:root[data-bs-theme="dark"] #quarto-needs-language-switch #languages-button:focus-visible,
+:root[data-bs-theme="dark"] #quarto-needs-language-switch #languages-button[aria-expanded="true"] {
+  background: var(--bs-tertiary-bg, #2b2e31) !important;
+  color: var(--bs-body-color, #dee2e6) !important;
+  border-color: var(--bs-border-color, #495057) !important;
+}
+
+body.quarto-dark #quarto-needs-language-switch .dropdown-menu,
+:root[data-bs-theme="dark"] #quarto-needs-language-switch .dropdown-menu {
+  background: var(--bs-body-bg, #222) !important;
+  color: var(--bs-body-color, #dee2e6) !important;
+  border-color: var(--bs-border-color, #495057) !important;
+}
+
+body.quarto-dark #quarto-needs-language-switch .dropdown-item,
+:root[data-bs-theme="dark"] #quarto-needs-language-switch .dropdown-item {
+  color: var(--bs-body-color, #dee2e6) !important;
+  background: transparent !important;
+}
+
+body.quarto-dark #quarto-needs-language-switch .dropdown-item:hover,
+body.quarto-dark #quarto-needs-language-switch .dropdown-item:focus,
+:root[data-bs-theme="dark"] #quarto-needs-language-switch .dropdown-item:hover,
+:root[data-bs-theme="dark"] #quarto-needs-language-switch .dropdown-item:focus {
+  background: var(--bs-tertiary-bg, #2b2e31) !important;
+  color: var(--bs-body-color, #dee2e6) !important;
 }
 
 @media (max-width: 575.98px) {

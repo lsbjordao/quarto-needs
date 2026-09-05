@@ -22,17 +22,14 @@ is incomplete.
 ## Canonical extension location
 
 `_extensions/quarto-needs/` at the repository root is canonical. Never edit
-`examples/book/_extensions/quarto-needs/` by hand: the pre-render helper
-(`tools/quarto_needs_pre_render.py`) copies every canonical asset into the
-example before building the graph, and `tests/test_extension_sync.py` fails
+`examples/quarto-needs/_extensions/quarto-needs/` by hand: the pre-render
+helper (`tools/quarto_needs_pre_render.py`) copies every canonical asset into
+the example before building the graph, and `tests/test_extension_sync.py` fails
 when the two diverge. `generated-index.lua` is the one deliberate
 exception — it stays project-generated instead of copied.
 
 ## Fixture policy
 
-- `tests/fixtures/v1/aegis-needs-v1.json` is a frozen byte-for-byte capture
-  of the pre-refactor graph. It is never regenerated; the compatibility
-  contract tests compare current output against it.
 - `tests/fixtures/canonical/expected-needs-v1.json` and
   `expected-generated-index.lua` are reviewed goldens. If a deliberate
   output change is approved, regenerate them once with the commands from
@@ -48,20 +45,6 @@ exception — it stays project-generated instead of copied.
   keep it consistent with what `cli.build` would emit for the same project.
 - Tests must never rewrite a golden or fixture as a side effect of
   running. A mismatch is a failure to investigate, not a file to refresh.
-- `examples/book/baselines/quarto-needs.json` is a checked-in baseline of
-  the Aegis showcase. It must always diff clean against the published book.
-  `tests/test_example_project.py` pins `SOURCE_DATE_EPOCH` to the baseline's
-  own stored `referenceDate` and asserts the JSON diff payload has
-  `"empty": true` and `"notices": []` — exit code alone is not enough,
-  because `diff`'s exit code reflects only gate regressions and stays 0
-  even when an object or relation actually changed. The separate,
-  human-run check is `make diff-example`, which must print `No changes.`.
-  Regenerate the baseline with `make baseline-example` only when a
-  deliberate change to the showcase has been approved, and inspect the
-  resulting `make diff-example` output before committing the new bytes.
-  Never regenerate it just to silence a failing test: a non-empty diff
-  against an unchanged book means a fingerprint is leaking derived data, not
-  that the baseline is stale.
 
 ## Verification commands
 
@@ -69,31 +52,31 @@ Run the full gate before opening a PR:
 
 ```bash
 make setup               # install editable package plus test extra
-make test                # full Python, Lua, and render suite
-make sync-example        # synchronize extension assets and rebuild the graph
-make check-example       # validate the regenerated example graph
-make render-example-all  # render the example book to HTML, DOCX, and PDF
+make test                # full test suite
+make sync-self-example   # synchronize extension assets and rebuild the graph
+make check-self-example  # validate the regenerated example graph
+make render-self-example # render the self-hosted example to HTML
 ```
 
 The `quality` CI job generates JSON, CSV, SARIF, JUnit, Markdown, and quality
-report artifacts from the Aegis showcase. Its artifact upload uses
-`if: always()`: a policy failure still leaves the diagnostic outputs available
-for review. Operational failures exit `3` and name the artifact that could not
-be produced. SARIF upload is a separate least-privilege step; workflows must
-never use `pull_request_target` to execute pull-request code.
+report artifacts from the self-hosted example (`examples/quarto-needs`). Its
+artifact upload uses `if: always()`: a policy failure still leaves the diagnostic
+outputs available for review. Operational failures exit `3` and name the artifact
+that could not be produced. SARIF upload is a separate least-privilege step;
+workflows must never use `pull_request_target` to execute pull-request code.
 
-The example book is governed by `examples/book/.quarto-needs.toml` and runs the
-`strict` profile, so it also has to keep passing its own gates:
+The example is governed by `examples/quarto-needs/.quarto-needs.toml` and runs
+the `strict` profile, so it also has to keep passing its own gates:
 
 ```bash
-.venv/bin/quarto-needs --root examples/book quality --format json
-.venv/bin/quarto-needs --root examples/book query approved-high-unverified
+.venv/bin/quarto-needs --root examples/quarto-needs quality --format json
+.venv/bin/quarto-needs --root examples/quarto-needs query architecture-decisions
 ```
 
 If Quarto is installed you can also serve the book with live reload:
 
 ```bash
-make preview-example
+make preview-self-example
 ```
 
 ## Design rule

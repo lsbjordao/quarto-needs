@@ -97,7 +97,7 @@ Current GitHub Actions runs terminate before checkout with no job steps for both
 
 ## 5.1 ReqIF 1.2 ✅
 
-**Status: functionally implemented and locally validated.** See `docs/phase-5-reqif.md` for the detailed contract.
+**Status: functionally implemented and locally validated.**
 
 Implemented and validated capabilities include deterministic ReqIF 1.2 projection, normative XSD validation, independent parser acceptance, stable identity mapping, loss semantics, deterministic XML output, and installed CLI export.
 
@@ -105,13 +105,13 @@ ReqIF import remains intentionally deferred until conflict policy, typed attribu
 
 ## 5.2 JSON-LD ✅
 
-**Status: implemented and independently verified — `pytest -q tests/test_export_jsonld.py tests/test_interchange_cli.py` ran locally against a real PyLD (no skip guard) and passed.** See `docs/phase-5-jsonld.md`.
+**Status: implemented and independently verified — `pytest -q tests/test_export_jsonld.py tests/test_interchange_cli.py` ran locally against a real PyLD (no skip guard) and passed.**
 
 Implemented capabilities include deterministic JSON-LD 1.1 projection, stable object/relation IRIs, embedded context, canonical relation semantics, authored attributes as `@json`, installed CLI export, deterministic writes, and independent PyLD expansion/RDF-N-Quads verification that preserves canonical relation endpoints.
 
 ## 5.3 OSLC Requirements Management ✅ (read-only)
 
-**Status: read-only federation is implemented end to end through discovery, bounded query execution, independently provenance-bearing member observations, explicit reconciliation, and a reviewed, non-mutating import plan — all executed locally against the self-hosted example. Remote writes (POST/PUT/PATCH/DELETE) remain the only deliberately deferred slice.** See `docs/phase-5-oslc.md`.
+**Status: read-only federation is implemented end to end through discovery, bounded query execution, independently provenance-bearing member observations, explicit reconciliation, and a reviewed, non-mutating import plan — all executed locally against the self-hosted example. Remote writes (POST/PUT/PATCH/DELETE) remain the only deliberately deferred slice.**
 
 Implemented capabilities include:
 
@@ -145,7 +145,7 @@ The terminal artifact for this phase is therefore a reviewable import plan, not 
 
 ## 5.4 Migration adapters ✅ (Sphinx-Needs, Doorstop, StrictDoc, OpenFastTrace)
 
-**Status: four adapters are implemented end to end on one shared contract — deterministic plan, reviewable non-mutating apply plan with a `.need` block content preview, and a create-only, atomic, rollback-protected `--write` step. Additional source adapters remain future work.** See `docs/phase-5-migration.md`.
+**Status: four adapters are implemented end to end on one shared contract — deterministic plan, reviewable non-mutating apply plan with a `.need` block content preview, and a create-only, atomic, rollback-protected `--write` step. Additional source adapters remain future work.**
 
 Implemented capabilities include:
 
@@ -180,7 +180,7 @@ Sphinx-Needs, Doorstop, StrictDoc, and OpenFastTrace remain supported migration 
 
 ## 5.5 External service adapters ✅ (ten slices plus trust transitions, apply step, and retry policy)
 
-**Status: complete — the read-only GitHub issue projection is implemented end to end: external identity, content-digest provenance, normalization into the same observation shape OSLC federation already uses, a bounded GET-only HTTP transport with rate-limit exhaustion distinguished from auth failures, a persistent content-addressed cache, conditional requests, bounded issue-list discovery, bounded multi-page traversal of that discovery, search-API discovery on the same bounded contract, reconciliation + import planning through OSLC's own source-agnostic contracts (zero new reconciliation code — proven, not assumed), explicit reviewer trust-state transitions over a closed allowlist, an apply step that writes accepted plans into authored files with all-or-nothing preflight and post-write rollback, a caller-side rate-limit retry policy honoring the server's own Retry-After/reset facts, and a fully traced self-hosted example slice with five real pytest bindings in the attested evidence artifact — all run against the real GitHub API including a real HTTP 304, a real list-then-fetch handoff, and a real two-page traversal across GitHub's rewritten Link targets.** See `docs/phase-5-external-adapters.md`.
+**Status: complete — the read-only GitHub issue projection is implemented end to end: external identity, content-digest provenance, normalization into the same observation shape OSLC federation already uses, a bounded GET-only HTTP transport with rate-limit exhaustion distinguished from auth failures, a persistent content-addressed cache, conditional requests, bounded issue-list discovery, bounded multi-page traversal of that discovery, search-API discovery on the same bounded contract, reconciliation + import planning through OSLC's own source-agnostic contracts (zero new reconciliation code — proven, not assumed), explicit reviewer trust-state transitions over a closed allowlist, an apply step that writes accepted plans into authored files with all-or-nothing preflight and post-write rollback, a caller-side rate-limit retry policy honoring the server's own Retry-After/reset facts, and a fully traced self-hosted example slice with five real pytest bindings in the attested evidence artifact — all run against the real GitHub API including a real HTTP 304, a real list-then-fetch handoff, and a real two-page traversal across GitHub's rewritten Link targets.**
 
 Read-only/cacheable adapters may target GitHub issues or lifecycle-management systems. Every imported object must preserve external identity, origin, digest/version, retrieval policy, and trust state.
 
@@ -222,24 +222,17 @@ Planned work includes actors/people, external systems, system boundaries, hierar
 
 Every architecture projection remains traceable to requirements, decisions, risks, implementation, tests, and evidence.
 
-See `docs/phase-6-architecture-c4.md` for what is implemented, the two
-deliberate first-slice simplifications, and what remains (dynamic/
-deployment projections, relation-attribute authoring syntax).
+The delivered first slice covers the C4 semantic model and Context/Container views with a self-hosted retrofit; its two deliberate simplifications are known limitations of the generic mechanism, not silent gaps — interaction edges reach only the focus node, never its children two hops away, and the generic cardinality rule rejects duplicate parents without ever guaranteeing an orphan-free model. What remains is dynamic/deployment C4 views and the relation-attribute authoring syntax (`depends-on: TARGET technology="..."`), a cross-cutting parser change deliberately left for the slice that has a second consumer needing it.
 
 ---
 
-# Phase 7 — Interactive graph workbench ✅ (first slice: overlay annotation artifact, Catalog/Changes/Impact mode switcher, affected-only toggle)
+# Phase 7 — Interactive graph workbench ✅ (twelve slices: overlay annotation artifact, Catalog/Changes/Impact switcher, shortest path, deep-linking, breadcrumbs, fullscreen, PNG export, mini-map, keyboard navigation, Changes-mode table, impact popups, named-query overlays)
 
 Extend Cytoscape from visualization into bounded engineering analysis: shortest paths, baseline/current comparison, affected-only views, semantic clustering, breadcrumbs, deep-linkable state, saved exploration state, fullscreen mode, SVG/PNG export, mini-map, keyboard navigation, and accessibility.
 
 Interactive operations must consume published canonical semantics and bounded projections.
 
-See `docs/phase-7-interactive-workbench.md` for what is implemented (baseline
-comparison made interactive through a pre-rendered overlay annotation
-artifact applied in place by the browser), the planning-time descope of the
-two-node shortest path to the phase's next slice, and the named
-simplifications (static table stays catalog-only; default-view-only
-overlays; impact popup enrichment deferred).
+Baseline comparison is interactive through a pre-rendered overlay annotation artifact applied in place by the browser. Delivered across twelve slices: the overlay artifact with a Catalog/Changes/Impact mode switcher plus an affected-only toggle; two-node semantic shortest path as a client-side generalization of the path-to-root algorithm; deep-linkable saved exploration state; node attributes in the static table; breadcrumbs; fullscreen mode; PNG export (SVG export was dropped because every released `cytoscape-svg` is GPLv3, conflicting with the MIT license); an MIT-licensed mini-map; linear keyboard traversal; Changes-mode rows (including ghost rows for removed nodes/edges); impact-popup Distance/Origin/Classification/Path rows; and overlays for named-query views through an explicit `[graph] overlay-queries` allowlist.
 
 ---
 
@@ -249,14 +242,12 @@ Maintain synthetic sparse/dense/cyclic/high-fanout corpora around 100, 1,000, 10
 
 Caching/incrementality is introduced only when benchmarks identify a real bottleneck. Release gates cover schema compatibility, determinism, migrations, accessibility, projection security, performance budgets, supported Python/Quarto versions, editor compatibility, interoperability, and self-hosted example health.
 
-The first slice is delivered by the core-stabilization phase
-(`docs/phase-core-stabilization.md`): the canonical analyzer no longer
-routes validation through legacy DTOs, snapshot indexes are built in
-O(V+E), a reproducible benchmark suite records linear scaling to 50k
-objects, one measured duplication was removed from the impact path, public
-schema compatibility is documented and contract-tested, CI verifies the
-declared minimum Quarto (1.6.0), and `examples/minimal/` provides the small
-non-self-hosted onboarding fixture.
+The first slice is delivered by the core-stabilization phase: the canonical
+analyzer no longer routes validation through legacy DTOs, snapshot indexes
+are built in O(V+E), a reproducible benchmark suite records linear scaling
+to 50k objects, one measured duplication was removed from the impact path,
+public schema compatibility is documented and contract-tested, and CI
+verifies the declared minimum Quarto (1.6.0).
 
 The second slice completes the phase's measurement mandate. The corpus
 generator now emits four topologies beside the pinned `mixed` one —
@@ -294,16 +285,17 @@ build/twine checks have a local `make check-release-build` path.
 
 ---
 
-# Phase 9 — Teaching, self-hosting, and failure scenarios 🚧 (first slice: the broken gallery — eight executable failure fixtures; second slice: suspect-after-change)
+# Phase 9 — Teaching, self-hosting, and failure scenarios 🚧 (first slice: the broken gallery — ten executable failure fixtures; second slice: suspect-after-change; third slice: interchange-loss and editor-refactor)
 
 `examples/quarto-needs/` increasingly acts as the official engineering model of Quarto-Needs itself. Significant features should update requirements/decisions/implementation/tests/evidence in the same change.
 
-The first slice is `examples/broken/`: eight deliberately failing, fully
+The first slice is `examples/broken/`: ten deliberately failing, fully
 self-contained projects whose diagnostics are asserted by
 `tests/test_teaching_fixtures.py` — missing evidence, invalid relations
 (ghost target, duplicate ID), the relation-typo trap, orphan requirements,
-overdue decisions, expired evidence, localization drift, and migration
-loss — each one teaching a different severity relationship to publication.
+overdue decisions, expired evidence, localization drift, migration
+loss, interchange loss, and editor/refactor failures — each one teaching a
+different severity relationship to publication.
 
 The second slice is `suspect-after-change`, the one gallery member with no
 checked-in directory: a project's `verified-by` edge can stay structurally
@@ -312,7 +304,15 @@ two engineering states catches that. Built dynamically as a two-commit Git
 history in `tests/test_teaching_fixtures.py`, reusing the same `suspect
 --git` path `test_git_range.py` already exercises, with a copy-paste
 reproduction recipe in `examples/broken/README.md`.
-Planned next slices: interchange loss and editor/refactor failures.
+
+The third slice is `interchange-loss` and `editor-refactor`. Both
+interchange projections (ReqIF and JSON-LD) now document, inside the
+export, exactly which authored details stay behind — source provenance, and
+in ReqIF the typed structure of attribute cells — surfaced through
+`PROJECTION-NOTE` entries and the `quartoNeedsProjectionNotes` member, so a
+consumer reads the loss instead of discovering it. The editor fixture pins
+that an LSP rename colliding with an existing ID is refused with the same
+canonical diagnostic the engine uses everywhere else.
 
 Target vertical slice:
 

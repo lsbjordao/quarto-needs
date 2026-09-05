@@ -2,7 +2,7 @@
 
 Este livro é um **estudo de caso de engenharia autocontido**: o Quarto-Needs é usado para especificar, explicar, governar, verificar e explorar a engenharia do próprio Quarto-Needs.
 
-O exemplo é intencionalmente diferente do showcase Aegis IAM. O Aegis demonstra que a ferramenta funciona em um domínio de aplicação externo. Este estudo de caso demonstra como os conceitos de engenharia de requisitos se conectam dentro do próprio produto que os implementa.
+Este estudo de caso demonstra como os conceitos de engenharia de requisitos se conectam dentro do próprio produto que os implementa.
 
 O grafo de engenharia canônico é escrito em inglês. Cada capítulo possui um irmão em português brasileiro (`*.pt-BR.qmd`) que traduz títulos e narrativa, preservando os mesmos IDs, tipos, estados, atributos e relações. O pre-render rejeita qualquer deriva semântica entre os idiomas.
 
