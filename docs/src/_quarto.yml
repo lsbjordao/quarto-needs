@@ -7,6 +7,7 @@ book:
   subtitle: "Requirements, decisions and engineering traceability as code"
   navbar:
     search: true
+  google-analytics: G-84LW77BJNG
   chapters:
     - index.qmd
     - getting-started.qmd
