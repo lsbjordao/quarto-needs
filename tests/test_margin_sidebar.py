@@ -18,7 +18,9 @@ RESPONSIVE_PROBE = ROOT / "tests" / "browser" / "margin_sidebar_transition.mjs"
 def render_margin_sidebar_fixture(tmp_path: Path, *, toggle: bool | None) -> str:
     project = tmp_path / ("toggle-on" if toggle else "toggle-off")
     project.mkdir()
-    shutil.copytree(EXTENSION, project / "_extensions" / "quarto-needs")
+    target = project / "_extensions" / "lsbjordao" / "quarto-needs"
+    target.parent.mkdir(parents=True)
+    shutil.copytree(EXTENSION, target)
     toggle_metadata = ""
     if toggle is not None:
         toggle_metadata = (
@@ -32,7 +34,7 @@ def render_margin_sidebar_fixture(tmp_path: Path, *, toggle: bool | None) -> str
         "  html:\n"
         "    toc: true\n"
         "filters:\n"
-        "  - _extensions/quarto-needs/margin-sidebar.lua\n"
+        "  - _extensions/lsbjordao/quarto-needs/margin-sidebar.lua\n"
         f"{toggle_metadata}"
         "---\n\n"
         "## Structural section\n",
@@ -95,7 +97,9 @@ def rendered_toc_style_probe(tmp_path: Path) -> str:
 def rendered_responsive_sidebar_probe(tmp_path: Path) -> dict[str, object]:
     project = tmp_path / "responsive-sidebar"
     project.mkdir()
-    shutil.copytree(EXTENSION, project / "_extensions" / "quarto-needs")
+    target = project / "_extensions" / "lsbjordao" / "quarto-needs"
+    target.parent.mkdir(parents=True)
+    shutil.copytree(EXTENSION, target)
     (project / "_quarto.yml").write_text(
         "project:\n"
         "  type: book\n"
@@ -109,7 +113,7 @@ def rendered_responsive_sidebar_probe(tmp_path: Path) -> dict[str, object]:
         "  html:\n"
         "    toc: true\n"
         "filters:\n"
-        "  - _extensions/quarto-needs/margin-sidebar.lua\n"
+        "  - _extensions/lsbjordao/quarto-needs/margin-sidebar.lua\n"
         "quarto-needs:\n"
         "  margin-sidebar-toggle: true\n",
         encoding="utf-8",
@@ -244,7 +248,11 @@ def test_self_hosted_example_exercises_margin_and_native_left_sidebar_options() 
 def test_self_hosted_bootstrap_filter_matches_canonical_filter() -> None:
     canonical = (EXTENSION / "margin-sidebar.lua").read_text(encoding="utf-8")
     bootstrap = (
-        SELF_EXAMPLE / "_extensions" / "quarto-needs" / "margin-sidebar.lua"
+        SELF_EXAMPLE
+        / "_extensions"
+        / "lsbjordao"
+        / "quarto-needs"
+        / "margin-sidebar.lua"
     ).read_text(encoding="utf-8")
 
     assert bootstrap == canonical
