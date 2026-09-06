@@ -17,6 +17,21 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v7
 
+      # The Quarto distribution contract is `quarto add owner/repository`.
+      # Quarto's own extension documentation requires GitHub-distributed
+      # extensions to live in a public repository; publishing the paired PyPI
+      # package while this repository is private would create a release that
+      # ordinary Quarto users cannot install.
+      - name: Require a public repository for the extension release
+        env:
+          REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
+        run: |
+          set -euo pipefail
+          if [[ "$REPOSITORY_PRIVATE" == "true" ]]; then
+            echo "::error::quarto-needs cannot be released while the GitHub repository is private; quarto add lsbjordao/quarto-needs must be publicly resolvable"
+            exit 1
+          fi
+
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
