@@ -1,34 +1,51 @@
 # Migrating from Other Tools
 
-Quarto-Needs provides built-in migration adapters to import requirements from popular docs-as-code and requirements management ecosystems into clean Quarto Markdown declarations.
+Quarto-Needs provides conservative migration adapters for bringing requirements from other docs-as-code and requirements-management ecosystems into Quarto Markdown declarations. Migration is deliberately review-first: generating a plan never rewrites authored files.
 
 ## Supported Tools
 
-| Source Tool | Input Format | Command |
+| Source Tool | Input Format | Plan command |
 |---|---|---|
-| **Sphinx-Needs** | `needs.json` | `quarto-needs migrate sphinx-needs <path> --output <file>` |
-| **Doorstop** | Directory of YAML/JSON documents | `quarto-needs migrate doorstop <dir> --output <file>` |
-| **StrictDoc** | `.sdoc` files / folder | `quarto-needs migrate strictdoc <path> --output <file>` |
-| **OpenFastTrace** | XML trace exchange | `quarto-needs migrate openfasttrace <path> --output <file>` |
+| **Sphinx-Needs** | `needs.json` | `quarto-needs migrate sphinx-needs <path> --output <plan.json>` |
+| **Doorstop** | Directory of YAML/JSON documents | `quarto-needs migrate doorstop <dir> --output <plan.json>` |
+| **StrictDoc** | `.sdoc` files / folder | `quarto-needs migrate strictdoc <path> --output <plan.json>` |
+| **OpenFastTrace** | XML trace exchange | `quarto-needs migrate openfasttrace <path> --output <plan.json>` |
+
+`--output` is the **migration-plan JSON**, not a destination `.qmd` file.
 
 ## Migration Workflow
 
-1. **Generate the Migration Plan**:
+1. **Generate and review the migration plan**. This does not modify destination files:
    ```bash
-   quarto-needs migrate sphinx-needs docs/needs.json --output requirements.qmd --dry-run
+   quarto-needs migrate sphinx-needs docs/needs.json \
+     --output .quarto-needs/migrations/sphinx-needs-plan.json
    ```
-2. **Execute the Migration**:
+2. **Build a reviewed apply plan** by assigning each source ID an explicit project-relative destination. Add any required type/relation mappings for the source model:
    ```bash
-   quarto-needs migrate sphinx-needs docs/needs.json --output requirements.qmd
+   quarto-needs migrate sphinx-needs docs/needs.json \
+     --type-map req=functional-requirement \
+     --destination REQ_001=requirements.qmd \
+     --apply-plan
    ```
-3. **Validate the Converted Project**:
+   Without `--write`, this still does not change authored files; the apply plan is written to `.quarto-needs/migrations/sphinx-needs-apply-plan.json` by default.
+3. **Write only a ready, reviewed plan** by repeating the reviewed mappings with `--write`:
+   ```bash
+   quarto-needs migrate sphinx-needs docs/needs.json \
+     --type-map req=functional-requirement \
+     --destination REQ_001=requirements.qmd \
+     --apply-plan --write
+   ```
+4. **Validate the converted project**:
    ```bash
    quarto-needs scan
    quarto-needs check
    ```
 
+For more than one source object, repeat `--destination SOURCE_ID=path.qmd`. `--id-map SOURCE_ID=CANONICAL_ID` is available when preserving the source ID is not appropriate. Writes are create-only and reject unresolved mappings, collisions, or unsafe destination paths rather than inferring identity.
+
 ## Mapping Principles
 
-- **Stable Identity**: Existing IDs (e.g. `REQ_001` or `SYS-042`) are preserved.
-- **Relation Translation**: Source links (e.g. `links`, `derives`, `tests`) are mapped into Quarto-Needs canonical relation catalog (`derives-from`, `verified-by`, `implemented-by`).
-- **Markdown Preservation**: Descriptions, rationales, and attributes are converted into standard Quarto Pandoc Divs (`::: {.need ...} ... :::`).
+- **Stable Identity**: Existing IDs (e.g. `REQ_001` or `SYS-042`) are preserved by default; remapping is explicit.
+- **Relation Translation**: Source links are mapped into the Quarto-Needs canonical relation catalog through explicit relation mappings where needed.
+- **Review Before Mutation**: Planning and apply-planning are non-mutating; `--write` is a separate, explicit step.
+- **Quarto-Native Output**: Ready candidates are rendered as standard Pandoc Div declarations (`::: {.need ...} ... :::`).

@@ -62,10 +62,9 @@ filters:
 def consumer_project(root: Path, quarto_yml: str = CONSUMER_QUARTO_YML) -> Path:
     """A project as `quarto add lsbjordao/quarto-needs` would leave it."""
     root.mkdir(parents=True, exist_ok=True)
-    (root / "_extensions").mkdir(exist_ok=True)
-    shutil.copytree(
-        ROOT / "_extensions" / "quarto-needs", root / "_extensions" / "quarto-needs"
-    )
+    target = root / "_extensions" / "lsbjordao" / "quarto-needs"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(ROOT / "_extensions" / "quarto-needs", target)
     (root / "_quarto.yml").write_text(quarto_yml, encoding="utf-8")
     (root / "index.qmd").write_text(CONSUMER_QMD, encoding="utf-8")
     return root
@@ -110,6 +109,16 @@ def assert_render_contract(project: Path) -> None:
     graph = json.loads(graph_path.read_text(encoding="utf-8"))
     assert {"REQ-1", "TC-1"} <= {item["id"] for item in graph["objects"]}
     assert graph["schemaVersion"] == "1"
+
+    generated_index = (
+        project
+        / "_extensions"
+        / "lsbjordao"
+        / "quarto-needs"
+        / "generated-index.lua"
+    )
+    assert generated_index.is_file(), "the graph index was not written beside the active extension"
+    assert "REQ-1" in generated_index.read_text(encoding="utf-8")
 
     html = (project / "index.html").read_text(encoding="utf-8")
     assert "need-card" in html, "the filter did not turn the div into a card"
@@ -250,17 +259,15 @@ filters:
 
 
 @pytest.mark.slow
-def test_the_manifest_command_is_relative_to_the_project(tmp_path) -> None:
-    """Quarto's absolute extension-path resolution is not dependable.
-
-    Asserted on the shipped manifest rather than a copy, because this is a
-    property of what we publish.
-    """
+def test_the_manifest_command_matches_the_github_install_layout(tmp_path) -> None:
+    """The shipped pre-render path must match Quarto's GitHub namespace layout."""
     manifest = (ROOT / "_extensions" / "quarto-needs" / "_extension.yml").read_text(
         encoding="utf-8"
     )
 
-    assert "quarto run _extensions/quarto-needs/bootstrap.py" in manifest
+    assert (
+        "quarto run _extensions/lsbjordao/quarto-needs/bootstrap-entry.py" in manifest
+    )
     assert str(ROOT) not in manifest, "an absolute path leaked into the manifest"
 
 
@@ -337,7 +344,13 @@ def test_the_starter_template_needs_no_manual_activation_edit(tmp_path) -> None:
 
     # The template's own descriptor must not have landed in the new project.
     assert not (consumer / "_extension.yml").is_file()
-    assert (consumer / "_extensions" / "quarto-needs" / "_extension.yml").is_file()
+    assert (
+        consumer
+        / "_extensions"
+        / "lsbjordao"
+        / "quarto-needs"
+        / "_extension.yml"
+    ).is_file()
 
     rendered = render(consumer)
     assert rendered.returncode == 0, rendered.stderr

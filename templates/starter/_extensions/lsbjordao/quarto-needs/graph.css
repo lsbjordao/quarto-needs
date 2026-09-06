@@ -1,0 +1,228 @@
+/* Interactive need-graph styling: canvas, controls, and status. */
+.need-graph-container {
+  --qn-graph-edge: color-mix(in srgb, var(--bs-body-color, #212529) 82%, transparent);
+  --qn-graph-label: var(--bs-body-color, #212529);
+  --qn-graph-label-bg: var(--bs-body-bg, #fff);
+  margin: 1.2rem 0;
+}
+.need-graph-controls {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: .6rem;
+}
+.need-graph-search {
+  min-width: 16rem;
+  max-width: 24rem;
+}
+.need-graph-color {
+  font: inherit;
+  padding: .25rem .45rem;
+  border: 1px solid var(--bs-border-color, #d7dce2);
+  border-radius: .35rem;
+  background: var(--bs-body-bg, white);
+  color: var(--bs-body-color, inherit);
+  cursor: pointer;
+}
+.need-graph-color:focus-visible,
+.need-graph-controls button:focus-visible { outline: 2px solid #2563eb; outline-offset: 1px; }
+.need-graph-controls button {
+  font: inherit;
+  padding: .25rem .6rem;
+  border: 1px solid var(--bs-border-color, #d7dce2);
+  border-radius: .35rem;
+  background: var(--bs-body-bg, white);
+  color: var(--bs-body-color, inherit);
+  cursor: pointer;
+}
+.need-graph-controls button:hover { background: rgba(127, 127, 127, .08); }
+/* Native form controls keep the UA's light-scheme ink regardless of the
+   page theme: under a dark Quarto theme the mode, filter, traversal, and
+   search controls would render black-on-dark. Theme variables give them
+   real contrast, and the container following the page's dark scheme makes
+   the dropdown popup and its arrow render dark as well. */
+.need-graph-controls select,
+.need-graph-controls input[type="search"] {
+  font: inherit;
+  padding: .25rem .45rem;
+  border: 1px solid var(--bs-border-color, #d7dce2);
+  border-radius: .35rem;
+  background: var(--bs-body-bg, white);
+  color: var(--bs-body-color, inherit);
+  cursor: pointer;
+}
+.need-graph-container { color-scheme: light; }
+[data-bs-theme="dark"] .need-graph-container,
+.quarto-dark .need-graph-container { color-scheme: dark; }
+.need-graph-breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .3rem;
+  width: 100%;
+  margin-top: .3rem;
+  font-size: .85rem;
+}
+.need-graph-breadcrumb {
+  font: inherit;
+  padding: .1rem .4rem;
+  border: 1px solid transparent;
+  border-radius: .3rem;
+  background: transparent;
+  color: var(--bs-link-color, #2563eb);
+  cursor: pointer;
+}
+.need-graph-breadcrumb:hover { background: rgba(127, 127, 127, .08); }
+.need-graph-breadcrumb:focus-visible { outline: 2px solid #2563eb; outline-offset: 1px; }
+.need-graph-breadcrumb-sep { color: var(--bs-secondary-color, #6c757d); }
+.need-graph-canvas {
+  position: relative;
+  width: 100%;
+  height: 460px;
+  border: 1px solid var(--bs-border-color, #d7dce2);
+  border-radius: .5rem;
+  background: var(--bs-body-bg, white);
+  color: var(--bs-body-color, inherit);
+  overflow: hidden;
+}
+/* Fullscreen sizes the canvas by flex-growing into whatever room the
+   controls/status leave, instead of a fixed pixel calc that would need to
+   track however tall the wrapping controls bar happens to be. */
+.need-graph-container:fullscreen {
+  display: flex;
+  flex-direction: column;
+  background: var(--bs-body-bg, white);
+  padding: 1rem;
+}
+.need-graph-container:fullscreen .need-graph-canvas {
+  flex: 1 1 auto;
+  height: auto;
+}
+/* The vendored default (.cytoscape-navigator, in vendor/cytoscape-navigator/
+   cytoscape.js-navigator.css) is a page-corner position:fixed 400x400 panel;
+   this overrides it to a small corner of the canvas itself. Higher
+   specificity than the vendored bare-class selector wins regardless of
+   stylesheet order, so the vendored file stays unmodified. */
+.need-graph-canvas .cytoscape-navigator {
+  position: absolute;
+  top: auto;
+  bottom: .5rem;
+  right: .5rem;
+  left: auto;
+  width: 140px;
+  height: 100px;
+  border: 1px solid var(--bs-border-color, #d7dce2);
+  background: var(--bs-body-bg, white);
+  z-index: 15;
+}
+.need-graph-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--bs-secondary-color, #6c757d);
+}
+/* Node popup: a persistent, selectable details card (not a hover overlay).
+   It receives pointer events so field values can be selected and copied. */
+.need-graph-popup {
+  position: absolute;
+  z-index: 10;
+  min-width: 12rem;
+  max-width: 20rem;
+  border-radius: .5rem;
+  border: 1px solid var(--bs-border-color, #d7dce2);
+  background: var(--bs-body-bg, white);
+  color: var(--bs-body-color, inherit);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .18);
+  font-size: .8rem;
+  line-height: 1.45;
+  pointer-events: auto;
+  user-select: text;
+  overflow: hidden;
+}
+.need-graph-popup-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  padding: .45rem .6rem;
+  border-bottom: 1px solid var(--bs-border-color, #d7dce2);
+  background: rgba(127, 127, 127, .06);
+}
+.need-graph-popup-title { font-weight: 650; }
+.need-graph-popup-close,
+.need-graph-popup-copy {
+  font: inherit;
+  line-height: 1;
+  border: 0;
+  background: transparent;
+  color: var(--bs-secondary-color, #6c757d);
+  cursor: pointer;
+  padding: .15rem .3rem;
+  border-radius: .3rem;
+}
+.need-graph-popup-close { font-size: 1rem; }
+.need-graph-popup-close:hover,
+.need-graph-popup-copy:hover { background: rgba(127, 127, 127, .12); color: inherit; }
+.need-graph-popup-close:focus-visible,
+.need-graph-popup-copy:focus-visible,
+.need-graph-popup-foot a:focus-visible { outline: 2px solid #2563eb; outline-offset: 1px; }
+.need-graph-popup-body { padding: .4rem .6rem .5rem; }
+.need-graph-popup-row {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .15rem 0;
+}
+.need-graph-popup-label { flex: 0 0 auto; color: var(--bs-secondary-color, #6c757d); }
+.need-graph-popup-value {
+  font-family: var(--bs-font-monospace, monospace);
+  font-size: .8em;
+  color: inherit;
+  background: rgba(127, 127, 127, .1);
+  border-radius: .25rem;
+  padding: .05rem .3rem;
+  word-break: break-word;
+}
+.need-graph-popup-copy { flex: 0 0 auto; color: var(--bs-secondary-color, #6c757d); }
+.need-graph-popup-copy.copied { color: #166534; }
+.need-graph-popup-foot {
+  padding: .35rem .6rem .4rem;
+  border-top: 1px solid var(--bs-border-color, #d7dce2);
+}
+.need-graph-popup-foot a {
+  display: inline-block;
+  color: var(--bs-link-color, #2563eb);
+  text-decoration: none;
+  font-weight: 600;
+}
+.need-graph-popup-foot a:hover { text-decoration: underline; }
+.need-graph-table { width: 100%; font-size: .85rem; }
+
+/* Diff legend (text-first; colors are an addition, never the only signal). */
+.need-graph-legend {
+  margin: .5rem 0;
+  display: flex;
+  gap: .75rem;
+  flex-wrap: wrap;
+  font-size: .8rem;
+}
+.need-graph-legend .need-graph-legend-item { display: inline-flex; gap: .3rem; align-items: center; }
+.need-graph-legend .need-graph-swatch {
+  width: .75rem;
+  height: .75rem;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+}
+
+.need-graph-canvas:focus-visible { outline: 2px solid #2563eb; outline-offset: -2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .need-graph-canvas { transition: none; }
+}
+
+@media print {
+  .need-graph-controls, .need-graph-canvas, .need-graph-status { display: none; }
+  .need-graph-table { width: 100%; font-size: 7pt; }
+}

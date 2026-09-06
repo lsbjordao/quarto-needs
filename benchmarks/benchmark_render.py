@@ -48,8 +48,9 @@ from quarto_needs.quarto_integration import run_quarto_pre_render  # noqa: E402
 
 
 def _build_project(model, root: Path) -> None:
-    (root / "_extensions").mkdir(parents=True)
-    shutil.copytree(REPO / "_extensions" / "quarto-needs", root / "_extensions" / "quarto-needs")
+    extension = root / "_extensions" / "lsbjordao" / "quarto-needs"
+    extension.parent.mkdir(parents=True)
+    shutil.copytree(REPO / "_extensions" / "quarto-needs", extension)
     (root / "_quarto.yml").write_text(
         "project:\n  type: default\n\nfilters:\n  - quarto-needs\n",
         encoding="utf-8",

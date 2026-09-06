@@ -10,7 +10,9 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "_extensions" / "quarto-needs"
-EXAMPLE_EXTENSION = ROOT / "examples" / "quarto-needs" / "_extensions" / "quarto-needs"
+EXAMPLE_EXTENSION = (
+    ROOT / "examples" / "quarto-needs" / "_extensions" / "lsbjordao" / "quarto-needs"
+)
 PRE_RENDER = ROOT / "tools" / "quarto_needs_pre_render.py"
 
 
@@ -49,7 +51,7 @@ def test_the_starter_template_bundles_the_canonical_extension_assets():
     uses the template, the same failure mode `test_pre_render_synchronizes_*`
     guards against for the worked examples.
     """
-    extension = STARTER_TEMPLATE / "_extensions" / "quarto-needs"
+    extension = STARTER_TEMPLATE / "_extensions" / "lsbjordao" / "quarto-needs"
     assert runtime_assets(extension) == runtime_assets(SOURCE)
 
 
@@ -95,7 +97,9 @@ def test_every_example_extension_matches_the_canonical_assets(example: str):
     stale vendored copy behind (the pre-render sync repairs it only at the
     next render).
     """
-    extension = ROOT / "examples" / example / "_extensions" / "quarto-needs"
+    extension = (
+        ROOT / "examples" / example / "_extensions" / "lsbjordao" / "quarto-needs"
+    )
     assert runtime_assets(extension) == runtime_assets(SOURCE)
 
 
@@ -111,13 +115,13 @@ def test_pre_render_synchronizes_all_canonical_extension_assets(tmp_path: Path):
         text=True,
     )
 
-    target = tmp_path / "_extensions" / "quarto-needs"
+    target = tmp_path / "_extensions" / "lsbjordao" / "quarto-needs"
     assert runtime_assets(target) == runtime_assets(SOURCE)
 
 
 def test_sync_leaves_project_generated_index_untouched(tmp_path: Path):
     """Sync must not overwrite the graph index generated for this project."""
-    target = tmp_path / "_extensions" / "quarto-needs"
+    target = tmp_path / "_extensions" / "lsbjordao" / "quarto-needs"
     target.mkdir(parents=True)
     generated_index = target / "generated-index.lua"
     generated_index.write_text('return { ["LOCAL"] = {} }\n', encoding="utf-8")
@@ -129,7 +133,7 @@ def test_sync_leaves_project_generated_index_untouched(tmp_path: Path):
 
 def test_sync_removes_stale_runtime_files_and_directories(tmp_path: Path):
     """A removed canonical asset must not remain installed in the project."""
-    target = tmp_path / "_extensions" / "quarto-needs"
+    target = tmp_path / "_extensions" / "lsbjordao" / "quarto-needs"
     stale_file = target / "obsolete.lua"
     stale_directory = target / "obsolete-assets"
     stale_file.parent.mkdir(parents=True)

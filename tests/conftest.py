@@ -87,10 +87,9 @@ def views_fixture_graph(tmp_path_factory: pytest.TempPathFactory) -> Path:
 
     project = tmp_path_factory.mktemp("views-fixture-graph") / "views"
     shutil.copytree(ROOT / "tests" / "fixtures" / "views", project)
-    shutil.copytree(
-        ROOT / "_extensions" / "quarto-needs",
-        project / "_extensions" / "quarto-needs",
-    )
+    extension = project / "_extensions" / "lsbjordao" / "quarto-needs"
+    extension.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(ROOT / "_extensions" / "quarto-needs", extension)
     status = run_quarto_pre_render(project, quiet=True)
     graph = project / ".quarto-needs" / "needs.json"
     if status != 0 or not graph.is_file():

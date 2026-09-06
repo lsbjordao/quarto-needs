@@ -1,34 +1,51 @@
 # Migração de Outras Ferramentas
 
-O Quarto-Needs inclui adaptadores de migração para importar requisitos de outros ecossistemas populares de docs-as-code para declarações limpas em Quarto Markdown.
+O Quarto-Needs inclui adaptadores conservadores para trazer requisitos de outros ecossistemas de docs-as-code e gerenciamento de requisitos para declarações em Quarto Markdown. A migração é deliberadamente orientada à revisão: gerar um plano nunca reescreve arquivos autorais.
 
 ## Ferramentas Suportadas
 
-| Ferramenta de Origem | Formato de Entrada | Comando |
+| Ferramenta de Origem | Formato de Entrada | Comando do plano |
 |---|---|---|
-| **Sphinx-Needs** | `needs.json` | `quarto-needs migrate sphinx-needs <caminho> --output <arquivo>` |
-| **Doorstop** | Diretório de documentos YAML/JSON | `quarto-needs migrate doorstop <dir> --output <arquivo>` |
-| **StrictDoc** | Arquivos `.sdoc` / diretório | `quarto-needs migrate strictdoc <caminho> --output <arquivo>` |
-| **OpenFastTrace** | Troca de rastreabilidade em XML | `quarto-needs migrate openfasttrace <caminho> --output <arquivo>` |
+| **Sphinx-Needs** | `needs.json` | `quarto-needs migrate sphinx-needs <caminho> --output <plano.json>` |
+| **Doorstop** | Diretório de documentos YAML/JSON | `quarto-needs migrate doorstop <dir> --output <plano.json>` |
+| **StrictDoc** | Arquivos `.sdoc` / diretório | `quarto-needs migrate strictdoc <caminho> --output <plano.json>` |
+| **OpenFastTrace** | Troca de rastreabilidade em XML | `quarto-needs migrate openfasttrace <caminho> --output <plano.json>` |
+
+`--output` é o **JSON do plano de migração**, não um arquivo `.qmd` de destino.
 
 ## Fluxo de Migração
 
-1. **Gerar Plano de Migração (Dry Run)**:
+1. **Gere e revise o plano de migração**. Este passo não modifica arquivos de destino:
    ```bash
-   quarto-needs migrate sphinx-needs docs/needs.json --output requirements.qmd --dry-run
+   quarto-needs migrate sphinx-needs docs/needs.json \
+     --output .quarto-needs/migrations/sphinx-needs-plan.json
    ```
-2. **Executar a Migração**:
+2. **Construa um plano de aplicação revisável** atribuindo a cada ID de origem um destino explícito relativo ao projeto. Adicione os mapeamentos de tipos/relações necessários ao modelo de origem:
    ```bash
-   quarto-needs migrate sphinx-needs docs/needs.json --output requirements.qmd
+   quarto-needs migrate sphinx-needs docs/needs.json \
+     --type-map req=functional-requirement \
+     --destination REQ_001=requirements.qmd \
+     --apply-plan
    ```
-3. **Validar o Projeto Convertido**:
+   Sem `--write`, os arquivos autorais continuam inalterados; por padrão, o plano de aplicação é gravado em `.quarto-needs/migrations/sphinx-needs-apply-plan.json`.
+3. **Grave somente um plano pronto e revisado** repetindo os mapeamentos aprovados com `--write`:
+   ```bash
+   quarto-needs migrate sphinx-needs docs/needs.json \
+     --type-map req=functional-requirement \
+     --destination REQ_001=requirements.qmd \
+     --apply-plan --write
+   ```
+4. **Valide o projeto convertido**:
    ```bash
    quarto-needs scan
    quarto-needs check
    ```
 
+Para mais de um objeto de origem, repita `--destination ID_ORIGEM=caminho.qmd`. Use `--id-map ID_ORIGEM=ID_CANONICO` quando preservar o ID original não for apropriado. A escrita é somente para criação e rejeita mapeamentos não resolvidos, colisões ou destinos inseguros em vez de inferir identidade.
+
 ## Princípios de Mapeamento
 
-- **Identidade Estável**: IDs existentes (ex.: `REQ_001` ou `SYS-042`) são preservados.
-- **Tradução de Relações**: Links de origem (ex.: `links`, `derives`, `tests`) são mapeados para o catálogo canônico de relações do Quarto-Needs (`derives-from`, `verified-by`, `implemented-by`).
-- **Preservação de Markdown**: Descrições, justificativas e atributos são convertidos para divs nativos do Quarto/Pandoc (`::: {.need ...} ... :::`).
+- **Identidade Estável**: IDs existentes (ex.: `REQ_001` ou `SYS-042`) são preservados por padrão; remapeamentos são explícitos.
+- **Tradução de Relações**: Links da origem são convertidos para o catálogo canônico de relações do Quarto-Needs por mapeamentos explícitos quando necessários.
+- **Revisão Antes da Mutação**: Gerar os planos de migração e aplicação não altera conteúdo; `--write` é uma etapa separada e explícita.
+- **Saída Nativa do Quarto**: Candidatos prontos são renderizados como declarações Pandoc Div padrão (`::: {.need ...} ... :::`).

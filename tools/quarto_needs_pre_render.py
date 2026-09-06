@@ -7,16 +7,22 @@ import sys
 REPO_ROOT = Path(__file__).resolve().parents[1]
 PROJECT_ROOT = Path.cwd().resolve()
 GENERATED_INDEX = Path("generated-index.lua")
+INSTALL_NAMESPACE = "lsbjordao"
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
 from quarto_needs.cli import build  # noqa: E402
 from quarto_needs.localization import write_localized_projections  # noqa: E402
 
 
+def extension_target(project_root: Path) -> Path:
+    """Return the layout produced by `quarto add lsbjordao/quarto-needs`."""
+    return project_root / "_extensions" / INSTALL_NAMESPACE / "quarto-needs"
+
+
 def sync_extension(project_root: Path) -> None:
     """Install all canonical extension assets except the generated lookup index."""
     source = REPO_ROOT / "_extensions" / "quarto-needs"
-    target = project_root / "_extensions" / "quarto-needs"
+    target = extension_target(project_root)
     if target.is_symlink() or target.parent.is_symlink():
         raise RuntimeError(f"Refusing to synchronize extension through symlink: {target}")
     target.mkdir(parents=True, exist_ok=True)
@@ -61,6 +67,10 @@ def sync_extension(project_root: Path) -> None:
 
 def main() -> int:
     sync_extension(PROJECT_ROOT)
+    # The repository helper bypasses bootstrap.py, so provide the same active
+    # extension directory contract that bootstrap-entry.py provides to a real
+    # Quarto render.
+    os.environ["QUARTO_NEEDS_EXTENSION_DIR"] = str(extension_target(PROJECT_ROOT))
     result = build(PROJECT_ROOT, quiet=False)
     if result != 0:
         return result

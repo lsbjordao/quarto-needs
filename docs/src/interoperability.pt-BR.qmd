@@ -32,9 +32,10 @@ O Quarto-Needs oferece um adaptador somente-leitura com limites estritos para **
    ```bash
    quarto-needs oslc discover https://provider.example/oslc/sp/requirements --format json
    ```
-2. **Capacidade de Consulta**: Executa consultas HTTP GET delimitadas sem realizar crawling recursivo de membros:
+2. **Capacidade de Consulta**: Executa uma consulta HTTP GET delimitada no contexto de um Service Provider explícito (ou de um perfil configurado), sem realizar crawling recursivo de membros:
    ```bash
-   quarto-needs oslc query https://provider.example/oslc/query/requirements
+   quarto-needs oslc query https://provider.example/oslc/query/requirements \
+     --service-provider-uri https://provider.example/oslc/sp/requirements
    ```
 3. **Observação e Proveniência**: Materializa membros de consulta como observações externas com digest SHA-256 e data de recuperação independentes.
 4. **Reconciliação**: Reconcilia recursos remotos observados com objetos canônicos locais via mapeamento explícito URI-para-ID — evitando que títulos idênticos causem fusões acidentais.
@@ -48,15 +49,13 @@ quarto-needs oslc discover https://provider.example/oslc/sp/requirements --beare
 
 ## Rastreadores Externos: GitHub Issues
 
-Federe issues do GitHub como observações externas vinculadas a proveniência:
+O engine Python contém um adaptador somente-leitura para GitHub Issues com recuperação delimitada, proveniência, cache condicional, reconciliação e primitivas revisáveis de importação/aplicação. Na **versão 0.1.0 esse adaptador é uma superfície de biblioteca/engine; ainda não existe um comando público `quarto-needs github ...`**.
 
-```bash
-export GITHUB_TOKEN="..."
-quarto-needs github fetch   --repo organizacao/repositorio   --bearer-token-env GITHUB_TOKEN
-```
+O adaptador:
 
-O adaptador do GitHub:
-- Normaliza issues em envelopes de observação externa;
-- Suporta paginação e cache condicional HTTP (`If-None-Match` / `304 Not Modified`);
-- Mantém o número da issue como dado externo, sem sobrescrever IDs canônicos;
-- Exige revisão explícita antes de qualquer criação de requisito local.
+- normaliza issues em envelopes de observação externa;
+- suporta paginação e cache condicional HTTP (`If-None-Match` / `304 Not Modified`);
+- mantém o número da issue como dado externo, sem sobrescrever IDs canônicos;
+- exige revisão explícita antes de qualquer criação de requisito local.
+
+Uma superfície própria de linha de comando fica adiada até que o fluxo público de autenticação e importação possa ser documentado e testado como contrato estável.

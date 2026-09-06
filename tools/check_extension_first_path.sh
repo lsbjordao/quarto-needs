@@ -24,9 +24,9 @@ PYTHON="$(command -v python3 || command -v python)"
 
 echo "==> Creating a consumer project outside the repository"
 PROJECT="$WORK/consumer"
-mkdir -p "$PROJECT/_extensions"
-# Stand in for `quarto add lsbjordao/quarto-needs`, which installs exactly this.
-cp -r "$REPO/_extensions/quarto-needs" "$PROJECT/_extensions/"
+# This is the real layout produced by `quarto add lsbjordao/quarto-needs`.
+mkdir -p "$PROJECT/_extensions/lsbjordao"
+cp -r "$REPO/_extensions/quarto-needs" "$PROJECT/_extensions/lsbjordao/"
 
 # Deliberately no `pre-render`. That line disappearing is the phase.
 cat > "$PROJECT/_quarto.yml" <<'YAML'
@@ -89,6 +89,10 @@ assert ids == {'REQ-1', 'TC-1'}, f'unexpected objects: {ids}'
 assert graph['schemaVersion'] == '1', f\"unexpected schemaVersion: {graph['schemaVersion']}\"
 " || { echo "FAIL: the emitted graph is not what the source declares" >&2; exit 1; }
 
+INDEX="$PROJECT/_extensions/lsbjordao/quarto-needs/generated-index.lua"
+[[ -f "$INDEX" ]] || { echo "FAIL: no generated index beside the active extension" >&2; exit 1; }
+grep -q 'REQ-1' "$INDEX" || { echo "FAIL: generated index does not contain REQ-1" >&2; exit 1; }
+
 # The engine ran from a project-local managed runtime, not from the system.
 MARKER="$(find "$PROJECT/.quarto-needs/runtime" -name installed.json | head -1)"
 [[ -n "$MARKER" ]] || { echo "FAIL: no managed runtime was provisioned" >&2; exit 1; }
@@ -109,8 +113,6 @@ grep -q 'need-card' "$HTML" || {
   echo "FAIL: the need filter did not turn the div into a card" >&2
   exit 1
 }
-# A shortcode Quarto never expanded, or a graph the filter could not load, both
-# render as visible text rather than failing the build — assert their absence.
 ! grep -q '{{<' "$HTML" || { echo "FAIL: an unexpanded shortcode reached the output" >&2; exit 1; }
 ! grep -q 'need-view-warning\|not found' "$HTML" || {
   echo "FAIL: the extension warned about a missing or invalid graph" >&2
@@ -118,10 +120,6 @@ grep -q 'need-card' "$HTML" || {
 }
 
 echo "==> Rendering DOCX and PDF through the same managed runtime"
-# The phase must not regress the print and word-processor formats the
-# CLI-installed path already served: same project, same managed runtime,
-# no new provisioning. DOCX exercises the Pandoc word-processor path; PDF
-# exercises the LaTeX path and is asserted through its extracted text.
 (
   cd "$PROJECT"
   quarto render . --to docx
@@ -147,17 +145,12 @@ pdftotext "$PROJECT/index.pdf" - | grep -q "Authenticate the user" || {
   exit 1
 }
 
-# The print formats must have reused the runtime rendered above, not
-# provisioned a second one.
 [[ "$(find "$PROJECT/.quarto-needs/runtime" -name installed.json | wc -l)" -eq 1 ]] || {
   echo "FAIL: the DOCX/PDF renders provisioned instead of reusing the runtime" >&2
   exit 1
 }
 
 echo "==> Rendering again with no engine source and no package index"
-# After one successful provisioning the runtime is cached, so a render must
-# need neither the override nor the network. PIP_NO_INDEX makes that testable
-# rather than assumed: if the bootstrap reached for pip at all, it would fail.
 rm -f "$GRAPH" "$HTML"
 (
   cd "$PROJECT"
@@ -175,4 +168,4 @@ grep -q 'data-need-count="1"' "$HTML" || {
   exit 1
 }
 
-echo "PASS: an activated extension provisions its engine, renders HTML/DOCX/PDF, then renders offline"
+echo "PASS: the GitHub-namespaced extension provisions its engine, renders HTML/DOCX/PDF, then renders offline"
