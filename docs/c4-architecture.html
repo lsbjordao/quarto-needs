@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<link rel="alternate" hreflang="en" href="/architecture-decisions.html" />
-<link rel="alternate" hreflang="pt-BR" href="/pt-BR/architecture-decisions.html" />
+<link rel="alternate" hreflang="en" href="/c4-architecture.html" />
+<link rel="alternate" hreflang="pt-BR" href="/pt-BR/c4-architecture.html" />
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.8.26">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>5  Architecture Decision Management – Quarto-Needs — Manual</title>
+<title>6  C4 Architecture Projections – Quarto-Needs — Manual</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -57,8 +57,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 }
 </style>
 <script src="site_libs/quarto-nav/quarto-nav.js"></script><script src="site_libs/quarto-nav/headroom.min.js"></script><script src="site_libs/clipboard/clipboard.min.js"></script><script src="site_libs/quarto-search/autocomplete.umd.js"></script><script src="site_libs/quarto-search/fuse.min.js"></script><script src="site_libs/quarto-search/quarto-search.js"></script><meta name="quarto:offset" content="./">
-<link href="./c4-architecture.html" rel="next">
-<link href="./authoring.html" rel="prev">
+<link href="./executable-evidence.html" rel="next">
+<link href="./architecture-decisions.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script><script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script><script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script><script src="site_libs/quarto-html/popper.min.js"></script><script src="site_libs/quarto-html/tippy.umd.min.js"></script><script src="site_libs/quarto-html/anchor.min.js"></script><link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script><link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
@@ -114,7 +114,7 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./architecture-decisions.html"><span class="chapter-number">5</span>  <span class="chapter-title">Architecture Decision Management</span></a></li></ol></nav><a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./c4-architecture.html"><span class="chapter-number">6</span>  <span class="chapter-title">C4 Architecture Projections</span></a></li></ol></nav><a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
   </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
@@ -147,13 +147,13 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./architecture-decisions.html" class="sidebar-item-text sidebar-link active">
+  <a href="./architecture-decisions.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">5</span>  <span class="chapter-title">Architecture Decision Management</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./c4-architecture.html" class="sidebar-item-text sidebar-link">
+  <a href="./c4-architecture.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text"><span class="chapter-number">6</span>  <span class="chapter-title">C4 Architecture Projections</span></span></a>
   </div>
 </li>
@@ -231,19 +231,22 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
         <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">Table of contents</h2>
    
   <ul>
-<li><a href="#adr-as-an-engineering-object" id="toc-adr-as-an-engineering-object" class="nav-link active" data-scroll-target="#adr-as-an-engineering-object"><span class="header-section-number">5.1</span> ADR as an engineering object</a></li>
-  <li><a href="#decision-relations" id="toc-decision-relations" class="nav-link" data-scroll-target="#decision-relations"><span class="header-section-number">5.2</span> Decision relations</a></li>
-  <li><a href="#complete-example" id="toc-complete-example" class="nav-link" data-scroll-target="#complete-example"><span class="header-section-number">5.3</span> Complete example</a></li>
-  <li><a href="#selecting-and-filtering-adrs" id="toc-selecting-and-filtering-adrs" class="nav-link" data-scroll-target="#selecting-and-filtering-adrs"><span class="header-section-number">5.4</span> Selecting and filtering ADRs</a></li>
-  <li><a href="#lifecycle" id="toc-lifecycle" class="nav-link" data-scroll-target="#lifecycle"><span class="header-section-number">5.5</span> Lifecycle</a></li>
-  <li><a href="#dec-rules" id="toc-dec-rules" class="nav-link" data-scroll-target="#dec-rules"><span class="header-section-number">5.6</span> DEC rules</a></li>
-  <li><a href="#impact" id="toc-impact" class="nav-link" data-scroll-target="#impact"><span class="header-section-number">5.7</span> Impact</a></li>
+<li><a href="#architecture-elements" id="toc-architecture-elements" class="nav-link active" data-scroll-target="#architecture-elements"><span class="header-section-number">6.1</span> Architecture Elements</a></li>
+  <li><a href="#hierarchical-relations" id="toc-hierarchical-relations" class="nav-link" data-scroll-target="#hierarchical-relations"><span class="header-section-number">6.2</span> Hierarchical Relations</a></li>
+  <li>
+<a href="#rendering-c4-diagrams" id="toc-rendering-c4-diagrams" class="nav-link" data-scroll-target="#rendering-c4-diagrams"><span class="header-section-number">6.3</span> Rendering C4 Diagrams</a>
+  <ul class="collapse">
+<li><a href="#supported-levels" id="toc-supported-levels" class="nav-link" data-scroll-target="#supported-levels"><span class="header-section-number">6.3.1</span> Supported Levels</a></li>
+  <li><a href="#multiple-diagramming-backends" id="toc-multiple-diagramming-backends" class="nav-link" data-scroll-target="#multiple-diagramming-backends"><span class="header-section-number">6.3.2</span> Multiple Diagramming Backends</a></li>
+  </ul>
+</li>
+  <li><a href="#architecture-governance-c4-rules" id="toc-architecture-governance-c4-rules" class="nav-link" data-scroll-target="#architecture-governance-c4-rules"><span class="header-section-number">6.4</span> Architecture Governance (C4 Rules)</a></li>
   </ul></nav>
 </div>
 <!-- main -->
 <main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><div class="quarto-title">
 <h1 class="title">
-<span class="chapter-number">5</span>  <span class="chapter-title">Architecture Decision Management</span>
+<span class="chapter-number">6</span>  <span class="chapter-title">C4 Architecture Projections</span>
 </h1>
 </div>
 
@@ -258,165 +261,163 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
   
 
 
-</header><section id="adr-as-an-engineering-object" class="level2" data-number="5.1"><h2 data-number="5.1" class="anchored" data-anchor-id="adr-as-an-engineering-object">
-<span class="header-section-number">5.1</span> ADR as an engineering object</h2>
-<p>In Quarto-Needs, an ADR is not a loose file maintained beside requirements. The canonical object is <code>architecture-decision</code>, with lifecycle, attributes, relations, and validation in the same graph used by the rest of engineering.</p>
-<p>This preserves an important distinction:</p>
-<ul>
-<li>a requirement expresses a need or obligation on the system;</li>
-<li>an architecture decision records a choice made in response to drivers;</li>
-<li>a component/interface materializes the architecture;</li>
-<li>a test/evidence confirms behavior or conformance.</li>
-</ul>
-<p>Therefore, a decision does <strong>not directly satisfy</strong> or <strong>implement</strong> a requirement. It <code>addresses</code> it.</p>
-</section><section id="decision-relations" class="level2" data-number="5.2"><h2 data-number="5.2" class="anchored" data-anchor-id="decision-relations">
-<span class="header-section-number">5.2</span> Decision relations</h2>
+</header><p>Quarto-Needs integrates the <strong>C4 model</strong> (Context, Container, Component, Code) into the canonical engineering graph. Rather than creating architecture diagrams in external drawing tools that drift from requirements, architecture elements are first-class engineering objects connected by typed relations.</p>
+<section id="architecture-elements" class="level2" data-number="6.1"><h2 data-number="6.1" class="anchored" data-anchor-id="architecture-elements">
+<span class="header-section-number">6.1</span> Architecture Elements</h2>
+<p>C4 elements are authored using standard <code>.need</code> blocks with dedicated types:</p>
 <table class="caption-top table">
-<colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
-</colgroup>
 <thead><tr class="header">
-<th>Relation</th>
-<th>Recommended direction</th>
-<th>Meaning</th>
+<th>Type</th>
+<th>C4 Level</th>
+<th>Suggested Prefix</th>
+<th>Role</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><code>addresses</code></td>
-<td>ADR → driver</td>
-<td>requirement, need, or risk that motivated the decision</td>
+<td><code>system</code></td>
+<td>Context / Container</td>
+<td><code>SYS-</code></td>
+<td><code>architecture-element</code></td>
 </tr>
 <tr class="even">
-<td><code>applies-to</code></td>
-<td>ADR → architecture element</td>
-<td>components/interfaces affected by the decision</td>
+<td><code>external-system</code></td>
+<td>Context</td>
+<td><code>EXT-</code></td>
+<td><code>architecture-element</code></td>
 </tr>
 <tr class="odd">
-<td><code>confirmed-by</code></td>
-<td>ADR → confirmation</td>
-<td>test or evidence that confirms the decision</td>
+<td><code>actor</code></td>
+<td>Context</td>
+<td><code>ACTOR-</code></td>
+<td><code>architecture-element</code></td>
 </tr>
 <tr class="even">
-<td><code>supersedes</code></td>
-<td>new ADR → previous ADR</td>
-<td>replacement lineage</td>
+<td><code>container</code></td>
+<td>Container</td>
+<td><code>CONTAINER-</code></td>
+<td><code>architecture-element</code></td>
+</tr>
+<tr class="odd">
+<td><code>component</code></td>
+<td>Component</td>
+<td><code>COMP-</code></td>
+<td><code>architecture-element</code></td>
+</tr>
+<tr class="even">
+<td><code>source-module</code></td>
+<td>Code</td>
+<td><code>SRC-</code></td>
+<td><code>implementation-artifact</code></td>
 </tr>
 </tbody>
-</table>
-<p>The inverse forms <code>addressed-by</code>, <code>confirms</code>, and <code>superseded-by</code> belong to the same semantic families.</p>
-</section><section id="complete-example" class="level2" data-number="5.3"><h2 data-number="5.3" class="anchored" data-anchor-id="complete-example">
-<span class="header-section-number">5.3</span> Complete example</h2>
+</table></section><section id="hierarchical-relations" class="level2" data-number="6.2"><h2 data-number="6.2" class="anchored" data-anchor-id="hierarchical-relations">
+<span class="header-section-number">6.2</span> Hierarchical Relations</h2>
+<p>C4 diagrams derive structure from two primary relations:</p>
+<ol type="1">
+<li>
+<strong><code>part-of</code></strong>: defines structural containment.
+<ul>
+<li>
+<code>container</code> is <code>part-of</code> a <code>system</code>
+</li>
+<li>
+<code>component</code> is <code>part-of</code> a <code>container</code>
+</li>
+<li>
+<code>source-module</code> is <code>part-of</code> a <code>component</code>
+</li>
+</ul>
+</li>
+<li>
+<strong><code>depends-on</code></strong>: defines interaction and dependencies between elements.</li>
+</ol>
+<p>Example:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb1"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>::: {.need #ADR-007 type="architecture-decision" status="accepted"}</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>date: 2026-08-28</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>revisit-after: 2027-08-28</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>decision-makers: Architecture Team</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>addresses: NFR-003;RISK-002</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>applies-to: COMP-004;IF-003</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>confirmed-by: TC-010;TC-015</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>tags: audit;privacy</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">## Separate the audit trail from transactional processing</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="fu">### Context and Problem Statement</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>...</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="fu">### Decision Drivers</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>...</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="fu">### Considered Options</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>...</span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="fu">### Decision Outcome</span></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>...</span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="fu">### Consequences</span></span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>...</span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="fu">### Confirmation</span></span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>...</span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>:::</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>::: {.need #SYS-APP type="system" status="approved"}</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">## Enterprise Application</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>Core transaction and management platform.</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>::: {.need #CONTAINER-API type="container" status="approved" technology="FastAPI / Python" part-of="SYS-APP"}</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">## REST API Container</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>Handles business logic and external integrations.</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>::: {.need #COMP-AUTH type="component" status="implemented" part-of="CONTAINER-API"}</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="fu">## Authentication Service</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>Validates bearer tokens and enforces permissions.</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>:::</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p>Fields used by queries and rules stay structured. Context, alternatives, outcome, and consequences remain in Markdown. The narrative structure is compatible with ADR practices such as MADR without coupling the core to a single textual presentation.</p>
-<p><code>revisit-after</code> is optional. Use it for decisions whose validity should be reconsidered after a known date — for example, temporary technology constraints, transitional architectures, or decisions tied to an external standard. It is not a replacement for <code>superseded</code>: a review may conclude that the existing decision remains valid.</p>
-</section><section id="selecting-and-filtering-adrs" class="level2" data-number="5.4"><h2 data-number="5.4" class="anchored" data-anchor-id="selecting-and-filtering-adrs">
-<span class="header-section-number">5.4</span> Selecting and filtering ADRs</h2>
-<p>Architecture decisions can be rendered as a focused catalog with <code>adr-table</code>, or counted with <code>adr-count</code>. Filters can be combined by lifecycle status, tags, decision makers, and ISO date ranges; <code>date-sort</code> controls chronological ordering.</p>
+</section><section id="rendering-c4-diagrams" class="level2" data-number="6.3"><h2 data-number="6.3" class="anchored" data-anchor-id="rendering-c4-diagrams">
+<span class="header-section-number">6.3</span> Rendering C4 Diagrams</h2>
+<p>Use the <code>{{&lt; need-c4 &gt;}}</code> shortcode to render architecture views:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb2"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>{{&lt; adr-table status="accepted" tags="security;audit" date-from="2026-01-01" date-sort="desc" &gt;}}</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>Accepted decisions: {{&lt; adr-count status="accepted" &gt;}}</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>{{&lt; need-c4 root="SYS-APP" level="context" &gt;}}</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>{{&lt; need-c4 root="SYS-APP" level="container" &gt;}}</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>{{&lt; need-c4 root="CONTAINER-API" level="component" &gt;}}</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>{{&lt; need-c4 root="COMP-AUTH" level="code" &gt;}}</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p>Supported selectors are <code>status</code>, <code>tags</code>, <code>decision-makers</code>, <code>date-from</code>, <code>date-to</code>, and <code>query</code>. The default columns are <code>id</code>, <code>title</code>, <code>status</code>, <code>date</code>, <code>decision-makers</code>, and <code>tags</code>.</p>
-<p>Named queries are also materialized as reusable graph projections. If the project declares a query called <code>accepted-decisions</code>, the same Python-evaluated selection can be explored without restating the filter in Lua:</p>
+<section id="supported-levels" class="level3" data-number="6.3.1"><h3 data-number="6.3.1" class="anchored" data-anchor-id="supported-levels">
+<span class="header-section-number">6.3.1</span> Supported Levels</h3>
+<ul>
+<li>
+<strong><code>context</code></strong>: Focuses on a <code>system</code> and its interactions with <code>actor</code>s and <code>external-system</code>s.</li>
+<li>
+<strong><code>container</code></strong>: Zooms into a <code>system</code> to show its constituent <code>container</code>s and external connections.</li>
+<li>
+<strong><code>component</code></strong>: Zooms into a <code>container</code> to reveal internal <code>component</code>s and dependencies.</li>
+<li>
+<strong><code>code</code></strong>: Materializes the implementation surface as a structured Markdown table of <code>source-module</code> artifacts, file paths, languages, and requirements implemented.</li>
+</ul></section><section id="multiple-diagramming-backends" class="level3" data-number="6.3.2"><h3 data-number="6.3.2" class="anchored" data-anchor-id="multiple-diagramming-backends">
+<span class="header-section-number">6.3.2</span> Multiple Diagramming Backends</h3>
+<p>Quarto-Needs supports multiple diagramming backends via the <code>backend</code> argument:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb3"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>{{&lt; need-graph query="accepted-decisions" &gt;}}</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>{{&lt; need-c4 root="SYS-APP" level="container" backend="mermaid" &gt;}}</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>{{&lt; need-c4 root="SYS-APP" level="container" backend="plantuml" &gt;}}</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>{{&lt; need-c4 root="SYS-APP" level="container" backend="structurizr" &gt;}}</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>{{&lt; need-c4 root="SYS-APP" level="container" backend="d2" &gt;}}</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p><code>view="accepted-decisions"</code> is an equivalent, presentation-oriented spelling. Query evaluation still belongs exclusively to the Python core.</p>
-</section><section id="lifecycle" class="level2" data-number="5.5"><h2 data-number="5.5" class="anchored" data-anchor-id="lifecycle">
-<span class="header-section-number">5.5</span> Lifecycle</h2>
-<p>The recommended lifecycle is:</p>
-<pre class="text"><code>proposed ──► accepted ──► deprecated
-    │            │
-    └──► rejected└──► superseded</code></pre>
-<p>A <code>superseded</code> decision must retain explicit lineage. The replacement points to the previous decision with <code>supersedes</code>, allowing history to be reconstructed without retroactively editing old decisions.</p>
-</section><section id="dec-rules" class="level2" data-number="5.6"><h2 data-number="5.6" class="anchored" data-anchor-id="dec-rules">
-<span class="header-section-number">5.6</span> DEC rules</h2>
-<p>The implementation includes:</p>
+<ul>
+<li>
+<strong><code>mermaid</code></strong> (default): Embedded directly in HTML as responsive inline SVG.</li>
+<li>
+<strong><code>plantuml</code></strong>, <strong><code>structurizr</code></strong>, <strong><code>d2</code></strong>: If the respective tool is installed locally, pre-renders SVG/PNG assets; otherwise falls back gracefully to syntax-highlighted diagram source code.</li>
+</ul></section></section><section id="architecture-governance-c4-rules" class="level2" data-number="6.4"><h2 data-number="6.4" class="anchored" data-anchor-id="architecture-governance-c4-rules">
+<span class="header-section-number">6.4</span> Architecture Governance (C4 Rules)</h2>
+<p>The C4 rule engine validates diagram structural integrity:</p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 50%">
 <col style="width: 50%">
 </colgroup>
 <thead><tr class="header">
-<th>Code</th>
+<th>Rule</th>
 <th>Check</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><code>DEC001</code></td>
-<td>an accepted decision must have at least one driver (<code>addresses</code>)</td>
+<td><code>C4001</code></td>
+<td>In a Container view, every container must declare its parent system via <code>part-of</code>
+</td>
 </tr>
 <tr class="even">
-<td><code>DEC002</code></td>
-<td>an accepted decision must declare architectural scope (<code>applies-to</code>)</td>
+<td><code>C4002</code></td>
+<td>In a Component view, every component must declare its parent container via <code>part-of</code>
+</td>
 </tr>
 <tr class="odd">
-<td><code>DEC003</code></td>
-<td>an accepted decision must declare confirmation (<code>confirmed-by</code>)</td>
+<td><code>C4003</code></td>
+<td>Inter-element relations must have a descriptive label</td>
 </tr>
 <tr class="even">
-<td><code>DEC004</code></td>
-<td>a decision marked <code>superseded</code> needs consistent lineage</td>
-</tr>
-<tr class="odd">
-<td><code>DEC005</code></td>
-<td>the decision-supersession graph must be acyclic</td>
-</tr>
-<tr class="even">
-<td><code>DEC006</code></td>
-<td>an accepted decision with <code>revisit-after</code> is reported when its review date is overdue or invalid</td>
+<td><code>C4004</code></td>
+<td>Hierarchy violations (e.g. cyclic containment or orphan boundaries) are rejected</td>
 </tr>
 </tbody>
-</table>
-<p>Required metadata such as date and decision makers remains covered by <code>required-attributes</code> policy. The rules are configurable through the same mechanism used by <code>REQxxx</code> rules. Date-sensitive findings use the same reproducible reference-date mechanism as evidence expiry (<code>SOURCE_DATE_EPOCH</code> when provided).</p>
-</section><section id="impact" class="level2" data-number="5.7"><h2 data-number="5.7" class="anchored" data-anchor-id="impact">
-<span class="header-section-number">5.7</span> Impact</h2>
-<p>Impact direction is declared in the relation catalog. A change to a requirement can therefore propagate to the decision that addresses it; the decision can propagate to architecture elements and confirmations.</p>
-<pre class="text"><code>NFR-014 changed
-   ↓
-ADR-007
-   ├──► COMP-004
-   └──► TC-010 ──► EVD-010</code></pre>
-<p>This chain is the main benefit of integrating Requirements Engineering and Architecture Decision Management: rationale stops being isolated prose and becomes part of change analysis.</p>
-
-
-</section></main><!-- /main --><script>
+</table></section></main><!-- /main --><script>
 (() => {
   const locale = document.documentElement.lang || "en";
   const isPt = locale.toLowerCase().startsWith("pt");
@@ -935,13 +936,13 @@ ADR-007
     }
   });
   </script><nav class="page-navigation"><div class="nav-page nav-page-previous">
-      <a href="./authoring.html" class="pagination-link" aria-label="Authoring in Quarto">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">4</span>  <span class="chapter-title">Authoring in Quarto</span></span>
+      <a href="./architecture-decisions.html" class="pagination-link" aria-label="Architecture Decision Management">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">5</span>  <span class="chapter-title">Architecture Decision Management</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./c4-architecture.html" class="pagination-link" aria-label="C4 Architecture Projections">
-        <span class="nav-page-text"><span class="chapter-number">6</span>  <span class="chapter-title">C4 Architecture Projections</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./executable-evidence.html" class="pagination-link" aria-label="Executable verification and machine evidence">
+        <span class="nav-page-text"><span class="chapter-number">7</span>  <span class="chapter-title">Executable verification and machine evidence</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
