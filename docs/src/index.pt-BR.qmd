@@ -16,6 +16,12 @@ A ideia central é simples: a documentação não é uma cópia do modelo de eng
 - Architecture Decision Management integrado ao mesmo grafo;
 - exportações para automação e integração externa.
 
+## Estudo de caso autocontido
+
+O Quarto-Needs também documenta e verifica a si próprio com um modelo de engenharia bilíngue completo. O estudo de caso renderizado conecta necessidades de stakeholders, requisitos, ADRs, arquitetura, módulos de código, testes executáveis, evidências, rastreabilidade e análise de mudanças em um único livro navegável.
+
+[Abrir o estudo de caso autocontido do Quarto-Needs](https://lsbjordao.github.io/quarto-needs/examples/quarto-needs/){.btn .btn-primary}
+
 ## Modelo mental
 
 ```text
