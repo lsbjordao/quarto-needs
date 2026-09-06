@@ -9,7 +9,7 @@ description = "Requirements-as-code engine and Quarto extension"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
-authors = [{name = "Quarto-Needs contributors"}]
+authors = [{name = "Lucas Sá Barreto Jordão"}]
 keywords = ["quarto", "requirements", "requirements-engineering", "docs-as-code", "traceability"]
 classifiers = [
   "Development Status :: 3 - Alpha",
