@@ -6,7 +6,6 @@ dist/
 build/
 *.egg-info/
 .quarto/
-_book/
 _site/
 .quarto-needs/
 
