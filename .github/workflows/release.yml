@@ -4,29 +4,31 @@ name: Release
   push:
     tags: ["v*"]
 
-# A published version number can never be reused. Everything here rehearses
-# against TestPyPI first, and production publication waits for a human.
+# A published version number can never be reused.
+# Every candidate is published to TestPyPI and exercised there before
+# production publication is allowed to proceed.
 jobs:
   build:
-    name: Build and rehearse
+    name: Build and publish to TestPyPI
     runs-on: ubuntu-latest
+
     permissions:
       contents: read
       id-token: write
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
 
       # The Quarto distribution contract is `quarto add owner/repository`.
-      # Quarto's own extension documentation requires GitHub-distributed
-      # extensions to live in a public repository; publishing the paired PyPI
-      # package while this repository is private would create a release that
-      # ordinary Quarto users cannot install.
+      # GitHub-distributed Quarto extensions must therefore be publicly
+      # resolvable before the paired PyPI package can be released.
       - name: Require a public repository for the extension release
         env:
           REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
         run: |
           set -euo pipefail
+
           if [[ "$REPOSITORY_PRIVATE" == "true" ]]; then
             echo "::error::quarto-needs cannot be released while the GitHub repository is private; quarto add lsbjordao/quarto-needs must be publicly resolvable"
             exit 1
@@ -40,12 +42,23 @@ jobs:
       - name: Verify the tag matches the packaged version
         run: |
           set -euo pipefail
+
           TAG="${GITHUB_REF_NAME#v}"
-          PACKAGED="$(python -c 'import tomllib,pathlib; print(tomllib.loads(pathlib.Path("pyproject.toml").read_text())["project"]["version"])')"
+          PACKAGED="$(
+            python -c '
+          import pathlib
+          import tomllib
+
+          data = tomllib.loads(pathlib.Path("pyproject.toml").read_text())
+          print(data["project"]["version"])
+          '
+          )"
+
           if [[ "$TAG" != "$PACKAGED" ]]; then
             echo "::error::tag $GITHUB_REF_NAME declares $TAG but pyproject declares $PACKAGED"
             exit 1
           fi
+
           echo "tag and package agree on $PACKAGED"
 
       - name: Install release tooling
@@ -72,8 +85,10 @@ jobs:
     name: Install from TestPyPI and verify
     needs: build
     runs-on: ubuntu-latest
+
     permissions:
       contents: read
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -88,44 +103,97 @@ jobs:
         with:
           version: "1.10.18"
 
-      - name: Install the published artifact and render a fresh project
+      # This step deliberately exercises the package that was just published
+      # to TestPyPI. It must not reinstall quarto-needs from the repository
+      # checkout, otherwise the release rehearsal would stop testing the
+      # actual published artifact.
+      - name: Install the published CLI from TestPyPI
         run: |
           set -euo pipefail
+
           VERSION="${GITHUB_REF_NAME#v}"
+
           python -m venv /tmp/rehearsal
           /tmp/rehearsal/bin/python -m pip install --upgrade pip
+
+          installed=false
+
           for attempt in 1 2 3 4 5; do
+            echo "Installing quarto-needs ${VERSION} from TestPyPI (attempt ${attempt}/5)"
+
             if /tmp/rehearsal/bin/python -m pip install \
                  --index-url https://test.pypi.org/simple/ \
                  --extra-index-url https://pypi.org/simple/ \
                  "quarto-needs==${VERSION}"; then
+              installed=true
               break
             fi
-            echo "TestPyPI has not indexed ${VERSION} yet; retrying in 30s"
-            sleep 30
+
+            if [[ "$attempt" -lt 5 ]]; then
+              echo "TestPyPI has not indexed ${VERSION} yet; retrying in 30s"
+              sleep 30
+            fi
           done
-          export PATH="/tmp/rehearsal/bin:$PATH"
-          quarto-needs --help >/dev/null
-          ./tools/check_installed_path.sh
+
+          if [[ "$installed" != "true" ]]; then
+            echo "::error::quarto-needs ${VERSION} could not be installed from TestPyPI"
+            exit 1
+          fi
+
+          if [[ ! -x /tmp/rehearsal/bin/quarto-needs ]]; then
+            echo "::error::the published package did not install the quarto-needs console script"
+            exit 1
+          fi
+
+          /tmp/rehearsal/bin/quarto-needs --help >/dev/null
+
+          /tmp/rehearsal/bin/python - "$VERSION" <<'PY'
+          import importlib.metadata
+          import sys
+
+          expected = sys.argv[1]
+          installed = importlib.metadata.version("quarto-needs")
+
+          assert installed == expected, (
+              f"expected quarto-needs {expected}, got {installed}"
+          )
+
+          print(
+              f"verified quarto-needs {installed} installed from TestPyPI"
+          )
+          PY
 
       # Exercise the same owner-namespaced layout produced by
-      # `quarto add lsbjordao/quarto-needs`, not a repository-only shortcut.
+      # `quarto add lsbjordao/quarto-needs`.
+      #
+      # The extension bootstrap must provision the paired engine from
+      # TestPyPI without QUARTO_NEEDS_ENGINE_SOURCE or another local shortcut.
       - name: Provision the published candidate through the extension bootstrap
         env:
           PIP_INDEX_URL: https://test.pypi.org/simple/
           PIP_EXTRA_INDEX_URL: https://pypi.org/simple/
         run: |
           set -euo pipefail
+
           VERSION="${GITHUB_REF_NAME#v}"
-          WORK="$(mktemp -d)/Release Rehearsal Consumer"
+          BASE="$(mktemp -d)"
+          WORK="$BASE/Release Rehearsal Consumer"
+
+          trap 'rm -rf "$BASE"' EXIT
+
           mkdir -p "$WORK/_extensions/lsbjordao"
-          cp -r _extensions/quarto-needs "$WORK/_extensions/lsbjordao/"
+
+          cp -r \
+            _extensions/quarto-needs \
+            "$WORK/_extensions/lsbjordao/quarto-needs"
+
           cat > "$WORK/_quarto.yml" <<'YAML'
           project:
             type: default
           filters:
             - quarto-needs
           YAML
+
           cat > "$WORK/index.qmd" <<'QMD'
           ---
           title: "Release rehearsal"
@@ -142,37 +210,111 @@ jobs:
 
           Count: {{< need-count types="functional-requirement" >}}
           QMD
+
+          rendered=false
+
           for attempt in 1 2 3 4 5; do
-            if ( cd "$WORK" && quarto render . ); then
+            echo "Rendering TestPyPI candidate ${VERSION} (attempt ${attempt}/5)"
+
+            if (
+              cd "$WORK"
+              quarto render .
+            ); then
+              rendered=true
               break
             fi
-            echo "TestPyPI has not indexed ${VERSION} yet; retrying in 30s"
-            sleep 30
+
+            if [[ "$attempt" -lt 5 ]]; then
+              echo "Candidate is not ready yet; retrying in 30s"
+              sleep 30
+            fi
           done
-          grep -q 'data-need-count="1"' "$WORK/index.html"
-          grep -q 'need-card' "$WORK/index.html"
-          grep -q 'REQ-1' "$WORK/_extensions/lsbjordao/quarto-needs/generated-index.lua"
-          MARKER="$(find "$WORK/.quarto-needs/runtime" -name installed.json | head -1)"
-          [[ -n "$MARKER" ]]
-          python3 -c "
+
+          if [[ "$rendered" != "true" ]]; then
+            echo "::error::published candidate ${VERSION} could not render through the extension"
+            exit 1
+          fi
+
+          HTML="$WORK/index.html"
+          GRAPH="$WORK/.quarto-needs/needs.json"
+          INDEX="$WORK/_extensions/lsbjordao/quarto-needs/generated-index.lua"
+
+          [[ -f "$HTML" ]] || {
+            echo "::error::release rehearsal produced no HTML"
+            exit 1
+          }
+
+          [[ -f "$GRAPH" ]] || {
+            echo "::error::release rehearsal produced no needs graph"
+            exit 1
+          }
+
+          [[ -f "$INDEX" ]] || {
+            echo "::error::release rehearsal produced no generated-index.lua"
+            exit 1
+          }
+
+          grep -q 'data-need-count="1"' "$HTML" || {
+            echo "::error::need-count shortcode did not resolve"
+            exit 1
+          }
+
+          grep -q 'need-card' "$HTML" || {
+            echo "::error::need filter did not render the requirement card"
+            exit 1
+          }
+
+          grep -q 'REQ-1' "$INDEX" || {
+            echo "::error::generated-index.lua does not contain REQ-1"
+            exit 1
+          }
+
+          MARKER="$(
+            find "$WORK/.quarto-needs/runtime" \
+              -name installed.json \
+              -print \
+              -quit
+          )"
+
+          if [[ -z "$MARKER" ]]; then
+            echo "::error::extension bootstrap created no managed-runtime marker"
+            exit 1
+          fi
+
+          python3 - "$MARKER" "$VERSION" <<'PY'
           import json
-          marker = json.load(open('$MARKER'))
-          assert marker['engineVersion'] == '${VERSION}', marker
-          print('extension bootstrap provisioned', marker['engineVersion'], 'from TestPyPI')
-          "
+          import sys
+
+          marker_path = sys.argv[1]
+          expected = sys.argv[2]
+
+          with open(marker_path, encoding="utf-8") as handle:
+              marker = json.load(handle)
+
+          assert marker["engineVersion"] == expected, marker
+
+          print(
+              "extension bootstrap provisioned",
+              marker["engineVersion"],
+              "from TestPyPI",
+          )
+          PY
 
   publish:
     name: Publish to PyPI
     needs: rehearse
     runs-on: ubuntu-latest
-    # This environment must require reviewer approval in repository settings.
-    # That approval gate is the STOP: production publication is irreversible.
+
+    # This GitHub environment should require reviewer approval.
+    # This is the final human STOP before an irreversible PyPI publication.
     environment:
       name: pypi
       url: https://pypi.org/p/quarto-needs
+
     permissions:
       contents: read
       id-token: write
+
     steps:
       - name: Download distributions
         uses: actions/download-artifact@v4
@@ -187,8 +329,10 @@ jobs:
     name: Verify the production package renders through the extension
     needs: publish
     runs-on: ubuntu-latest
+
     permissions:
       contents: read
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -203,19 +347,32 @@ jobs:
         with:
           version: "1.10.18"
 
+      # There is deliberately no TestPyPI index and no local engine-source
+      # override here. This proves that the real production package can be
+      # provisioned by an ordinary extension installation.
       - name: Render a fresh project against the real published package
         run: |
           set -euo pipefail
+
           VERSION="${GITHUB_REF_NAME#v}"
-          WORK="$(mktemp -d)/Production Verification Consumer"
+          BASE="$(mktemp -d)"
+          WORK="$BASE/Production Verification Consumer"
+
+          trap 'rm -rf "$BASE"' EXIT
+
           mkdir -p "$WORK/_extensions/lsbjordao"
-          cp -r _extensions/quarto-needs "$WORK/_extensions/lsbjordao/"
+
+          cp -r \
+            _extensions/quarto-needs \
+            "$WORK/_extensions/lsbjordao/quarto-needs"
+
           cat > "$WORK/_quarto.yml" <<'YAML'
           project:
             type: default
           filters:
             - quarto-needs
           YAML
+
           cat > "$WORK/index.qmd" <<'QMD'
           ---
           title: "Production verification"
@@ -232,21 +389,92 @@ jobs:
 
           Count: {{< need-count types="functional-requirement" >}}
           QMD
+
+          rendered=false
+
           for attempt in 1 2 3 4 5; do
-            if ( cd "$WORK" && quarto render . ); then
+            echo "Rendering production candidate ${VERSION} (attempt ${attempt}/5)"
+
+            if (
+              cd "$WORK"
+              quarto render .
+            ); then
+              rendered=true
               break
             fi
-            echo "PyPI has not indexed ${VERSION} yet; retrying in 30s"
-            sleep 30
+
+            if [[ "$attempt" -lt 5 ]]; then
+              echo "PyPI may not have indexed ${VERSION} yet; retrying in 30s"
+              sleep 30
+            fi
           done
-          grep -q 'data-need-count="1"' "$WORK/index.html"
-          grep -q 'need-card' "$WORK/index.html"
-          grep -q 'REQ-1' "$WORK/_extensions/lsbjordao/quarto-needs/generated-index.lua"
-          MARKER="$(find "$WORK/.quarto-needs/runtime" -name installed.json | head -1)"
-          [[ -n "$MARKER" ]]
-          python3 -c "
+
+          if [[ "$rendered" != "true" ]]; then
+            echo "::error::production package ${VERSION} could not render through the extension"
+            exit 1
+          fi
+
+          HTML="$WORK/index.html"
+          GRAPH="$WORK/.quarto-needs/needs.json"
+          INDEX="$WORK/_extensions/lsbjordao/quarto-needs/generated-index.lua"
+
+          [[ -f "$HTML" ]] || {
+            echo "::error::production verification produced no HTML"
+            exit 1
+          }
+
+          [[ -f "$GRAPH" ]] || {
+            echo "::error::production verification produced no needs graph"
+            exit 1
+          }
+
+          [[ -f "$INDEX" ]] || {
+            echo "::error::production verification produced no generated-index.lua"
+            exit 1
+          }
+
+          grep -q 'data-need-count="1"' "$HTML" || {
+            echo "::error::need-count shortcode did not resolve in production verification"
+            exit 1
+          }
+
+          grep -q 'need-card' "$HTML" || {
+            echo "::error::need filter did not render the requirement card in production verification"
+            exit 1
+          }
+
+          grep -q 'REQ-1' "$INDEX" || {
+            echo "::error::production generated-index.lua does not contain REQ-1"
+            exit 1
+          }
+
+          MARKER="$(
+            find "$WORK/.quarto-needs/runtime" \
+              -name installed.json \
+              -print \
+              -quit
+          )"
+
+          if [[ -z "$MARKER" ]]; then
+            echo "::error::production bootstrap created no managed-runtime marker"
+            exit 1
+          fi
+
+          python3 - "$MARKER" "$VERSION" <<'PY'
           import json
-          marker = json.load(open('$MARKER'))
-          assert marker['engineVersion'] == '${VERSION}', marker
-          print('production package', marker['engineVersion'], 'renders through the extension')
-          "
+          import sys
+
+          marker_path = sys.argv[1]
+          expected = sys.argv[2]
+
+          with open(marker_path, encoding="utf-8") as handle:
+              marker = json.load(handle)
+
+          assert marker["engineVersion"] == expected, marker
+
+          print(
+              "production package",
+              marker["engineVersion"],
+              "renders through the extension",
+          )
+          PY

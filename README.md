@@ -72,7 +72,7 @@ The defining constraint is simple: **one canonical engineering graph, many proje
 - thin multi-root VS Code client delegating language intelligence to the Python LSP;
 - ReqIF 1.2 interchange and deterministic JSON-LD 1.1 projection;
 - read-only OSLC RM federation with deterministic cache provenance, bounded HTTP GET, network-free RDF normalization, RM service discovery, Resource Shape orchestration, reconciliation, and import planning;
-- a read-only GitHub Issues adapter in the Python engine, with provenance, bounded retrieval, conditional caching, reconciliation, and reviewed apply primitives (no public GitHub CLI command in 0.1.0);
+- a read-only GitHub Issues adapter in the Python engine, with provenance, bounded retrieval, conditional caching, reconciliation, and reviewed apply primitives; the public CLI remains intentionally narrower than the internal adapter surface;
 - conservative migration adapters for Sphinx-Needs, Doorstop, StrictDoc, and OpenFastTrace;
 - a self-hosted engineering case study in `examples/quarto-needs/` that models Quarto-Needs with Quarto-Needs.
 
@@ -86,13 +86,13 @@ schemas/                      Versioned artifact schemas
 tools/                        Pre-render and release tooling
 docs/                         Published manual site (GitHub Pages root) — rendered
 docs/src/                     Manual source (.qmd) — the book project
-notes/                        Product roadmap, design/architecture notes and branding assets
+notes/                        Design, architecture and product notes
 examples/quarto-needs/        Self-hosted engineering model
 tests/                        Regression and integration tests
 .github/workflows/            CI and release workflows
 ```
 
-The manual is authored in `docs/src/` and rendered into `docs/`; the docs site is the GitHub Pages root. Design and product documentation that is not part of the manual lives under [`notes/`](notes/). For the end-user path, start with the published [`docs/`](docs/index.html) or the standalone [`notes/quickstart.md`](notes/quickstart.md).
+The manual is authored in `docs/src/` and rendered into `docs/`; the docs site is the GitHub Pages root. Design and product documentation that is not part of the manual lives under [`notes/`](notes/). For the end-user path, start with the [published manual](https://lsbjordao.github.io/quarto-needs/) or the standalone [`notes/quickstart.md`](notes/quickstart.md).
 
 ## Quick start
 
@@ -197,7 +197,7 @@ quarto-needs oslc discover \
   --bearer-token-env MY_OSLC_TOKEN
 ```
 
-GitHub Issues federation exists in the Python engine as a read-only adapter with provenance, caching, reconciliation, and reviewed apply primitives. **Version 0.1.0 does not expose a public `quarto-needs github ...` command.** The manual documents the stable public CLI only.
+The GitHub Issues federation adapter remains read-only at the public integration boundary; reviewed import/apply primitives are kept explicit instead of turning external service state into implicit canonical identity.
 
 Start the language server directly when integrating another editor:
 
@@ -262,15 +262,15 @@ See [`docs/src/executable-evidence.qmd`](docs/src/executable-evidence.qmd) and [
 
 Interchange formats are adapters, not authoring models.
 
-**ReqIF 1.2** provides structured requirements exchange. **JSON-LD 1.1** exposes the engineering graph as Linked Data while preserving canonical relation metadata. **OSLC RM** is a read-only federation boundary in 0.1.0: external identity, observed bytes/digest, retrieval time, trust, cache freshness, transport limits, RDF normalization, Resource Shapes, reconciliation, and import planning remain explicit before any remote synchronization is allowed.
+**ReqIF 1.2** provides structured requirements exchange. **JSON-LD 1.1** exposes the engineering graph as Linked Data while preserving canonical relation metadata. **OSLC RM** is a read-only federation boundary in the current pre-1.0 interface: external identity, observed bytes/digest, retrieval time, trust, cache freshness, transport limits, RDF normalization, Resource Shapes, reconciliation, and import planning remain explicit before any remote synchronization is allowed.
 
 The OSLC path uses GET-only bounded HTTP, same-origin redirects, conditional retrieval, content-addressed cache blobs, and network-free JSON-LD/Turtle/RDFXML normalization. POST/PUT/PATCH/DELETE remain deferred until conflict, concurrency, authorization, and audit contracts exist.
-
-Interchange status and acceptance records live in [`notes/ROADMAP.md`](notes/ROADMAP.md).
 
 ## Self-hosted engineering model
 
 `examples/quarto-needs/` models the project itself: stakeholder needs → requirements → ADRs → architecture → real source modules → modeled test cases → executable tests → evidence. English is canonical content and Brazilian Portuguese is a semantic-equivalent presentation.
+
+The rendered case study is published at **https://lsbjordao.github.io/quarto-needs/examples/quarto-needs/**. Its local `_book/` directory is a generated build artifact and is intentionally not versioned in the source tree.
 
 This keeps major features traceable as engineering changes rather than leaving architecture and validation implicit in implementation code.
 
@@ -308,23 +308,9 @@ These are references and inspirations, not compatibility claims.
 - Git/CI-first workflows
 - interoperability without surrendering the canonical model
 
-## Roadmap
-
-<p align="center">
-  <a href="notes/ROADMAP.md">
-    <img src="notes/assets/branding/quarto-needs-roadmap-infographic.svg" alt="Quarto-Needs engineering evolution roadmap" width="1000">
-  </a>
-</p>
-
-The infographic is a **visual presentation snapshot**. [`notes/ROADMAP.md`](notes/ROADMAP.md) is the authoritative, continuously updated roadmap.
-
-Current status: **Phases 1, 2, 3 and 4.1 are implemented. Phase 4.2 (thin VS Code client) is functionally implemented: its TypeScript build gates — type-check, compile, and VSIX packaging — pass locally against the real committed lockfile, while the Actions/Extension-Host release gate remains open for the infrastructure reason below. Phase 5.1 ReqIF is implemented and locally validated; Phase 5.2 JSON-LD is implemented and independently verified against a real PyLD; Phase 5.3 OSLC RM read-only federation is complete end to end, with remote writes deliberately deferred; Phase 5.4 migration adapters (Sphinx-Needs, Doorstop, StrictDoc, OpenFastTrace) and Phase 5.5 external service adapters (GitHub issues, with trust transitions and a reviewed apply step) are implemented. Phases 6 and 7 (architecture model/C4 projections and the interactive graph workbench) are delivered; Phase 8 has delivered its first two slices and the extension-first distribution slice (declaration-native validation, linear-time indexes, reproducible benchmarks to 50k objects, minimum-Quarto verification, and TestPyPI rehearsal for both the CLI and bootstrap paths), with the remaining measurement and release gates open; Phase 9's teaching slices (broken gallery, suspect-after-change, interchange-loss and editor-refactor) are delivered.**
-
-GitHub Actions currently terminates the Python-matrix and VS Code jobs before checkout (`steps: null`). That infrastructure condition is neither treated as a repository test failure nor as successful execution evidence, and the CI release gates cannot close until the account's Actions quota resets.
-
 ## Branding
 
-The logo, symbol, extension icon, palette, and visual-roadmap assets live under [`notes/assets/branding/`](notes/assets/branding/). See [`notes/branding.md`](notes/branding.md) for the visual semantics and palette.
+The logo, symbol, extension icon, and palette live under [`notes/assets/branding/`](notes/assets/branding/). See [`notes/branding.md`](notes/branding.md) for the visual semantics and palette.
 
 ## License
 

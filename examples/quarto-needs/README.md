@@ -36,6 +36,16 @@ The semantic evidence check fails when an executable test is not successful, a m
 
 `render-self-example` depends on `evidence-self-example`, so stale executable bindings block the self-hosted book before rendering.
 
+## Rendered output and publication
+
+The Quarto project declares `output-dir: _book`, so local rendering produces `examples/quarto-needs/_book/`.
+
+That directory is **generated output** and is intentionally ignored by Git. Its absence from the repository is therefore expected; the authored case study remains in the `.qmd` sources.
+
+On CI, a successful multilingual render uploads `_book/` as a build artifact. On pushes to `main`, the publication job places that rendered artifact under `docs/examples/quarto-needs/`, inside the repository's GitHub Pages tree.
+
+Published case study: **https://lsbjordao.github.io/quarto-needs/examples/quarto-needs/**
+
 ## Learning path
 
 The example is organized around six reusable vertical slices (two more, covering OSLC federation and GitHub issues federation, are traced in `interoperability.qmd`):

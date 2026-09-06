@@ -48,7 +48,13 @@ def test_the_showcase_extension_matches_the_canonical_one() -> None:
     """
     canonical = extension_version(ROOT / "_extensions" / "quarto-needs" / "_extension.yml")
     installed = extension_version(
-        ROOT / "examples" / "quarto-needs" / "_extensions" / "quarto-needs" / "_extension.yml"
+        ROOT
+        / "examples"
+        / "quarto-needs"
+        / "_extensions"
+        / "lsbjordao"
+        / "quarto-needs"
+        / "_extension.yml"
     )
 
     assert installed == canonical
@@ -111,6 +117,17 @@ def test_the_release_workflow_exercises_the_extension_bootstrap_pre_publish() ->
         "Provision the published candidate through the extension bootstrap", 1
     )[1].split("\n\n", 1)[0]
     assert "QUARTO_NEEDS_ENGINE_SOURCE" not in bootstrap_step
+
+
+def test_testpypi_cli_rehearsal_does_not_replace_the_published_package() -> None:
+    """The TestPyPI gate must keep exercising the artifact it just installed."""
+    workflow = RELEASE_WORKFLOW.read_text(encoding="utf-8")
+    rehearse = workflow.split("rehearse:", 1)[1].split("\n  publish:", 1)[0]
+
+    assert "Install the published CLI from TestPyPI" in rehearse
+    assert '"quarto-needs==${VERSION}"' in rehearse
+    assert 'importlib.metadata.version("quarto-needs")' in rehearse
+    assert "./tools/check_installed_path.sh" not in rehearse
 
 
 def test_the_release_workflow_verifies_the_real_published_package() -> None:

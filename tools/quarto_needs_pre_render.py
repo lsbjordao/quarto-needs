@@ -88,13 +88,21 @@ def main() -> int:
     sync_extension(PROJECT_ROOT)
     # The repository helper bypasses bootstrap.py, so provide the same active
     # extension directory contract that bootstrap-entry.py provides to a real
-    # Quarto render.
+    # Quarto render. Restore the caller's environment afterward so an in-process
+    # test or tool invocation cannot leak one project's extension path into the next.
+    previous_extension_dir = os.environ.get("QUARTO_NEEDS_EXTENSION_DIR")
     os.environ["QUARTO_NEEDS_EXTENSION_DIR"] = str(safe_extension_target(PROJECT_ROOT))
-    result = build(PROJECT_ROOT, quiet=False)
-    if result != 0:
-        return result
-    write_localized_projections(PROJECT_ROOT)
-    return 0
+    try:
+        result = build(PROJECT_ROOT, quiet=False)
+        if result != 0:
+            return result
+        write_localized_projections(PROJECT_ROOT)
+        return 0
+    finally:
+        if previous_extension_dir is None:
+            os.environ.pop("QUARTO_NEEDS_EXTENSION_DIR", None)
+        else:
+            os.environ["QUARTO_NEEDS_EXTENSION_DIR"] = previous_extension_dir
 
 
 if __name__ == "__main__":

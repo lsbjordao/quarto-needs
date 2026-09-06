@@ -3,7 +3,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 EXTENSION = ROOT / "_extensions" / "quarto-needs"
-SHOWCASE = ROOT / "examples" / "quarto-needs" / "_extensions" / "quarto-needs"
+SHOWCASE = (
+    ROOT
+    / "examples"
+    / "quarto-needs"
+    / "_extensions"
+    / "lsbjordao"
+    / "quarto-needs"
+)
 
 
 def read(root: Path, name: str) -> str:

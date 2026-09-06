@@ -35,9 +35,10 @@ command -v quarto-needs >/dev/null || {
 
 echo "==> Creating a consumer project outside the repository"
 PROJECT="$WORK/consumer"
-mkdir -p "$PROJECT/_extensions"
-# Stand in for `quarto add lsbjordao/quarto-needs`, which installs exactly this.
-cp -r "$REPO/_extensions/quarto-needs" "$PROJECT/_extensions/"
+mkdir -p "$PROJECT/_extensions/lsbjordao"
+cp -r \
+  "$REPO/_extensions/quarto-needs" \
+  "$PROJECT/_extensions/lsbjordao/quarto-needs"
 
 cat > "$PROJECT/_quarto.yml" <<'YAML'
 project:
