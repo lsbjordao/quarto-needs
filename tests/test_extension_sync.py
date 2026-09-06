@@ -44,15 +44,22 @@ STARTER_TEMPLATE = ROOT / "templates" / "starter"
 
 
 def test_the_starter_template_bundles_the_canonical_extension_assets():
-    """The zero-friction new-project template must ship a real, current engine.
+    """The starter keeps canonical assets with one deliberate manifest variant.
 
-    `quarto use template` copies this directory verbatim into a new project;
-    a stale bundled extension there is invisible until someone actually
-    uses the template, the same failure mode `test_pre_render_synchronizes_*`
-    guards against for the worked examples.
+    Direct GitHub installs are owner-namespaced. Current Quarto releases still
+    have an open bug copying owner-scoped extension directories from templates,
+    so the starter vendors `_extensions/quarto-needs` and therefore needs a
+    manifest whose relative pre-render path matches that unscoped copy.
+    Everything else must stay byte-for-byte canonical.
     """
-    extension = STARTER_TEMPLATE / "_extensions" / "lsbjordao" / "quarto-needs"
-    assert runtime_assets(extension) == runtime_assets(SOURCE)
+    extension = STARTER_TEMPLATE / "_extensions" / "quarto-needs"
+    starter_assets = runtime_assets(extension)
+    source_assets = runtime_assets(SOURCE)
+    starter_manifest = starter_assets.pop(Path("_extension.yml"))
+    source_assets.pop(Path("_extension.yml"))
+
+    assert starter_assets == source_assets
+    assert b"_extensions/quarto-needs/bootstrap-entry.py" in starter_manifest
 
 
 def test_the_starter_template_declares_itself_a_quarto_template():
@@ -91,12 +98,7 @@ def test_the_starter_template_ships_one_working_need():
     ["quarto-needs"],
 )
 def test_every_example_extension_matches_the_canonical_assets(example: str):
-    """Every committed example extension copy stays in sync with the source.
-
-    Without this, a new or changed extension asset would silently leave a
-    stale vendored copy behind (the pre-render sync repairs it only at the
-    next render).
-    """
+    """Every committed example extension copy stays in sync with the source."""
     extension = (
         ROOT / "examples" / example / "_extensions" / "lsbjordao" / "quarto-needs"
     )
