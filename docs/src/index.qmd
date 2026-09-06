@@ -16,6 +16,12 @@ The central idea is simple: documentation is not a copy of the engineering model
 - Architecture Decision Management integrated into the same graph;
 - exports for automation and external integrations.
 
+## Self-hosted case study
+
+Quarto-Needs also documents and verifies itself with a complete bilingual engineering model. The rendered case study connects stakeholder needs, requirements, ADRs, architecture, source modules, executable tests, evidence, traceability, and change analysis in one navigable book.
+
+[Open the self-hosted Quarto-Needs case study](https://lsbjordao.github.io/quarto-needs/examples/quarto-needs/){.btn .btn-primary}
+
 ## Mental model
 
 ```text
