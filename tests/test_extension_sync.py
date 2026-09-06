@@ -152,6 +152,23 @@ def test_sync_removes_stale_runtime_files_and_directories(tmp_path: Path):
     assert generated_index.read_text(encoding="utf-8") == 'return { ["LOCAL"] = {} }\n'
 
 
+def test_sync_refuses_an_extensions_symlink_outside_the_project(tmp_path: Path):
+    """The repository helper must fail before copying through an escaped symlink."""
+    project = tmp_path / "project"
+    outside = tmp_path / "outside"
+    project.mkdir()
+    outside.mkdir()
+    try:
+        (project / "_extensions").symlink_to(outside, target_is_directory=True)
+    except OSError as error:
+        pytest.skip(f"symlink creation is unavailable: {error}")
+
+    with pytest.raises(RuntimeError, match="_extensions outside project"):
+        pre_render_module().sync_extension(project)
+
+    assert list(outside.iterdir()) == []
+
+
 def test_pre_render_synchronizes_then_builds_exactly_once(
     tmp_path: Path, monkeypatch
 ):
