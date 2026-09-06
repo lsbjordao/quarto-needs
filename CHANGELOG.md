@@ -4,7 +4,7 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.0] — unreleased
+## [0.1.1] — unreleased
 
 Initial release at alpha maturity (classifier `Development Status :: 3 - Alpha`). The release-validation gates tied to GitHub Actions are still open; see [the roadmap](notes/ROADMAP.md) for the exact status.
 
@@ -29,6 +29,9 @@ Initial release at alpha maturity (classifier `Development Status :: 3 - Alpha`)
 - README, quickstart, and manual examples now distinguish extension activation from installation, distinguish the optional standalone CLI from rendering, document the review-first migration CLI accurately, include the required OSLC query context, and no longer advertise a nonexistent public GitHub-Issues CLI.
 - `documentSelector`/`LanguageClientOptions` type incompatibility surfaced by the first real `npm install` against the committed lockfile (`npm run check` and `npm run compile` now pass).
 - Fixture-staleness failures in the earlier teaching tasks were corrected before the release-readiness review.
+- The TestPyPI rehearsal now verifies the artifact installed from TestPyPI directly instead of replacing it with a package reinstalled from the repository checkout.
+- The repository pre-render helper restores `QUARTO_NEEDS_EXTENSION_DIR` after in-process use, preventing one temporary project from contaminating later scans and renders.
+- Release fixtures and self-hosted tests now use the owner-namespaced extension layout where they model `quarto add` installation.
 
 ### Security
 
