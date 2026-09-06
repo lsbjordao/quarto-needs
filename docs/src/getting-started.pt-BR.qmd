@@ -1,5 +1,34 @@
 # Primeiros passos
 
+## Instale e ative a extensão
+
+Você precisa do Quarto 1.6 ou posterior e do Python 3.10 ou posterior com `pip` disponível. Para a renderização normal, instale o Quarto-Needs como extensão Quarto:
+
+```bash
+quarto add lsbjordao/quarto-needs
+```
+
+Uma instalação direta pelo GitHub é armazenada pelo Quarto em `_extensions/lsbjordao/quarto-needs/`. Instalar não ativa a extensão automaticamente. Registre o filtro no `_quarto.yml`:
+
+```yaml
+filters:
+  - quarto-needs
+```
+
+Depois, renderize normalmente:
+
+```bash
+quarto render
+```
+
+A extensão fornece seu próprio pre-render e provisiona a versão correspondente do engine Python em um runtime gerenciado e local ao projeto. Você **não** precisa adicionar `project.pre-render: quarto-needs scan` nem instalar o CLI independente apenas para renderizar.
+
+Para um projeto novo, o starter template já inclui e ativa a extensão:
+
+```bash
+quarto use template lsbjordao/quarto-needs/templates/starter
+```
+
 ## Estrutura mínima
 
 Um projeto Quarto-Needs é um projeto Quarto com a extensão instalada e uma política opcional em `.quarto-needs.toml`.
@@ -11,13 +40,6 @@ my-project/
 ├── index.qmd
 ├── requirements.qmd
 └── architecture.qmd
-```
-
-No `_quarto.yml`, registre o filtro:
-
-```yaml
-filters:
-  - quarto-needs
 ```
 
 ## Toggle opcional da margin sidebar
@@ -64,7 +86,15 @@ verified-by: TC-001
 
 As relações são tipadas. O catálogo determina família semântica, rótulos direto/inverso, papéis de origem/destino e direção de propagação de impacto.
 
-## Comandos fundamentais
+## CLI independente opcional
+
+O runtime gerenciado pela extensão é suficiente para `quarto render`. Instale o pacote Python separadamente apenas quando quiser workflows de engenharia em linha de comando ou ferramentas de editor:
+
+```bash
+pip install quarto-needs
+```
+
+Essa instalação fornece:
 
 ```bash
 quarto-needs scan

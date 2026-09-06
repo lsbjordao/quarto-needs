@@ -1,5 +1,34 @@
 # Getting started
 
+## Install and activate the extension
+
+You need Quarto 1.6 or later and Python 3.10 or later with `pip` available. For ordinary rendering, install Quarto-Needs as a Quarto extension:
+
+```bash
+quarto add lsbjordao/quarto-needs
+```
+
+A direct GitHub install is stored by Quarto under `_extensions/lsbjordao/quarto-needs/`. Installation alone does not activate the extension. Register the filter in `_quarto.yml`:
+
+```yaml
+filters:
+  - quarto-needs
+```
+
+Then render normally:
+
+```bash
+quarto render
+```
+
+The extension supplies its own pre-render step and provisions the matching Python engine into a project-local managed runtime. You do **not** need to add `project.pre-render: quarto-needs scan` or install the standalone CLI just to render.
+
+For a new project, the starter template bundles and activates the extension:
+
+```bash
+quarto use template lsbjordao/quarto-needs/templates/starter
+```
+
 ## Minimal structure
 
 A Quarto-Needs project is a Quarto project with the extension installed and an optional policy in `.quarto-needs.toml`.
@@ -11,13 +40,6 @@ my-project/
 ├── index.qmd
 ├── requirements.qmd
 └── architecture.qmd
-```
-
-Register the filter in `_quarto.yml`:
-
-```yaml
-filters:
-  - quarto-needs
 ```
 
 ## Optional margin-sidebar toggle
@@ -64,7 +86,15 @@ verified-by: TC-001
 
 Relations are typed. The catalog defines semantic family, direct/inverse labels, source/target roles, and impact-propagation direction.
 
-## Core commands
+## Optional standalone CLI
+
+The extension-managed runtime is enough for `quarto render`. Install the Python package separately only when you want command-line engineering workflows or editor tooling:
+
+```bash
+pip install quarto-needs
+```
+
+That installation provides:
 
 ```bash
 quarto-needs scan
