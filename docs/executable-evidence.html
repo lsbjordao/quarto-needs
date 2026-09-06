@@ -7,7 +7,7 @@
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.8.26">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>6  Executable verification and machine evidence – Quarto-Needs — Manual</title>
+<title>7  Executable verification and machine evidence – Quarto-Needs — Manual</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -58,7 +58,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </style>
 <script src="site_libs/quarto-nav/quarto-nav.js"></script><script src="site_libs/quarto-nav/headroom.min.js"></script><script src="site_libs/clipboard/clipboard.min.js"></script><script src="site_libs/quarto-search/autocomplete.umd.js"></script><script src="site_libs/quarto-search/fuse.min.js"></script><script src="site_libs/quarto-search/quarto-search.js"></script><meta name="quarto:offset" content="./">
 <link href="./evidence-providers.html" rel="next">
-<link href="./architecture-decisions.html" rel="prev">
+<link href="./c4-architecture.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script><script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script><script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script><script src="site_libs/quarto-html/popper.min.js"></script><script src="site_libs/quarto-html/tippy.umd.min.js"></script><script src="site_libs/quarto-html/anchor.min.js"></script><link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script><link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
@@ -114,7 +114,7 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./executable-evidence.html"><span class="chapter-number">6</span>  <span class="chapter-title">Executable verification and machine evidence</span></a></li></ol></nav><a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./executable-evidence.html"><span class="chapter-number">7</span>  <span class="chapter-title">Executable verification and machine evidence</span></a></li></ol></nav><a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
   </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
@@ -153,56 +153,74 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./c4-architecture.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>  <span class="chapter-title">C4 Architecture Projections</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./executable-evidence.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">6</span>  <span class="chapter-title">Executable verification and machine evidence</span></span></a>
+ <span class="menu-text"><span class="chapter-number">7</span>  <span class="chapter-title">Executable verification and machine evidence</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./evidence-providers.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">7</span>  <span class="chapter-title">Machine evidence providers</span></span></a>
+ <span class="menu-text"><span class="chapter-number">8</span>  <span class="chapter-title">Machine evidence providers</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./governance.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">8</span>  <span class="chapter-title">Governance and quality</span></span></a>
+ <span class="menu-text"><span class="chapter-number">9</span>  <span class="chapter-title">Governance and quality</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./declarative-policies.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">9</span>  <span class="chapter-title">Declarative engineering policies</span></span></a>
+ <span class="menu-text"><span class="chapter-number">10</span>  <span class="chapter-title">Declarative engineering policies</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./type-schemas.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">10</span>  <span class="chapter-title">Per-type attribute schemas</span></span></a>
+ <span class="menu-text"><span class="chapter-number">11</span>  <span class="chapter-title">Per-type attribute schemas</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./graph-constraints.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">11</span>  <span class="chapter-title">Declarative graph constraints</span></span></a>
+ <span class="menu-text"><span class="chapter-number">12</span>  <span class="chapter-title">Declarative graph constraints</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./derived-variants.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">12</span>  <span class="chapter-title">Derived fields and build variants</span></span></a>
+ <span class="menu-text"><span class="chapter-number">13</span>  <span class="chapter-title">Derived fields and build variants</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./interoperability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>  <span class="chapter-title">Interoperability and Federation</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./migrations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>  <span class="chapter-title">Migrating from Other Tools</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./language-server.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">13</span>  <span class="chapter-title">Language server and editor authoring</span></span></a>
+ <span class="menu-text"><span class="chapter-number">16</span>  <span class="chapter-title">Language server and editor authoring</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./reference.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">14</span>  <span class="chapter-title">Practical reference</span></span></a>
+ <span class="menu-text"><span class="chapter-number">17</span>  <span class="chapter-title">Practical reference</span></span></a>
   </div>
 </li>
     </ul>
@@ -213,18 +231,18 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
         <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">Table of contents</h2>
    
   <ul>
-<li><a href="#link-pytest-tests-to-engineering-objects" id="toc-link-pytest-tests-to-engineering-objects" class="nav-link active" data-scroll-target="#link-pytest-tests-to-engineering-objects"><span class="header-section-number">6.1</span> Link pytest tests to engineering objects</a></li>
-  <li><a href="#generate-deterministic-provider-evidence" id="toc-generate-deterministic-provider-evidence" class="nav-link" data-scroll-target="#generate-deterministic-provider-evidence"><span class="header-section-number">6.2</span> Generate deterministic provider evidence</a></li>
-  <li><a href="#provider-neutral-attestation-envelope" id="toc-provider-neutral-attestation-envelope" class="nav-link" data-scroll-target="#provider-neutral-attestation-envelope"><span class="header-section-number">6.3</span> Provider-neutral attestation envelope</a></li>
-  <li><a href="#validate-evidence-against-the-current-model" id="toc-validate-evidence-against-the-current-model" class="nav-link" data-scroll-target="#validate-evidence-against-the-current-model"><span class="header-section-number">6.4</span> Validate evidence against the current model</a></li>
-  <li><a href="#evidence-diagnostics" id="toc-evidence-diagnostics" class="nav-link" data-scroll-target="#evidence-diagnostics"><span class="header-section-number">6.5</span> Evidence diagnostics</a></li>
-  <li><a href="#self-hosted-example" id="toc-self-hosted-example" class="nav-link" data-scroll-target="#self-hosted-example"><span class="header-section-number">6.6</span> Self-hosted example</a></li>
+<li><a href="#link-pytest-tests-to-engineering-objects" id="toc-link-pytest-tests-to-engineering-objects" class="nav-link active" data-scroll-target="#link-pytest-tests-to-engineering-objects"><span class="header-section-number">7.1</span> Link pytest tests to engineering objects</a></li>
+  <li><a href="#generate-deterministic-provider-evidence" id="toc-generate-deterministic-provider-evidence" class="nav-link" data-scroll-target="#generate-deterministic-provider-evidence"><span class="header-section-number">7.2</span> Generate deterministic provider evidence</a></li>
+  <li><a href="#provider-neutral-attestation-envelope" id="toc-provider-neutral-attestation-envelope" class="nav-link" data-scroll-target="#provider-neutral-attestation-envelope"><span class="header-section-number">7.3</span> Provider-neutral attestation envelope</a></li>
+  <li><a href="#validate-evidence-against-the-current-model" id="toc-validate-evidence-against-the-current-model" class="nav-link" data-scroll-target="#validate-evidence-against-the-current-model"><span class="header-section-number">7.4</span> Validate evidence against the current model</a></li>
+  <li><a href="#evidence-diagnostics" id="toc-evidence-diagnostics" class="nav-link" data-scroll-target="#evidence-diagnostics"><span class="header-section-number">7.5</span> Evidence diagnostics</a></li>
+  <li><a href="#self-hosted-example" id="toc-self-hosted-example" class="nav-link" data-scroll-target="#self-hosted-example"><span class="header-section-number">7.6</span> Self-hosted example</a></li>
   </ul></nav>
 </div>
 <!-- main -->
 <main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><div class="quarto-title">
 <h1 class="title">
-<span class="chapter-number">6</span>  <span class="chapter-title">Executable verification and machine evidence</span>
+<span class="chapter-number">7</span>  <span class="chapter-title">Executable verification and machine evidence</span>
 </h1>
 </div>
 
@@ -247,8 +265,8 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 <strong>machine evidence</strong> records what executable test actually ran and whether its linkage agrees with the engineering model.</li>
 </ol>
 <p>This distinction prevents a green test suite from being treated automatically as proof for an unrelated requirement.</p>
-<section id="link-pytest-tests-to-engineering-objects" class="level2" data-number="6.1"><h2 data-number="6.1" class="anchored" data-anchor-id="link-pytest-tests-to-engineering-objects">
-<span class="header-section-number">6.1</span> Link pytest tests to engineering objects</h2>
+<section id="link-pytest-tests-to-engineering-objects" class="level2" data-number="7.1"><h2 data-number="7.1" class="anchored" data-anchor-id="link-pytest-tests-to-engineering-objects">
+<span class="header-section-number">7.1</span> Link pytest tests to engineering objects</h2>
 <p>The Quarto-Needs pytest plugin provides two markers:</p>
 <div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pytest</span>
@@ -268,8 +286,8 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 ...
 :::</code></pre>
 <p>The stable pytest node ID is a physical execution reference. It does not replace the modeled test-case, which remains the engineering verification object.</p>
-</section><section id="generate-deterministic-provider-evidence" class="level2" data-number="6.2"><h2 data-number="6.2" class="anchored" data-anchor-id="generate-deterministic-provider-evidence">
-<span class="header-section-number">6.2</span> Generate deterministic provider evidence</h2>
+</section><section id="generate-deterministic-provider-evidence" class="level2" data-number="7.2"><h2 data-number="7.2" class="anchored" data-anchor-id="generate-deterministic-provider-evidence">
+<span class="header-section-number">7.2</span> Generate deterministic provider evidence</h2>
 <p>Writing an artifact is opt-in. Ordinary pytest runs have no Quarto-Needs file side effects.</p>
 <div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pytest</span> <span class="dt">\</span></span>
@@ -295,8 +313,8 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 </div>
 <p>Evidence v1 intentionally exposes only <code>passed</code>, <code>failed</code>, and <code>skipped</code>. Pytest’s richer expected-failure semantics are normalized conservatively: an expected XFAIL is recorded as <code>skipped</code>, while any XPASS is recorded as <code>failed</code>, including a non-strict XPASS that pytest itself may report as a passing test. An unexpected pass therefore cannot become positive engineering evidence silently.</p>
 <p>Timestamps and durations are intentionally excluded from the provider payload so identical engineering results remain reproducible.</p>
-</section><section id="provider-neutral-attestation-envelope" class="level2" data-number="6.3"><h2 data-number="6.3" class="anchored" data-anchor-id="provider-neutral-attestation-envelope">
-<span class="header-section-number">6.3</span> Provider-neutral attestation envelope</h2>
+</section><section id="provider-neutral-attestation-envelope" class="level2" data-number="7.3"><h2 data-number="7.3" class="anchored" data-anchor-id="provider-neutral-attestation-envelope">
+<span class="header-section-number">7.3</span> Provider-neutral attestation envelope</h2>
 <p>Execution provenance belongs to a separate provider-neutral envelope defined by <code>schemas/evidence-envelope-v1.schema.json</code>. This preserves deterministic provider output while binding that output to a concrete engineering state.</p>
 <p>Create an attestation from a provider payload with:</p>
 <div class="code-copy-outer-scaffold">
@@ -342,8 +360,8 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 </div>
 <p>The envelope is intentionally provider-neutral. Pytest is the first executable provider, while <code>evidence-checks-v1</code> provides a common deterministic payload for JUnit XML, coverage.py, Quarto render, JSON Schema validation, lint, and type-check adapters.</p>
 <p>The payload digest is checked before semantic validation. A modified payload therefore cannot keep using an old attestation silently.</p>
-</section><section id="validate-evidence-against-the-current-model" class="level2" data-number="6.4"><h2 data-number="6.4" class="anchored" data-anchor-id="validate-evidence-against-the-current-model">
-<span class="header-section-number">6.4</span> Validate evidence against the current model</h2>
+</section><section id="validate-evidence-against-the-current-model" class="level2" data-number="7.4"><h2 data-number="7.4" class="anchored" data-anchor-id="validate-evidence-against-the-current-model">
+<span class="header-section-number">7.4</span> Validate evidence against the current model</h2>
 <p>Generation is only half of the contract. Validate either a raw provider artifact or an attested envelope against the canonical engineering graph:</p>
 <div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> evidence check .quarto-needs/evidence/pytest.json</span></code></pre></div>
@@ -390,8 +408,8 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
                               │ SHA-256 + graph fingerprints
                               ▼
                    provider-neutral attestation</code></pre>
-</section><section id="evidence-diagnostics" class="level2" data-number="6.5"><h2 data-number="6.5" class="anchored" data-anchor-id="evidence-diagnostics">
-<span class="header-section-number">6.5</span> Evidence diagnostics</h2>
+</section><section id="evidence-diagnostics" class="level2" data-number="7.5"><h2 data-number="7.5" class="anchored" data-anchor-id="evidence-diagnostics">
+<span class="header-section-number">7.5</span> Evidence diagnostics</h2>
 <p>Provider-specific pytest diagnostics use stable <code>EVD1xx</code> codes:</p>
 <table class="caption-top table">
 <colgroup>
@@ -507,8 +525,8 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 <p>Generic machine-check validation uses <code>EVD3xx</code>; see <a href="./evidence-providers.html">Machine evidence providers</a>.</p>
 <p><code>EVD107</code> and <code>EVD109</code> form the reciprocal traceability gate: together they require agreement between executable markers and the model’s verification relations rather than accepting either source as authoritative on its own.</p>
 <p>Malformed, unsupported, or digest-invalid evidence artifacts are usage/artifact errors and exit with code <code>2</code>. I/O failures exit <code>3</code>. A structurally readable artifact that disagrees with the engineering model or whose attestation is stale exits <code>1</code>.</p>
-</section><section id="self-hosted-example" class="level2" data-number="6.6"><h2 data-number="6.6" class="anchored" data-anchor-id="self-hosted-example">
-<span class="header-section-number">6.6</span> Self-hosted example</h2>
+</section><section id="self-hosted-example" class="level2" data-number="7.6"><h2 data-number="7.6" class="anchored" data-anchor-id="self-hosted-example">
+<span class="header-section-number">7.6</span> Self-hosted example</h2>
 <p>The self-hosted Quarto-Needs case study exercises the complete flow directly:</p>
 <div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> evidence-self-example</span></code></pre></div>
@@ -1043,13 +1061,13 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
     }
   });
   </script><nav class="page-navigation"><div class="nav-page nav-page-previous">
-      <a href="./architecture-decisions.html" class="pagination-link" aria-label="Architecture Decision Management">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">5</span>  <span class="chapter-title">Architecture Decision Management</span></span>
+      <a href="./c4-architecture.html" class="pagination-link" aria-label="C4 Architecture Projections">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">6</span>  <span class="chapter-title">C4 Architecture Projections</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
       <a href="./evidence-providers.html" class="pagination-link" aria-label="Machine evidence providers">
-        <span class="nav-page-text"><span class="chapter-number">7</span>  <span class="chapter-title">Machine evidence providers</span></span> <i class="bi bi-arrow-right-short"></i>
+        <span class="nav-page-text"><span class="chapter-number">8</span>  <span class="chapter-title">Machine evidence providers</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

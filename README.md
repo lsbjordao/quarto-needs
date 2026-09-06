@@ -65,20 +65,22 @@ The defining constraint is simple: **one canonical engineering graph, many proje
 - baselines, semantic diff, relocation detection, explainable union-graph impact analysis, suspect state, and Git-native PR reports;
 - GitHub-compatible summaries/annotations, JSON, CSV, SARIF, JUnit, Markdown, ReqIF 1.2, and JSON-LD projections;
 - executable pytest bindings, provider-neutral machine checks, evidence attestations, digest/freshness/provenance validation, and reciprocal model↔test verification;
-- Quarto cards, cross-references, tables, matrices, dashboards, inspectors, Mermaid flows, and bounded graph views;
+- Quarto cards, cross-references, tables, matrices, dashboards, inspectors, Mermaid flows, C4 projections, and bounded graph views;
 - progressive Cytoscape exploration over the published semantic projection;
 - bilingual English / Brazilian Portuguese presentation with semantic-parity enforcement;
 - dependency-free LSP stdio server with diagnostics, completion, hover, definitions/references, symbols, unsaved-buffer overlays, and relation-aware rename;
 - thin multi-root VS Code client delegating language intelligence to the Python LSP;
 - ReqIF 1.2 interchange and deterministic JSON-LD 1.1 projection;
-- read-only OSLC RM federation foundation with deterministic cache provenance, bounded HTTP GET, network-free RDF normalization, RM service discovery, and Resource Shape orchestration;
+- read-only OSLC RM federation with deterministic cache provenance, bounded HTTP GET, network-free RDF normalization, RM service discovery, Resource Shape orchestration, reconciliation, and import planning;
+- a read-only GitHub Issues adapter in the Python engine, with provenance, bounded retrieval, conditional caching, reconciliation, and reviewed apply primitives (no public GitHub CLI command in 0.1.0);
+- conservative migration adapters for Sphinx-Needs, Doorstop, StrictDoc, and OpenFastTrace;
 - a self-hosted engineering case study in `examples/quarto-needs/` that models Quarto-Needs with Quarto-Needs.
 
 ## Repository layout
 
 ```text
 src/quarto_needs/             Python semantic core, LSP and interoperability
-_extensions/quarto-needs/     Quarto filters, shortcodes and browser assets
+_extensions/quarto-needs/     Canonical Quarto extension source
 editors/vscode/               Thin VS Code client for the Python LSP
 schemas/                      Versioned artifact schemas
 tools/                        Pre-render and release tooling
@@ -87,22 +89,41 @@ docs/src/                     Manual source (.qmd) — the book project
 notes/                        Product roadmap, design/architecture notes and branding assets
 examples/quarto-needs/        Self-hosted engineering model
 tests/                        Regression and integration tests
-.github/workflows/            CI workflows
+.github/workflows/            CI and release workflows
 ```
 
-The manual is authored in `docs/src/` and rendered into `docs/`; the docs site is the GitHub Pages root. Design and product documentation that is not part of the manual lives under [`notes/`](notes/). For the end-user path, start with the published [`docs/`](docs/index.html) (the manual) or the standalone [`notes/quickstart.md`](notes/quickstart.md).
+The manual is authored in `docs/src/` and rendered into `docs/`; the docs site is the GitHub Pages root. Design and product documentation that is not part of the manual lives under [`notes/`](notes/). For the end-user path, start with the published [`docs/`](docs/index.html) or the standalone [`notes/quickstart.md`](notes/quickstart.md).
 
-Quick start for Quarto projects (zero-install extension):
+## Quick start
+
+Add the extension to a Quarto project:
 
 ```bash
-# Add the extension to your Quarto project
 quarto add lsbjordao/quarto-needs
+```
 
-# Render your book or document (provisions the paired engine automatically)
+Quarto installs GitHub extensions under the owner namespace, so the canonical install lives at `_extensions/lsbjordao/quarto-needs/`. Installation does not activate a filter; add this to `_quarto.yml`:
+
+```yaml
+filters:
+  - quarto-needs
+```
+
+Then render. The extension provisions its paired Python engine into a project-local managed runtime automatically:
+
+```bash
 quarto render
 ```
 
-Contributor setup:
+For a new project, the starter template bundles the extension and activates it for you:
+
+```bash
+quarto use template lsbjordao/quarto-needs/templates/starter
+```
+
+See [`notes/quickstart.md`](notes/quickstart.md) for the complete first-project walkthrough.
+
+## Contributor setup
 
 ```bash
 make setup
@@ -136,18 +157,18 @@ quarto-needs pr-report --git main..HEAD
 Export interchange formats:
 
 ```bash
-quarto-needs export --format reqif
-quarto-needs export --format jsonld
+quarto-needs export --format reqif --output requirements.reqif
+quarto-needs export --format jsonld --output graph.jsonld
 ```
 
-Migrate from existing tools:
+Migration is review-first. `--output` writes a **migration-plan JSON**, not converted Markdown:
 
 ```bash
-quarto-needs migrate sphinx-needs docs/needs.json --output requirements.qmd
-quarto-needs migrate doorstop ./reqs --output requirements.qmd
-quarto-needs migrate strictdoc ./docs --output requirements.qmd
-quarto-needs migrate openfasttrace ./trace.xml --output requirements.qmd
+quarto-needs migrate sphinx-needs docs/needs.json \
+  --output .quarto-needs/migrations/sphinx-needs-plan.json
 ```
+
+After reviewing mappings, build an apply plan with explicit `--destination SOURCE_ID=path.qmd`; only `--apply-plan --write` mutates authored files. The same workflow supports Doorstop, StrictDoc, and OpenFastTrace. See [`docs/src/migrations.qmd`](docs/src/migrations.qmd).
 
 Discover a configured OSLC RM Service Provider through the bounded read-only adapter:
 
@@ -159,6 +180,14 @@ quarto-needs oslc discover \
   --format json
 ```
 
+Querying requires either a configured profile or the Service Provider context explicitly:
+
+```bash
+quarto-needs oslc query \
+  https://provider.example/oslc/query/requirements \
+  --service-provider-uri https://provider.example/oslc/sp/requirements
+```
+
 Bearer credentials are supplied by **environment-variable name**, never embedded in configuration or command output:
 
 ```bash
@@ -168,14 +197,7 @@ quarto-needs oslc discover \
   --bearer-token-env MY_OSLC_TOKEN
 ```
 
-Federate external GitHub issues:
-
-```bash
-export GITHUB_TOKEN='...'
-quarto-needs github fetch \
-  --repo owner/repo \
-  --bearer-token-env GITHUB_TOKEN
-```
+GitHub Issues federation exists in the Python engine as a read-only adapter with provenance, caching, reconciliation, and reviewed apply primitives. **Version 0.1.0 does not expose a public `quarto-needs github ...` command.** The manual documents the stable public CLI only.
 
 Start the language server directly when integrating another editor:
 
@@ -240,15 +262,15 @@ See [`docs/src/executable-evidence.qmd`](docs/src/executable-evidence.qmd) and [
 
 Interchange formats are adapters, not authoring models.
 
-**ReqIF 1.2** provides structured requirements exchange. **JSON-LD 1.1** exposes the engineering graph as Linked Data while preserving canonical relation metadata. **OSLC RM** is being implemented as a federation boundary: external identity, observed bytes/digest, retrieval time, trust, cache freshness, transport limits, RDF normalization, and Resource Shapes remain explicit before any remote import or synchronization is allowed.
+**ReqIF 1.2** provides structured requirements exchange. **JSON-LD 1.1** exposes the engineering graph as Linked Data while preserving canonical relation metadata. **OSLC RM** is a read-only federation boundary in 0.1.0: external identity, observed bytes/digest, retrieval time, trust, cache freshness, transport limits, RDF normalization, Resource Shapes, reconciliation, and import planning remain explicit before any remote synchronization is allowed.
 
-The first OSLC path is intentionally read-only. It uses GET-only bounded HTTP, same-origin redirects, conditional retrieval, content-addressed cache blobs, network-free JSON-LD/Turtle/RDFXML normalization, and deterministic RM discovery. POST/PUT/PATCH/DELETE remain deferred until conflict, concurrency, authorization, and audit contracts exist.
+The OSLC path uses GET-only bounded HTTP, same-origin redirects, conditional retrieval, content-addressed cache blobs, and network-free JSON-LD/Turtle/RDFXML normalization. POST/PUT/PATCH/DELETE remain deferred until conflict, concurrency, authorization, and audit contracts exist.
 
 Interchange status and acceptance records live in [`notes/ROADMAP.md`](notes/ROADMAP.md).
 
 ## Self-hosted engineering model
 
-`examples/quarto-needs/` models the project itself: stakeholder needs → requirements → ADRs → architecture → real source modules → modeled test cases → executable tests → evidence. The OSLC milestone adds a complete federation slice from `STK-006` through `TC-015` / `EVD-015`, with English canonical content and a semantic-equivalent Brazilian Portuguese presentation.
+`examples/quarto-needs/` models the project itself: stakeholder needs → requirements → ADRs → architecture → real source modules → modeled test cases → executable tests → evidence. English is canonical content and Brazilian Portuguese is a semantic-equivalent presentation.
 
 This keeps major features traceable as engineering changes rather than leaving architecture and validation implicit in implementation code.
 
@@ -256,10 +278,10 @@ This keeps major features traceable as engineering changes rather than leaving a
 
 Quarto-Needs has its own Quarto/Pandoc-native architecture, but it is informed by mature ideas and ecosystems:
 
-- **Sphinx-Needs** — **one of the original inspirations** for first-class typed engineering objects, links, generated views, filtering, and validation. Quarto-Needs pursues capability inspiration, not Sphinx syntax compatibility.
+- **Sphinx-Needs** — one of the original inspirations for first-class typed engineering objects, links, generated views, filtering, and validation. Quarto-Needs pursues capability inspiration, not Sphinx syntax compatibility.
 - **Requirements as Code / Docs as Code** — text-first, Git-versioned, reviewable engineering artifacts.
 - **Architecture Decision Records (ADRs)** — explicit and durable architectural rationale.
-- **C4 model** — inspiration for future architecture projections derived from the same engineering graph rather than maintained as a parallel model.
+- **C4 model** — architecture projections derived from the same engineering graph rather than maintained as a parallel model.
 - **ReqIF** — structured requirements interchange.
 - **OSLC Requirements Management** — standards-based federation with explicit identity, provenance, caching, trust, and failure behavior.
 - **StrictDoc, Doorstop, and OpenFastTrace** — reference points for requirements-as-code, traceability, review state, and transitive links.

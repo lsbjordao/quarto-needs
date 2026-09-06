@@ -24,10 +24,15 @@ Initial release at alpha maturity (classifier `Development Status :: 3 - Alpha`)
 
 ### Fixed
 
+- Real `quarto add lsbjordao/quarto-needs` distribution now follows Quarto's owner-scoped `_extensions/lsbjordao/quarto-needs/` layout, including the managed bootstrap and generated Lua index consumed by the active extension.
+- The starter template keeps a deliberately unscoped bundled extension with a matching bootstrap path while current Quarto releases retain the upstream scoped-template copy bug.
+- README, quickstart, and manual examples now distinguish extension activation from installation, distinguish the optional standalone CLI from rendering, document the review-first migration CLI accurately, include the required OSLC query context, and no longer advertise a nonexistent public GitHub-Issues CLI.
 - `documentSelector`/`LanguageClientOptions` type incompatibility surfaced by the first real `npm install` against the committed lockfile (`npm run check` and `npm run compile` now pass).
-- Fixture-staleness failures in the earlier teaching tasks; the full test suite is green.
+- Fixture-staleness failures in the earlier teaching tasks were corrected before the release-readiness review.
 
 ### Security
 
 - Same-origin redirect enforcement and request-only credentials in the OSLC federation transport; bounded timeout/byte/redirect/media limits.
 - Content-addressed, schema-scoped persistence cache; atomic, all-or-nothing, rollback-protected apply paths; trusted-publishing (OIDC) release workflow with a TestPyPI rehearsal gate.
+- The active extension artifact path is constrained to the current project's `_extensions` tree, preventing the pre-render from writing `generated-index.lua` through an external path or escaped `_extensions` symlink.
+- The release workflow refuses to publish the extension/package pair while the GitHub repository is private, because the documented `quarto add owner/repository` distribution must be publicly resolvable.

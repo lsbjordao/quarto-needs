@@ -10,7 +10,7 @@
 
 <meta name="description" content="Requisitos, decisões e rastreabilidade de engenharia como código">
 
-<title>26&nbsp; Campos derivados e variantes de build – Quarto-Needs — Manual</title>
+<title>30&nbsp; Campos derivados e variantes de build – Quarto-Needs — Manual</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -68,7 +68,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./language-server.html" rel="next">
+<link href="./interoperability.html" rel="next">
 <link href="./graph-constraints.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -143,7 +143,7 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./derived-variants.html"><span class="chapter-number">26</span>&nbsp; <span class="chapter-title">Campos derivados e variantes de build</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./derived-variants.html"><span class="chapter-number">30</span>&nbsp; <span class="chapter-title">Campos derivados e variantes de build</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -187,140 +187,176 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./c4-architecture.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">C4 Architecture Projections</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./executable-evidence.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Executable verification and machine evidence</span></span></a>
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Executable verification and machine evidence</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./evidence-providers.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Machine evidence providers</span></span></a>
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Machine evidence providers</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./governance.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Governance and quality</span></span></a>
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Governance and quality</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./declarative-policies.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Declarative engineering policies</span></span></a>
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Declarative engineering policies</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./type-schemas.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Per-type attribute schemas</span></span></a>
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Per-type attribute schemas</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./graph-constraints.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Declarative graph constraints</span></span></a>
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Declarative graph constraints</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./derived-variants.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Derived fields and build variants</span></span></a>
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Derived fields and build variants</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./interoperability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Interoperability and Federation</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./migrations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Migrating from Other Tools</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./language-server.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Language server and editor authoring</span></span></a>
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Language server and editor authoring</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./reference.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Practical reference</span></span></a>
+ <span class="menu-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Practical reference</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./index.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Quarto-Needs</span></span></a>
+ <span class="menu-text"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">Quarto-Needs</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./getting-started.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Primeiros passos</span></span></a>
+ <span class="menu-text"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Primeiros passos</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./engineering-model.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Modelo de engenharia</span></span></a>
+ <span class="menu-text"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Modelo de engenharia</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./authoring.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">Autoria em Quarto</span></span></a>
+ <span class="menu-text"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">Autoria em Quarto</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./architecture-decisions.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Architecture Decision Management</span></span></a>
+ <span class="menu-text"><span class="chapter-number">22</span>&nbsp; <span class="chapter-title">Architecture Decision Management</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./c4-architecture.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">23</span>&nbsp; <span class="chapter-title">Projeções de Arquitetura C4</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./executable-evidence.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Verificação executável e evidência de máquina</span></span></a>
+ <span class="menu-text"><span class="chapter-number">24</span>&nbsp; <span class="chapter-title">Verificação executável e evidência de máquina</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./evidence-providers.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">Providers de evidência de máquina</span></span></a>
+ <span class="menu-text"><span class="chapter-number">25</span>&nbsp; <span class="chapter-title">Providers de evidência de máquina</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./governance.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">22</span>&nbsp; <span class="chapter-title">Governança e qualidade</span></span></a>
+ <span class="menu-text"><span class="chapter-number">26</span>&nbsp; <span class="chapter-title">Governança e qualidade</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./declarative-policies.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">23</span>&nbsp; <span class="chapter-title">Políticas declarativas de engenharia</span></span></a>
+ <span class="menu-text"><span class="chapter-number">27</span>&nbsp; <span class="chapter-title">Políticas declarativas de engenharia</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./type-schemas.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">24</span>&nbsp; <span class="chapter-title">Schemas de atributos por tipo</span></span></a>
+ <span class="menu-text"><span class="chapter-number">28</span>&nbsp; <span class="chapter-title">Schemas de atributos por tipo</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./graph-constraints.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">25</span>&nbsp; <span class="chapter-title">Restrições declarativas do grafo</span></span></a>
+ <span class="menu-text"><span class="chapter-number">29</span>&nbsp; <span class="chapter-title">Restrições declarativas do grafo</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./derived-variants.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">26</span>&nbsp; <span class="chapter-title">Campos derivados e variantes de build</span></span></a>
+ <span class="menu-text"><span class="chapter-number">30</span>&nbsp; <span class="chapter-title">Campos derivados e variantes de build</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./interoperability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">31</span>&nbsp; <span class="chapter-title">Interoperabilidade e Federação</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./migrations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">32</span>&nbsp; <span class="chapter-title">Migração de Outras Ferramentas</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./language-server.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">27</span>&nbsp; <span class="chapter-title">Servidor de linguagem e autoria no editor</span></span></a>
+ <span class="menu-text"><span class="chapter-number">33</span>&nbsp; <span class="chapter-title">Servidor de linguagem e autoria no editor</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./reference.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">28</span>&nbsp; <span class="chapter-title">Referência prática</span></span></a>
+ <span class="menu-text"><span class="chapter-number">34</span>&nbsp; <span class="chapter-title">Referência prática</span></span></a>
   </div>
 </li>
         <li class="sidebar-item sidebar-item-section">
@@ -337,9 +373,9 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
     <h2 id="toc-title">Índice</h2>
    
   <ul>
-  <li><a href="#operações-derivadas-limitadas" id="toc-operações-derivadas-limitadas" class="nav-link active" data-scroll-target="#operações-derivadas-limitadas"><span class="header-section-number">26.1</span> Operações derivadas limitadas</a></li>
-  <li><a href="#variantes-de-build-nomeadas" id="toc-variantes-de-build-nomeadas" class="nav-link" data-scroll-target="#variantes-de-build-nomeadas"><span class="header-section-number">26.2</span> Variantes de build nomeadas</a></li>
-  <li><a href="#exemplo-self-hosted" id="toc-exemplo-self-hosted" class="nav-link" data-scroll-target="#exemplo-self-hosted"><span class="header-section-number">26.3</span> Exemplo self-hosted</a></li>
+  <li><a href="#operações-derivadas-limitadas" id="toc-operações-derivadas-limitadas" class="nav-link active" data-scroll-target="#operações-derivadas-limitadas"><span class="header-section-number">30.1</span> Operações derivadas limitadas</a></li>
+  <li><a href="#variantes-de-build-nomeadas" id="toc-variantes-de-build-nomeadas" class="nav-link" data-scroll-target="#variantes-de-build-nomeadas"><span class="header-section-number">30.2</span> Variantes de build nomeadas</a></li>
+  <li><a href="#exemplo-self-hosted" id="toc-exemplo-self-hosted" class="nav-link" data-scroll-target="#exemplo-self-hosted"><span class="header-section-number">30.3</span> Exemplo self-hosted</a></li>
   </ul>
 </nav>
     </div>
@@ -348,7 +384,7 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title"><span class="chapter-number">26</span>&nbsp; <span class="chapter-title">Campos derivados e variantes de build</span></h1>
+<h1 class="title"><span class="chapter-number">30</span>&nbsp; <span class="chapter-title">Campos derivados e variantes de build</span></h1>
 </div>
 
 
@@ -367,8 +403,8 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 
 <p>O Quarto-Needs mantém os dados de engenharia autorados separados das projeções de engenharia calculadas. Por isso, um valor derivado do grafo <strong>não</strong> é inserido em <code>attributes</code>; ele é materializado na projeção <code>derived</code> do snapshot.</p>
 <p>Essa distinção é importante para auditabilidade. Revisores conseguem identificar se um valor foi escrito por um autor ou calculado de maneira reproduzível a partir do grafo e da configuração atuais.</p>
-<section id="operações-derivadas-limitadas" class="level2" data-number="26.1">
-<h2 data-number="26.1" class="anchored" data-anchor-id="operações-derivadas-limitadas"><span class="header-section-number">26.1</span> Operações derivadas limitadas</h2>
+<section id="operações-derivadas-limitadas" class="level2" data-number="30.1">
+<h2 data-number="30.1" class="anchored" data-anchor-id="operações-derivadas-limitadas"><span class="header-section-number">30.1</span> Operações derivadas limitadas</h2>
 <p>A primeira gramática de campos derivados oferece deliberadamente apenas duas operações:</p>
 <ul>
 <li><code>relation-count</code>: conta alvos lógicos de uma relação canônica;</li>
@@ -389,8 +425,8 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 <p>O motor usa o catálogo canônico de relações, inclusive a semântica de autoria pela relação inversa. Ele nunca avalia Python, Lua, JavaScript, comandos shell, templates ou expressões arbitrárias.</p>
 <p>As definições derivadas fazem parte do fingerprint canônico de configuração. Os valores derivados materializados também participam do semantic graph fingerprint quando há campos derivados configurados.</p>
 </section>
-<section id="variantes-de-build-nomeadas" class="level2" data-number="26.2">
-<h2 data-number="26.2" class="anchored" data-anchor-id="variantes-de-build-nomeadas"><span class="header-section-number">26.2</span> Variantes de build nomeadas</h2>
+<section id="variantes-de-build-nomeadas" class="level2" data-number="30.2">
+<h2 data-number="30.2" class="anchored" data-anchor-id="variantes-de-build-nomeadas"><span class="header-section-number">30.2</span> Variantes de build nomeadas</h2>
 <p>Uma variante é uma seleção nomeada e determinística sobre o mesmo snapshot canônico. Ela parte de uma query nomeada segura e pode, opcionalmente, expandir por um conjunto explícito de relações até uma profundidade limitada.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode toml code-with-copy"><code class="sourceCode toml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[variants.assurance-slice]</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="dt">scope</span> <span class="op">=</span> <span class="st">"approved-requirements"</span></span>
@@ -403,8 +439,8 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> variant show assurance-slice <span class="at">--format</span> json</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
 <p>As variantes recebem um <code>variantFingerprint</code> vinculado ao semantic graph fingerprint final e à composição ordenada da variante. Assim, uma projeção de variante não pode ser reutilizada como se pertencesse a outro estado de engenharia.</p>
 </section>
-<section id="exemplo-self-hosted" class="level2" data-number="26.3">
-<h2 data-number="26.3" class="anchored" data-anchor-id="exemplo-self-hosted"><span class="header-section-number">26.3</span> Exemplo self-hosted</h2>
+<section id="exemplo-self-hosted" class="level2" data-number="30.3">
+<h2 data-number="30.3" class="anchored" data-anchor-id="exemplo-self-hosted"><span class="header-section-number">30.3</span> Exemplo self-hosted</h2>
 <p>O livro self-hosted do Quarto-Needs calcula dois campos de assurance para requisitos aprovados: <code>verification-count</code> e <code>has-evidence-path</code>. Ele também define <code>assurance-slice</code>, expandida dos requisitos aprovados pelas relações de verificação e evidência.</p>
 <p>Assim, a Phase 3 é exercitada pelo próprio projeto que ela governa: políticas, schemas, constraints de grafo, valores derivados e variantes executam sobre o modelo de engenharia do Quarto-Needs.</p>
 
@@ -935,12 +971,12 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
       <a href="./graph-constraints.html" class="pagination-link" aria-label="Restrições declarativas do grafo">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">25</span>&nbsp; <span class="chapter-title">Restrições declarativas do grafo</span></span>
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">29</span>&nbsp; <span class="chapter-title">Restrições declarativas do grafo</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./language-server.html" class="pagination-link" aria-label="Servidor de linguagem e autoria no editor">
-        <span class="nav-page-text"><span class="chapter-number">27</span>&nbsp; <span class="chapter-title">Servidor de linguagem e autoria no editor</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./interoperability.html" class="pagination-link" aria-label="Interoperabilidade e Federação">
+        <span class="nav-page-text"><span class="chapter-number">31</span>&nbsp; <span class="chapter-title">Interoperabilidade e Federação</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

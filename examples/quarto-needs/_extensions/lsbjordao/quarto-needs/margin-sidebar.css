@@ -1,0 +1,62 @@
+#quarto-margin-sidebar
+  nav[role="doc-toc"] > ul > li > a.nav-link:has(> .header-section-number) {
+  font-weight: 700;
+}
+
+body.qn-margin-sidebar-collapsed #quarto-margin-sidebar {
+  display: none !important;
+}
+
+.qn-margin-sidebar-toggle {
+  display: none;
+  align-items: center;
+  background: var(--bs-body-bg, #fff);
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 999px;
+  box-shadow: 0 0.125rem 0.4rem rgba(0, 0, 0, 0.08);
+  color: var(--bs-body-color, #212529);
+  cursor: pointer;
+  font: inherit;
+  height: 2rem;
+  justify-content: center;
+  padding: 0;
+  position: fixed;
+  top: 5.25rem;
+  width: 2rem;
+  z-index: 1050;
+}
+
+.qn-margin-sidebar-toggle:hover {
+  background: var(--bs-secondary-bg, #e9ecef);
+}
+
+.qn-margin-sidebar-toggle:focus-visible {
+  outline: 3px solid rgba(var(--bs-primary-rgb, 13, 110, 253), 0.35);
+  outline-offset: 2px;
+}
+
+.qn-margin-sidebar-toggle-icon::before {
+  content: "›";
+  display: block;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.qn-margin-sidebar-toggle[data-state="collapsed"] .qn-margin-sidebar-toggle-icon::before {
+  content: "‹";
+}
+
+@media (min-width: 992px) {
+  .qn-margin-sidebar-toggle {
+    display: inline-flex;
+  }
+}
+
+/* The persisted collapsed state hides the TOC at every width, so below the
+   left-sidebar breakpoint the button shows only while collapsed: the reader
+   keeps a way to restore the sidebar without cluttering the narrow layout. */
+@media (max-width: 991.98px) {
+  body.qn-margin-sidebar-collapsed .qn-margin-sidebar-toggle {
+    display: inline-flex;
+  }
+}

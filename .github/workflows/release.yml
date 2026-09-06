@@ -17,13 +17,26 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v7
 
+      # The Quarto distribution contract is `quarto add owner/repository`.
+      # Quarto's own extension documentation requires GitHub-distributed
+      # extensions to live in a public repository; publishing the paired PyPI
+      # package while this repository is private would create a release that
+      # ordinary Quarto users cannot install.
+      - name: Require a public repository for the extension release
+        env:
+          REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
+        run: |
+          set -euo pipefail
+          if [[ "$REPOSITORY_PRIVATE" == "true" ]]; then
+            echo "::error::quarto-needs cannot be released while the GitHub repository is private; quarto add lsbjordao/quarto-needs must be publicly resolvable"
+            exit 1
+          fi
+
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
           python-version: "3.14"
 
-      # A release published under a tag that disagrees with its own metadata is
-      # confusing to diagnose and impossible to withdraw, so refuse before building.
       - name: Verify the tag matches the packaged version
         run: |
           set -euo pipefail
@@ -75,8 +88,6 @@ jobs:
         with:
           version: "1.10.18"
 
-      # Installing from the index — not from the local build — is the only step
-      # that proves the artifact people will actually download works.
       - name: Install the published artifact and render a fresh project
         run: |
           set -euo pipefail
@@ -97,14 +108,8 @@ jobs:
           quarto-needs --help >/dev/null
           ./tools/check_installed_path.sh
 
-      # The CLI path above proves the package itself installs and runs. This
-      # proves the *other* thing a release ships: an extension whose
-      # contributed bootstrap can provision this exact candidate with no
-      # local source override -- the path an ordinary Quarto user actually
-      # takes. PIP_INDEX_URL/PIP_EXTRA_INDEX_URL are pip's own mechanism;
-      # the bootstrap subprocess inherits them from this job's environment
-      # without any index-url parameter of its own (the bootstrap
-      # deliberately accepts no index/URL from project configuration).
+      # Exercise the same owner-namespaced layout produced by
+      # `quarto add lsbjordao/quarto-needs`, not a repository-only shortcut.
       - name: Provision the published candidate through the extension bootstrap
         env:
           PIP_INDEX_URL: https://test.pypi.org/simple/
@@ -113,8 +118,8 @@ jobs:
           set -euo pipefail
           VERSION="${GITHUB_REF_NAME#v}"
           WORK="$(mktemp -d)/Release Rehearsal Consumer"
-          mkdir -p "$WORK/_extensions"
-          cp -r _extensions/quarto-needs "$WORK/_extensions/"
+          mkdir -p "$WORK/_extensions/lsbjordao"
+          cp -r _extensions/quarto-needs "$WORK/_extensions/lsbjordao/"
           cat > "$WORK/_quarto.yml" <<'YAML'
           project:
             type: default
@@ -146,6 +151,7 @@ jobs:
           done
           grep -q 'data-need-count="1"' "$WORK/index.html"
           grep -q 'need-card' "$WORK/index.html"
+          grep -q 'REQ-1' "$WORK/_extensions/lsbjordao/quarto-needs/generated-index.lua"
           MARKER="$(find "$WORK/.quarto-needs/runtime" -name installed.json | head -1)"
           [[ -n "$MARKER" ]]
           python3 -c "
@@ -197,19 +203,13 @@ jobs:
         with:
           version: "1.10.18"
 
-      # No QUARTO_NEEDS_ENGINE_SOURCE, no index override: this is the exact
-      # experience of the person who runs `quarto add` and `quarto render`
-      # the moment this release goes live. It is the last gate, run after
-      # publication rather than before, because it is the only step that can
-      # prove the artifact people will actually download works -- everything
-      # before this rehearsed against a build or a test index.
       - name: Render a fresh project against the real published package
         run: |
           set -euo pipefail
           VERSION="${GITHUB_REF_NAME#v}"
           WORK="$(mktemp -d)/Production Verification Consumer"
-          mkdir -p "$WORK/_extensions"
-          cp -r _extensions/quarto-needs "$WORK/_extensions/"
+          mkdir -p "$WORK/_extensions/lsbjordao"
+          cp -r _extensions/quarto-needs "$WORK/_extensions/lsbjordao/"
           cat > "$WORK/_quarto.yml" <<'YAML'
           project:
             type: default
@@ -241,6 +241,7 @@ jobs:
           done
           grep -q 'data-need-count="1"' "$WORK/index.html"
           grep -q 'need-card' "$WORK/index.html"
+          grep -q 'REQ-1' "$WORK/_extensions/lsbjordao/quarto-needs/generated-index.lua"
           MARKER="$(find "$WORK/.quarto-needs/runtime" -name installed.json | head -1)"
           [[ -n "$MARKER" ]]
           python3 -c "

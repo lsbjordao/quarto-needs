@@ -10,7 +10,9 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "_extensions" / "quarto-needs"
-EXAMPLE_EXTENSION = ROOT / "examples" / "quarto-needs" / "_extensions" / "quarto-needs"
+EXAMPLE_EXTENSION = (
+    ROOT / "examples" / "quarto-needs" / "_extensions" / "lsbjordao" / "quarto-needs"
+)
 PRE_RENDER = ROOT / "tools" / "quarto_needs_pre_render.py"
 
 
@@ -42,15 +44,22 @@ STARTER_TEMPLATE = ROOT / "templates" / "starter"
 
 
 def test_the_starter_template_bundles_the_canonical_extension_assets():
-    """The zero-friction new-project template must ship a real, current engine.
+    """The starter keeps canonical assets with one deliberate manifest variant.
 
-    `quarto use template` copies this directory verbatim into a new project;
-    a stale bundled extension there is invisible until someone actually
-    uses the template, the same failure mode `test_pre_render_synchronizes_*`
-    guards against for the worked examples.
+    Direct GitHub installs are owner-namespaced. Current Quarto releases still
+    have an open bug copying owner-scoped extension directories from templates,
+    so the starter vendors `_extensions/quarto-needs` and therefore needs a
+    manifest whose relative pre-render path matches that unscoped copy.
+    Everything else must stay byte-for-byte canonical.
     """
     extension = STARTER_TEMPLATE / "_extensions" / "quarto-needs"
-    assert runtime_assets(extension) == runtime_assets(SOURCE)
+    starter_assets = runtime_assets(extension)
+    source_assets = runtime_assets(SOURCE)
+    starter_manifest = starter_assets.pop(Path("_extension.yml"))
+    source_assets.pop(Path("_extension.yml"))
+
+    assert starter_assets == source_assets
+    assert b"_extensions/quarto-needs/bootstrap-entry.py" in starter_manifest
 
 
 def test_the_starter_template_declares_itself_a_quarto_template():
@@ -89,13 +98,10 @@ def test_the_starter_template_ships_one_working_need():
     ["quarto-needs"],
 )
 def test_every_example_extension_matches_the_canonical_assets(example: str):
-    """Every committed example extension copy stays in sync with the source.
-
-    Without this, a new or changed extension asset would silently leave a
-    stale vendored copy behind (the pre-render sync repairs it only at the
-    next render).
-    """
-    extension = ROOT / "examples" / example / "_extensions" / "quarto-needs"
+    """Every committed example extension copy stays in sync with the source."""
+    extension = (
+        ROOT / "examples" / example / "_extensions" / "lsbjordao" / "quarto-needs"
+    )
     assert runtime_assets(extension) == runtime_assets(SOURCE)
 
 
@@ -111,13 +117,13 @@ def test_pre_render_synchronizes_all_canonical_extension_assets(tmp_path: Path):
         text=True,
     )
 
-    target = tmp_path / "_extensions" / "quarto-needs"
+    target = tmp_path / "_extensions" / "lsbjordao" / "quarto-needs"
     assert runtime_assets(target) == runtime_assets(SOURCE)
 
 
 def test_sync_leaves_project_generated_index_untouched(tmp_path: Path):
     """Sync must not overwrite the graph index generated for this project."""
-    target = tmp_path / "_extensions" / "quarto-needs"
+    target = tmp_path / "_extensions" / "lsbjordao" / "quarto-needs"
     target.mkdir(parents=True)
     generated_index = target / "generated-index.lua"
     generated_index.write_text('return { ["LOCAL"] = {} }\n', encoding="utf-8")
@@ -129,7 +135,7 @@ def test_sync_leaves_project_generated_index_untouched(tmp_path: Path):
 
 def test_sync_removes_stale_runtime_files_and_directories(tmp_path: Path):
     """A removed canonical asset must not remain installed in the project."""
-    target = tmp_path / "_extensions" / "quarto-needs"
+    target = tmp_path / "_extensions" / "lsbjordao" / "quarto-needs"
     stale_file = target / "obsolete.lua"
     stale_directory = target / "obsolete-assets"
     stale_file.parent.mkdir(parents=True)
@@ -144,6 +150,23 @@ def test_sync_removes_stale_runtime_files_and_directories(tmp_path: Path):
     assert not stale_file.exists()
     assert not stale_directory.exists()
     assert generated_index.read_text(encoding="utf-8") == 'return { ["LOCAL"] = {} }\n'
+
+
+def test_sync_refuses_an_extensions_symlink_outside_the_project(tmp_path: Path):
+    """The repository helper must fail before copying through an escaped symlink."""
+    project = tmp_path / "project"
+    outside = tmp_path / "outside"
+    project.mkdir()
+    outside.mkdir()
+    try:
+        (project / "_extensions").symlink_to(outside, target_is_directory=True)
+    except OSError as error:
+        pytest.skip(f"symlink creation is unavailable: {error}")
+
+    with pytest.raises(RuntimeError, match="_extensions outside project"):
+        pre_render_module().sync_extension(project)
+
+    assert list(outside.iterdir()) == []
 
 
 def test_pre_render_synchronizes_then_builds_exactly_once(

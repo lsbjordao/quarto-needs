@@ -2,16 +2,9 @@
 
 From an empty directory to a rendered, traceable requirement.
 
-You need [Quarto](https://quarto.org) 1.6 or later, and Python 3.10 or later
-with `pip` available. Python is a platform prerequisite, the same way a
-LaTeX installation is for PDF output — you do not separately install
-Quarto-Needs through it. The extension provisions its own engine the first
-time you render.
+You need [Quarto](https://quarto.org) 1.6 or later, and Python 3.10 or later with `pip` available. Python is a platform prerequisite; you do not separately install Quarto-Needs through it for ordinary rendering. The extension provisions its paired engine the first time you render.
 
-> **Starting a brand-new project?** `quarto use template lsbjordao/quarto-needs/templates/starter`
-> does steps 1 and 2 below in one command: it installs the extension, and the
-> generated `_quarto.yml` already has `filters: [quarto-needs]` activated. Skip
-> to [step 3](#3-write-a-requirement) if you use it.
+> **Starting a brand-new project?** `quarto use template lsbjordao/quarto-needs/templates/starter` does steps 1 and 2 below in one command: it bundles the extension and the generated `_quarto.yml` already has `filters: [quarto-needs]` activated. Skip to [step 3](#3-write-a-requirement) if you use it.
 
 ## 1. Add the extension
 
@@ -19,16 +12,14 @@ time you render.
 quarto add lsbjordao/quarto-needs
 ```
 
-This creates `_extensions/quarto-needs/` in your project.
+Quarto installs GitHub extensions under the repository-owner namespace, so this creates `_extensions/lsbjordao/quarto-needs/` in your project.
 
-> **Before the repository is public**, `quarto add` reports *"Extension not
-> found in local or remote sources"* — it resolves the repository anonymously
-> and gets a 404. Copy the directory out of your local clone instead:
->
-> ```bash
-> mkdir -p _extensions
-> cp -r /path/to/quarto-needs/_extensions/quarto-needs _extensions/
-> ```
+For local development from a clone, reproduce that same layout explicitly:
+
+```bash
+mkdir -p _extensions/lsbjordao
+cp -r /path/to/quarto-needs/_extensions/quarto-needs _extensions/lsbjordao/
+```
 
 ## 2. Activate it
 
@@ -42,24 +33,9 @@ filters:
   - quarto-needs
 ```
 
-That is the whole configuration. Activating the filter also installs the
-extension's own pre-render step — you do not author one.
+That is the whole configuration. Activating the filter also installs the extension's own pre-render step — you do not author one.
 
-> **Updating a project that predates this?** Earlier versions asked for two
-> extra pieces: `pip install quarto-needs` and a hand-authored pre-render in
-> `_quarto.yml`, typically:
->
-> ```yaml
-> project:
->   pre-render:
->     - quarto-needs scan
-> ```
->
-> Both are obsolete. Delete the `pre-render` entry — the extension supplies
-> its own, and leaving the old line in makes the render depend on a
-> `quarto-needs` command the extension-first install never puts on `PATH`.
-> The `pip install` becomes optional tooling (see [below](#optional-the-standalone-cli-and-editor-tooling)).
-> Your requirements, configuration, and rendered output do not change.
+> **Updating a project that predates this?** Earlier versions asked for two extra pieces: `pip install quarto-needs` and a hand-authored pre-render in `_quarto.yml`, typically `quarto-needs scan`. Both are obsolete for rendering. Delete the hand-authored `pre-render` entry; the extension supplies its own. The standalone Python package remains optional tooling (see below).
 
 ## 3. Write a requirement
 
@@ -88,9 +64,7 @@ Signs a user in and asserts the session is established.
 Approved requirements: {{< need-count types="functional-requirement" status="approved" >}}
 ````
 
-The `#REQ-1` is the identifier you will reference from everywhere else. The
-attributes are ordinary Pandoc Div attributes, so they stay structured in the
-AST rather than being parsed out of prose.
+The `#REQ-1` is the identifier you will reference from everywhere else. The attributes are ordinary Pandoc Div attributes, so they stay structured in the AST rather than being parsed out of prose.
 
 ## 4. Render
 
@@ -98,13 +72,9 @@ AST rather than being parsed out of prose.
 quarto render
 ```
 
-The first render provisions the engine into `.quarto-needs/runtime/` — a
-project-local, version-pinned install that nothing outside this project ever
-sees. It contacts the package index once, for that first render only; every
-render after it reuses the cached engine and needs no network access at all.
+The first render provisions the exact engine version paired with the extension into `.quarto-needs/runtime/`, a project-local managed runtime. A released extension therefore expects its matching `quarto-needs` Python package version to be available from PyPI. Later renders reuse the validated runtime and do not need to reinstall it.
 
-Open `index.html`. You should see the requirement as a card with type, status,
-and priority badges, and the count resolving to `1`.
+Open `index.html`. You should see the requirement as a card with type, status, and priority badges, and the count resolving to `1`.
 
 ## 5. Link them
 
@@ -114,36 +84,23 @@ Change `REQ-1` to declare its verification:
 ::: {.need #REQ-1 type=functional-requirement status=approved priority=high verified-by="TC-1"}
 ```
 
-Render again. The card now carries a **Need relations** section linking to the
-test case, and the test case carries a **Need backlinks** section pointing back.
-You wrote one edge; both ends know about it.
+Render again. The card now carries a **Need relations** section linking to the test case, and the test case carries a **Need backlinks** section pointing back. You wrote one edge; both ends know about it.
 
 ## Where to go next
 
-- **Views** — `need-table`, `need-list`, `need-matrix`, and `need-flow` render
-  filtered, linked collections. See the README's *Generated views*.
-- **Governance** — add `.quarto-needs.toml` to declare required attributes,
-  relation policies, named queries, and quality gates that fail your build. See
-  the README's *Configuration*.
-- **Change intelligence** — `baseline create`, then `diff` and `impact` to see
-  what changed between two states of the project and what it reaches. See
-  *Optional: the standalone CLI and editor tooling* below.
+- **Views** — `need-table`, `need-list`, `need-matrix`, and `need-flow` render filtered, linked collections.
+- **Governance** — add `.quarto-needs.toml` to declare required attributes, relation policies, named queries, and quality gates.
+- **Change intelligence** — install the optional CLI, create a baseline, then use `diff` and `impact` to inspect engineering changes.
 
 ## Optional: the standalone CLI and editor tooling
 
-Rendering never needs it, but engineering and CI users who want the graph
-directly — outside of what a rendered page shows — can install the same
-engine as an ordinary Python package:
+Rendering never needs a globally installed CLI, but engineering and CI users who want the graph directly can install the same engine as an ordinary Python package:
 
 ```bash
 pip install quarto-needs
 ```
 
-> **Before the first release.** The package is not on PyPI yet, and the
-> repository is not public, so this resolves only from a local clone you
-> already have access to: `pip install /path/to/quarto-needs`.
-
-This puts a `quarto-needs` console script on `PATH` and unlocks:
+This puts a `quarto-needs` console script on `PATH` and unlocks commands such as:
 
 ```bash
 quarto-needs trace REQ-1
@@ -153,48 +110,20 @@ quarto-needs impact --git main..HEAD
 quarto-needs lsp
 ```
 
-The document and the command line read the same graph, so they cannot
-disagree — but they are two independent installs that you update separately.
-A project's `quarto render` never depends on this one being present, and this
-one is never substituted in for the render's own managed engine even when
-both happen to be on the same machine: the extension always uses the exact
-version it provisioned for itself.
+The extension-managed runtime and the optional global/virtualenv CLI are independent installations. A project's `quarto render` always uses the exact engine version paired with the installed extension.
 
 ## Troubleshooting
 
-**The card renders but shortcodes show as literal `{{< … >}}`.** The extension
-is not registered. Check that `filters: [quarto-needs]` is in `_quarto.yml`
-and that `_extensions/quarto-needs/` exists.
+**The card renders but shortcodes show as literal `{{< … >}}`.** The extension is not registered. Check that `filters: [quarto-needs]` is in `_quarto.yml` and that `_extensions/lsbjordao/quarto-needs/` exists for the canonical GitHub install.
 
-**The first render is slow, or fails with a network error.** The first render
-in a project provisions the engine, which needs to reach the package index
-once. On a machine with no network access, prepare the project on a
-connected machine first and commit nothing from `.quarto-needs/` — it is
-generated state — or set `QUARTO_NEEDS_ENGINE_SOURCE` to a local wheel or
-checkout path before rendering, which installs from there instead of the
-index.
+**The first render fails with a provisioning error.** Check that Python 3.10+ and `pip` are available and that the matching `quarto-needs` version can be installed. For local development or an offline package mirror, set `QUARTO_NEEDS_ENGINE_SOURCE` to a local wheel or checkout path before rendering.
 
-**A later render still tries to reach the network.** It should not: once
-`.quarto-needs/runtime/<version>/<python-tag>-<platform>-<machine>/` (for
-example `0.1.0/cpython-313-linux-x86_64`) holds a validated engine, every
-later render reuses it with no network access at all. If a render still
-reaches out, something removed or corrupted that directory — see below.
+**A later render unexpectedly reprovisions.** Once `.quarto-needs/runtime/<version>/<python-tag>-<platform>-<machine>/` contains a validated engine, later renders reuse it. If that directory was removed or corrupted, the bootstrap provisions it again.
 
-**The render fails with a provisioning error.** The message names the engine
-version it needed, that no valid runtime existed, and the two ways to
-recover: render again with network access, or set
-`QUARTO_NEEDS_ENGINE_SOURCE` to a local engine. Bootstrap failures deliberately
-fail the render rather than continuing with an empty graph.
+**Force a clean reprovision.** Delete `.quarto-needs/runtime/` and render again. It is generated state and safe to remove.
 
-**Force a clean reprovision.** Delete `.quarto-needs/runtime/` and render
-again. It is generated state, safe to remove any time, and the next render
-rebuilds it from scratch.
-
-**A warning names two versions.** Your extension and a graph it is reading
-disagree on schema — typically a `.quarto-needs/needs.json` left over from
-before the extension was updated. Delete `.quarto-needs/` and render again.
+**A warning names two versions.** Your extension and an existing graph disagree on schema, typically because `.quarto-needs/needs.json` predates an extension update. Delete `.quarto-needs/` and render again.
 
 ---
 
-*Every command on this page was executed in order, from an empty directory,
-against the version of Quarto-Needs it ships with.*
+*The release gate exercises this same owner-namespaced installation layout, including a project path containing spaces, HTML/DOCX/PDF output, and an offline second render.*

@@ -21,12 +21,22 @@ is incomplete.
 
 ## Canonical extension location
 
-`_extensions/quarto-needs/` at the repository root is canonical. Never edit
-`examples/quarto-needs/_extensions/quarto-needs/` by hand: the pre-render
-helper (`tools/quarto_needs_pre_render.py`) copies every canonical asset into
-the example before building the graph, and `tests/test_extension_sync.py` fails
-when the two diverge. `generated-index.lua` is the one deliberate
-exception — it stays project-generated instead of copied.
+`_extensions/quarto-needs/` at the repository root is the canonical **source**.
+A normal GitHub install (`quarto add lsbjordao/quarto-needs`) is owner-scoped at
+`_extensions/lsbjordao/quarto-needs/`; the self-hosted example mirrors that real
+consumer layout and is synchronized by `tools/quarto_needs_pre_render.py`.
+
+The starter template is the deliberate exception: it currently vendors the
+same runtime assets under `_extensions/quarto-needs/` with a template-specific
+manifest. Quarto 1.10.x still has an open upstream bug copying owner-scoped
+extension directories from `quarto use template`, so keeping the starter
+unscoped preserves a working template without changing the public `quarto add`
+contract. `tests/test_extension_sync.py` requires every non-manifest starter
+asset to stay byte-for-byte equal to the canonical source.
+
+Never edit the self-hosted example's vendored runtime by hand.
+`generated-index.lua` is project-generated and therefore excluded from source
+synchronization.
 
 ## Fixture policy
 

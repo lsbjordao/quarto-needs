@@ -153,56 +153,74 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./c4-architecture.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>  <span class="chapter-title">C4 Architecture Projections</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./executable-evidence.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">6</span>  <span class="chapter-title">Executable verification and machine evidence</span></span></a>
+ <span class="menu-text"><span class="chapter-number">7</span>  <span class="chapter-title">Executable verification and machine evidence</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./evidence-providers.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">7</span>  <span class="chapter-title">Machine evidence providers</span></span></a>
+ <span class="menu-text"><span class="chapter-number">8</span>  <span class="chapter-title">Machine evidence providers</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./governance.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">8</span>  <span class="chapter-title">Governance and quality</span></span></a>
+ <span class="menu-text"><span class="chapter-number">9</span>  <span class="chapter-title">Governance and quality</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./declarative-policies.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">9</span>  <span class="chapter-title">Declarative engineering policies</span></span></a>
+ <span class="menu-text"><span class="chapter-number">10</span>  <span class="chapter-title">Declarative engineering policies</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./type-schemas.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">10</span>  <span class="chapter-title">Per-type attribute schemas</span></span></a>
+ <span class="menu-text"><span class="chapter-number">11</span>  <span class="chapter-title">Per-type attribute schemas</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./graph-constraints.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">11</span>  <span class="chapter-title">Declarative graph constraints</span></span></a>
+ <span class="menu-text"><span class="chapter-number">12</span>  <span class="chapter-title">Declarative graph constraints</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./derived-variants.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">12</span>  <span class="chapter-title">Derived fields and build variants</span></span></a>
+ <span class="menu-text"><span class="chapter-number">13</span>  <span class="chapter-title">Derived fields and build variants</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./interoperability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>  <span class="chapter-title">Interoperability and Federation</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./migrations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>  <span class="chapter-title">Migrating from Other Tools</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./language-server.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">13</span>  <span class="chapter-title">Language server and editor authoring</span></span></a>
+ <span class="menu-text"><span class="chapter-number">16</span>  <span class="chapter-title">Language server and editor authoring</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./reference.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">14</span>  <span class="chapter-title">Practical reference</span></span></a>
+ <span class="menu-text"><span class="chapter-number">17</span>  <span class="chapter-title">Practical reference</span></span></a>
   </div>
 </li>
     </ul>
@@ -215,7 +233,8 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
   <ul>
 <li><a href="#need-blocks" id="toc-need-blocks" class="nav-link active" data-scroll-target="#need-blocks"><span class="header-section-number">4.1</span> <code>.need</code> blocks</a></li>
   <li><a href="#references-and-views" id="toc-references-and-views" class="nav-link" data-scroll-target="#references-and-views"><span class="header-section-number">4.2</span> References and views</a></li>
-  <li><a href="#prefix-configuration" id="toc-prefix-configuration" class="nav-link" data-scroll-target="#prefix-configuration"><span class="header-section-number">4.3</span> Prefix configuration</a></li>
+  <li><a href="#tag-index-and-deep-linking" id="toc-tag-index-and-deep-linking" class="nav-link" data-scroll-target="#tag-index-and-deep-linking"><span class="header-section-number">4.3</span> Tag index and deep linking</a></li>
+  <li><a href="#prefix-configuration" id="toc-prefix-configuration" class="nav-link" data-scroll-target="#prefix-configuration"><span class="header-section-number">4.4</span> Prefix configuration</a></li>
   </ul></nav>
 </div>
 <!-- main -->
@@ -262,26 +281,45 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 <div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb2"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>{{&lt; need NFR-001 title=true &gt;}}</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>{{&lt; need-table types="architecture-decision" columns="id;title;status" &gt;}}</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>{{&lt; need-flow root="NFR-001" depth="4" direction="LR" &gt;}}</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>{{&lt; need-inspector ADR-002 &gt;}}</span></code></pre></div>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>{{&lt; need-matrix rows="functional-requirement" columns="test-case" relation="verified-by" &gt;}}</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>{{&lt; need-flow root="NFR-001" depth="4" direction="LR" &gt;}}</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>{{&lt; need-inspector ADR-002 &gt;}}</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>{{&lt; need-graph view="graph-exploration" &gt;}}</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>{{&lt; need-c4 root="SYS-001" level="context" &gt;}}</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>{{&lt; adr-table status="accepted" &gt;}}</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>{{&lt; adr-count status="accepted" &gt;}}</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p>Views read the canonical artifact; they do not reimplement semantic rules in the renderer.</p>
-</section><section id="prefix-configuration" class="level2" data-number="4.3"><h2 data-number="4.3" class="anchored" data-anchor-id="prefix-configuration">
-<span class="header-section-number">4.3</span> Prefix configuration</h2>
+</section><section id="tag-index-and-deep-linking" class="level2" data-number="4.3"><h2 data-number="4.3" class="anchored" data-anchor-id="tag-index-and-deep-linking">
+<span class="header-section-number">4.3</span> Tag index and deep linking</h2>
+<p>For a clickable tag catalog, create a chapter (e.g. <code>tags.qmd</code>) containing:</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb3"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>{{&lt; need-tags &gt;}}</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>This shortcode renders interactive tag chips and a consolidated table of all tagged objects. To link every tag badge across the site into this page, configure <code>_quarto.yml</code>:</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb4"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">quarto-needs</span><span class="kw">:</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">tags-page</span><span class="kw">:</span><span class="at"> tags</span></span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>When configured, clicking any tag badge anywhere in the project navigates to <code>tags.html?tag=&lt;slug&gt;</code> with that tag pre-filtered.</p>
+</section><section id="prefix-configuration" class="level2" data-number="4.4"><h2 data-number="4.4" class="anchored" data-anchor-id="prefix-configuration">
+<span class="header-section-number">4.4</span> Prefix configuration</h2>
 <p>Prefixes are declared per type:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb3"><pre class="sourceCode toml code-with-copy"><code class="sourceCode toml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[types.system-requirement]</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="dt">id-prefix</span> <span class="op">=</span> <span class="st">"SYS-"</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="kw">[types.architecture-decision]</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="dt">id-prefix</span> <span class="op">=</span> <span class="st">"ADR-"</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode toml code-with-copy"><code class="sourceCode toml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[types.system-requirement]</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="dt">id-prefix</span> <span class="op">=</span> <span class="st">"SYS-"</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="kw">[types.architecture-decision]</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="dt">id-prefix</span> <span class="op">=</span> <span class="st">"ADR-"</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p>When configured, an incompatible ID produces <code>ID001</code>. For a project that needs a compound namespace:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb4"><pre class="sourceCode toml code-with-copy"><code class="sourceCode toml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[types.architecture-decision]</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="dt">id-prefix</span> <span class="op">=</span> <span class="st">"PAY-ADR-"</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode toml code-with-copy"><code class="sourceCode toml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[types.architecture-decision]</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="dt">id-prefix</span> <span class="op">=</span> <span class="st">"PAY-ADR-"</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p>When the project context already defines the domain, use shorter prefixes. The goal is readable identity, not ritual namespace repetition.</p>

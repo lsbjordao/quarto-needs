@@ -44,7 +44,17 @@
     "href": "getting-started.html",
     "title": "2  Getting started",
     "section": "",
-    "text": "2.1 Minimal structure\nA Quarto-Needs project is a Quarto project with the extension installed and an optional policy in .quarto-needs.toml.\nRegister the filter in _quarto.yml:",
+    "text": "2.1 Install and activate the extension\nYou need Quarto 1.6 or later and Python 3.10 or later with pip available. For ordinary rendering, install Quarto-Needs as a Quarto extension:\nA direct GitHub install is stored by Quarto under _extensions/lsbjordao/quarto-needs/. Installation alone does not activate the extension. Register the filter in _quarto.yml:\nThen render normally:\nThe extension supplies its own pre-render step and provisions the matching Python engine into a project-local managed runtime. You do not need to add project.pre-render: quarto-needs scan or install the standalone CLI just to render.\nFor a new project, the starter template bundles and activates the extension:",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Getting started</span>"
+    ]
+  },
+  {
+    "objectID": "getting-started.html#install-and-activate-the-extension",
+    "href": "getting-started.html#install-and-activate-the-extension",
+    "title": "2  Getting started",
+    "section": "",
+    "text": "quarto add lsbjordao/quarto-needs\n\nfilters:\n  - quarto-needs\n\nquarto render\n\n\nquarto use template lsbjordao/quarto-needs/templates/starter",
     "crumbs": [
       "<span class='chapter-number'>2</span>  <span class='chapter-title'>Getting started</span>"
     ]
@@ -53,8 +63,8 @@
     "objectID": "getting-started.html#minimal-structure",
     "href": "getting-started.html#minimal-structure",
     "title": "2  Getting started",
-    "section": "",
-    "text": "my-project/\n├── _quarto.yml\n├── .quarto-needs.toml\n├── index.qmd\n├── requirements.qmd\n└── architecture.qmd\n\nfilters:\n  - quarto-needs",
+    "section": "2.2 Minimal structure",
+    "text": "2.2 Minimal structure\nA Quarto-Needs project is a Quarto project with the extension installed and an optional policy in .quarto-needs.toml.\nmy-project/\n├── _quarto.yml\n├── .quarto-needs.toml\n├── index.qmd\n├── requirements.qmd\n└── architecture.qmd",
     "crumbs": [
       "<span class='chapter-number'>2</span>  <span class='chapter-title'>Getting started</span>"
     ]
@@ -63,8 +73,8 @@
     "objectID": "getting-started.html#optional-margin-sidebar-toggle",
     "href": "getting-started.html#optional-margin-sidebar-toggle",
     "title": "2  Getting started",
-    "section": "2.2 Optional margin-sidebar toggle",
-    "text": "2.2 Optional margin-sidebar toggle\nFor HTML books and websites that use Quarto’s right-hand page table of contents, Quarto-Needs can add a persistent collapse/expand control:\nquarto-needs:\n  margin-sidebar-toggle: true\nThe option is disabled by default. When enabled, the control targets Quarto’s #quarto-margin-sidebar, stores the reader’s preference in the browser, and expands the content layout while the margin sidebar is collapsed. On narrow viewports, Quarto’s own responsive layout remains authoritative.\nThis option is independent of the left navigation sidebar. For a Quarto Book, use Quarto’s native book.sidebar.collapse-level option to control how deeply the left navigation tree is expanded by default.",
+    "section": "2.3 Optional margin-sidebar toggle",
+    "text": "2.3 Optional margin-sidebar toggle\nFor HTML books and websites that use Quarto’s right-hand page table of contents, Quarto-Needs can add a persistent collapse/expand control:\nquarto-needs:\n  margin-sidebar-toggle: true\nThe option is disabled by default. When enabled, the control targets Quarto’s #quarto-margin-sidebar, stores the reader’s preference in the browser, and expands the content layout while the margin sidebar is collapsed. On narrow viewports, Quarto’s own responsive layout remains authoritative.\nThis option is independent of the left navigation sidebar. For a Quarto Book, use Quarto’s native book.sidebar.collapse-level option to control how deeply the left navigation tree is expanded by default.",
     "crumbs": [
       "<span class='chapter-number'>2</span>  <span class='chapter-title'>Getting started</span>"
     ]
@@ -73,8 +83,8 @@
     "objectID": "getting-started.html#first-object",
     "href": "getting-started.html#first-object",
     "title": "2  Getting started",
-    "section": "2.3 First object",
-    "text": "2.3 First object\n::: {.need #REQ-001 type=\"system-requirement\" status=\"approved\" priority=\"high\" tags=\"security\"}\n## Authenticate before issuing a session\n\nThe system shall authenticate the identity before issuing a session.\n\n### Rationale\n\nPrevents sessions from being created for unauthenticated requesters.\n:::\nEach block declares an object with an ID, type, status, attributes, body, and relations. The parser turns those declarations into a canonical snapshot before rendering.",
+    "section": "2.4 First object",
+    "text": "2.4 First object\n::: {.need #REQ-001 type=\"system-requirement\" status=\"approved\" priority=\"high\" tags=\"security\"}\n## Authenticate before issuing a session\n\nThe system shall authenticate the identity before issuing a session.\n\n### Rationale\n\nPrevents sessions from being created for unauthenticated requesters.\n:::\nEach block declares an object with an ID, type, status, attributes, body, and relations. The parser turns those declarations into a canonical snapshot before rendering.",
     "crumbs": [
       "<span class='chapter-number'>2</span>  <span class='chapter-title'>Getting started</span>"
     ]
@@ -83,18 +93,18 @@
     "objectID": "getting-started.html#relations",
     "href": "getting-started.html#relations",
     "title": "2  Getting started",
-    "section": "2.4 Relations",
-    "text": "2.4 Relations\n::: {.need #REQ-002 type=\"functional-requirement\" status=\"approved\"}\nderives-from: REQ-001\nimplemented-by: COMP-001\nverified-by: TC-001\n\n## Require a second factor\n...\n:::\nRelations are typed. The catalog defines semantic family, direct/inverse labels, source/target roles, and impact-propagation direction.",
+    "section": "2.5 Relations",
+    "text": "2.5 Relations\n::: {.need #REQ-002 type=\"functional-requirement\" status=\"approved\"}\nderives-from: REQ-001\nimplemented-by: COMP-001\nverified-by: TC-001\n\n## Require a second factor\n...\n:::\nRelations are typed. The catalog defines semantic family, direct/inverse labels, source/target roles, and impact-propagation direction.",
     "crumbs": [
       "<span class='chapter-number'>2</span>  <span class='chapter-title'>Getting started</span>"
     ]
   },
   {
-    "objectID": "getting-started.html#core-commands",
-    "href": "getting-started.html#core-commands",
+    "objectID": "getting-started.html#optional-standalone-cli",
+    "href": "getting-started.html#optional-standalone-cli",
     "title": "2  Getting started",
-    "section": "2.5 Core commands",
-    "text": "2.5 Core commands\nquarto-needs scan\nquarto-needs check\nquarto-needs coverage\nquarto-needs trace REQ-001\nquarto-needs quality\nscan materializes declarations, check applies validation and rules, coverage summarizes traceability, trace traverses the graph, and quality evaluates configured metrics and gates.",
+    "section": "2.6 Optional standalone CLI",
+    "text": "2.6 Optional standalone CLI\nThe extension-managed runtime is enough for quarto render. Install the Python package separately only when you want command-line engineering workflows or editor tooling:\npip install quarto-needs\nThat installation provides:\nquarto-needs scan\nquarto-needs check\nquarto-needs coverage\nquarto-needs trace REQ-001\nquarto-needs quality\nscan materializes declarations, check applies validation and rules, coverage summarizes traceability, trace traverses the graph, and quality evaluates configured metrics and gates.",
     "crumbs": [
       "<span class='chapter-number'>2</span>  <span class='chapter-title'>Getting started</span>"
     ]
@@ -103,8 +113,8 @@
     "objectID": "getting-started.html#multilingual-manual",
     "href": "getting-started.html#multilingual-manual",
     "title": "2  Getting started",
-    "section": "2.6 Multilingual manual",
-    "text": "2.6 Multilingual manual\nThis manual uses babelquarto: unsuffixed files are the canonical English source and *.pt-BR.qmd contains the Brazilian Portuguese translation. IDs, relation keywords, and structured examples remain invariant across languages.",
+    "section": "2.7 Multilingual manual",
+    "text": "2.7 Multilingual manual\nThis manual uses babelquarto: unsuffixed files are the canonical English source and *.pt-BR.qmd contains the Brazilian Portuguese translation. IDs, relation keywords, and structured examples remain invariant across languages.",
     "crumbs": [
       "<span class='chapter-number'>2</span>  <span class='chapter-title'>Getting started</span>"
     ]
@@ -204,7 +214,17 @@
     "href": "authoring.html#references-and-views",
     "title": "4  Authoring in Quarto",
     "section": "4.2 References and views",
-    "text": "4.2 References and views\nThe book can project the graph with shortcodes such as:\n{{&lt; need NFR-001 title=true &gt;}}\n{{&lt; need-table types=\"architecture-decision\" columns=\"id;title;status\" &gt;}}\n{{&lt; need-flow root=\"NFR-001\" depth=\"4\" direction=\"LR\" &gt;}}\n{{&lt; need-inspector ADR-002 &gt;}}\nViews read the canonical artifact; they do not reimplement semantic rules in the renderer.",
+    "text": "4.2 References and views\nThe book can project the graph with shortcodes such as:\n{{&lt; need NFR-001 title=true &gt;}}\n{{&lt; need-table types=\"architecture-decision\" columns=\"id;title;status\" &gt;}}\n{{&lt; need-matrix rows=\"functional-requirement\" columns=\"test-case\" relation=\"verified-by\" &gt;}}\n{{&lt; need-flow root=\"NFR-001\" depth=\"4\" direction=\"LR\" &gt;}}\n{{&lt; need-inspector ADR-002 &gt;}}\n{{&lt; need-graph view=\"graph-exploration\" &gt;}}\n{{&lt; need-c4 root=\"SYS-001\" level=\"context\" &gt;}}\n{{&lt; adr-table status=\"accepted\" &gt;}}\n{{&lt; adr-count status=\"accepted\" &gt;}}\nViews read the canonical artifact; they do not reimplement semantic rules in the renderer.",
+    "crumbs": [
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Authoring in Quarto</span>"
+    ]
+  },
+  {
+    "objectID": "authoring.html#tag-index-and-deep-linking",
+    "href": "authoring.html#tag-index-and-deep-linking",
+    "title": "4  Authoring in Quarto",
+    "section": "4.3 Tag index and deep linking",
+    "text": "4.3 Tag index and deep linking\nFor a clickable tag catalog, create a chapter (e.g. tags.qmd) containing:\n{{&lt; need-tags &gt;}}\nThis shortcode renders interactive tag chips and a consolidated table of all tagged objects. To link every tag badge across the site into this page, configure _quarto.yml:\nquarto-needs:\n  tags-page: tags\nWhen configured, clicking any tag badge anywhere in the project navigates to tags.html?tag=&lt;slug&gt; with that tag pre-filtered.",
     "crumbs": [
       "<span class='chapter-number'>4</span>  <span class='chapter-title'>Authoring in Quarto</span>"
     ]
@@ -213,8 +233,8 @@
     "objectID": "authoring.html#prefix-configuration",
     "href": "authoring.html#prefix-configuration",
     "title": "4  Authoring in Quarto",
-    "section": "4.3 Prefix configuration",
-    "text": "4.3 Prefix configuration\nPrefixes are declared per type:\n[types.system-requirement]\nid-prefix = \"SYS-\"\n\n[types.architecture-decision]\nid-prefix = \"ADR-\"\nWhen configured, an incompatible ID produces ID001. For a project that needs a compound namespace:\n[types.architecture-decision]\nid-prefix = \"PAY-ADR-\"\nWhen the project context already defines the domain, use shorter prefixes. The goal is readable identity, not ritual namespace repetition.",
+    "section": "4.4 Prefix configuration",
+    "text": "4.4 Prefix configuration\nPrefixes are declared per type:\n[types.system-requirement]\nid-prefix = \"SYS-\"\n\n[types.architecture-decision]\nid-prefix = \"ADR-\"\nWhen configured, an incompatible ID produces ID001. For a project that needs a compound namespace:\n[types.architecture-decision]\nid-prefix = \"PAY-ADR-\"\nWhen the project context already defines the domain, use shorter prefixes. The goal is readable identity, not ritual namespace repetition.",
     "crumbs": [
       "<span class='chapter-number'>4</span>  <span class='chapter-title'>Authoring in Quarto</span>"
     ]
@@ -300,643 +320,773 @@
     ]
   },
   {
+    "objectID": "c4-architecture.html",
+    "href": "c4-architecture.html",
+    "title": "6  C4 Architecture Projections",
+    "section": "",
+    "text": "6.1 Architecture Elements\nQuarto-Needs integrates the C4 model (Context, Container, Component, Code) into the canonical engineering graph. Rather than creating architecture diagrams in external drawing tools that drift from requirements, architecture elements are first-class engineering objects connected by typed relations.\nC4 elements are authored using standard .need blocks with dedicated types:",
+    "crumbs": [
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>C4 Architecture Projections</span>"
+    ]
+  },
+  {
+    "objectID": "c4-architecture.html#architecture-elements",
+    "href": "c4-architecture.html#architecture-elements",
+    "title": "6  C4 Architecture Projections",
+    "section": "",
+    "text": "Type\nC4 Level\nSuggested Prefix\nRole\n\n\n\n\nsystem\nContext / Container\nSYS-\narchitecture-element\n\n\nexternal-system\nContext\nEXT-\narchitecture-element\n\n\nactor\nContext\nACTOR-\narchitecture-element\n\n\ncontainer\nContainer\nCONTAINER-\narchitecture-element\n\n\ncomponent\nComponent\nCOMP-\narchitecture-element\n\n\nsource-module\nCode\nSRC-\nimplementation-artifact",
+    "crumbs": [
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>C4 Architecture Projections</span>"
+    ]
+  },
+  {
+    "objectID": "c4-architecture.html#hierarchical-relations",
+    "href": "c4-architecture.html#hierarchical-relations",
+    "title": "6  C4 Architecture Projections",
+    "section": "6.2 Hierarchical Relations",
+    "text": "6.2 Hierarchical Relations\nC4 diagrams derive structure from two primary relations:\n\npart-of: defines structural containment.\n\ncontainer is part-of a system\ncomponent is part-of a container\nsource-module is part-of a component\n\ndepends-on: defines interaction and dependencies between elements.\n\nExample:\n::: {.need #SYS-APP type=\"system\" status=\"approved\"}\n## Enterprise Application\nCore transaction and management platform.\n:::\n\n::: {.need #CONTAINER-API type=\"container\" status=\"approved\" technology=\"FastAPI / Python\" part-of=\"SYS-APP\"}\n## REST API Container\nHandles business logic and external integrations.\n:::\n\n::: {.need #COMP-AUTH type=\"component\" status=\"implemented\" part-of=\"CONTAINER-API\"}\n## Authentication Service\nValidates bearer tokens and enforces permissions.\n:::",
+    "crumbs": [
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>C4 Architecture Projections</span>"
+    ]
+  },
+  {
+    "objectID": "c4-architecture.html#rendering-c4-diagrams",
+    "href": "c4-architecture.html#rendering-c4-diagrams",
+    "title": "6  C4 Architecture Projections",
+    "section": "6.3 Rendering C4 Diagrams",
+    "text": "6.3 Rendering C4 Diagrams\nUse the {{&lt; need-c4 &gt;}} shortcode to render architecture views:\n{{&lt; need-c4 root=\"SYS-APP\" level=\"context\" &gt;}}\n{{&lt; need-c4 root=\"SYS-APP\" level=\"container\" &gt;}}\n{{&lt; need-c4 root=\"CONTAINER-API\" level=\"component\" &gt;}}\n{{&lt; need-c4 root=\"COMP-AUTH\" level=\"code\" &gt;}}\n\n6.3.1 Supported Levels\n\ncontext: Focuses on a system and its interactions with actors and external-systems.\ncontainer: Zooms into a system to show its constituent containers and external connections.\ncomponent: Zooms into a container to reveal internal components and dependencies.\ncode: Materializes the implementation surface as a structured Markdown table of source-module artifacts, file paths, languages, and requirements implemented.\n\n\n\n6.3.2 Multiple Diagramming Backends\nQuarto-Needs supports multiple diagramming backends via the backend argument:\n{{&lt; need-c4 root=\"SYS-APP\" level=\"container\" backend=\"mermaid\" &gt;}}\n{{&lt; need-c4 root=\"SYS-APP\" level=\"container\" backend=\"plantuml\" &gt;}}\n{{&lt; need-c4 root=\"SYS-APP\" level=\"container\" backend=\"structurizr\" &gt;}}\n{{&lt; need-c4 root=\"SYS-APP\" level=\"container\" backend=\"d2\" &gt;}}\n\nmermaid (default): Embedded directly in HTML as responsive inline SVG.\nplantuml, structurizr, d2: If the respective tool is installed locally, pre-renders SVG/PNG assets; otherwise falls back gracefully to syntax-highlighted diagram source code.",
+    "crumbs": [
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>C4 Architecture Projections</span>"
+    ]
+  },
+  {
+    "objectID": "c4-architecture.html#architecture-governance-c4-rules",
+    "href": "c4-architecture.html#architecture-governance-c4-rules",
+    "title": "6  C4 Architecture Projections",
+    "section": "6.4 Architecture Governance (C4 Rules)",
+    "text": "6.4 Architecture Governance (C4 Rules)\nThe C4 rule engine validates diagram structural integrity:\n\n\n\n\n\n\n\nRule\nCheck\n\n\n\n\nC4001\nIn a Container view, every container must declare its parent system via part-of\n\n\nC4002\nIn a Component view, every component must declare its parent container via part-of\n\n\nC4003\nInter-element relations must have a descriptive label\n\n\nC4004\nHierarchy violations (e.g. cyclic containment or orphan boundaries) are rejected",
+    "crumbs": [
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>C4 Architecture Projections</span>"
+    ]
+  },
+  {
     "objectID": "executable-evidence.html",
     "href": "executable-evidence.html",
-    "title": "6  Executable verification and machine evidence",
+    "title": "7  Executable verification and machine evidence",
     "section": "",
-    "text": "6.1 Link pytest tests to engineering objects\nQuarto-Needs distinguishes three claims that are often collapsed into one:\nThis distinction prevents a green test suite from being treated automatically as proof for an unrelated requirement.\nThe Quarto-Needs pytest plugin provides two markers:\nrequirement identifies the engineering obligations claimed by the executable test. quarto_need_test_case binds the pytest node to one or more modeled test-case objects.\nThe model should carry the reciprocal executable binding:\nThe stable pytest node ID is a physical execution reference. It does not replace the modeled test-case, which remains the engineering verification object.",
+    "text": "7.1 Link pytest tests to engineering objects\nQuarto-Needs distinguishes three claims that are often collapsed into one:\nThis distinction prevents a green test suite from being treated automatically as proof for an unrelated requirement.\nThe Quarto-Needs pytest plugin provides two markers:\nrequirement identifies the engineering obligations claimed by the executable test. quarto_need_test_case binds the pytest node to one or more modeled test-case objects.\nThe model should carry the reciprocal executable binding:\nThe stable pytest node ID is a physical execution reference. It does not replace the modeled test-case, which remains the engineering verification object.",
     "crumbs": [
-      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Executable verification and machine evidence</span>"
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Executable verification and machine evidence</span>"
     ]
   },
   {
     "objectID": "executable-evidence.html#link-pytest-tests-to-engineering-objects",
     "href": "executable-evidence.html#link-pytest-tests-to-engineering-objects",
-    "title": "6  Executable verification and machine evidence",
+    "title": "7  Executable verification and machine evidence",
     "section": "",
     "text": "import pytest\n\n@pytest.mark.requirement(\"FUN-004\")\n@pytest.mark.quarto_need_test_case(\"TC-010\")\ndef test_graph_exploration_assets():\n    ...\n\n\n::: {.need #TC-010 type=\"test-case\" status=\"passed\"\n      pytest-nodeid=\"tests/test_graph.py::test_graph_exploration_assets\"\n      evidenced-by=\"EVD-010\"}\n## Interactive graph exploration regression\n...\n:::",
     "crumbs": [
-      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Executable verification and machine evidence</span>"
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Executable verification and machine evidence</span>"
     ]
   },
   {
     "objectID": "executable-evidence.html#generate-deterministic-provider-evidence",
     "href": "executable-evidence.html#generate-deterministic-provider-evidence",
-    "title": "6  Executable verification and machine evidence",
-    "section": "6.2 Generate deterministic provider evidence",
-    "text": "6.2 Generate deterministic provider evidence\nWriting an artifact is opt-in. Ordinary pytest runs have no Quarto-Needs file side effects.\npytest \\\n  --quarto-needs-evidence=.quarto-needs/evidence/pytest-provider.json\nThe same destination can be supplied with QUARTO_NEEDS_PYTEST_EVIDENCE.\nThe version-1 provider artifact is validated by schemas/evidence-pytest-v1.schema.json and contains deterministic semantic execution data:\n{\n  \"provider\": \"pytest\",\n  \"schemaVersion\": \"1\",\n  \"tests\": [\n    {\n      \"nodeid\": \"tests/test_graph.py::test_graph_exploration_assets\",\n      \"outcome\": \"passed\",\n      \"requirements\": [\"FUN-004\"],\n      \"testCases\": [\"TC-010\"]\n    }\n  ]\n}\nEvidence v1 intentionally exposes only passed, failed, and skipped. Pytest’s richer expected-failure semantics are normalized conservatively: an expected XFAIL is recorded as skipped, while any XPASS is recorded as failed, including a non-strict XPASS that pytest itself may report as a passing test. An unexpected pass therefore cannot become positive engineering evidence silently.\nTimestamps and durations are intentionally excluded from the provider payload so identical engineering results remain reproducible.",
+    "title": "7  Executable verification and machine evidence",
+    "section": "7.2 Generate deterministic provider evidence",
+    "text": "7.2 Generate deterministic provider evidence\nWriting an artifact is opt-in. Ordinary pytest runs have no Quarto-Needs file side effects.\npytest \\\n  --quarto-needs-evidence=.quarto-needs/evidence/pytest-provider.json\nThe same destination can be supplied with QUARTO_NEEDS_PYTEST_EVIDENCE.\nThe version-1 provider artifact is validated by schemas/evidence-pytest-v1.schema.json and contains deterministic semantic execution data:\n{\n  \"provider\": \"pytest\",\n  \"schemaVersion\": \"1\",\n  \"tests\": [\n    {\n      \"nodeid\": \"tests/test_graph.py::test_graph_exploration_assets\",\n      \"outcome\": \"passed\",\n      \"requirements\": [\"FUN-004\"],\n      \"testCases\": [\"TC-010\"]\n    }\n  ]\n}\nEvidence v1 intentionally exposes only passed, failed, and skipped. Pytest’s richer expected-failure semantics are normalized conservatively: an expected XFAIL is recorded as skipped, while any XPASS is recorded as failed, including a non-strict XPASS that pytest itself may report as a passing test. An unexpected pass therefore cannot become positive engineering evidence silently.\nTimestamps and durations are intentionally excluded from the provider payload so identical engineering results remain reproducible.",
     "crumbs": [
-      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Executable verification and machine evidence</span>"
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Executable verification and machine evidence</span>"
     ]
   },
   {
     "objectID": "executable-evidence.html#provider-neutral-attestation-envelope",
     "href": "executable-evidence.html#provider-neutral-attestation-envelope",
-    "title": "6  Executable verification and machine evidence",
-    "section": "6.3 Provider-neutral attestation envelope",
-    "text": "6.3 Provider-neutral attestation envelope\nExecution provenance belongs to a separate provider-neutral envelope defined by schemas/evidence-envelope-v1.schema.json. This preserves deterministic provider output while binding that output to a concrete engineering state.\nCreate an attestation from a provider payload with:\nquarto-needs --root . evidence attest \\\n  .quarto-needs/evidence/pytest-provider.json \\\n  --output .quarto-needs/evidence/pytest.json \\\n  --expires-hours 24\n--source-revision may be supplied explicitly. In GitHub Actions, GITHUB_SHA is captured automatically when no explicit revision is provided.\nAn envelope records:\n\nprovider name and version;\ngeneratedAt and optional expiresAt timestamps;\noptional source revision;\nthe current configuration, semantic-graph, and representation fingerprints;\nthe provider artifact schema;\na canonical SHA-256 digest of the embedded provider payload;\nthe provider payload itself.\n\nConceptually:\n{\n  \"schemaVersion\": \"1\",\n  \"kind\": \"quarto-needs-evidence\",\n  \"provider\": {\"name\": \"pytest\", \"version\": \"8.0\"},\n  \"generatedAt\": \"2026-08-30T12:00:00Z\",\n  \"expiresAt\": \"2026-08-31T12:00:00Z\",\n  \"subject\": {\n    \"sourceRevision\": \"abc123\",\n    \"configurationFingerprint\": \"...\",\n    \"semanticGraphFingerprint\": \"...\",\n    \"representationFingerprint\": \"...\"\n  },\n  \"artifact\": {\n    \"schema\": \"evidence-pytest-v1\",\n    \"digest\": \"sha256:...\",\n    \"payload\": {\"provider\": \"pytest\", \"schemaVersion\": \"1\", \"tests\": []}\n  }\n}\nThe envelope is intentionally provider-neutral. Pytest is the first executable provider, while evidence-checks-v1 provides a common deterministic payload for JUnit XML, coverage.py, Quarto render, JSON Schema validation, lint, and type-check adapters.\nThe payload digest is checked before semantic validation. A modified payload therefore cannot keep using an old attestation silently.",
+    "title": "7  Executable verification and machine evidence",
+    "section": "7.3 Provider-neutral attestation envelope",
+    "text": "7.3 Provider-neutral attestation envelope\nExecution provenance belongs to a separate provider-neutral envelope defined by schemas/evidence-envelope-v1.schema.json. This preserves deterministic provider output while binding that output to a concrete engineering state.\nCreate an attestation from a provider payload with:\nquarto-needs --root . evidence attest \\\n  .quarto-needs/evidence/pytest-provider.json \\\n  --output .quarto-needs/evidence/pytest.json \\\n  --expires-hours 24\n--source-revision may be supplied explicitly. In GitHub Actions, GITHUB_SHA is captured automatically when no explicit revision is provided.\nAn envelope records:\n\nprovider name and version;\ngeneratedAt and optional expiresAt timestamps;\noptional source revision;\nthe current configuration, semantic-graph, and representation fingerprints;\nthe provider artifact schema;\na canonical SHA-256 digest of the embedded provider payload;\nthe provider payload itself.\n\nConceptually:\n{\n  \"schemaVersion\": \"1\",\n  \"kind\": \"quarto-needs-evidence\",\n  \"provider\": {\"name\": \"pytest\", \"version\": \"8.0\"},\n  \"generatedAt\": \"2026-08-30T12:00:00Z\",\n  \"expiresAt\": \"2026-08-31T12:00:00Z\",\n  \"subject\": {\n    \"sourceRevision\": \"abc123\",\n    \"configurationFingerprint\": \"...\",\n    \"semanticGraphFingerprint\": \"...\",\n    \"representationFingerprint\": \"...\"\n  },\n  \"artifact\": {\n    \"schema\": \"evidence-pytest-v1\",\n    \"digest\": \"sha256:...\",\n    \"payload\": {\"provider\": \"pytest\", \"schemaVersion\": \"1\", \"tests\": []}\n  }\n}\nThe envelope is intentionally provider-neutral. Pytest is the first executable provider, while evidence-checks-v1 provides a common deterministic payload for JUnit XML, coverage.py, Quarto render, JSON Schema validation, lint, and type-check adapters.\nThe payload digest is checked before semantic validation. A modified payload therefore cannot keep using an old attestation silently.",
     "crumbs": [
-      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Executable verification and machine evidence</span>"
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Executable verification and machine evidence</span>"
     ]
   },
   {
     "objectID": "executable-evidence.html#validate-evidence-against-the-current-model",
     "href": "executable-evidence.html#validate-evidence-against-the-current-model",
-    "title": "6  Executable verification and machine evidence",
-    "section": "6.4 Validate evidence against the current model",
-    "text": "6.4 Validate evidence against the current model\nGeneration is only half of the contract. Validate either a raw provider artifact or an attested envelope against the canonical engineering graph:\nquarto-needs evidence check .quarto-needs/evidence/pytest.json\nFor machine consumers:\nquarto-needs evidence check \\\n  .quarto-needs/evidence/pytest.json \\\n  --format json\nThe command remains backward compatible with raw evidence-pytest-v1. It also understands raw/attested evidence-checks-v1. When an attestation is supplied, provenance is validated against the current snapshot.\nThe pytest semantic check verifies that:\n\nevery executable test passed;\nevery evidence entry is bound to a modeled test-case;\nevery referenced test-case exists;\nits modeled pytest-nodeid equals the executable node ID;\nevery referenced requirement exists;\nevery requirement claimed by the executable test is actually connected by a verification-family relation to a bound modeled test-case;\nreciprocally, every requirement that the model says is verified by a bound modeled test-case is claimed by the executable test;\nevery modeled test-case carrying pytest-nodeid is present in the evidence artifact.\n\nFor attested evidence it also verifies that:\n\nthe configuration fingerprint still matches;\nthe semantic graph fingerprint still matches;\nthe representation fingerprint still matches;\ngeneratedAt is a valid, non-future timestamp;\nan explicit expiresAt, when present, has not expired and does not precede generatedAt;\nwhen GITHUB_SHA is available, an attested sourceRevision agrees with the current CI revision.\n\nA successful artifact therefore supports the chain in both directions and ties the executable result to the graph state it was meant to prove:\nrequirement --verified-by--&gt; modeled test-case\n                              │\n                              │ execution binding\n                              ▼\n                         executable provider\n                              │\n                              ▼\n                    deterministic provider payload\n                              │ SHA-256 + graph fingerprints\n                              ▼\n                   provider-neutral attestation",
+    "title": "7  Executable verification and machine evidence",
+    "section": "7.4 Validate evidence against the current model",
+    "text": "7.4 Validate evidence against the current model\nGeneration is only half of the contract. Validate either a raw provider artifact or an attested envelope against the canonical engineering graph:\nquarto-needs evidence check .quarto-needs/evidence/pytest.json\nFor machine consumers:\nquarto-needs evidence check \\\n  .quarto-needs/evidence/pytest.json \\\n  --format json\nThe command remains backward compatible with raw evidence-pytest-v1. It also understands raw/attested evidence-checks-v1. When an attestation is supplied, provenance is validated against the current snapshot.\nThe pytest semantic check verifies that:\n\nevery executable test passed;\nevery evidence entry is bound to a modeled test-case;\nevery referenced test-case exists;\nits modeled pytest-nodeid equals the executable node ID;\nevery referenced requirement exists;\nevery requirement claimed by the executable test is actually connected by a verification-family relation to a bound modeled test-case;\nreciprocally, every requirement that the model says is verified by a bound modeled test-case is claimed by the executable test;\nevery modeled test-case carrying pytest-nodeid is present in the evidence artifact.\n\nFor attested evidence it also verifies that:\n\nthe configuration fingerprint still matches;\nthe semantic graph fingerprint still matches;\nthe representation fingerprint still matches;\ngeneratedAt is a valid, non-future timestamp;\nan explicit expiresAt, when present, has not expired and does not precede generatedAt;\nwhen GITHUB_SHA is available, an attested sourceRevision agrees with the current CI revision.\n\nA successful artifact therefore supports the chain in both directions and ties the executable result to the graph state it was meant to prove:\nrequirement --verified-by--&gt; modeled test-case\n                              │\n                              │ execution binding\n                              ▼\n                         executable provider\n                              │\n                              ▼\n                    deterministic provider payload\n                              │ SHA-256 + graph fingerprints\n                              ▼\n                   provider-neutral attestation",
     "crumbs": [
-      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Executable verification and machine evidence</span>"
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Executable verification and machine evidence</span>"
     ]
   },
   {
     "objectID": "executable-evidence.html#evidence-diagnostics",
     "href": "executable-evidence.html#evidence-diagnostics",
-    "title": "6  Executable verification and machine evidence",
-    "section": "6.5 Evidence diagnostics",
-    "text": "6.5 Evidence diagnostics\nProvider-specific pytest diagnostics use stable EVD1xx codes:\n\n\n\n\n\n\n\nCode\nMeaning\n\n\n\n\nEVD101\nexecutable outcome is not passed\n\n\nEVD102\nexecutable test has no modeled test-case binding\n\n\nEVD103\nevidence references an unknown test-case\n\n\nEVD104\nreferenced modeled test-case has no pytest-nodeid\n\n\nEVD105\nmodeled and executable pytest node IDs disagree\n\n\nEVD106\nevidence references an unknown requirement\n\n\nEVD107\nexecutable test claims a requirement not verified by a bound modeled test-case\n\n\nEVD108\na modeled pytest-bound test-case is missing from the artifact\n\n\nEVD109\na bound modeled test-case verifies a requirement that the executable test does not claim\n\n\n\nProvider-neutral attestation diagnostics use EVD2xx:\n\n\n\n\n\n\n\nCode\nMeaning\n\n\n\n\nEVD201\nattestation has no valid subject\n\n\nEVD202\nconfiguration fingerprint is stale\n\n\nEVD203\nsemantic graph fingerprint is stale\n\n\nEVD204\nrepresentation fingerprint is stale\n\n\nEVD205\nattested source revision differs from the expected revision\n\n\nEVD206\ngeneratedAt is invalid\n\n\nEVD207\nevidence claims to have been generated in the future\n\n\nEVD208\nevidence exceeds a caller-supplied maximum age\n\n\nEVD209\nexpiresAt is invalid\n\n\nEVD210\nevidence has expired\n\n\nEVD211\nexpiresAt precedes generatedAt\n\n\n\nGeneric machine-check validation uses EVD3xx; see Machine evidence providers.\nEVD107 and EVD109 form the reciprocal traceability gate: together they require agreement between executable markers and the model’s verification relations rather than accepting either source as authoritative on its own.\nMalformed, unsupported, or digest-invalid evidence artifacts are usage/artifact errors and exit with code 2. I/O failures exit 3. A structurally readable artifact that disagrees with the engineering model or whose attestation is stale exits 1.",
+    "title": "7  Executable verification and machine evidence",
+    "section": "7.5 Evidence diagnostics",
+    "text": "7.5 Evidence diagnostics\nProvider-specific pytest diagnostics use stable EVD1xx codes:\n\n\n\n\n\n\n\nCode\nMeaning\n\n\n\n\nEVD101\nexecutable outcome is not passed\n\n\nEVD102\nexecutable test has no modeled test-case binding\n\n\nEVD103\nevidence references an unknown test-case\n\n\nEVD104\nreferenced modeled test-case has no pytest-nodeid\n\n\nEVD105\nmodeled and executable pytest node IDs disagree\n\n\nEVD106\nevidence references an unknown requirement\n\n\nEVD107\nexecutable test claims a requirement not verified by a bound modeled test-case\n\n\nEVD108\na modeled pytest-bound test-case is missing from the artifact\n\n\nEVD109\na bound modeled test-case verifies a requirement that the executable test does not claim\n\n\n\nProvider-neutral attestation diagnostics use EVD2xx:\n\n\n\n\n\n\n\nCode\nMeaning\n\n\n\n\nEVD201\nattestation has no valid subject\n\n\nEVD202\nconfiguration fingerprint is stale\n\n\nEVD203\nsemantic graph fingerprint is stale\n\n\nEVD204\nrepresentation fingerprint is stale\n\n\nEVD205\nattested source revision differs from the expected revision\n\n\nEVD206\ngeneratedAt is invalid\n\n\nEVD207\nevidence claims to have been generated in the future\n\n\nEVD208\nevidence exceeds a caller-supplied maximum age\n\n\nEVD209\nexpiresAt is invalid\n\n\nEVD210\nevidence has expired\n\n\nEVD211\nexpiresAt precedes generatedAt\n\n\n\nGeneric machine-check validation uses EVD3xx; see Machine evidence providers.\nEVD107 and EVD109 form the reciprocal traceability gate: together they require agreement between executable markers and the model’s verification relations rather than accepting either source as authoritative on its own.\nMalformed, unsupported, or digest-invalid evidence artifacts are usage/artifact errors and exit with code 2. I/O failures exit 3. A structurally readable artifact that disagrees with the engineering model or whose attestation is stale exits 1.",
     "crumbs": [
-      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Executable verification and machine evidence</span>"
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Executable verification and machine evidence</span>"
     ]
   },
   {
     "objectID": "executable-evidence.html#self-hosted-example",
     "href": "executable-evidence.html#self-hosted-example",
-    "title": "6  Executable verification and machine evidence",
-    "section": "6.6 Self-hosted example",
-    "text": "6.6 Self-hosted example\nThe self-hosted Quarto-Needs case study exercises the complete flow directly:\nmake evidence-self-example\nThat target:\n\nexecutes representative real tests for ADR governance, public graph safety, named graph views, and impact analysis;\nwrites the deterministic provider artifact to examples/quarto-needs/.quarto-needs/evidence/pytest-provider.json;\ncreates a 24-hour attestation at examples/quarto-needs/.quarto-needs/evidence/pytest.json, including GITHUB_SHA automatically in CI;\nvalidates the attestation against the current self-hosted engineering graph.\n\nmake render-self-example depends on this target, so the example cannot render successfully with stale fingerprints, an expired attestation, a mismatched CI revision, or inconsistent executable bindings.",
+    "title": "7  Executable verification and machine evidence",
+    "section": "7.6 Self-hosted example",
+    "text": "7.6 Self-hosted example\nThe self-hosted Quarto-Needs case study exercises the complete flow directly:\nmake evidence-self-example\nThat target:\n\nexecutes representative real tests for ADR governance, public graph safety, named graph views, and impact analysis;\nwrites the deterministic provider artifact to examples/quarto-needs/.quarto-needs/evidence/pytest-provider.json;\ncreates a 24-hour attestation at examples/quarto-needs/.quarto-needs/evidence/pytest.json, including GITHUB_SHA automatically in CI;\nvalidates the attestation against the current self-hosted engineering graph.\n\nmake render-self-example depends on this target, so the example cannot render successfully with stale fingerprints, an expired attestation, a mismatched CI revision, or inconsistent executable bindings.",
     "crumbs": [
-      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Executable verification and machine evidence</span>"
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Executable verification and machine evidence</span>"
     ]
   },
   {
     "objectID": "evidence-providers.html",
     "href": "evidence-providers.html",
-    "title": "7  Machine evidence providers",
+    "title": "8  Machine evidence providers",
     "section": "",
-    "text": "7.1 Provider pipeline\nQuarto-Needs treats external tools as evidence providers, not as semantic authorities. Providers report execution facts; the Python core decides whether those facts agree with the engineering graph.\nThe provider-neutral flow is:\nProvider adapters never mutate authored .qmd files. They normalize existing machine results into versioned artifacts under .quarto-needs/evidence/.",
+    "text": "8.1 Provider pipeline\nQuarto-Needs treats external tools as evidence providers, not as semantic authorities. Providers report execution facts; the Python core decides whether those facts agree with the engineering graph.\nThe provider-neutral flow is:\nProvider adapters never mutate authored .qmd files. They normalize existing machine results into versioned artifacts under .quarto-needs/evidence/.",
     "crumbs": [
-      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Machine evidence providers</span>"
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Machine evidence providers</span>"
     ]
   },
   {
     "objectID": "evidence-providers.html#provider-pipeline",
     "href": "evidence-providers.html#provider-pipeline",
-    "title": "7  Machine evidence providers",
+    "title": "8  Machine evidence providers",
     "section": "",
     "text": "external tool result\n        │\n        ▼\nprovider adapter\n        │\n        ▼\nevidence-checks-v1 deterministic payload\n        │\n        ├── semantic validation against requirements/test-cases/evidence\n        │\n        ▼\nevidence-envelope-v1 attestation\n        │\n        ▼\nCI / review / Quarto projection",
     "crumbs": [
-      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Machine evidence providers</span>"
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Machine evidence providers</span>"
     ]
   },
   {
     "objectID": "evidence-providers.html#generic-check-contract",
     "href": "evidence-providers.html#generic-check-contract",
-    "title": "7  Machine evidence providers",
-    "section": "7.2 Generic check contract",
-    "text": "7.2 Generic check contract\nschemas/evidence-checks-v1.schema.json defines the common payload used by non-pytest providers. Each check records:\n\nstable id;\nnormalized outcome: passed, failed, or skipped;\nlinked requirement IDs;\nlinked modeled test-case IDs;\nlinked modeled evidence IDs;\noptional provider-specific details.\n\nThe payload itself has no timestamp. Determinism belongs here; run identity and freshness belong in the attestation envelope.",
+    "title": "8  Machine evidence providers",
+    "section": "8.2 Generic check contract",
+    "text": "8.2 Generic check contract\nschemas/evidence-checks-v1.schema.json defines the common payload used by non-pytest providers. Each check records:\n\nstable id;\nnormalized outcome: passed, failed, or skipped;\nlinked requirement IDs;\nlinked modeled test-case IDs;\nlinked modeled evidence IDs;\noptional provider-specific details.\n\nThe payload itself has no timestamp. Determinism belongs here; run identity and freshness belong in the attestation envelope.",
     "crumbs": [
-      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Machine evidence providers</span>"
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Machine evidence providers</span>"
     ]
   },
   {
     "objectID": "evidence-providers.html#initial-adapters",
     "href": "evidence-providers.html#initial-adapters",
-    "title": "7  Machine evidence providers",
-    "section": "7.3 Initial adapters",
-    "text": "7.3 Initial adapters\nThe initial provider layer includes:\n\n\n\n\n\n\n\n\nProvider\nInput\nNormalized semantics\n\n\n\n\nJUnit\nJUnit XML\ntestcase outcome and optional Quarto-Needs properties\n\n\ncoverage.py\ncoverage JSON\nexplicit total-coverage threshold\n\n\nQuarto render\nprocess result\nrender target + exit-code verdict\n\n\nJSON Schema\nprecomputed validation results\nschema-validation verdicts\n\n\nlint\nprocess result\ntool identity + exit-code verdict\n\n\ntype-check\nprocess result\ntool identity + exit-code verdict\n\n\n\n\n7.3.1 JUnit properties\nJUnit testcases can carry model bindings as properties:\n&lt;properties&gt;\n  &lt;property name=\"quarto-needs.requirement\" value=\"FUN-001;NFR-004\"/&gt;\n  &lt;property name=\"quarto-needs.test-case\" value=\"TC-006\"/&gt;\n  &lt;property name=\"quarto-needs.evidence\" value=\"EVD-006\"/&gt;\n&lt;/properties&gt;\nThe adapter normalizes comma- or semicolon-separated IDs and preserves deterministic ordering.\n\n\n7.3.2 Coverage policy\nCoverage does not become evidence merely because a percentage exists. The adapter requires an explicit threshold supplied by the caller. The payload records both the observed coverage and the threshold used to derive the verdict.\n\n\n7.3.3 Process providers\nQuarto render, lint, and type-check adapters normalize an already executed process result. They do not shell out themselves. This keeps execution policy outside the semantic adapter and avoids arbitrary command execution inside configuration.\n\n\n7.3.4 JSON Schema\nThe JSON Schema adapter normalizes validation results that have already been computed. It deliberately does not resolve or execute arbitrary schemas and remote references itself.",
+    "title": "8  Machine evidence providers",
+    "section": "8.3 Initial adapters",
+    "text": "8.3 Initial adapters\nThe initial provider layer includes:\n\n\n\n\n\n\n\n\nProvider\nInput\nNormalized semantics\n\n\n\n\nJUnit\nJUnit XML\ntestcase outcome and optional Quarto-Needs properties\n\n\ncoverage.py\ncoverage JSON\nexplicit total-coverage threshold\n\n\nQuarto render\nprocess result\nrender target + exit-code verdict\n\n\nJSON Schema\nprecomputed validation results\nschema-validation verdicts\n\n\nlint\nprocess result\ntool identity + exit-code verdict\n\n\ntype-check\nprocess result\ntool identity + exit-code verdict\n\n\n\n\n8.3.1 JUnit properties\nJUnit testcases can carry model bindings as properties:\n&lt;properties&gt;\n  &lt;property name=\"quarto-needs.requirement\" value=\"FUN-001;NFR-004\"/&gt;\n  &lt;property name=\"quarto-needs.test-case\" value=\"TC-006\"/&gt;\n  &lt;property name=\"quarto-needs.evidence\" value=\"EVD-006\"/&gt;\n&lt;/properties&gt;\nThe adapter normalizes comma- or semicolon-separated IDs and preserves deterministic ordering.\n\n\n8.3.2 Coverage policy\nCoverage does not become evidence merely because a percentage exists. The adapter requires an explicit threshold supplied by the caller. The payload records both the observed coverage and the threshold used to derive the verdict.\n\n\n8.3.3 Process providers\nQuarto render, lint, and type-check adapters normalize an already executed process result. They do not shell out themselves. This keeps execution policy outside the semantic adapter and avoids arbitrary command execution inside configuration.\n\n\n8.3.4 JSON Schema\nThe JSON Schema adapter normalizes validation results that have already been computed. It deliberately does not resolve or execute arbitrary schemas and remote references itself.",
     "crumbs": [
-      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Machine evidence providers</span>"
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Machine evidence providers</span>"
     ]
   },
   {
     "objectID": "evidence-providers.html#generic-semantic-validation",
     "href": "evidence-providers.html#generic-semantic-validation",
-    "title": "7  Machine evidence providers",
-    "section": "7.4 Generic semantic validation",
-    "text": "7.4 Generic semantic validation\nvalidate_check_evidence() compares generic provider payloads with the canonical graph. By default, every machine check must bind to at least one modeled evidence object.\nThe validator checks:\n\nthe machine outcome is passing;\nrequirement IDs exist;\nmodeled test-case IDs exist;\nclaimed requirements are connected to claimed test-cases through the verification semantic family;\nmodeled evidence IDs exist;\na modeled evidence object’s declared provider, when present, matches the machine provider;\nmodeled evidence objects are connected to the claimed test-cases through the evidence semantic family.\n\nGeneric validation uses EVD3xx diagnostics. This is separate from pytest-specific EVD1xx diagnostics and provider-neutral attestation/freshness EVD2xx diagnostics.",
+    "title": "8  Machine evidence providers",
+    "section": "8.4 Generic semantic validation",
+    "text": "8.4 Generic semantic validation\nvalidate_check_evidence() compares generic provider payloads with the canonical graph. By default, every machine check must bind to at least one modeled evidence object.\nThe validator checks:\n\nthe machine outcome is passing;\nrequirement IDs exist;\nmodeled test-case IDs exist;\nclaimed requirements are connected to claimed test-cases through the verification semantic family;\nmodeled evidence IDs exist;\na modeled evidence object’s declared provider, when present, matches the machine provider;\nmodeled evidence objects are connected to the claimed test-cases through the evidence semantic family.\n\nGeneric validation uses EVD3xx diagnostics. This is separate from pytest-specific EVD1xx diagnostics and provider-neutral attestation/freshness EVD2xx diagnostics.",
     "crumbs": [
-      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Machine evidence providers</span>"
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Machine evidence providers</span>"
     ]
   },
   {
     "objectID": "evidence-providers.html#trust-boundary",
     "href": "evidence-providers.html#trust-boundary",
-    "title": "7  Machine evidence providers",
-    "section": "7.5 Trust boundary",
-    "text": "7.5 Trust boundary\nA provider result is never sufficient by itself. Positive engineering evidence requires all applicable layers to agree:\nprovider result\n  AND model traceability\n  AND modeled evidence binding\n  AND attested graph/configuration state\n  AND freshness policy\nThat separation is intentional: a successful tool invocation cannot silently redefine which requirement it proves.",
+    "title": "8  Machine evidence providers",
+    "section": "8.5 Trust boundary",
+    "text": "8.5 Trust boundary\nA provider result is never sufficient by itself. Positive engineering evidence requires all applicable layers to agree:\nprovider result\n  AND model traceability\n  AND modeled evidence binding\n  AND attested graph/configuration state\n  AND freshness policy\nThat separation is intentional: a successful tool invocation cannot silently redefine which requirement it proves.",
     "crumbs": [
-      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Machine evidence providers</span>"
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Machine evidence providers</span>"
     ]
   },
   {
     "objectID": "governance.html",
     "href": "governance.html",
-    "title": "8  Governance and quality",
+    "title": "9  Governance and quality",
     "section": "",
-    "text": "8.1 Profiles\nQuarto-Needs separates structural findings from semantic governance. Profiles control how quality-gate failures affect automation, while structural errors remain blocking.\nUnder the strict profile, gate regressions terminate the command with an error. This allows the published book to be used as a CI-governed artifact, not merely informational documentation.",
+    "text": "9.1 Profiles\nQuarto-Needs separates structural findings from semantic governance. Profiles control how quality-gate failures affect automation, while structural errors remain blocking.\nUnder the strict profile, gate regressions terminate the command with an error. This allows the published book to be used as a CI-governed artifact, not merely informational documentation.",
     "crumbs": [
-      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Governance and quality</span>"
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Governance and quality</span>"
     ]
   },
   {
     "objectID": "governance.html#profiles",
     "href": "governance.html#profiles",
-    "title": "8  Governance and quality",
+    "title": "9  Governance and quality",
     "section": "",
     "text": "profile = \"strict\"",
     "crumbs": [
-      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Governance and quality</span>"
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Governance and quality</span>"
     ]
   },
   {
     "objectID": "governance.html#rules",
     "href": "governance.html#rules",
-    "title": "8  Governance and quality",
-    "section": "8.2 Rules",
-    "text": "8.2 Rules\nRules are registered by code and can be enabled, disabled when allowed, and assigned a severity.\n[rules.REQ011]\nenabled = true\n\n[rules.DEC001]\nenabled = true\nseverity = \"error\"\nStructural rules cannot be disabled. Decision rules use the DECxxx namespace; identification and type policies use IDxxx/OBJxxx.",
+    "title": "9  Governance and quality",
+    "section": "9.2 Rules",
+    "text": "9.2 Rules\nRules are registered by code and can be enabled, disabled when allowed, and assigned a severity.\n[rules.REQ011]\nenabled = true\n\n[rules.DEC001]\nenabled = true\nseverity = \"error\"\nStructural rules cannot be disabled. Decision rules use the DECxxx namespace; identification and type policies use IDxxx/OBJxxx.",
     "crumbs": [
-      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Governance and quality</span>"
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Governance and quality</span>"
     ]
   },
   {
     "objectID": "governance.html#relations-and-cardinality",
     "href": "governance.html#relations-and-cardinality",
-    "title": "8  Governance and quality",
-    "section": "8.3 Relations and cardinality",
-    "text": "8.3 Relations and cardinality\nPolicy can restrict endpoints and cardinality:\n[relations.\"addresses\"]\nallowed-source-types = [\"architecture-decision\"]\nallowed-target-types = [\n  \"stakeholder-need\",\n  \"system-requirement\",\n  \"non-functional-requirement\",\n  \"risk\",\n]\nminimum-per-source = 1\nThis turns modeling conventions into verifiable invariants.",
+    "title": "9  Governance and quality",
+    "section": "9.3 Relations and cardinality",
+    "text": "9.3 Relations and cardinality\nPolicy can restrict endpoints and cardinality:\n[relations.\"addresses\"]\nallowed-source-types = [\"architecture-decision\"]\nallowed-target-types = [\n  \"stakeholder-need\",\n  \"system-requirement\",\n  \"non-functional-requirement\",\n  \"risk\",\n]\nminimum-per-source = 1\nThis turns modeling conventions into verifiable invariants.",
     "crumbs": [
-      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Governance and quality</span>"
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Governance and quality</span>"
     ]
   },
   {
     "objectID": "governance.html#quality-gates",
     "href": "governance.html#quality-gates",
-    "title": "8  Governance and quality",
-    "section": "8.4 Quality gates",
-    "text": "8.4 Quality gates\n[gates]\nscope = \"approved-requirements\"\nmax-errors = 0\nmin-implementation-trace = 100.0\nmin-verification-trace = 100.0\nmin-evidence = 100.0\nGates are appropriate for measurable properties of a set, while rules describe localized violations on objects or relations.",
+    "title": "9  Governance and quality",
+    "section": "9.4 Quality gates",
+    "text": "9.4 Quality gates\n[gates]\nscope = \"approved-requirements\"\nmax-errors = 0\nmin-implementation-trace = 100.0\nmin-verification-trace = 100.0\nmin-evidence = 100.0\nGates are appropriate for measurable properties of a set, while rules describe localized violations on objects or relations.",
     "crumbs": [
-      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Governance and quality</span>"
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Governance and quality</span>"
     ]
   },
   {
     "objectID": "governance.html#baseline-diff-and-impact",
     "href": "governance.html#baseline-diff-and-impact",
-    "title": "8  Governance and quality",
-    "section": "8.5 Baseline, diff, and impact",
-    "text": "8.5 Baseline, diff, and impact\nA baseline captures the analyzed state and configuration fingerprint. Diff distinguishes added/removed objects, modified content, relocation, and relation changes. When policy changes, incompatible derived results are explicitly suppressed instead of producing misleading comparisons.\nImpact analysis uses semantic direction declared in the catalog. ADR relations participate in this mechanism exactly like implementation, verification, and evidence relations.",
+    "title": "9  Governance and quality",
+    "section": "9.5 Baseline, diff, and impact",
+    "text": "9.5 Baseline, diff, and impact\nA baseline captures the analyzed state and configuration fingerprint. Diff distinguishes added/removed objects, modified content, relocation, and relation changes. When policy changes, incompatible derived results are explicitly suppressed instead of producing misleading comparisons.\nImpact analysis uses semantic direction declared in the catalog. ADR relations participate in this mechanism exactly like implementation, verification, and evidence relations.",
     "crumbs": [
-      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Governance and quality</span>"
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Governance and quality</span>"
     ]
   },
   {
     "objectID": "declarative-policies.html",
     "href": "declarative-policies.html",
-    "title": "9  Declarative engineering policies",
+    "title": "10  Declarative engineering policies",
     "section": "",
-    "text": "9.1 A minimal policy\nBuilt-in rules cover stable product semantics, but projects often need organization- or domain-specific governance. Quarto-Needs therefore supports a deliberately bounded declarative policy layer in .quarto-needs.toml.\nThe policy layer is not a scripting engine. It cannot execute Python, Lua, JavaScript, shell commands, templates, or arbitrary expressions. A policy composes three semantic capabilities already owned by the core:\nThis means: for every object selected by approved-requirements, require at least one verified-by relation whose target has semantic role verification.\nA violation becomes an ordinary engineering finding with code:\nIt therefore participates in the same quality reports, Git diffs, PR reports, GitHub projections, and gates as built-in findings.",
+    "text": "10.1 A minimal policy\nBuilt-in rules cover stable product semantics, but projects often need organization- or domain-specific governance. Quarto-Needs therefore supports a deliberately bounded declarative policy layer in .quarto-needs.toml.\nThe policy layer is not a scripting engine. It cannot execute Python, Lua, JavaScript, shell commands, templates, or arbitrary expressions. A policy composes three semantic capabilities already owned by the core:\nThis means: for every object selected by approved-requirements, require at least one verified-by relation whose target has semantic role verification.\nA violation becomes an ordinary engineering finding with code:\nIt therefore participates in the same quality reports, Git diffs, PR reports, GitHub projections, and gates as built-in findings.",
     "crumbs": [
-      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Declarative engineering policies</span>"
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Declarative engineering policies</span>"
     ]
   },
   {
     "objectID": "declarative-policies.html#a-minimal-policy",
     "href": "declarative-policies.html#a-minimal-policy",
-    "title": "9  Declarative engineering policies",
+    "title": "10  Declarative engineering policies",
     "section": "",
     "text": "[policies.APPROVED_REQUIRES_TEST]\nscope = \"approved-requirements\"\nassert-relation = \"verified-by\"\ntarget-role = \"verification\"\nminimum = 1\nseverity = \"error\"\n\n\nPOLICY:APPROVED_REQUIRES_TEST",
     "crumbs": [
-      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Declarative engineering policies</span>"
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Declarative engineering policies</span>"
     ]
   },
   {
     "objectID": "declarative-policies.html#grammar",
     "href": "declarative-policies.html#grammar",
-    "title": "9  Declarative engineering policies",
-    "section": "9.2 Grammar",
-    "text": "9.2 Grammar\nEach [policies.&lt;NAME&gt;] table currently accepts only:\n\n\n\n\n\n\n\n\nKey\nRequired\nMeaning\n\n\n\n\nscope\nyes\nExisting safe named query, including the built-in approved-requirements query.\n\n\nassert-relation\nyes\nRelation name resolved through the canonical relation catalog.\n\n\ntarget-role\nno\nSemantic role required on matching targets.\n\n\nminimum\nno\nMinimum number of matching relations; integer &gt;= 1, default 1.\n\n\nseverity\nno\nerror, warning, or info; default error.\n\n\n\nUnknown keys are rejected. This is intentional: extending the grammar requires an explicit Quarto-Needs capability rather than silently creating an escape hatch for code execution.",
+    "title": "10  Declarative engineering policies",
+    "section": "10.2 Grammar",
+    "text": "10.2 Grammar\nEach [policies.&lt;NAME&gt;] table currently accepts only:\n\n\n\n\n\n\n\n\nKey\nRequired\nMeaning\n\n\n\n\nscope\nyes\nExisting safe named query, including the built-in approved-requirements query.\n\n\nassert-relation\nyes\nRelation name resolved through the canonical relation catalog.\n\n\ntarget-role\nno\nSemantic role required on matching targets.\n\n\nminimum\nno\nMinimum number of matching relations; integer &gt;= 1, default 1.\n\n\nseverity\nno\nerror, warning, or info; default error.\n\n\n\nUnknown keys are rejected. This is intentional: extending the grammar requires an explicit Quarto-Needs capability rather than silently creating an escape hatch for code execution.",
     "crumbs": [
-      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Declarative engineering policies</span>"
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Declarative engineering policies</span>"
     ]
   },
   {
     "objectID": "declarative-policies.html#named-scopes",
     "href": "declarative-policies.html#named-scopes",
-    "title": "9  Declarative engineering policies",
-    "section": "9.3 Named scopes",
-    "text": "9.3 Named scopes\nPolicies reuse the existing bounded query language instead of inventing another selector language. For example:\n[queries.approved-high-nfr]\nall = [\n  { field = \"type\", op = \"eq\", value = \"non-functional-requirement\" },\n  { field = \"status\", op = \"eq\", value = \"approved\" },\n  { field = \"priority\", op = \"in\", values = [\"critical\", \"high\"] },\n]\n\n[policies.HIGH_NFR_REQUIRES_TEST]\nscope = \"approved-high-nfr\"\nassert-relation = \"verified-by\"\ntarget-role = \"verification\"\nminimum = 1\nseverity = \"error\"\nThe query is compiled by the same safe query evaluator used by generated tables and graph views.",
+    "title": "10  Declarative engineering policies",
+    "section": "10.3 Named scopes",
+    "text": "10.3 Named scopes\nPolicies reuse the existing bounded query language instead of inventing another selector language. For example:\n[queries.approved-high-nfr]\nall = [\n  { field = \"type\", op = \"eq\", value = \"non-functional-requirement\" },\n  { field = \"status\", op = \"eq\", value = \"approved\" },\n  { field = \"priority\", op = \"in\", values = [\"critical\", \"high\"] },\n]\n\n[policies.HIGH_NFR_REQUIRES_TEST]\nscope = \"approved-high-nfr\"\nassert-relation = \"verified-by\"\ntarget-role = \"verification\"\nminimum = 1\nseverity = \"error\"\nThe query is compiled by the same safe query evaluator used by generated tables and graph views.",
     "crumbs": [
-      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Declarative engineering policies</span>"
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Declarative engineering policies</span>"
     ]
   },
   {
     "objectID": "declarative-policies.html#direct-and-inverse-authoring",
     "href": "declarative-policies.html#direct-and-inverse-authoring",
-    "title": "9  Declarative engineering policies",
-    "section": "9.4 Direct and inverse authoring",
-    "text": "9.4 Direct and inverse authoring\nPolicies describe a logical relation view, not a particular spelling location. If a requirement is linked with:\nFUN-001 --verified-by--&gt; TC-001\nor the test authors the inverse:\nTC-001 --verifies--&gt; FUN-001\nthen a policy asserting verified-by sees the same logical relationship. The inverse is derived from the canonical relation catalog; the policy engine does not maintain a second inverse-relation table.",
+    "title": "10  Declarative engineering policies",
+    "section": "10.4 Direct and inverse authoring",
+    "text": "10.4 Direct and inverse authoring\nPolicies describe a logical relation view, not a particular spelling location. If a requirement is linked with:\nFUN-001 --verified-by--&gt; TC-001\nor the test authors the inverse:\nTC-001 --verifies--&gt; FUN-001\nthen a policy asserting verified-by sees the same logical relationship. The inverse is derived from the canonical relation catalog; the policy engine does not maintain a second inverse-relation table.",
     "crumbs": [
-      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Declarative engineering policies</span>"
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Declarative engineering policies</span>"
     ]
   },
   {
     "objectID": "declarative-policies.html#configuration-fingerprints",
     "href": "declarative-policies.html#configuration-fingerprints",
-    "title": "9  Declarative engineering policies",
-    "section": "9.5 Configuration fingerprints",
-    "text": "9.5 Configuration fingerprints\nPolicies are part of NeedsConfig.canonical_document(). Changing policy scope, relation, target role, minimum, or severity changes the configuration fingerprint. Consequently:\n\nbaselines can detect policy changes;\nevidence attestations cannot silently survive a governance change;\nGit-range analysis can distinguish states governed by different policy configurations.\n\nThis is why policies are not loaded as an external side file or applied only inside CI.",
+    "title": "10  Declarative engineering policies",
+    "section": "10.5 Configuration fingerprints",
+    "text": "10.5 Configuration fingerprints\nPolicies are part of NeedsConfig.canonical_document(). Changing policy scope, relation, target role, minimum, or severity changes the configuration fingerprint. Consequently:\n\nbaselines can detect policy changes;\nevidence attestations cannot silently survive a governance change;\nGit-range analysis can distinguish states governed by different policy configurations.\n\nThis is why policies are not loaded as an external side file or applied only inside CI.",
     "crumbs": [
-      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Declarative engineering policies</span>"
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Declarative engineering policies</span>"
     ]
   },
   {
     "objectID": "declarative-policies.html#self-hosted-example",
     "href": "declarative-policies.html#self-hosted-example",
-    "title": "9  Declarative engineering policies",
-    "section": "9.6 Self-hosted example",
-    "text": "9.6 Self-hosted example\nexamples/quarto-needs/.quarto-needs.toml dogfoods the feature with:\n[policies.APPROVED_REQUIRES_TEST]\nscope = \"approved-requirements\"\nassert-relation = \"verified-by\"\ntarget-role = \"verification\"\nminimum = 1\nseverity = \"error\"\nThe self-hosted model already requires 100% verification coverage. This declarative policy independently expresses the project-specific governance expectation, so a future approved requirement without a verification relation produces POLICY:APPROVED_REQUIRES_TEST and blocks the strict quality gate.",
+    "title": "10  Declarative engineering policies",
+    "section": "10.6 Self-hosted example",
+    "text": "10.6 Self-hosted example\nexamples/quarto-needs/.quarto-needs.toml dogfoods the feature with:\n[policies.APPROVED_REQUIRES_TEST]\nscope = \"approved-requirements\"\nassert-relation = \"verified-by\"\ntarget-role = \"verification\"\nminimum = 1\nseverity = \"error\"\nThe self-hosted model already requires 100% verification coverage. This declarative policy independently expresses the project-specific governance expectation, so a future approved requirement without a verification relation produces POLICY:APPROVED_REQUIRES_TEST and blocks the strict quality gate.",
     "crumbs": [
-      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Declarative engineering policies</span>"
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Declarative engineering policies</span>"
     ]
   },
   {
     "objectID": "declarative-policies.html#current-boundary",
     "href": "declarative-policies.html#current-boundary",
-    "title": "9  Declarative engineering policies",
-    "section": "9.7 Current boundary",
-    "text": "9.7 Current boundary\nPhase 3.1 intentionally starts with required-relation policies. Later policy phases may add bounded type-schema constraints, graph path/cardinality/cycle constraints, and safe derived values. Those capabilities should extend the canonical policy model rather than add arbitrary expression evaluation.",
+    "title": "10  Declarative engineering policies",
+    "section": "10.7 Current boundary",
+    "text": "10.7 Current boundary\nPhase 3.1 intentionally starts with required-relation policies. Later policy phases may add bounded type-schema constraints, graph path/cardinality/cycle constraints, and safe derived values. Those capabilities should extend the canonical policy model rather than add arbitrary expression evaluation.",
     "crumbs": [
-      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Declarative engineering policies</span>"
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Declarative engineering policies</span>"
     ]
   },
   {
     "objectID": "type-schemas.html",
     "href": "type-schemas.html",
-    "title": "10  Per-type attribute schemas",
+    "title": "11  Per-type attribute schemas",
     "section": "",
-    "text": "10.1 Attribute schemas validate attributes only\nQuarto-Needs can constrain the attributes of a configured engineering type with Draft 2020-12 JSON Schema. This complements — rather than replaces — existing type semantics such as ID prefixes, lifecycle statuses, semantic roles, and required-attributes.\nAn attribute-schema is evaluated against the canonical attributes mapping of each matching object. It does not redefine the built-in fields id, type, title, status, body, rationale, or relations.\nAn object whose priority is medium, or whose budget-ms does not match the pattern, produces an OBJ002 finding.",
+    "text": "11.1 Attribute schemas validate attributes only\nQuarto-Needs can constrain the attributes of a configured engineering type with Draft 2020-12 JSON Schema. This complements — rather than replaces — existing type semantics such as ID prefixes, lifecycle statuses, semantic roles, and required-attributes.\nAn attribute-schema is evaluated against the canonical attributes mapping of each matching object. It does not redefine the built-in fields id, type, title, status, body, rationale, or relations.\nAn object whose priority is medium, or whose budget-ms does not match the pattern, produces an OBJ002 finding.",
     "crumbs": [
-      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Per-type attribute schemas</span>"
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Per-type attribute schemas</span>"
     ]
   },
   {
     "objectID": "type-schemas.html#attribute-schemas-validate-attributes-only",
     "href": "type-schemas.html#attribute-schemas-validate-attributes-only",
-    "title": "10  Per-type attribute schemas",
+    "title": "11  Per-type attribute schemas",
     "section": "",
     "text": "[types.non-functional-requirement]\nid-prefix = \"NFR-\"\nrole = \"requirement\"\nallowed-statuses = [\"approved\", \"deprecated\"]\n\n[types.non-functional-requirement.attribute-schema]\ntype = \"object\"\nrequired = [\"priority\", \"budget-ms\"]\n\n[types.non-functional-requirement.attribute-schema.properties.priority]\nenum = [\"critical\", \"high\"]\n\n[types.non-functional-requirement.attribute-schema.properties.budget-ms]\ntype = \"string\"\npattern = \"^[1-9][0-9]{0,2}$\"",
     "crumbs": [
-      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Per-type attribute schemas</span>"
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Per-type attribute schemas</span>"
     ]
   },
   {
     "objectID": "type-schemas.html#authored-values-are-not-silently-coerced",
     "href": "type-schemas.html#authored-values-are-not-silently-coerced",
-    "title": "10  Per-type attribute schemas",
-    "section": "10.2 Authored values are not silently coerced",
-    "text": "10.2 Authored values are not silently coerced\nQuarto-Needs intentionally validates the canonical authored representation. Inline QMD attributes are strings unless another authoring mechanism already produces a structured value. The schema engine does not convert \"250\" into integer 250, reinterpret booleans, or guess dates.\nFor example:\n::: {.need #NFR-001 type=\"non-functional-requirement\" status=\"approved\" budget-ms=\"250\"}\n## Latency budget\n...\n:::\nHere budget-ms is the string \"250\". A schema should validate that representation explicitly, for example with type = \"string\" and a pattern.\nThis avoids a hidden second interpretation of authored metadata and keeps snapshots, fingerprints, queries, and schemas aligned.",
+    "title": "11  Per-type attribute schemas",
+    "section": "11.2 Authored values are not silently coerced",
+    "text": "11.2 Authored values are not silently coerced\nQuarto-Needs intentionally validates the canonical authored representation. Inline QMD attributes are strings unless another authoring mechanism already produces a structured value. The schema engine does not convert \"250\" into integer 250, reinterpret booleans, or guess dates.\nFor example:\n::: {.need #NFR-001 type=\"non-functional-requirement\" status=\"approved\" budget-ms=\"250\"}\n## Latency budget\n...\n:::\nHere budget-ms is the string \"250\". A schema should validate that representation explicitly, for example with type = \"string\" and a pattern.\nThis avoids a hidden second interpretation of authored metadata and keeps snapshots, fingerprints, queries, and schemas aligned.",
     "crumbs": [
-      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Per-type attribute schemas</span>"
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Per-type attribute schemas</span>"
     ]
   },
   {
     "objectID": "type-schemas.html#deterministic-findings",
     "href": "type-schemas.html#deterministic-findings",
-    "title": "10  Per-type attribute schemas",
-    "section": "10.3 Deterministic findings",
-    "text": "10.3 Deterministic findings\nSchema violations use the built-in rule code OBJ002. Findings include:\n\nengineering object ID;\nobject type;\nJSON Pointer-like instance path;\nschema path;\nvalidator keyword;\nthe validation message.\n\nMultiple schema errors are sorted deterministically before being emitted.\nThe default severity is error, and it can be governed like another built-in rule:\n[rules.OBJ002]\nseverity = \"warning\"",
+    "title": "11  Per-type attribute schemas",
+    "section": "11.3 Deterministic findings",
+    "text": "11.3 Deterministic findings\nSchema violations use the built-in rule code OBJ002. Findings include:\n\nengineering object ID;\nobject type;\nJSON Pointer-like instance path;\nschema path;\nvalidator keyword;\nthe validation message.\n\nMultiple schema errors are sorted deterministically before being emitted.\nThe default severity is error, and it can be governed like another built-in rule:\n[rules.OBJ002]\nseverity = \"warning\"",
     "crumbs": [
-      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Per-type attribute schemas</span>"
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Per-type attribute schemas</span>"
     ]
   },
   {
     "objectID": "type-schemas.html#safe-references",
     "href": "type-schemas.html#safe-references",
-    "title": "10  Per-type attribute schemas",
-    "section": "10.4 Safe references",
-    "text": "10.4 Safe references\nSchemas may use local references within the same schema:\n[types.functional-requirement.attribute-schema]\n\"$ref\" = \"#/$defs/attrs\"\nExternal references are rejected at configuration load time:\n# Rejected\n\"$ref\" = \"https://example.com/schema.json\"\nThe same restriction applies to $dynamicRef. This prevents configuration from causing network access, importing mutable remote semantics, or making offline/reproducible builds depend on external schema availability.",
+    "title": "11  Per-type attribute schemas",
+    "section": "11.4 Safe references",
+    "text": "11.4 Safe references\nSchemas may use local references within the same schema:\n[types.functional-requirement.attribute-schema]\n\"$ref\" = \"#/$defs/attrs\"\nExternal references are rejected at configuration load time:\n# Rejected\n\"$ref\" = \"https://example.com/schema.json\"\nThe same restriction applies to $dynamicRef. This prevents configuration from causing network access, importing mutable remote semantics, or making offline/reproducible builds depend on external schema availability.",
     "crumbs": [
-      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Per-type attribute schemas</span>"
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Per-type attribute schemas</span>"
     ]
   },
   {
     "objectID": "type-schemas.html#fingerprints-and-change-intelligence",
     "href": "type-schemas.html#fingerprints-and-change-intelligence",
-    "title": "10  Per-type attribute schemas",
-    "section": "10.5 Fingerprints and change intelligence",
-    "text": "10.5 Fingerprints and change intelligence\nPer-type schemas are part of NeedsConfig.canonical_document(). Any schema change therefore changes the configuration fingerprint and participates in:\n\nbaseline compatibility;\nGit-range change analysis;\nevidence attestation compatibility;\nreproducibility checks.\n\nA tightening of governance cannot silently reuse an attestation made under the previous schema.",
+    "title": "11  Per-type attribute schemas",
+    "section": "11.5 Fingerprints and change intelligence",
+    "text": "11.5 Fingerprints and change intelligence\nPer-type schemas are part of NeedsConfig.canonical_document(). Any schema change therefore changes the configuration fingerprint and participates in:\n\nbaseline compatibility;\nGit-range change analysis;\nevidence attestation compatibility;\nreproducibility checks.\n\nA tightening of governance cannot silently reuse an attestation made under the previous schema.",
     "crumbs": [
-      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Per-type attribute schemas</span>"
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Per-type attribute schemas</span>"
     ]
   },
   {
     "objectID": "type-schemas.html#self-hosted-example",
     "href": "type-schemas.html#self-hosted-example",
-    "title": "10  Per-type attribute schemas",
-    "section": "10.6 Self-hosted example",
-    "text": "10.6 Self-hosted example\nThe self-hosted model uses an attribute schema for source-module objects:\n[types.source-module.attribute-schema]\ntype = \"object\"\nrequired = [\"path\", \"language\", \"layer\", \"tags\"]\n\n[types.source-module.attribute-schema.properties.path]\ntype = \"string\"\nminLength = 1\nThe schema deliberately remains conservative: it guarantees that implementation traceability contains usable physical-source metadata without imposing an artificial closed list of programming languages or architectural layers.",
+    "title": "11  Per-type attribute schemas",
+    "section": "11.6 Self-hosted example",
+    "text": "11.6 Self-hosted example\nThe self-hosted model uses an attribute schema for source-module objects:\n[types.source-module.attribute-schema]\ntype = \"object\"\nrequired = [\"path\", \"language\", \"layer\", \"tags\"]\n\n[types.source-module.attribute-schema.properties.path]\ntype = \"string\"\nminLength = 1\nThe schema deliberately remains conservative: it guarantees that implementation traceability contains usable physical-source metadata without imposing an artificial closed list of programming languages or architectural layers.",
     "crumbs": [
-      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Per-type attribute schemas</span>"
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Per-type attribute schemas</span>"
     ]
   },
   {
     "objectID": "type-schemas.html#relationship-with-declarative-policies",
     "href": "type-schemas.html#relationship-with-declarative-policies",
-    "title": "10  Per-type attribute schemas",
-    "section": "10.7 Relationship with declarative policies",
-    "text": "10.7 Relationship with declarative policies\nType schemas answer questions about the shape of one object’s attributes. Declarative policies answer questions about relationships among selected engineering objects. Keeping those responsibilities separate makes failures easier to explain and avoids turning one DSL into a general-purpose expression language.",
+    "title": "11  Per-type attribute schemas",
+    "section": "11.7 Relationship with declarative policies",
+    "text": "11.7 Relationship with declarative policies\nType schemas answer questions about the shape of one object’s attributes. Declarative policies answer questions about relationships among selected engineering objects. Keeping those responsibilities separate makes failures easier to explain and avoids turning one DSL into a general-purpose expression language.",
     "crumbs": [
-      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Per-type attribute schemas</span>"
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Per-type attribute schemas</span>"
     ]
   },
   {
     "objectID": "graph-constraints.html",
     "href": "graph-constraints.html",
-    "title": "11  Declarative graph constraints",
+    "title": "12  Declarative graph constraints",
     "section": "",
-    "text": "11.1 Required paths\nQuarto-Needs graph constraints express bounded structural invariants over the canonical engineering graph. They complement per-relation endpoint/cardinality settings and the simpler required-relation policy DSL.\nEvery constraint is configuration, not executable code. Constraint sources are included in the canonical configuration fingerprint and violations are ordinary findings named CONSTRAINT:&lt;NAME&gt;.\nA required-path constraint requires an ordered semantic route from every object in a named-query scope.\nThis is stronger than requiring one verification link: the requirement must reach evidence through the exact sequence:\nInverse-authored relations are interpreted through the canonical relation catalog. For example, a test-authored verifies edge satisfies a verified-by step.",
+    "text": "12.1 Required paths\nQuarto-Needs graph constraints express bounded structural invariants over the canonical engineering graph. They complement per-relation endpoint/cardinality settings and the simpler required-relation policy DSL.\nEvery constraint is configuration, not executable code. Constraint sources are included in the canonical configuration fingerprint and violations are ordinary findings named CONSTRAINT:&lt;NAME&gt;.\nA required-path constraint requires an ordered semantic route from every object in a named-query scope.\nThis is stronger than requiring one verification link: the requirement must reach evidence through the exact sequence:\nInverse-authored relations are interpreted through the canonical relation catalog. For example, a test-authored verifies edge satisfies a verified-by step.",
     "crumbs": [
-      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Declarative graph constraints</span>"
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Declarative graph constraints</span>"
     ]
   },
   {
     "objectID": "graph-constraints.html#required-paths",
     "href": "graph-constraints.html#required-paths",
-    "title": "11  Declarative graph constraints",
+    "title": "12  Declarative graph constraints",
     "section": "",
     "text": "[constraints.APPROVED_REQUIRES_EVIDENCE_PATH]\nkind = \"required-path\"\nscope = \"approved-requirements\"\nrelations = [\"verified-by\", \"evidenced-by\"]\ntarget-role = \"evidence\"\nseverity = \"error\"\n\nrequirement --verified-by--&gt; test --evidenced-by--&gt; evidence",
     "crumbs": [
-      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Declarative graph constraints</span>"
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Declarative graph constraints</span>"
     ]
   },
   {
     "objectID": "graph-constraints.html#forbidden-cycles",
     "href": "graph-constraints.html#forbidden-cycles",
-    "title": "11  Declarative graph constraints",
-    "section": "11.2 Forbidden cycles",
-    "text": "11.2 Forbidden cycles\nforbidden-cycle rejects cycles formed by one or more selected logical relations:\n[constraints.ACYCLIC_DEPENDENCIES]\nkind = \"forbidden-cycle\"\nscope = \"architecture-components\"\nrelations = [\"depends-on\"]\nseverity = \"error\"\nThe finding includes an explicit cycle witness such as:\nCOMP-A → COMP-B → COMP-C → COMP-A\nA scope is optional for cycle checks. Without one, every modeled object participates.",
+    "title": "12  Declarative graph constraints",
+    "section": "12.2 Forbidden cycles",
+    "text": "12.2 Forbidden cycles\nforbidden-cycle rejects cycles formed by one or more selected logical relations:\n[constraints.ACYCLIC_DEPENDENCIES]\nkind = \"forbidden-cycle\"\nscope = \"architecture-components\"\nrelations = [\"depends-on\"]\nseverity = \"error\"\nThe finding includes an explicit cycle witness such as:\nCOMP-A → COMP-B → COMP-C → COMP-A\nA scope is optional for cycle checks. Without one, every modeled object participates.",
     "crumbs": [
-      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Declarative graph constraints</span>"
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Declarative graph constraints</span>"
     ]
   },
   {
     "objectID": "graph-constraints.html#scoped-connectivity",
     "href": "graph-constraints.html#scoped-connectivity",
-    "title": "11  Declarative graph constraints",
-    "section": "11.3 Scoped connectivity",
-    "text": "11.3 Scoped connectivity\nconnected requires objects selected by a query to participate in the graph:\n[constraints.NO_ORPHAN_COMPONENTS]\nkind = \"connected\"\nscope = \"architecture-components\"\nminimum = 1\nseverity = \"warning\"\nWhen relations is omitted, any incoming or outgoing engineering relation counts. An optional relations array narrows the allowed logical relation views.\nThis provides a scoped, declarative alternative to the global built-in orphan rule REQ014.",
+    "title": "12  Declarative graph constraints",
+    "section": "12.3 Scoped connectivity",
+    "text": "12.3 Scoped connectivity\nconnected requires objects selected by a query to participate in the graph:\n[constraints.NO_ORPHAN_COMPONENTS]\nkind = \"connected\"\nscope = \"architecture-components\"\nminimum = 1\nseverity = \"warning\"\nWhen relations is omitted, any incoming or outgoing engineering relation counts. An optional relations array narrows the allowed logical relation views.\nThis provides a scoped, declarative alternative to the global built-in orphan rule REQ014.",
     "crumbs": [
-      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Declarative graph constraints</span>"
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Declarative graph constraints</span>"
     ]
   },
   {
     "objectID": "graph-constraints.html#maximum-logical-relations",
     "href": "graph-constraints.html#maximum-logical-relations",
-    "title": "11  Declarative graph constraints",
-    "section": "11.4 Maximum logical relations",
-    "text": "11.4 Maximum logical relations\nmax-relations limits a logical relation from each scoped object and can restrict the semantic target role:\n[constraints.ONE_PRIMARY_VERIFICATION]\nkind = \"max-relations\"\nscope = \"critical-requirements\"\nrelations = [\"verified-by\"]\ntarget-role = \"verification\"\nmaximum = 1\nseverity = \"warning\"\nUnlike the low-level [relations.*] authored cardinality setting, this constraint evaluates the logical relation view and therefore recognizes inverse authoring where the catalog defines an inverse.",
+    "title": "12  Declarative graph constraints",
+    "section": "12.4 Maximum logical relations",
+    "text": "12.4 Maximum logical relations\nmax-relations limits a logical relation from each scoped object and can restrict the semantic target role:\n[constraints.ONE_PRIMARY_VERIFICATION]\nkind = \"max-relations\"\nscope = \"critical-requirements\"\nrelations = [\"verified-by\"]\ntarget-role = \"verification\"\nmaximum = 1\nseverity = \"warning\"\nUnlike the low-level [relations.*] authored cardinality setting, this constraint evaluates the logical relation view and therefore recognizes inverse authoring where the catalog defines an inverse.",
     "crumbs": [
-      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Declarative graph constraints</span>"
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Declarative graph constraints</span>"
     ]
   },
   {
     "objectID": "graph-constraints.html#why-the-grammar-is-intentionally-finite",
     "href": "graph-constraints.html#why-the-grammar-is-intentionally-finite",
-    "title": "11  Declarative graph constraints",
-    "section": "11.5 Why the grammar is intentionally finite",
-    "text": "11.5 Why the grammar is intentionally finite\nThe current constraint kinds are exactly:\n\nrequired-path;\nforbidden-cycle;\nconnected;\nmax-relations.\n\nUnknown kinds and unknown keys are rejected. There is no predicate expression, callback, script, template, dynamic import, or arbitrary traversal language.\nThis keeps the semantics:\n\ndeterministic;\nreviewable in Git;\ncompatible with offline builds;\nexplainable through explicit witnesses;\nreusable by CLI, CI, PR reports, SARIF-like projections, and future editor tooling.",
+    "title": "12  Declarative graph constraints",
+    "section": "12.5 Why the grammar is intentionally finite",
+    "text": "12.5 Why the grammar is intentionally finite\nThe current constraint kinds are exactly:\n\nrequired-path;\nforbidden-cycle;\nconnected;\nmax-relations.\n\nUnknown kinds and unknown keys are rejected. There is no predicate expression, callback, script, template, dynamic import, or arbitrary traversal language.\nThis keeps the semantics:\n\ndeterministic;\nreviewable in Git;\ncompatible with offline builds;\nexplainable through explicit witnesses;\nreusable by CLI, CI, PR reports, SARIF-like projections, and future editor tooling.",
     "crumbs": [
-      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Declarative graph constraints</span>"
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Declarative graph constraints</span>"
     ]
   },
   {
     "objectID": "graph-constraints.html#relationship-with-other-governance-layers",
     "href": "graph-constraints.html#relationship-with-other-governance-layers",
-    "title": "11  Declarative graph constraints",
-    "section": "11.6 Relationship with other governance layers",
-    "text": "11.6 Relationship with other governance layers\nUse the narrowest mechanism that expresses the invariant:\n\n[types.*] — identity, role, lifecycle, required attributes, JSON Schema shape;\n[relations.*] — allowed endpoint types and simple authored cardinality;\n[policies.*] — one required logical relation over a query scope;\n[constraints.*] — paths, cycles, scoped connectivity, and logical-relation limits;\nbuilt-in rules — stable product semantics that should not be rewritten by each project.",
+    "title": "12  Declarative graph constraints",
+    "section": "12.6 Relationship with other governance layers",
+    "text": "12.6 Relationship with other governance layers\nUse the narrowest mechanism that expresses the invariant:\n\n[types.*] — identity, role, lifecycle, required attributes, JSON Schema shape;\n[relations.*] — allowed endpoint types and simple authored cardinality;\n[policies.*] — one required logical relation over a query scope;\n[constraints.*] — paths, cycles, scoped connectivity, and logical-relation limits;\nbuilt-in rules — stable product semantics that should not be rewritten by each project.",
     "crumbs": [
-      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Declarative graph constraints</span>"
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Declarative graph constraints</span>"
     ]
   },
   {
     "objectID": "graph-constraints.html#self-hosted-example",
     "href": "graph-constraints.html#self-hosted-example",
-    "title": "11  Declarative graph constraints",
-    "section": "11.7 Self-hosted example",
-    "text": "11.7 Self-hosted example\nThe self-hosted Quarto-Needs model dogfoods required-path:\n[constraints.APPROVED_REQUIRES_EVIDENCE_PATH]\nkind = \"required-path\"\nscope = \"approved-requirements\"\nrelations = [\"verified-by\", \"evidenced-by\"]\ntarget-role = \"evidence\"\nseverity = \"error\"\nThis means an approved requirement is not considered structurally complete merely because a test is declared; that test must itself reach modeled evidence.",
+    "title": "12  Declarative graph constraints",
+    "section": "12.7 Self-hosted example",
+    "text": "12.7 Self-hosted example\nThe self-hosted Quarto-Needs model dogfoods required-path:\n[constraints.APPROVED_REQUIRES_EVIDENCE_PATH]\nkind = \"required-path\"\nscope = \"approved-requirements\"\nrelations = [\"verified-by\", \"evidenced-by\"]\ntarget-role = \"evidence\"\nseverity = \"error\"\nThis means an approved requirement is not considered structurally complete merely because a test is declared; that test must itself reach modeled evidence.",
     "crumbs": [
-      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Declarative graph constraints</span>"
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Declarative graph constraints</span>"
     ]
   },
   {
     "objectID": "derived-variants.html",
     "href": "derived-variants.html",
-    "title": "12  Derived fields and build variants",
+    "title": "13  Derived fields and build variants",
     "section": "",
-    "text": "12.1 Bounded derived operations\nQuarto-Needs keeps authored engineering data separate from computed engineering projections. A value derived from the graph is therefore not injected into an object’s attributes; it is materialized in the snapshot’s derived projection.\nThis distinction matters for auditability. Reviewers can tell whether a value was written by an author or calculated reproducibly from the current graph and configuration.\nThe first derived-field grammar deliberately supports only two operations:\nFor example:\nThe engine uses the canonical relation catalog, including inverse-authoring semantics. It never evaluates Python, Lua, JavaScript, shell commands, templates, or arbitrary expressions.\nDerived definitions are part of the canonical configuration fingerprint. Materialized derived values also participate in the semantic graph fingerprint when any derived fields are configured.",
+    "text": "13.1 Bounded derived operations\nQuarto-Needs keeps authored engineering data separate from computed engineering projections. A value derived from the graph is therefore not injected into an object’s attributes; it is materialized in the snapshot’s derived projection.\nThis distinction matters for auditability. Reviewers can tell whether a value was written by an author or calculated reproducibly from the current graph and configuration.\nThe first derived-field grammar deliberately supports only two operations:\nFor example:\nThe engine uses the canonical relation catalog, including inverse-authoring semantics. It never evaluates Python, Lua, JavaScript, shell commands, templates, or arbitrary expressions.\nDerived definitions are part of the canonical configuration fingerprint. Materialized derived values also participate in the semantic graph fingerprint when any derived fields are configured.",
     "crumbs": [
-      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Derived fields and build variants</span>"
+      "<span class='chapter-number'>13</span>  <span class='chapter-title'>Derived fields and build variants</span>"
     ]
   },
   {
     "objectID": "derived-variants.html#bounded-derived-operations",
     "href": "derived-variants.html#bounded-derived-operations",
-    "title": "12  Derived fields and build variants",
+    "title": "13  Derived fields and build variants",
     "section": "",
     "text": "relation-count: count logical targets of one canonical relation;\npath-exists: evaluate whether a fixed ordered relation path reaches a target, optionally constrained by semantic role.\n\n\n[derived.verification-count]\nscope = \"approved-requirements\"\noperation = \"relation-count\"\nrelation = \"verified-by\"\ntarget-role = \"verification\"\n\n[derived.has-evidence-path]\nscope = \"approved-requirements\"\noperation = \"path-exists\"\nrelations = [\"verified-by\", \"evidenced-by\"]\ntarget-role = \"evidence\"",
     "crumbs": [
-      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Derived fields and build variants</span>"
+      "<span class='chapter-number'>13</span>  <span class='chapter-title'>Derived fields and build variants</span>"
     ]
   },
   {
     "objectID": "derived-variants.html#named-build-variants",
     "href": "derived-variants.html#named-build-variants",
-    "title": "12  Derived fields and build variants",
-    "section": "12.2 Named build variants",
-    "text": "12.2 Named build variants\nA variant is a deterministic named selection over the same canonical snapshot. It begins with a safe named query and can optionally expand over an explicit relation set for a bounded depth.\n[variants.assurance-slice]\nscope = \"approved-requirements\"\nrelations = [\"verified-by\", \"evidenced-by\"]\ndepth = 2\nThis does not create a second graph. The variant stores only the stable IDs selected from the canonical graph.\nInspect configured variants from the CLI:\nquarto-needs variant list\nquarto-needs variant show assurance-slice\nquarto-needs variant show assurance-slice --format json\nVariants receive a variantFingerprint bound to the final semantic graph fingerprint and the ordered variant membership. This prevents a variant projection from being reused as though it belonged to another engineering state.",
+    "title": "13  Derived fields and build variants",
+    "section": "13.2 Named build variants",
+    "text": "13.2 Named build variants\nA variant is a deterministic named selection over the same canonical snapshot. It begins with a safe named query and can optionally expand over an explicit relation set for a bounded depth.\n[variants.assurance-slice]\nscope = \"approved-requirements\"\nrelations = [\"verified-by\", \"evidenced-by\"]\ndepth = 2\nThis does not create a second graph. The variant stores only the stable IDs selected from the canonical graph.\nInspect configured variants from the CLI:\nquarto-needs variant list\nquarto-needs variant show assurance-slice\nquarto-needs variant show assurance-slice --format json\nVariants receive a variantFingerprint bound to the final semantic graph fingerprint and the ordered variant membership. This prevents a variant projection from being reused as though it belonged to another engineering state.",
     "crumbs": [
-      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Derived fields and build variants</span>"
+      "<span class='chapter-number'>13</span>  <span class='chapter-title'>Derived fields and build variants</span>"
     ]
   },
   {
     "objectID": "derived-variants.html#self-hosted-example",
     "href": "derived-variants.html#self-hosted-example",
-    "title": "12  Derived fields and build variants",
-    "section": "12.3 Self-hosted example",
-    "text": "12.3 Self-hosted example\nThe Quarto-Needs self-hosted book computes two assurance fields for approved requirements: verification-count and has-evidence-path. It also defines assurance-slice, which expands from approved requirements through verification and evidence relations.\nThis means Phase 3 is exercised by the project it governs: policy, schemas, graph constraints, derived values, and variants all run against the Quarto-Needs engineering model itself.",
+    "title": "13  Derived fields and build variants",
+    "section": "13.3 Self-hosted example",
+    "text": "13.3 Self-hosted example\nThe Quarto-Needs self-hosted book computes two assurance fields for approved requirements: verification-count and has-evidence-path. It also defines assurance-slice, which expands from approved requirements through verification and evidence relations.\nThis means Phase 3 is exercised by the project it governs: policy, schemas, graph constraints, derived values, and variants all run against the Quarto-Needs engineering model itself.",
     "crumbs": [
-      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Derived fields and build variants</span>"
+      "<span class='chapter-number'>13</span>  <span class='chapter-title'>Derived fields and build variants</span>"
+    ]
+  },
+  {
+    "objectID": "interoperability.html",
+    "href": "interoperability.html",
+    "title": "14  Interoperability and Federation",
+    "section": "",
+    "text": "14.1 Structured Interchange Formats\nInterchange formats and external service integrations in Quarto-Needs are adapters and projections around the canonical engineering graph. External standards transport and federate requirements without compromising canonical identity or provenance.",
+    "crumbs": [
+      "<span class='chapter-number'>14</span>  <span class='chapter-title'>Interoperability and Federation</span>"
+    ]
+  },
+  {
+    "objectID": "interoperability.html#structured-interchange-formats",
+    "href": "interoperability.html#structured-interchange-formats",
+    "title": "14  Interoperability and Federation",
+    "section": "",
+    "text": "14.1.1 ReqIF 1.2\nExport the canonical requirements graph to ReqIF (Requirements Interchange Format) for exchange with enterprise tools like IBM DOORS, PTC Integrity, or Polarion:\nquarto-needs export --format reqif --output requirements.reqif\nThe exporter maps typed engineering objects, attributes, and canonical relation families to standard ReqIF SpecObjects, SpecTypes, and SpecRelations.\n\n\n14.1.2 JSON-LD 1.1\nExport the graph as Linked Data preserving semantic relation metadata:\nquarto-needs export --format jsonld --output graph.jsonld\nThe JSON-LD projection uses deterministic IRIs, schema vocabularies, and full context mapping compatible with semantic web tooling.",
+    "crumbs": [
+      "<span class='chapter-number'>14</span>  <span class='chapter-title'>Interoperability and Federation</span>"
+    ]
+  },
+  {
+    "objectID": "interoperability.html#standards-based-federation-oslc-rm",
+    "href": "interoperability.html#standards-based-federation-oslc-rm",
+    "title": "14  Interoperability and Federation",
+    "section": "14.2 Standards-Based Federation: OSLC RM",
+    "text": "14.2 Standards-Based Federation: OSLC RM\nQuarto-Needs provides a bounded read-only adapter for OSLC Requirements Management (RM):\n\nService Discovery: Discovers RM Service Providers, Service Catalogs, and advertised Resource Shapes:\nquarto-needs oslc discover https://provider.example/oslc/sp/requirements --format json\nQuery Capability: Executes a bounded HTTP GET query in the context of an explicit Service Provider (or a configured profile), without recursively crawling members:\nquarto-needs oslc query https://provider.example/oslc/query/requirements \\\n  --service-provider-uri https://provider.example/oslc/sp/requirements\nObservation & Provenance: Materializes query members as independently provenance-bearing external observations with SHA-256 digests and retrieval timestamps.\nReconciliation: Reconciles observed remote resources against local canonical objects using explicit URI-to-ID bindings — preventing title collisions from causing accidental merges.\n\nCredentials are provided securely via environment variables:\nexport OSLC_TOKEN=\"...\"\nquarto-needs oslc discover https://provider.example/oslc/sp/requirements --bearer-token-env OSLC_TOKEN",
+    "crumbs": [
+      "<span class='chapter-number'>14</span>  <span class='chapter-title'>Interoperability and Federation</span>"
+    ]
+  },
+  {
+    "objectID": "interoperability.html#external-issue-trackers-github-issues",
+    "href": "interoperability.html#external-issue-trackers-github-issues",
+    "title": "14  Interoperability and Federation",
+    "section": "14.3 External Issue Trackers: GitHub Issues",
+    "text": "14.3 External Issue Trackers: GitHub Issues\nThe Python engine contains a read-only GitHub Issues adapter with bounded retrieval, provenance, conditional caching, reconciliation, and reviewed import/apply primitives. In 0.1.0 this adapter is a library/engine surface; there is no public quarto-needs github ... CLI command yet.\nThe adapter:\n\nnormalizes issues into external observation envelopes;\nhandles pagination and conditional HTTP caching (If-None-Match / 304 Not Modified);\ntreats issue numbers as external data rather than overriding canonical IDs;\nrequires explicit apply review before any local requirement creation.\n\nA dedicated command-line surface is deferred until its user-facing authentication and import workflow can be documented and tested as a stable contract.",
+    "crumbs": [
+      "<span class='chapter-number'>14</span>  <span class='chapter-title'>Interoperability and Federation</span>"
+    ]
+  },
+  {
+    "objectID": "migrations.html",
+    "href": "migrations.html",
+    "title": "15  Migrating from Other Tools",
+    "section": "",
+    "text": "15.1 Supported Tools\nQuarto-Needs provides conservative migration adapters for bringing requirements from other docs-as-code and requirements-management ecosystems into Quarto Markdown declarations. Migration is deliberately review-first: generating a plan never rewrites authored files.\n--output is the migration-plan JSON, not a destination .qmd file.",
+    "crumbs": [
+      "<span class='chapter-number'>15</span>  <span class='chapter-title'>Migrating from Other Tools</span>"
+    ]
+  },
+  {
+    "objectID": "migrations.html#supported-tools",
+    "href": "migrations.html#supported-tools",
+    "title": "15  Migrating from Other Tools",
+    "section": "",
+    "text": "Source Tool\nInput Format\nPlan command\n\n\n\n\nSphinx-Needs\nneeds.json\nquarto-needs migrate sphinx-needs &lt;path&gt; --output &lt;plan.json&gt;\n\n\nDoorstop\nDirectory of YAML/JSON documents\nquarto-needs migrate doorstop &lt;dir&gt; --output &lt;plan.json&gt;\n\n\nStrictDoc\n.sdoc files / folder\nquarto-needs migrate strictdoc &lt;path&gt; --output &lt;plan.json&gt;\n\n\nOpenFastTrace\nXML trace exchange\nquarto-needs migrate openfasttrace &lt;path&gt; --output &lt;plan.json&gt;",
+    "crumbs": [
+      "<span class='chapter-number'>15</span>  <span class='chapter-title'>Migrating from Other Tools</span>"
+    ]
+  },
+  {
+    "objectID": "migrations.html#migration-workflow",
+    "href": "migrations.html#migration-workflow",
+    "title": "15  Migrating from Other Tools",
+    "section": "15.2 Migration Workflow",
+    "text": "15.2 Migration Workflow\n\nGenerate and review the migration plan. This does not modify destination files:\nquarto-needs migrate sphinx-needs docs/needs.json \\\n  --output .quarto-needs/migrations/sphinx-needs-plan.json\nBuild a reviewed apply plan by assigning each source ID an explicit project-relative destination. Add any required type/relation mappings for the source model:\nquarto-needs migrate sphinx-needs docs/needs.json \\\n  --type-map req=functional-requirement \\\n  --destination REQ_001=requirements.qmd \\\n  --apply-plan\nWithout --write, this still does not change authored files; the apply plan is written to .quarto-needs/migrations/sphinx-needs-apply-plan.json by default.\nWrite only a ready, reviewed plan by repeating the reviewed mappings with --write:\nquarto-needs migrate sphinx-needs docs/needs.json \\\n  --type-map req=functional-requirement \\\n  --destination REQ_001=requirements.qmd \\\n  --apply-plan --write\nValidate the converted project:\nquarto-needs scan\nquarto-needs check\n\nFor more than one source object, repeat --destination SOURCE_ID=path.qmd. --id-map SOURCE_ID=CANONICAL_ID is available when preserving the source ID is not appropriate. Writes are create-only and reject unresolved mappings, collisions, or unsafe destination paths rather than inferring identity.",
+    "crumbs": [
+      "<span class='chapter-number'>15</span>  <span class='chapter-title'>Migrating from Other Tools</span>"
+    ]
+  },
+  {
+    "objectID": "migrations.html#mapping-principles",
+    "href": "migrations.html#mapping-principles",
+    "title": "15  Migrating from Other Tools",
+    "section": "15.3 Mapping Principles",
+    "text": "15.3 Mapping Principles\n\nStable Identity: Existing IDs (e.g. REQ_001 or SYS-042) are preserved by default; remapping is explicit.\nRelation Translation: Source links are mapped into the Quarto-Needs canonical relation catalog through explicit relation mappings where needed.\nReview Before Mutation: Planning and apply-planning are non-mutating; --write is a separate, explicit step.\nQuarto-Native Output: Ready candidates are rendered as standard Pandoc Div declarations (::: {.need ...} ... :::).",
+    "crumbs": [
+      "<span class='chapter-number'>15</span>  <span class='chapter-title'>Migrating from Other Tools</span>"
     ]
   },
   {
     "objectID": "language-server.html",
     "href": "language-server.html",
-    "title": "13  Language server and editor authoring",
+    "title": "16  Language server and editor authoring",
     "section": "",
-    "text": "13.1 Starting the server\nQuarto-Needs includes a Language Server Protocol (LSP) server that exposes the same engineering semantics used by the CLI, CI, Quarto projections, evidence validation, policies, and graph analysis.\nThe editor layer does not maintain a second parser or rule engine.\nThe installed CLI exposes the stdio server directly:\nNormally an editor extension starts this process automatically. Running it directly is primarily useful when integrating another LSP-capable editor or debugging protocol traffic.",
+    "text": "16.1 Starting the server\nQuarto-Needs includes a Language Server Protocol (LSP) server that exposes the same engineering semantics used by the CLI, CI, Quarto projections, evidence validation, policies, and graph analysis.\nThe editor layer does not maintain a second parser or rule engine.\nThe installed CLI exposes the stdio server directly:\nNormally an editor extension starts this process automatically. Running it directly is primarily useful when integrating another LSP-capable editor or debugging protocol traffic.",
     "crumbs": [
-      "<span class='chapter-number'>13</span>  <span class='chapter-title'>Language server and editor authoring</span>"
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Language server and editor authoring</span>"
     ]
   },
   {
     "objectID": "language-server.html#starting-the-server",
     "href": "language-server.html#starting-the-server",
-    "title": "13  Language server and editor authoring",
+    "title": "16  Language server and editor authoring",
     "section": "",
     "text": "quarto-needs --root /path/to/project lsp",
     "crumbs": [
-      "<span class='chapter-number'>13</span>  <span class='chapter-title'>Language server and editor authoring</span>"
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Language server and editor authoring</span>"
     ]
   },
   {
     "objectID": "language-server.html#capabilities",
     "href": "language-server.html#capabilities",
-    "title": "13  Language server and editor authoring",
-    "section": "13.2 Capabilities",
-    "text": "13.2 Capabilities\nThe server currently advertises:\n\nfull-document text synchronization with open/save/close lifecycle;\ncompletion;\nhover;\ngo to definition;\nfind references;\nprepare rename and rename;\ndocument symbols;\nworkspace symbols;\npush diagnostics.",
+    "title": "16  Language server and editor authoring",
+    "section": "16.2 Capabilities",
+    "text": "16.2 Capabilities\nThe server currently advertises:\n\nfull-document text synchronization with open/save/close lifecycle;\ncompletion;\nhover;\ngo to definition;\nfind references;\nprepare rename and rename;\ndocument symbols;\nworkspace symbols;\npush diagnostics.",
     "crumbs": [
-      "<span class='chapter-number'>13</span>  <span class='chapter-title'>Language server and editor authoring</span>"
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Language server and editor authoring</span>"
     ]
   },
   {
     "objectID": "language-server.html#unsaved-buffers",
     "href": "language-server.html#unsaved-buffers",
-    "title": "13  Language server and editor authoring",
-    "section": "13.3 Unsaved buffers",
-    "text": "13.3 Unsaved buffers\nOpen documents are analyzed as in-memory overlays. Quarto-Needs does not write unsaved editor text to the repository.\nAn overlay uses the same QMD declaration parser and the same project analyzer as a saved file. This means an unsaved change can immediately affect:\n\nobject titles and metadata;\nrelation topology;\npolicies and graph constraints;\nderived fields;\ndiagnostics;\nhover information;\nsymbols;\nreferences and refactors.\n\nIf a buffer becomes structurally invalid while the user is typing, the server records the structural findings from that attempted analysis while retaining the last valid semantic snapshot for cross-file navigation. Once the buffer becomes valid again, the complete canonical graph is replaced by the newly analyzed state.",
+    "title": "16  Language server and editor authoring",
+    "section": "16.3 Unsaved buffers",
+    "text": "16.3 Unsaved buffers\nOpen documents are analyzed as in-memory overlays. Quarto-Needs does not write unsaved editor text to the repository.\nAn overlay uses the same QMD declaration parser and the same project analyzer as a saved file. This means an unsaved change can immediately affect:\n\nobject titles and metadata;\nrelation topology;\npolicies and graph constraints;\nderived fields;\ndiagnostics;\nhover information;\nsymbols;\nreferences and refactors.\n\nIf a buffer becomes structurally invalid while the user is typing, the server records the structural findings from that attempted analysis while retaining the last valid semantic snapshot for cross-file navigation. Once the buffer becomes valid again, the complete canonical graph is replaced by the newly analyzed state.",
     "crumbs": [
-      "<span class='chapter-number'>13</span>  <span class='chapter-title'>Language server and editor authoring</span>"
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Language server and editor authoring</span>"
     ]
   },
   {
     "objectID": "language-server.html#context-aware-completion",
     "href": "language-server.html#context-aware-completion",
-    "title": "13  Language server and editor authoring",
-    "section": "13.4 Context-aware completion",
-    "text": "13.4 Context-aware completion\nCompletion is semantic rather than a flat vocabulary dump.\nFor example:\n::: {.need #FUN-010 type=\"fun█\"}\nsuggests configured object types matching the prefix.\n::: {.need #FUN-010 type=\"functional-requirement\" status=\"a█\"}\nsuggests statuses allowed by that specific type lifecycle.\nFor relation values:\n::: {.need #FUN-010 type=\"functional-requirement\" verified-by=\"TC-█\"}\nobject candidates are filtered by the configured endpoint policy for verified-by. If only test-case objects are valid targets, requirements or architecture components are not offered.",
+    "title": "16  Language server and editor authoring",
+    "section": "16.4 Context-aware completion",
+    "text": "16.4 Context-aware completion\nCompletion is semantic rather than a flat vocabulary dump.\nFor example:\n::: {.need #FUN-010 type=\"fun█\"}\nsuggests configured object types matching the prefix.\n::: {.need #FUN-010 type=\"functional-requirement\" status=\"a█\"}\nsuggests statuses allowed by that specific type lifecycle.\nFor relation values:\n::: {.need #FUN-010 type=\"functional-requirement\" verified-by=\"TC-█\"}\nobject candidates are filtered by the configured endpoint policy for verified-by. If only test-case objects are valid targets, requirements or architecture components are not offered.",
     "crumbs": [
-      "<span class='chapter-number'>13</span>  <span class='chapter-title'>Language server and editor authoring</span>"
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Language server and editor authoring</span>"
     ]
   },
   {
     "objectID": "language-server.html#hover",
     "href": "language-server.html#hover",
-    "title": "13  Language server and editor authoring",
-    "section": "13.5 Hover",
-    "text": "13.5 Hover\nHover exposes canonical object metadata, including:\n\nID and title;\ntype and semantic role;\nstatus and priority;\nincoming/outgoing relation counts;\nsafe derived fields materialized by Phase 3 configuration.\n\nDerived values are displayed separately from authored attributes because they remain computed projections.",
+    "title": "16  Language server and editor authoring",
+    "section": "16.5 Hover",
+    "text": "16.5 Hover\nHover exposes canonical object metadata, including:\n\nID and title;\ntype and semantic role;\nstatus and priority;\nincoming/outgoing relation counts;\nsafe derived fields materialized by Phase 3 configuration.\n\nDerived values are displayed separately from authored attributes because they remain computed projections.",
     "crumbs": [
-      "<span class='chapter-number'>13</span>  <span class='chapter-title'>Language server and editor authoring</span>"
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Language server and editor authoring</span>"
     ]
   },
   {
     "objectID": "language-server.html#definitions-and-references",
     "href": "language-server.html#definitions-and-references",
-    "title": "13  Language server and editor authoring",
-    "section": "13.6 Definitions and references",
-    "text": "13.6 Definitions and references\nQuarto-Needs maintains an exact source-span index for semantic ID positions. Definitions and references therefore point to identifier ranges rather than only approximate source lines.\nThe index recognizes IDs in:\n\n.need declarations;\nrelation attributes;\nscalar relation metadata;\nrelation metadata lists;\n{{&lt; need ... &gt;}} shortcodes.\n\nArbitrary prose that happens to contain the same text as an object ID is not considered a semantic reference.",
+    "title": "16  Language server and editor authoring",
+    "section": "16.6 Definitions and references",
+    "text": "16.6 Definitions and references\nQuarto-Needs maintains an exact source-span index for semantic ID positions. Definitions and references therefore point to identifier ranges rather than only approximate source lines.\nThe index recognizes IDs in:\n\n.need declarations;\nrelation attributes;\nscalar relation metadata;\nrelation metadata lists;\n{{&lt; need ... &gt;}} shortcodes.\n\nArbitrary prose that happens to contain the same text as an object ID is not considered a semantic reference.",
     "crumbs": [
-      "<span class='chapter-number'>13</span>  <span class='chapter-title'>Language server and editor authoring</span>"
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Language server and editor authoring</span>"
     ]
   },
   {
     "objectID": "language-server.html#relation-aware-rename",
     "href": "language-server.html#relation-aware-rename",
-    "title": "13  Language server and editor authoring",
-    "section": "13.7 Relation-aware rename",
-    "text": "13.7 Relation-aware rename\nprepareRename succeeds only when the cursor is on a semantic object-ID span. A rename returns a standard LSP WorkspaceEdit; the server does not mutate project files itself.\nThe edit updates:\n\nthe canonical declaration;\nall authored relation targets;\nneed shortcodes;\nlocalized presentation siblings such as *.pt-BR.qmd.\n\nLocalized files remain excluded from the canonical engineering graph, but identity refactors update them so presentation parity is not broken.\nNarrative mentions are deliberately left untouched. Renaming also rejects a target ID that already belongs to another object.",
+    "title": "16  Language server and editor authoring",
+    "section": "16.7 Relation-aware rename",
+    "text": "16.7 Relation-aware rename\nprepareRename succeeds only when the cursor is on a semantic object-ID span. A rename returns a standard LSP WorkspaceEdit; the server does not mutate project files itself.\nThe edit updates:\n\nthe canonical declaration;\nall authored relation targets;\nneed shortcodes;\nlocalized presentation siblings such as *.pt-BR.qmd.\n\nLocalized files remain excluded from the canonical engineering graph, but identity refactors update them so presentation parity is not broken.\nNarrative mentions are deliberately left untouched. Renaming also rejects a target ID that already belongs to another object.",
     "crumbs": [
-      "<span class='chapter-number'>13</span>  <span class='chapter-title'>Language server and editor authoring</span>"
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Language server and editor authoring</span>"
     ]
   },
   {
     "objectID": "language-server.html#diagnostics",
     "href": "language-server.html#diagnostics",
-    "title": "13  Language server and editor authoring",
-    "section": "13.8 Diagnostics",
-    "text": "13.8 Diagnostics\nDiagnostics are projections of the canonical findings, including structural validation, lifecycle and relation errors, configured policies, type schemas, and graph constraints.\nThe LSP does not invent editor-specific versions of those rules.",
+    "title": "16  Language server and editor authoring",
+    "section": "16.8 Diagnostics",
+    "text": "16.8 Diagnostics\nDiagnostics are projections of the canonical findings, including structural validation, lifecycle and relation errors, configured policies, type schemas, and graph constraints.\nThe LSP does not invent editor-specific versions of those rules.",
     "crumbs": [
-      "<span class='chapter-number'>13</span>  <span class='chapter-title'>Language server and editor authoring</span>"
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Language server and editor authoring</span>"
     ]
   },
   {
     "objectID": "language-server.html#languageservice-as-the-reusable-boundary",
     "href": "language-server.html#languageservice-as-the-reusable-boundary",
-    "title": "13  Language server and editor authoring",
-    "section": "13.9 LanguageService as the reusable boundary",
-    "text": "13.9 LanguageService as the reusable boundary\nProtocol transport lives in lsp_server.py, while editor-independent semantics live in language_service.py. This separation makes it possible to reuse editor services from future integrations without coupling the engineering model to VS Code or JSON-RPC.\nThe intended rule remains:\n\nPython owns engineering semantics; editor integrations consume them.",
+    "title": "16  Language server and editor authoring",
+    "section": "16.9 LanguageService as the reusable boundary",
+    "text": "16.9 LanguageService as the reusable boundary\nProtocol transport lives in lsp_server.py, while editor-independent semantics live in language_service.py. This separation makes it possible to reuse editor services from future integrations without coupling the engineering model to VS Code or JSON-RPC.\nThe intended rule remains:\n\nPython owns engineering semantics; editor integrations consume them.",
     "crumbs": [
-      "<span class='chapter-number'>13</span>  <span class='chapter-title'>Language server and editor authoring</span>"
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Language server and editor authoring</span>"
     ]
   },
   {
     "objectID": "reference.html",
     "href": "reference.html",
-    "title": "14  Practical reference",
+    "title": "17  Practical reference",
     "section": "",
-    "text": "14.1 Common types\nThese prefixes are conventions, not reserved names. Configure them to fit the project domain.",
+    "text": "17.1 Common types\nThese prefixes are conventions, not reserved names. Configure them to fit the project domain.",
     "crumbs": [
-      "<span class='chapter-number'>14</span>  <span class='chapter-title'>Practical reference</span>"
+      "<span class='chapter-number'>17</span>  <span class='chapter-title'>Practical reference</span>"
     ]
   },
   {
     "objectID": "reference.html#common-types",
     "href": "reference.html#common-types",
-    "title": "14  Practical reference",
+    "title": "17  Practical reference",
     "section": "",
     "text": "Type\nSuggested role\nCommon prefix\n\n\n\n\nstakeholder-need\nneed\nSTK-\n\n\nsystem-requirement\nrequirement\nSYS-\n\n\nfunctional-requirement\nrequirement\nFUN-\n\n\nnon-functional-requirement\nrequirement\nNFR-\n\n\narchitecture-decision\ndecision\nADR-\n\n\ncomponent\narchitecture-element\nCOMP-\n\n\ninterface\narchitecture-element\nIF-\n\n\nrisk\nrisk\nRISK-\n\n\ntest-case\nverification\nTC-\n\n\nevidence\nevidence\nEVD-",
     "crumbs": [
-      "<span class='chapter-number'>14</span>  <span class='chapter-title'>Practical reference</span>"
+      "<span class='chapter-number'>17</span>  <span class='chapter-title'>Practical reference</span>"
     ]
   },
   {
     "objectID": "reference.html#main-relations",
     "href": "reference.html#main-relations",
-    "title": "14  Practical reference",
-    "section": "14.2 Main relations",
-    "text": "14.2 Main relations\n\n14.2.1 Requirements\n\nderives-from\nrefines\ndecomposes\nconstrains\ndepends-on\nconflicts-with\n\n\n\n14.2.2 Implementation and verification\n\nimplemented-by / implements\nverified-by / verifies\nvalidated-by\nevidenced-by / evidences\nmitigates\n\n\n\n14.2.3 Architecture decisions\n\naddresses / addressed-by\napplies-to\nconfirmed-by / confirms\nsupersedes / superseded-by",
+    "title": "17  Practical reference",
+    "section": "17.2 Main relations",
+    "text": "17.2 Main relations\n\n17.2.1 Requirements\n\nderives-from\nrefines\ndecomposes\nconstrains\ndepends-on\nconflicts-with\n\n\n\n17.2.2 Implementation and verification\n\nimplemented-by / implements\nverified-by / verifies\nvalidated-by\nevidenced-by / evidences\nmitigates\n\n\n\n17.2.3 Architecture decisions\n\naddresses / addressed-by\napplies-to\nconfirmed-by / confirms\nsupersedes / superseded-by",
     "crumbs": [
-      "<span class='chapter-number'>14</span>  <span class='chapter-title'>Practical reference</span>"
+      "<span class='chapter-number'>17</span>  <span class='chapter-title'>Practical reference</span>"
     ]
   },
   {
     "objectID": "reference.html#traceability-patterns",
     "href": "reference.html#traceability-patterns",
-    "title": "14  Practical reference",
-    "section": "14.3 Traceability patterns",
-    "text": "14.3 Traceability patterns\n\n14.3.1 Requirement to evidence\nREQ → implemented-by → Component\nREQ → verified-by → Test → evidenced-by → Evidence\n\n\n14.3.2 Requirement through decision\nRequirement ← addresses ← ADR → applies-to → Component\n                         └→ confirmed-by → Test\n\n\n14.3.3 Decision lineage\nADR-002 ──supersedes──► ADR-001",
+    "title": "17  Practical reference",
+    "section": "17.3 Traceability patterns",
+    "text": "17.3 Traceability patterns\n\n17.3.1 Requirement to evidence\nREQ → implemented-by → Component\nREQ → verified-by → Test → evidenced-by → Evidence\n\n\n17.3.2 Requirement through decision\nRequirement ← addresses ← ADR → applies-to → Component\n                         └→ confirmed-by → Test\n\n\n17.3.3 Decision lineage\nADR-002 ──supersedes──► ADR-001",
     "crumbs": [
-      "<span class='chapter-number'>14</span>  <span class='chapter-title'>Practical reference</span>"
+      "<span class='chapter-number'>17</span>  <span class='chapter-title'>Practical reference</span>"
     ]
   },
   {
     "objectID": "reference.html#interactive-graph-exploration",
     "href": "reference.html#interactive-graph-exploration",
-    "title": "14  Practical reference",
-    "section": "14.4 Interactive graph exploration",
-    "text": "14.4 Interactive graph exploration\nThe HTML need-graph view combines text search with semantic exploration controls. Type and Status filter nodes; Family restricts the graph to one canonical relation family. These filters compose with the Parents/Children controls, collapse/expand gestures, and fixed-spacing layout.\nTraversal selects a canonical semantic profile published by the Python core. The built-in profiles are traceability, derivation, architecture, decision, implementation, verification, and risk. A profile does not reinterpret edge direction in JavaScript: it is a family allowlist over the catalog’s published traversalDirection semantics.\nWhen a node is selected, Path to root finds the nearest semantic root through the active traversal profile and highlights the complete root-to-focus path. This explicit path remains visible even when node filters or the Parents checkbox would otherwise hide an ancestor.\nClicking an edge opens its engineering inspector. The inspector shows the canonical relation family, semantic traversal direction, endpoint roles, impact direction, active profile/filter, and safe declaration provenance (file:line and anchor when available). Only provenance already present in the analyzed snapshot is published; arbitrary source attributes and absolute filesystem paths are not exposed.\nNamed queries can also be reused as graph views:\n{{&lt; need-graph query=\"accepted-decisions\" &gt;}}\nor equivalently:\n{{&lt; need-graph view=\"accepted-decisions\" &gt;}}\nComplex selection remains owned by the Python query engine; the browser controls are presentation filters over an already materialized, bounded public projection.",
+    "title": "17  Practical reference",
+    "section": "17.4 Interactive graph exploration",
+    "text": "17.4 Interactive graph exploration\nThe HTML need-graph view combines text search with semantic exploration controls. Type and Status filter nodes; Family restricts the graph to one canonical relation family. These filters compose with the Parents/Children controls, collapse/expand gestures, and fixed-spacing layout.\nTraversal selects a canonical semantic profile published by the Python core. The built-in profiles are traceability, derivation, architecture, decision, implementation, verification, and risk. A profile does not reinterpret edge direction in JavaScript: it is a family allowlist over the catalog’s published traversalDirection semantics.\nWhen a node is selected, Path to root finds the nearest semantic root through the active traversal profile and highlights the complete root-to-focus path. This explicit path remains visible even when node filters or the Parents checkbox would otherwise hide an ancestor.\nClicking an edge opens its engineering inspector. The inspector shows the canonical relation family, semantic traversal direction, endpoint roles, impact direction, active profile/filter, and safe declaration provenance (file:line and anchor when available). Only provenance already present in the analyzed snapshot is published; arbitrary source attributes and absolute filesystem paths are not exposed.\nNamed queries can also be reused as graph views:\n{{&lt; need-graph query=\"accepted-decisions\" &gt;}}\nor equivalently:\n{{&lt; need-graph view=\"accepted-decisions\" &gt;}}\nComplex selection remains owned by the Python query engine; the browser controls are presentation filters over an already materialized, bounded public projection.",
     "crumbs": [
-      "<span class='chapter-number'>14</span>  <span class='chapter-title'>Practical reference</span>"
+      "<span class='chapter-number'>17</span>  <span class='chapter-title'>Practical reference</span>"
     ]
   },
   {
     "objectID": "reference.html#accepted-adr-checklist",
     "href": "reference.html#accepted-adr-checklist",
-    "title": "14  Practical reference",
-    "section": "14.5 Accepted ADR checklist",
-    "text": "14.5 Accepted ADR checklist\nAt minimum, an accepted decision should have stable identity, date, decision makers, a traceable driver, architectural scope, and planned or executable confirmation. Context, drivers, considered options, outcome, consequences, and confirmation should remain readable in the Markdown body.",
+    "title": "17  Practical reference",
+    "section": "17.5 Accepted ADR checklist",
+    "text": "17.5 Accepted ADR checklist\nAt minimum, an accepted decision should have stable identity, date, decision makers, a traceable driver, architectural scope, and planned or executable confirmation. Context, drivers, considered options, outcome, consequences, and confirmation should remain readable in the Markdown body.",
     "crumbs": [
-      "<span class='chapter-number'>14</span>  <span class='chapter-title'>Practical reference</span>"
+      "<span class='chapter-number'>17</span>  <span class='chapter-title'>Practical reference</span>"
     ]
   },
   {
     "objectID": "reference.html#design-principle",
     "href": "reference.html#design-principle",
-    "title": "14  Practical reference",
-    "section": "14.6 Design principle",
-    "text": "14.6 Design principle\nUse structure only where machines need to query, validate, measure, or traverse. Preserve narrative in Markdown where humans need to explain context and rationale. This balance lets Quarto-Needs remain high-quality documentation without losing formal governance.",
+    "title": "17  Practical reference",
+    "section": "17.6 Design principle",
+    "text": "17.6 Design principle\nUse structure only where machines need to query, validate, measure, or traverse. Preserve narrative in Markdown where humans need to explain context and rationale. This balance lets Quarto-Needs remain high-quality documentation without losing formal governance.",
     "crumbs": [
-      "<span class='chapter-number'>14</span>  <span class='chapter-title'>Practical reference</span>"
+      "<span class='chapter-number'>17</span>  <span class='chapter-title'>Practical reference</span>"
     ]
   }
 ]
