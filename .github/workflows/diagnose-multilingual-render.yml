@@ -1,0 +1,58 @@
+name: Diagnose multilingual render
+
+"on":
+  push:
+    branches:
+      - fix/multilingual-self-example-render
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+          cache: pip
+      - name: Install project and test dependencies
+        run: make setup
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+      - name: Install babelquarto
+        run: make setup-babelquarto
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: "1.10.18"
+          tinytex: true
+      - name: Synchronize extension and graph
+        run: make sync-self-example
+      - name: Capture multilingual self-hosted render
+        shell: bash
+        run: |
+          set +e
+          make render-self-example > >(tee render-self-example.log) 2>&1
+          status=${PIPESTATUS[0]}
+          echo "$status" > render-self-example.status
+          exit 0
+      - name: Upload render diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: multilingual-render-diagnostics
+          path: |
+            render-self-example.log
+            render-self-example.status
+          if-no-files-found: error
+      - name: Preserve render failure
+        shell: bash
+        run: exit "$(cat render-self-example.status)"
