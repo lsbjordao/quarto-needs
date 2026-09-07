@@ -1,0 +1,2273 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<link rel="alternate" hreflang="en" href="/implementation.html" />
+<link rel="alternate" hreflang="pt-BR" href="/pt-BR/implementation.html" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>6  Implementation: tracing architecture into the repository – Requirements Engineering with Quarto-Needs</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+<script src="site_libs/quarto-nav/quarto-nav.js"></script><script src="site_libs/quarto-nav/headroom.min.js"></script><script src="site_libs/clipboard/clipboard.min.js"></script><script src="site_libs/quarto-search/autocomplete.umd.js"></script><script src="site_libs/quarto-search/fuse.min.js"></script><script src="site_libs/quarto-search/quarto-search.js"></script><meta name="quarto:offset" content="./">
+<link href="./verification.html" rel="next">
+<link href="./architecture.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script><script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script><script src="site_libs/quarto-html/popper.min.js"></script><script src="site_libs/quarto-html/tippy.umd.min.js"></script><script src="site_libs/quarto-html/anchor.min.js"></script><link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-b85bc7c33db8c58e0ec93c3465666fed.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script><link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-ed7344add5f1663e434276306a2aa159.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-3686e73f2b10d5e0866cac69e1e072da.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-ed7344add5f1663e434276306a2aa159.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-contrib/quarto-needs-0.1.9/needs.js"></script><script src="site_libs/quarto-contrib/quarto-needs-0.1.9/tags.js"></script><script src="site_libs/quarto-contrib/quarto-needs-0.1.9/cytoscape.min.js"></script><script src="site_libs/quarto-contrib/quarto-needs-0.1.9/cytoscape-navigator.js"></script><script src="site_libs/quarto-contrib/quarto-needs-0.1.9/graph-context.js"></script><script src="site_libs/quarto-contrib/quarto-needs-0.1.9/graph.js"></script><script src="site_libs/quarto-contrib/quarto-needs-0.1.9/graph-explore.js"></script><script src="site_libs/quarto-contrib/quarto-needs-0.1.9/graph-modes.js"></script><script src="site_libs/quarto-contrib/quarto-needs-0.1.9/graph-state.js"></script><link href="site_libs/quarto-contrib/quarto-needs-0.1.9/needs.css" rel="stylesheet">
+<link href="site_libs/quarto-contrib/quarto-needs-0.1.9/cytoscape.js-navigator.css" rel="stylesheet">
+<link href="site_libs/quarto-contrib/quarto-needs-0.1.9/graph.css" rel="stylesheet">
+<link href="site_libs/quarto-contrib/quarto-needs-margin-sidebar-0.1.0/margin-sidebar.css" rel="stylesheet">
+<script src="site_libs/quarto-contrib/quarto-needs-margin-sidebar-toggle-0.1.0/margin-sidebar.js"></script><script src="site_libs/quarto-contrib/quarto-needs-graph-clipboard-0.1.0/clipboard.js"></script><script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script><script async="" src="https://www.googletagmanager.com/gtag/js?id=G-MC0B1CTHRZ"></script><script type="text/javascript">
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-MC0B1CTHRZ', { 'anonymize_ip': true});
+</script><link rel="stylesheet" href="language-switch.css">
+</head>
+<body class="nav-sidebar floating nav-fixed quarto-light">
+<script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script><div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Requirements Engineering with Quarto-Needs</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav><nav class="quarto-secondary-nav"><div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./implementation.html"><span class="chapter-number">6</span>  <span class="chapter-title">Implementation: tracing architecture into the repository</span></a></li></ol></nav><a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto"><div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>  <span class="chapter-title">Engineering Quarto-Needs with Quarto-Needs</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./context.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>  <span class="chapter-title">System context: where requirements come from</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./drivers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>  <span class="chapter-title">Drivers: why Quarto-Needs exists</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./requirements.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>  <span class="chapter-title">Requirements: refining the product obligations</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./architecture.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>  <span class="chapter-title">Architecture: where requirements become design</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./implementation.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">6</span>  <span class="chapter-title">Implementation: tracing architecture into the repository</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./verification.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>  <span class="chapter-title">Verification: proving the engineering claims</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./interoperability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>  <span class="chapter-title">Interoperability: federating without surrendering the canonical model</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./traceability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>  <span class="chapter-title">Traceability: investigate the product as an engineering graph</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./change.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>  <span class="chapter-title">Change: from version history to engineering impact</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tags.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>  <span class="chapter-title">Tags</span></span></a>
+  </div>
+</li>
+    </ul>
+</div>
+</nav><div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+<li><a href="#python-semantic-core" id="toc-python-semantic-core" class="nav-link active" data-scroll-target="#python-semantic-core"><span class="header-section-number">6.1</span> Python semantic core</a></li>
+  <li><a href="#SRC-PARSER" id="toc-SRC-PARSER" class="nav-link" data-scroll-target="#SRC-PARSER"><span class="need-id">SRC-PARSER</span> · <span class="need-title">QMD declaration parser module</span></a></li>
+  <li><a href="#SRC-RELATIONS" id="toc-SRC-RELATIONS" class="nav-link" data-scroll-target="#SRC-RELATIONS"><span class="need-id">SRC-RELATIONS</span> · <span class="need-title">Canonical relation catalog module</span></a></li>
+  <li><a href="#SRC-ANALYSIS" id="toc-SRC-ANALYSIS" class="nav-link" data-scroll-target="#SRC-ANALYSIS"><span class="need-id">SRC-ANALYSIS</span> · <span class="need-title">Canonical analysis module</span></a></li>
+  <li><a href="#SRC-RULES" id="toc-SRC-RULES" class="nav-link" data-scroll-target="#SRC-RULES"><span class="need-id">SRC-RULES</span> · <span class="need-title">Governance rule module</span></a></li>
+  <li><a href="#SRC-QUALITY" id="toc-SRC-QUALITY" class="nav-link" data-scroll-target="#SRC-QUALITY"><span class="need-id">SRC-QUALITY</span> · <span class="need-title">Quality-gate module</span></a></li>
+  <li><a href="#SRC-QUERIES" id="toc-SRC-QUERIES" class="nav-link" data-scroll-target="#SRC-QUERIES"><span class="need-id">SRC-QUERIES</span> · <span class="need-title">Named-query module</span></a></li>
+  <li><a href="#graph-projection-and-exploration" id="toc-graph-projection-and-exploration" class="nav-link" data-scroll-target="#graph-projection-and-exploration"><span class="header-section-number">6.2</span> Graph projection and exploration</a></li>
+  <li><a href="#SRC-GRAPH-OUTPUT" id="toc-SRC-GRAPH-OUTPUT" class="nav-link" data-scroll-target="#SRC-GRAPH-OUTPUT"><span class="need-id">SRC-GRAPH-OUTPUT</span> · <span class="need-title">Public graph output module</span></a></li>
+  <li><a href="#SRC-GRAPH-PROJECTION" id="toc-SRC-GRAPH-PROJECTION" class="nav-link" data-scroll-target="#SRC-GRAPH-PROJECTION"><span class="need-id">SRC-GRAPH-PROJECTION</span> · <span class="need-title">Graph selection and projection module</span></a></li>
+  <li><a href="#SRC-GRAPH-CONTEXT" id="toc-SRC-GRAPH-CONTEXT" class="nav-link" data-scroll-target="#SRC-GRAPH-CONTEXT"><span class="need-id">SRC-GRAPH-CONTEXT</span> · <span class="need-title">Cytoscape semantic context module</span></a></li>
+  <li><a href="#SRC-GRAPH-EXPLORE" id="toc-SRC-GRAPH-EXPLORE" class="nav-link" data-scroll-target="#SRC-GRAPH-EXPLORE"><span class="need-id">SRC-GRAPH-EXPLORE</span> · <span class="need-title">Cytoscape exploration module</span></a></li>
+  <li><a href="#presentation-ergonomics" id="toc-presentation-ergonomics" class="nav-link" data-scroll-target="#presentation-ergonomics"><span class="header-section-number">6.3</span> Presentation ergonomics</a></li>
+  <li><a href="#SRC-MARGIN-SIDEBAR" id="toc-SRC-MARGIN-SIDEBAR" class="nav-link" data-scroll-target="#SRC-MARGIN-SIDEBAR"><span class="need-id">SRC-MARGIN-SIDEBAR</span> · <span class="need-title">Margin TOC toggle module</span></a></li>
+  <li><a href="#change-analysis" id="toc-change-analysis" class="nav-link" data-scroll-target="#change-analysis"><span class="header-section-number">6.4</span> Change analysis</a></li>
+  <li><a href="#SRC-BASELINE" id="toc-SRC-BASELINE" class="nav-link" data-scroll-target="#SRC-BASELINE"><span class="need-id">SRC-BASELINE</span> · <span class="need-title">Baseline module</span></a></li>
+  <li><a href="#SRC-DIFF" id="toc-SRC-DIFF" class="nav-link" data-scroll-target="#SRC-DIFF"><span class="need-id">SRC-DIFF</span> · <span class="need-title">Engineering diff module</span></a></li>
+  <li><a href="#SRC-IMPACT" id="toc-SRC-IMPACT" class="nav-link" data-scroll-target="#SRC-IMPACT"><span class="need-id">SRC-IMPACT</span> · <span class="need-title">Impact traversal module</span></a></li>
+  <li><a href="#localization-and-staged-rendering" id="toc-localization-and-staged-rendering" class="nav-link" data-scroll-target="#localization-and-staged-rendering"><span class="header-section-number">6.5</span> Localization and staged rendering</a></li>
+  <li><a href="#SRC-PRE-RENDER" id="toc-SRC-PRE-RENDER" class="nav-link" data-scroll-target="#SRC-PRE-RENDER"><span class="need-id">SRC-PRE-RENDER</span> · <span class="need-title">Canonical pre-render integration module</span></a></li>
+  <li><a href="#extension-first-distribution" id="toc-extension-first-distribution" class="nav-link" data-scroll-target="#extension-first-distribution"><span class="header-section-number">6.6</span> Extension-first distribution</a></li>
+  <li><a href="#SRC-QUARTO-INTEGRATION" id="toc-SRC-QUARTO-INTEGRATION" class="nav-link" data-scroll-target="#SRC-QUARTO-INTEGRATION"><span class="need-id">SRC-QUARTO-INTEGRATION</span> · <span class="need-title">Canonical Quarto pre-render application service</span></a></li>
+  <li><a href="#SRC-BOOTSTRAP" id="toc-SRC-BOOTSTRAP" class="nav-link" data-scroll-target="#SRC-BOOTSTRAP"><span class="need-id">SRC-BOOTSTRAP</span> · <span class="need-title">Managed-runtime bootstrap</span></a></li>
+  <li><a href="#a-requirement-to-code-view" id="toc-a-requirement-to-code-view" class="nav-link" data-scroll-target="#a-requirement-to-code-view"><span class="header-section-number">6.7</span> A requirement-to-code view</a></li>
+  <li><a href="#six-vertical-slices" id="toc-six-vertical-slices" class="nav-link" data-scroll-target="#six-vertical-slices"><span class="header-section-number">6.8</span> Six vertical slices</a></li>
+  </ul></nav>
+</div>
+<!-- main -->
+<main class="content column-body" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><div class="quarto-title">
+<h1 class="title">
+<span class="chapter-number">6</span>  <span class="chapter-title">Implementation: tracing architecture into the repository</span>
+</h1>
+</div>
+
+
+
+<div class="quarto-title-meta column-body">
+
+    
+  
+    
+  </div>
+  
+
+
+</header><p>Architecture components describe logical responsibility. Source modules show where that responsibility is actually implemented. Keeping those layers separate prevents a common traceability mistake: treating a Python or JavaScript file as if it were an architectural component.</p>
+<p>The <code>source-module</code> objects below point to real files in this repository. Their <code>implements</code> relations connect code back to approved engineering obligations while the existing <code>implemented-by</code> relations continue to connect requirements to logical components and interfaces.</p>
+<section id="python-semantic-core" class="level2" data-number="6.1"><h2 data-number="6.1" class="anchored" data-anchor-id="python-semantic-core">
+<span class="header-section-number">6.1</span> Python semantic core</h2>
+</section><section id="SRC-PARSER" class="level2 need-card-section need-heading unnumbered need-type-source-module"><h2 class="need-card-section need-heading unnumbered need-type-source-module anchored" data-anchor-id="SRC-PARSER">
+<span class="need-id">SRC-PARSER</span> · <span class="need-title">QMD declaration parser module</span>
+</h2>
+<div class="need-header-badges">
+<span class="need-badge need-type need-type-source-module">source-module</span> <span class="need-badge need-status need-status-implemented">implemented</span>
+</div>
+<div class="need-card need-type-source-module" data-need-id="SRC-PARSER">
+<p>Parses authored engineering declarations, source locations, attributes, rationale, and relation tokens from Quarto Markdown.</p>
+<div class="need-card-tags">
+<a href="tags.html?tag=parser" class="need-tag-link"><span class="need-badge need-tag need-tag-parser">parser</span></a> <a href="tags.html?tag=authoring" class="need-tag-link"><span class="need-badge need-tag need-tag-authoring">authoring</span></a> <a href="tags.html?tag=qmd" class="need-tag-link"><span class="need-badge need-tag need-tag-qmd">qmd</span></a>
+</div>
+<div class="need-relations">
+<div class="need-relations-title">
+<strong>Need relations</strong>
+</div>
+<div class="need-relation-groups">
+<dl>
+<dt>Implements</dt>
+<dd>
+<a href="requirements.html#FUN-001">FUN-001</a> — Parse engineering declarations from Quarto source
+</dd>
+<dt>Part of</dt>
+<dd>
+<a href="architecture.html#COMP-PARSER">COMP-PARSER</a> — Declaration parser
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</section><section id="SRC-RELATIONS" class="level2 need-card-section need-heading unnumbered need-type-source-module"><h2 class="need-card-section need-heading unnumbered need-type-source-module anchored" data-anchor-id="SRC-RELATIONS">
+<span class="need-id">SRC-RELATIONS</span> · <span class="need-title">Canonical relation catalog module</span>
+</h2>
+<div class="need-header-badges">
+<span class="need-badge need-type need-type-source-module">source-module</span> <span class="need-badge need-status need-status-implemented">implemented</span>
+</div>
+<div class="need-card need-type-source-module" data-need-id="SRC-RELATIONS">
+<p>Defines relation families, labels, endpoint roles, impact direction, traversal direction, and canonical traversal profiles.</p>
+<div class="need-card-tags">
+<a href="tags.html?tag=relations" class="need-tag-link"><span class="need-badge need-tag need-tag-relations">relations</span></a> <a href="tags.html?tag=semantics" class="need-tag-link"><span class="need-badge need-tag need-tag-semantics">semantics</span></a> <a href="tags.html?tag=graph" class="need-tag-link"><span class="need-badge need-tag need-tag-graph">graph</span></a>
+</div>
+<div class="need-relations">
+<div class="need-relations-title">
+<strong>Need relations</strong>
+</div>
+<div class="need-relation-groups">
+<dl>
+<dt>Implements</dt>
+<dd>
+<a href="requirements.html#FUN-002">FUN-002</a> — Resolve authored relations through a canonical relation catalog
+</dd>
+<dd>
+<a href="requirements.html#NFR-005">NFR-005</a> — Resolve engineering semantics in the core only
+</dd>
+<dt>Part of</dt>
+<dd>
+<a href="architecture.html#COMP-ANALYSIS">COMP-ANALYSIS</a> — Semantic analysis core
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</section><section id="SRC-ANALYSIS" class="level2 need-card-section need-heading unnumbered need-type-source-module"><h2 class="need-card-section need-heading unnumbered need-type-source-module anchored" data-anchor-id="SRC-ANALYSIS">
+<span class="need-id">SRC-ANALYSIS</span> · <span class="need-title">Canonical analysis module</span>
+</h2>
+<div class="need-header-badges">
+<span class="need-badge need-type need-type-source-module">source-module</span> <span class="need-badge need-status need-status-implemented">implemented</span>
+</div>
+<div class="need-card need-type-source-module" data-need-id="SRC-ANALYSIS">
+<p>Turns declarations into the immutable engineering snapshot used by validation, queries, coverage, exports, and graph projections.</p>
+<div class="need-card-tags">
+<a href="tags.html?tag=analysis" class="need-tag-link"><span class="need-badge need-tag need-tag-analysis">analysis</span></a> <a href="tags.html?tag=snapshot" class="need-tag-link"><span class="need-badge need-tag need-tag-snapshot">snapshot</span></a> <a href="tags.html?tag=graph" class="need-tag-link"><span class="need-badge need-tag need-tag-graph">graph</span></a> <a href="tags.html?tag=semantics" class="need-tag-link"><span class="need-badge need-tag need-tag-semantics">semantics</span></a>
+</div>
+<div class="need-relations">
+<div class="need-relations-title">
+<strong>Need relations</strong>
+</div>
+<div class="need-relation-groups">
+<dl>
+<dt>Implements</dt>
+<dd>
+<a href="requirements.html#FUN-002">FUN-002</a> — Resolve authored relations through a canonical relation catalog
+</dd>
+<dd>
+<a href="requirements.html#NFR-001">NFR-001</a> — Produce deterministic engineering outputs
+</dd>
+<dd>
+<a href="requirements.html#NFR-005">NFR-005</a> — Resolve engineering semantics in the core only
+</dd>
+<dd>
+<a href="drivers.html#SYS-001">SYS-001</a> — Maintain a canonical typed engineering graph
+</dd>
+<dt>Part of</dt>
+<dd>
+<a href="architecture.html#COMP-ANALYSIS">COMP-ANALYSIS</a> — Semantic analysis core
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</section><section id="SRC-RULES" class="level2 need-card-section need-heading unnumbered need-type-source-module"><h2 class="need-card-section need-heading unnumbered need-type-source-module anchored" data-anchor-id="SRC-RULES">
+<span class="need-id">SRC-RULES</span> · <span class="need-title">Governance rule module</span>
+</h2>
+<div class="need-header-badges">
+<span class="need-badge need-type need-type-source-module">source-module</span> <span class="need-badge need-status need-status-implemented">implemented</span>
+</div>
+<div class="need-card need-type-source-module" data-need-id="SRC-RULES">
+<p>Evaluates requirement, decision, risk, evidence, lifecycle, and review-date governance against the canonical snapshot.</p>
+<div class="need-card-tags">
+<a href="tags.html?tag=rules" class="need-tag-link"><span class="need-badge need-tag need-tag-rules">rules</span></a> <a href="tags.html?tag=governance" class="need-tag-link"><span class="need-badge need-tag need-tag-governance">governance</span></a> <a href="tags.html?tag=adr" class="need-tag-link"><span class="need-badge need-tag need-tag-adr">adr</span></a> <a href="tags.html?tag=risk" class="need-tag-link"><span class="need-badge need-tag need-tag-risk">risk</span></a>
+</div>
+<div class="need-relations">
+<div class="need-relations-title">
+<strong>Need relations</strong>
+</div>
+<div class="need-relation-groups">
+<dl>
+<dt>Implements</dt>
+<dd>
+<a href="drivers.html#SYS-003">SYS-003</a> — Provide deterministic validation and quality gates
+</dd>
+<dd>
+<a href="drivers.html#SYS-004">SYS-004</a> — Treat architecture decisions as first-class engineering objects
+</dd>
+<dt>Part of</dt>
+<dd>
+<a href="architecture.html#COMP-RULES">COMP-RULES</a> — Governance rule engine
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</section><section id="SRC-QUALITY" class="level2 need-card-section need-heading unnumbered need-type-source-module"><h2 class="need-card-section need-heading unnumbered need-type-source-module anchored" data-anchor-id="SRC-QUALITY">
+<span class="need-id">SRC-QUALITY</span> · <span class="need-title">Quality-gate module</span>
+</h2>
+<div class="need-header-badges">
+<span class="need-badge need-type need-type-source-module">source-module</span> <span class="need-badge need-status need-status-implemented">implemented</span>
+</div>
+<div class="need-card need-type-source-module" data-need-id="SRC-QUALITY">
+<p>Builds deterministic quality reports and evaluates configured engineering gates over resolved project scopes.</p>
+<div class="need-card-tags">
+<a href="tags.html?tag=quality" class="need-tag-link"><span class="need-badge need-tag need-tag-quality">quality</span></a> <a href="tags.html?tag=gates" class="need-tag-link"><span class="need-badge need-tag need-tag-gates">gates</span></a> <a href="tags.html?tag=coverage" class="need-tag-link"><span class="need-badge need-tag need-tag-coverage">coverage</span></a> <a href="tags.html?tag=ci" class="need-tag-link"><span class="need-badge need-tag need-tag-ci">ci</span></a>
+</div>
+<div class="need-relations">
+<div class="need-relations-title">
+<strong>Need relations</strong>
+</div>
+<div class="need-relation-groups">
+<dl>
+<dt>Implements</dt>
+<dd>
+<a href="drivers.html#SYS-003">SYS-003</a> — Provide deterministic validation and quality gates
+</dd>
+<dt>Part of</dt>
+<dd>
+<a href="architecture.html#COMP-RULES">COMP-RULES</a> — Governance rule engine
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</section><section id="SRC-QUERIES" class="level2 need-card-section need-heading unnumbered need-type-source-module"><h2 class="need-card-section need-heading unnumbered need-type-source-module anchored" data-anchor-id="SRC-QUERIES">
+<span class="need-id">SRC-QUERIES</span> · <span class="need-title">Named-query module</span>
+</h2>
+<div class="need-header-badges">
+<span class="need-badge need-type need-type-source-module">source-module</span> <span class="need-badge need-status need-status-implemented">implemented</span>
+</div>
+<div class="need-card need-type-source-module" data-need-id="SRC-QUERIES">
+<p>Compiles and evaluates the bounded query language in the semantic core rather than in rendering clients.</p>
+<div class="need-card-tags">
+<a href="tags.html?tag=query" class="need-tag-link"><span class="need-badge need-tag need-tag-query">query</span></a> <a href="tags.html?tag=views" class="need-tag-link"><span class="need-badge need-tag need-tag-views">views</span></a> <a href="tags.html?tag=graph" class="need-tag-link"><span class="need-badge need-tag need-tag-graph">graph</span></a>
+</div>
+<div class="need-relations">
+<div class="need-relations-title">
+<strong>Need relations</strong>
+</div>
+<div class="need-relation-groups">
+<dl>
+<dt>Implements</dt>
+<dd>
+<a href="requirements.html#FUN-003">FUN-003</a> — Materialize named queries as reusable graph views
+</dd>
+<dd>
+<a href="requirements.html#NFR-005">NFR-005</a> — Resolve engineering semantics in the core only
+</dd>
+<dt>Part of</dt>
+<dd>
+<a href="architecture.html#COMP-ANALYSIS">COMP-ANALYSIS</a> — Semantic analysis core
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</section><section id="graph-projection-and-exploration" class="level2" data-number="6.2"><h2 data-number="6.2" class="anchored" data-anchor-id="graph-projection-and-exploration">
+<span class="header-section-number">6.2</span> Graph projection and exploration</h2>
+</section><section id="SRC-GRAPH-OUTPUT" class="level2 need-card-section need-heading unnumbered need-type-source-module"><h2 class="need-card-section need-heading unnumbered need-type-source-module anchored" data-anchor-id="SRC-GRAPH-OUTPUT">
+<span class="need-id">SRC-GRAPH-OUTPUT</span> · <span class="need-title">Public graph output module</span>
+</h2>
+<div class="need-header-badges">
+<span class="need-badge need-type need-type-source-module">source-module</span> <span class="need-badge need-status need-status-implemented">implemented</span>
+</div>
+<div class="need-card need-type-source-module" data-need-id="SRC-GRAPH-OUTPUT">
+<p>Publishes bounded graph JSON, semantic relation metadata, traversal profiles, named-query views, type roles, and safe declaration provenance.</p>
+<div class="need-card-tags">
+<a href="tags.html?tag=graph" class="need-tag-link"><span class="need-badge need-tag need-tag-graph">graph</span></a> <a href="tags.html?tag=projection" class="need-tag-link"><span class="need-badge need-tag need-tag-projection">projection</span></a> <a href="tags.html?tag=provenance" class="need-tag-link"><span class="need-badge need-tag need-tag-provenance">provenance</span></a> <a href="tags.html?tag=security" class="need-tag-link"><span class="need-badge need-tag need-tag-security">security</span></a>
+</div>
+<div class="need-relations">
+<div class="need-relations-title">
+<strong>Need relations</strong>
+</div>
+<div class="need-relation-groups">
+<dl>
+<dt>Implements</dt>
+<dd>
+<a href="requirements.html#FUN-003">FUN-003</a> — Materialize named queries as reusable graph views
+</dd>
+<dd>
+<a href="requirements.html#FUN-008">FUN-008</a> — Publish safe declaration provenance for graph inspection
+</dd>
+<dd>
+<a href="requirements.html#NFR-002">NFR-002</a> — Keep public projections deny-by-default
+</dd>
+<dd>
+<a href="requirements.html#NFR-004">NFR-004</a> — Bound graph publication by explicit budgets
+</dd>
+<dd>
+<a href="drivers.html#SYS-006">SYS-006</a> — Publish bounded semantic graph projections for exploration
+</dd>
+<dt>Part of</dt>
+<dd>
+<a href="architecture.html#COMP-GRAPH">COMP-GRAPH</a> — Graph projection and exploration subsystem
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</section><section id="SRC-GRAPH-PROJECTION" class="level2 need-card-section need-heading unnumbered need-type-source-module"><h2 class="need-card-section need-heading unnumbered need-type-source-module anchored" data-anchor-id="SRC-GRAPH-PROJECTION">
+<span class="need-id">SRC-GRAPH-PROJECTION</span> · <span class="need-title">Graph selection and projection module</span>
+</h2>
+<div class="need-header-badges">
+<span class="need-badge need-type need-type-source-module">source-module</span> <span class="need-badge need-status need-status-implemented">implemented</span>
+</div>
+<div class="need-card need-type-source-module" data-need-id="SRC-GRAPH-PROJECTION">
+<p>Selects bounded graph neighborhoods and builds deterministic projections consumed by static and interactive renderers.</p>
+<div class="need-card-tags">
+<a href="tags.html?tag=graph" class="need-tag-link"><span class="need-badge need-tag need-tag-graph">graph</span></a> <a href="tags.html?tag=selection" class="need-tag-link"><span class="need-badge need-tag need-tag-selection">selection</span></a> <a href="tags.html?tag=projection" class="need-tag-link"><span class="need-badge need-tag need-tag-projection">projection</span></a>
+</div>
+<div class="need-relations">
+<div class="need-relations-title">
+<strong>Need relations</strong>
+</div>
+<div class="need-relation-groups">
+<dl>
+<dt>Implements</dt>
+<dd>
+<a href="requirements.html#FUN-004">FUN-004</a> — Explore traceability interactively using semantic graph controls
+</dd>
+<dd>
+<a href="requirements.html#NFR-004">NFR-004</a> — Bound graph publication by explicit budgets
+</dd>
+<dd>
+<a href="drivers.html#SYS-006">SYS-006</a> — Publish bounded semantic graph projections for exploration
+</dd>
+<dt>Part of</dt>
+<dd>
+<a href="architecture.html#COMP-GRAPH">COMP-GRAPH</a> — Graph projection and exploration subsystem
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</section><section id="SRC-GRAPH-CONTEXT" class="level2 need-card-section need-heading unnumbered need-type-source-module"><h2 class="need-card-section need-heading unnumbered need-type-source-module anchored" data-anchor-id="SRC-GRAPH-CONTEXT">
+<span class="need-id">SRC-GRAPH-CONTEXT</span> · <span class="need-title">Cytoscape semantic context module</span>
+</h2>
+<div class="need-header-badges">
+<span class="need-badge need-type need-type-source-module">source-module</span> <span class="need-badge need-status need-status-implemented">implemented</span>
+</div>
+<div class="need-card need-type-source-module" data-need-id="SRC-GRAPH-CONTEXT">
+<p>Consumes published traversal direction to implement recursive parents/children, collapse state, forced root paths, and hierarchy refresh.</p>
+<div class="need-card-tags">
+<a href="tags.html?tag=graph" class="need-tag-link"><span class="need-badge need-tag need-tag-graph">graph</span></a> <a href="tags.html?tag=cytoscape" class="need-tag-link"><span class="need-badge need-tag need-tag-cytoscape">cytoscape</span></a> <a href="tags.html?tag=traversal" class="need-tag-link"><span class="need-badge need-tag need-tag-traversal">traversal</span></a>
+</div>
+<div class="need-relations">
+<div class="need-relations-title">
+<strong>Need relations</strong>
+</div>
+<div class="need-relation-groups">
+<dl>
+<dt>Implements</dt>
+<dd>
+<a href="requirements.html#FUN-004">FUN-004</a> — Explore traceability interactively using semantic graph controls
+</dd>
+<dt>Part of</dt>
+<dd>
+<a href="architecture.html#COMP-GRAPH">COMP-GRAPH</a> — Graph projection and exploration subsystem
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</section><section id="SRC-GRAPH-EXPLORE" class="level2 need-card-section need-heading unnumbered need-type-source-module"><h2 class="need-card-section need-heading unnumbered need-type-source-module anchored" data-anchor-id="SRC-GRAPH-EXPLORE">
+<span class="need-id">SRC-GRAPH-EXPLORE</span> · <span class="need-title">Cytoscape exploration module</span>
+</h2>
+<div class="need-header-badges">
+<span class="need-badge need-type need-type-source-module">source-module</span> <span class="need-badge need-status need-status-implemented">implemented</span>
+</div>
+<div class="need-card need-type-source-module" data-need-id="SRC-GRAPH-EXPLORE">
+<p>Provides type/status/family filters, traversal profiles, path-to-root analysis, and semantic edge inspection without redefining relation meaning.</p>
+<div class="need-card-tags">
+<a href="tags.html?tag=graph" class="need-tag-link"><span class="need-badge need-tag need-tag-graph">graph</span></a> <a href="tags.html?tag=cytoscape" class="need-tag-link"><span class="need-badge need-tag need-tag-cytoscape">cytoscape</span></a> <a href="tags.html?tag=exploration" class="need-tag-link"><span class="need-badge need-tag need-tag-exploration">exploration</span></a> <a href="tags.html?tag=filters" class="need-tag-link"><span class="need-badge need-tag need-tag-filters">filters</span></a>
+</div>
+<div class="need-relations">
+<div class="need-relations-title">
+<strong>Need relations</strong>
+</div>
+<div class="need-relation-groups">
+<dl>
+<dt>Implements</dt>
+<dd>
+<a href="requirements.html#FUN-004">FUN-004</a> — Explore traceability interactively using semantic graph controls
+</dd>
+<dt>Part of</dt>
+<dd>
+<a href="architecture.html#COMP-GRAPH">COMP-GRAPH</a> — Graph projection and exploration subsystem
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</section><section id="presentation-ergonomics" class="level2" data-number="6.3"><h2 data-number="6.3" class="anchored" data-anchor-id="presentation-ergonomics">
+<span class="header-section-number">6.3</span> Presentation ergonomics</h2>
+</section><section id="SRC-MARGIN-SIDEBAR" class="level2 need-card-section need-heading unnumbered need-type-source-module"><h2 class="need-card-section need-heading unnumbered need-type-source-module anchored" data-anchor-id="SRC-MARGIN-SIDEBAR">
+<span class="need-id">SRC-MARGIN-SIDEBAR</span> · <span class="need-title">Margin TOC toggle module</span>
+</h2>
+<div class="need-header-badges">
+<span class="need-badge need-type need-type-source-module">source-module</span> <span class="need-badge need-status need-status-implemented">implemented</span>
+</div>
+<div class="need-card need-type-source-module" data-need-id="SRC-MARGIN-SIDEBAR">
+<p>Adds the optional persistent page-TOC collapse/restore control, coordinates temporary <code>fullcontent</code> state, and positions the expanded control entirely outside the margin sidebar.</p>
+<div class="need-card-tags">
+<a href="tags.html?tag=quarto" class="need-tag-link"><span class="need-badge need-tag need-tag-quarto">quarto</span></a> <a href="tags.html?tag=toc" class="need-tag-link"><span class="need-badge need-tag need-tag-toc">toc</span></a> <a href="tags.html?tag=sidebar" class="need-tag-link"><span class="need-badge need-tag need-tag-sidebar">sidebar</span></a> <a href="tags.html?tag=usability" class="need-tag-link"><span class="need-badge need-tag need-tag-usability">usability</span></a> <a href="tags.html?tag=progressive-enhancement" class="need-tag-link"><span class="need-badge need-tag need-tag-progressive-enhancement">progressive-enhancement</span></a>
+</div>
+<div class="need-relations">
+<div class="need-relations-title">
+<strong>Need relations</strong>
+</div>
+<div class="need-relation-groups">
+<dl>
+<dt>Implements</dt>
+<dd>
+<a href="requirements.html#FUN-009">FUN-009</a> — Collapse the page margin TOC without obscuring navigation
+</dd>
+<dt>Part of</dt>
+<dd>
+<a href="architecture.html#COMP-EXTENSION">COMP-EXTENSION</a> — Quarto presentation extension
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</section><section id="change-analysis" class="level2" data-number="6.4"><h2 data-number="6.4" class="anchored" data-anchor-id="change-analysis">
+<span class="header-section-number">6.4</span> Change analysis</h2>
+</section><section id="SRC-BASELINE" class="level2 need-card-section need-heading unnumbered need-type-source-module"><h2 class="need-card-section need-heading unnumbered need-type-source-module anchored" data-anchor-id="SRC-BASELINE">
+<span class="need-id">SRC-BASELINE</span> · <span class="need-title">Baseline module</span>
+</h2>
+<div class="need-header-badges">
+<span class="need-badge need-type need-type-source-module">source-module</span> <span class="need-badge need-status need-status-implemented">implemented</span>
+</div>
+<div class="need-card need-type-source-module" data-need-id="SRC-BASELINE">
+<p>Captures reproducible authored state, configuration fingerprint, ruleset version, and reference date for later comparison.</p>
+<div class="need-card-tags">
+<a href="tags.html?tag=baseline" class="need-tag-link"><span class="need-badge need-tag need-tag-baseline">baseline</span></a> <a href="tags.html?tag=reproducibility" class="need-tag-link"><span class="need-badge need-tag need-tag-reproducibility">reproducibility</span></a> <a href="tags.html?tag=change" class="need-tag-link"><span class="need-badge need-tag need-tag-change">change</span></a>
+</div>
+<div class="need-relations">
+<div class="need-relations-title">
+<strong>Need relations</strong>
+</div>
+<div class="need-relation-groups">
+<dl>
+<dt>Implements</dt>
+<dd>
+<a href="requirements.html#FUN-005">FUN-005</a> — Compare engineering states through baseline, diff, and impact analysis
+</dd>
+<dd>
+<a href="requirements.html#NFR-001">NFR-001</a> — Produce deterministic engineering outputs
+</dd>
+<dt>Part of</dt>
+<dd>
+<a href="architecture.html#COMP-BASELINE">COMP-BASELINE</a> — Baseline and comparison subsystem
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</section><section id="SRC-DIFF" class="level2 need-card-section need-heading unnumbered need-type-source-module"><h2 class="need-card-section need-heading unnumbered need-type-source-module anchored" data-anchor-id="SRC-DIFF">
+<span class="need-id">SRC-DIFF</span> · <span class="need-title">Engineering diff module</span>
+</h2>
+<div class="need-header-badges">
+<span class="need-badge need-type need-type-source-module">source-module</span> <span class="need-badge need-status need-status-implemented">implemented</span>
+</div>
+<div class="need-card need-type-source-module" data-need-id="SRC-DIFF">
+<p>Compares baseline and current states and reports field, relation, relocation, addition, and removal changes deterministically.</p>
+<div class="need-card-tags">
+<a href="tags.html?tag=diff" class="need-tag-link"><span class="need-badge need-tag need-tag-diff">diff</span></a> <a href="tags.html?tag=baseline" class="need-tag-link"><span class="need-badge need-tag need-tag-baseline">baseline</span></a> <a href="tags.html?tag=change" class="need-tag-link"><span class="need-badge need-tag need-tag-change">change</span></a>
+</div>
+<div class="need-relations">
+<div class="need-relations-title">
+<strong>Need relations</strong>
+</div>
+<div class="need-relation-groups">
+<dl>
+<dt>Implements</dt>
+<dd>
+<a href="requirements.html#FUN-005">FUN-005</a> — Compare engineering states through baseline, diff, and impact analysis
+</dd>
+<dt>Part of</dt>
+<dd>
+<a href="architecture.html#COMP-BASELINE">COMP-BASELINE</a> — Baseline and comparison subsystem
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</section><section id="SRC-IMPACT" class="level2 need-card-section need-heading unnumbered need-type-source-module"><h2 class="need-card-section need-heading unnumbered need-type-source-module anchored" data-anchor-id="SRC-IMPACT">
+<span class="need-id">SRC-IMPACT</span> · <span class="need-title">Impact traversal module</span>
+</h2>
+<div class="need-header-badges">
+<span class="need-badge need-type need-type-source-module">source-module</span> <span class="need-badge need-status need-status-implemented">implemented</span>
+</div>
+<div class="need-card need-type-source-module" data-need-id="SRC-IMPACT">
+<p>Traverses the union of baseline and current graphs and returns explicit auditable impact paths rather than an opaque risk score.</p>
+<div class="need-card-tags">
+<a href="tags.html?tag=impact" class="need-tag-link"><span class="need-badge need-tag need-tag-impact">impact</span></a> <a href="tags.html?tag=baseline" class="need-tag-link"><span class="need-badge need-tag need-tag-baseline">baseline</span></a> <a href="tags.html?tag=change" class="need-tag-link"><span class="need-badge need-tag need-tag-change">change</span></a> <a href="tags.html?tag=graph" class="need-tag-link"><span class="need-badge need-tag need-tag-graph">graph</span></a>
+</div>
+<div class="need-relations">
+<div class="need-relations-title">
+<strong>Need relations</strong>
+</div>
+<div class="need-relation-groups">
+<dl>
+<dt>Implements</dt>
+<dd>
+<a href="requirements.html#FUN-005">FUN-005</a> — Compare engineering states through baseline, diff, and impact analysis
+</dd>
+<dt>Part of</dt>
+<dd>
+<a href="architecture.html#COMP-BASELINE">COMP-BASELINE</a> — Baseline and comparison subsystem
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</section><section id="localization-and-staged-rendering" class="level2" data-number="6.5"><h2 data-number="6.5" class="anchored" data-anchor-id="localization-and-staged-rendering">
+<span class="header-section-number">6.5</span> Localization and staged rendering</h2>
+</section><section id="SRC-PRE-RENDER" class="level2 need-card-section need-heading unnumbered need-type-source-module"><h2 class="need-card-section need-heading unnumbered need-type-source-module anchored" data-anchor-id="SRC-PRE-RENDER">
+<span class="need-id">SRC-PRE-RENDER</span> · <span class="need-title">Canonical pre-render integration module</span>
+</h2>
+<div class="need-header-badges">
+<span class="need-badge need-type need-type-source-module">source-module</span> <span class="need-badge need-status need-status-implemented">implemented</span>
+</div>
+<div class="need-card need-type-source-module" data-need-id="SRC-PRE-RENDER">
+<p>Synchronizes extension assets, builds the engineering graph, checks localized semantic parity, and emits presentation-only title projections.</p>
+<div class="need-card-tags">
+<a href="tags.html?tag=localization" class="need-tag-link"><span class="need-badge need-tag need-tag-localization">localization</span></a> <a href="tags.html?tag=i18n" class="need-tag-link"><span class="need-badge need-tag need-tag-i18n">i18n</span></a> <a href="tags.html?tag=extension" class="need-tag-link"><span class="need-badge need-tag need-tag-extension">extension</span></a> <a href="tags.html?tag=render" class="need-tag-link"><span class="need-badge need-tag need-tag-render">render</span></a>
+</div>
+<div class="need-relations">
+<div class="need-relations-title">
+<strong>Need relations</strong>
+</div>
+<div class="need-relation-groups">
+<dl>
+<dt>Implements</dt>
+<dd>
+<a href="requirements.html#FUN-006">FUN-006</a> — Validate semantic parity of localized sources
+</dd>
+<dd>
+<a href="requirements.html#FUN-007">FUN-007</a> — Synchronize canonical extension assets into rendered examples
+</dd>
+<dd>
+<a href="drivers.html#SYS-005">SYS-005</a> — Localize presentation without duplicating engineering semantics
+</dd>
+<dt>Part of</dt>
+<dd>
+<a href="architecture.html#COMP-I18N">COMP-I18N</a> — Localization projection subsystem
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</section><section id="extension-first-distribution" class="level2" data-number="6.6"><h2 data-number="6.6" class="anchored" data-anchor-id="extension-first-distribution">
+<span class="header-section-number">6.6</span> Extension-first distribution</h2>
+</section><section id="SRC-QUARTO-INTEGRATION" class="level2 need-card-section need-heading unnumbered need-type-source-module"><h2 class="need-card-section need-heading unnumbered need-type-source-module anchored" data-anchor-id="SRC-QUARTO-INTEGRATION">
+<span class="need-id">SRC-QUARTO-INTEGRATION</span> · <span class="need-title">Canonical Quarto pre-render application service</span>
+</h2>
+<div class="need-header-badges">
+<span class="need-badge need-type need-type-source-module">source-module</span> <span class="need-badge need-status need-status-implemented">implemented</span>
+</div>
+<div class="need-card need-type-source-module" data-need-id="SRC-QUARTO-INTEGRATION">
+<p>The one semantic build operation behind both <code>quarto-needs scan</code> and the extension bootstrap: analyze the project, materialize queries, precompute the quality report, and write every canonical artifact Quarto consumes.</p>
+<div class="need-card-tags">
+<a href="tags.html?tag=extension" class="need-tag-link"><span class="need-badge need-tag need-tag-extension">extension</span></a> <a href="tags.html?tag=render" class="need-tag-link"><span class="need-badge need-tag need-tag-render">render</span></a> <a href="tags.html?tag=canonical" class="need-tag-link"><span class="need-badge need-tag need-tag-canonical">canonical</span></a> <a href="tags.html?tag=distribution" class="need-tag-link"><span class="need-badge need-tag need-tag-distribution">distribution</span></a>
+</div>
+<div class="need-relations">
+<div class="need-relations-title">
+<strong>Need relations</strong>
+</div>
+<div class="need-relation-groups">
+<dl>
+<dt>Implements</dt>
+<dd>
+<a href="requirements.html#FUN-018">FUN-018</a> — Invoke an exact managed engine automatically during rendering
+</dd>
+<dd>
+<a href="drivers.html#SYS-009">SYS-009</a> — Deliver the semantic engine through the activated extension itself
+</dd>
+<dt>Part of</dt>
+<dd>
+<a href="architecture.html#COMP-ANALYSIS">COMP-ANALYSIS</a> — Semantic analysis core
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</section><section id="SRC-BOOTSTRAP" class="level2 need-card-section need-heading unnumbered need-type-source-module"><h2 class="need-card-section need-heading unnumbered need-type-source-module anchored" data-anchor-id="SRC-BOOTSTRAP">
+<span class="need-id">SRC-BOOTSTRAP</span> · <span class="need-title">Managed-runtime bootstrap</span>
+</h2>
+<div class="need-header-badges">
+<span class="need-badge need-type need-type-source-module">source-module</span> <span class="need-badge need-status need-status-implemented">implemented</span>
+</div>
+<div class="need-card need-type-source-module" data-need-id="SRC-BOOTSTRAP">
+<p>Provisions the exact paired engine into a project-local runtime with staged, lock-protected, atomic installs, validates the imported version against the extension’s own, renders offline from a valid cache, and invokes the canonical pre-render service.</p>
+<div class="need-card-tags">
+<a href="tags.html?tag=extension" class="need-tag-link"><span class="need-badge need-tag need-tag-extension">extension</span></a> <a href="tags.html?tag=bootstrap" class="need-tag-link"><span class="need-badge need-tag need-tag-bootstrap">bootstrap</span></a> <a href="tags.html?tag=provisioning" class="need-tag-link"><span class="need-badge need-tag need-tag-provisioning">provisioning</span></a> <a href="tags.html?tag=distribution" class="need-tag-link"><span class="need-badge need-tag need-tag-distribution">distribution</span></a>
+</div>
+<div class="need-relations">
+<div class="need-relations-title">
+<strong>Need relations</strong>
+</div>
+<div class="need-relation-groups">
+<dl>
+<dt>Implements</dt>
+<dd>
+<a href="requirements.html#FUN-018">FUN-018</a> — Invoke an exact managed engine automatically during rendering
+</dd>
+<dd>
+<a href="requirements.html#FUN-019">FUN-019</a> — Render without a globally installed engine
+</dd>
+<dd>
+<a href="requirements.html#NFR-008">NFR-008</a> — Keep provisioning project-local, atomic, and concurrency-safe
+</dd>
+<dd>
+<a href="requirements.html#NFR-009">NFR-009</a> — Support offline rendering from a valid cached runtime
+</dd>
+<dt>Part of</dt>
+<dd>
+<a href="architecture.html#COMP-EXTENSION">COMP-EXTENSION</a> — Quarto presentation extension
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</section><section id="a-requirement-to-code-view" class="level2" data-number="6.7"><h2 data-number="6.7" class="anchored" data-anchor-id="a-requirement-to-code-view">
+<span class="header-section-number">6.7</span> A requirement-to-code view</h2>
+<p>The table is useful when exact paths matter; the graph is useful when the reader wants to investigate how source modules sit beside requirements, decisions, tests, and evidence.</p>
+<div class="need-table-container" data-need-table="true">
+<table id="need-table-1" class="need-table caption-top table">
+<caption></caption>
+<thead><tr class="header">
+<th>ID</th>
+<th>title</th>
+<th>path</th>
+<th>language</th>
+<th>layer</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><a href="#SRC-ANALYSIS">SRC-ANALYSIS</a></td>
+<td>Canonical analysis module</td>
+<td>src/quarto_needs/analysis.py</td>
+<td>Python</td>
+<td>semantic-core</td>
+</tr>
+<tr class="even">
+<td><a href="#SRC-BASELINE">SRC-BASELINE</a></td>
+<td>Baseline module</td>
+<td>src/quarto_needs/baseline.py</td>
+<td>Python</td>
+<td>comparison</td>
+</tr>
+<tr class="odd">
+<td><a href="#SRC-BOOTSTRAP">SRC-BOOTSTRAP</a></td>
+<td>Managed-runtime bootstrap</td>
+<td>_extensions/quarto-needs/bootstrap.py</td>
+<td>Python</td>
+<td>integration</td>
+</tr>
+<tr class="even">
+<td><a href="#SRC-DIFF">SRC-DIFF</a></td>
+<td>Engineering diff module</td>
+<td>src/quarto_needs/diff.py</td>
+<td>Python</td>
+<td>comparison</td>
+</tr>
+<tr class="odd">
+<td><a href="interoperability.html#SRC-GITHUB-HTTP">SRC-GITHUB-HTTP</a></td>
+<td>GitHub bounded HTTP transport module</td>
+<td>src/quarto_needs/github_http.py</td>
+<td>Python</td>
+<td>interoperability</td>
+</tr>
+<tr class="even">
+<td><a href="interoperability.html#SRC-GITHUB-ISSUES">SRC-GITHUB-ISSUES</a></td>
+<td>GitHub issues projection and discovery module</td>
+<td>src/quarto_needs/github_issues.py</td>
+<td>Python</td>
+<td>interoperability</td>
+</tr>
+<tr class="odd">
+<td><a href="#SRC-GRAPH-CONTEXT">SRC-GRAPH-CONTEXT</a></td>
+<td>Cytoscape semantic context module</td>
+<td>_extensions/quarto-needs/graph-context.js</td>
+<td>JavaScript</td>
+<td>presentation</td>
+</tr>
+<tr class="even">
+<td><a href="#SRC-GRAPH-EXPLORE">SRC-GRAPH-EXPLORE</a></td>
+<td>Cytoscape exploration module</td>
+<td>_extensions/quarto-needs/graph-explore.js</td>
+<td>JavaScript</td>
+<td>presentation</td>
+</tr>
+<tr class="odd">
+<td><a href="#SRC-GRAPH-OUTPUT">SRC-GRAPH-OUTPUT</a></td>
+<td>Public graph output module</td>
+<td>src/quarto_needs/graph_output.py</td>
+<td>Python</td>
+<td>projection</td>
+</tr>
+<tr class="even">
+<td><a href="#SRC-GRAPH-PROJECTION">SRC-GRAPH-PROJECTION</a></td>
+<td>Graph selection and projection module</td>
+<td>src/quarto_needs/graph_projection.py</td>
+<td>Python</td>
+<td>projection</td>
+</tr>
+<tr class="odd">
+<td><a href="#SRC-IMPACT">SRC-IMPACT</a></td>
+<td>Impact traversal module</td>
+<td>src/quarto_needs/impact.py</td>
+<td>Python</td>
+<td>comparison</td>
+</tr>
+<tr class="even">
+<td><a href="#SRC-MARGIN-SIDEBAR">SRC-MARGIN-SIDEBAR</a></td>
+<td>Margin TOC toggle module</td>
+<td>_extensions/quarto-needs/margin-sidebar.js</td>
+<td>JavaScript</td>
+<td>presentation</td>
+</tr>
+<tr class="odd">
+<td><a href="interoperability.html#SRC-OSLC-CACHE">SRC-OSLC-CACHE</a></td>
+<td>OSLC persistent cache module</td>
+<td>src/quarto_needs/oslc_cache.py</td>
+<td>Python</td>
+<td>interoperability</td>
+</tr>
+<tr class="even">
+<td><a href="interoperability.html#SRC-OSLC-FEDERATION">SRC-OSLC-FEDERATION</a></td>
+<td>OSLC federation orchestration module</td>
+<td>src/quarto_needs/oslc_federation.py</td>
+<td>Python</td>
+<td>interoperability</td>
+</tr>
+<tr class="odd">
+<td><a href="interoperability.html#SRC-OSLC-HTTP">SRC-OSLC-HTTP</a></td>
+<td>OSLC bounded HTTP transport module</td>
+<td>src/quarto_needs/oslc_http.py</td>
+<td>Python</td>
+<td>interoperability</td>
+</tr>
+<tr class="even">
+<td><a href="interoperability.html#SRC-OSLC-IMPORT">SRC-OSLC-IMPORT</a></td>
+<td>OSLC reviewed import-plan module</td>
+<td>src/quarto_needs/oslc_import_plan.py</td>
+<td>Python</td>
+<td>interoperability</td>
+</tr>
+<tr class="odd">
+<td><a href="interoperability.html#SRC-OSLC-OBSERVE">SRC-OSLC-OBSERVE</a></td>
+<td>OSLC member observation module</td>
+<td>src/quarto_needs/oslc_observe.py</td>
+<td>Python</td>
+<td>interoperability</td>
+</tr>
+<tr class="even">
+<td><a href="interoperability.html#SRC-OSLC-QUERY">SRC-OSLC-QUERY</a></td>
+<td>OSLC bounded query module</td>
+<td>src/quarto_needs/oslc_query.py</td>
+<td>Python</td>
+<td>interoperability</td>
+</tr>
+<tr class="odd">
+<td><a href="interoperability.html#SRC-OSLC-RDF">SRC-OSLC-RDF</a></td>
+<td>OSLC RDF normalization module</td>
+<td>src/quarto_needs/oslc_rdf.py</td>
+<td>Python</td>
+<td>interoperability</td>
+</tr>
+<tr class="even">
+<td><a href="interoperability.html#SRC-OSLC-RECONCILE">SRC-OSLC-RECONCILE</a></td>
+<td>OSLC reconciliation module</td>
+<td>src/quarto_needs/oslc_reconcile.py</td>
+<td>Python</td>
+<td>interoperability</td>
+</tr>
+<tr class="odd">
+<td><a href="interoperability.html#SRC-OSLC-RM">SRC-OSLC-RM</a></td>
+<td>OSLC RM semantic projection module</td>
+<td>src/quarto_needs/oslc_rm.py</td>
+<td>Python</td>
+<td>interoperability</td>
+</tr>
+<tr class="even">
+<td><a href="#SRC-PARSER">SRC-PARSER</a></td>
+<td>QMD declaration parser module</td>
+<td>src/quarto_needs/parser.py</td>
+<td>Python</td>
+<td>semantic-core</td>
+</tr>
+<tr class="odd">
+<td><a href="#SRC-PRE-RENDER">SRC-PRE-RENDER</a></td>
+<td>Canonical pre-render integration module</td>
+<td>tools/quarto_needs_pre_render.py</td>
+<td>Python</td>
+<td>integration</td>
+</tr>
+<tr class="even">
+<td><a href="#SRC-QUALITY">SRC-QUALITY</a></td>
+<td>Quality-gate module</td>
+<td>src/quarto_needs/quality.py</td>
+<td>Python</td>
+<td>governance</td>
+</tr>
+<tr class="odd">
+<td><a href="#SRC-QUARTO-INTEGRATION">SRC-QUARTO-INTEGRATION</a></td>
+<td>Canonical Quarto pre-render application service</td>
+<td>src/quarto_needs/quarto_integration.py</td>
+<td>Python</td>
+<td>integration</td>
+</tr>
+<tr class="even">
+<td><a href="#SRC-QUERIES">SRC-QUERIES</a></td>
+<td>Named-query module</td>
+<td>src/quarto_needs/queries.py</td>
+<td>Python</td>
+<td>semantic-core</td>
+</tr>
+<tr class="odd">
+<td><a href="#SRC-RELATIONS">SRC-RELATIONS</a></td>
+<td>Canonical relation catalog module</td>
+<td>src/quarto_needs/relations.py</td>
+<td>Python</td>
+<td>semantic-core</td>
+</tr>
+<tr class="even">
+<td><a href="#SRC-RULES">SRC-RULES</a></td>
+<td>Governance rule module</td>
+<td>src/quarto_needs/rules.py</td>
+<td>Python</td>
+<td>governance</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="requirement-to-code-view" class="need-graph need-graph-progressive" data-need-graph="requirement-to-code-view">
+<div class="need-graph-scroll">
+<svg id="need-svg-1-mermaid-figure-1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" class="need-graph-figure flowchart" viewbox="0 -0.000003814697265625 1790.671875 1039.199951171875" aria-roledescription="flowchart-v2" width="1790.671875" height="1039.199951171875" role="img" aria-label="Traceability graph for requirement-to-code-view"><style>#need-svg-1-mermaid-figure-1{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#need-svg-1-mermaid-figure-1 .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#need-svg-1-mermaid-figure-1 .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#need-svg-1-mermaid-figure-1 .error-icon{fill:#552222;}#need-svg-1-mermaid-figure-1 .error-text{fill:#552222;stroke:#552222;}#need-svg-1-mermaid-figure-1 .edge-thickness-normal{stroke-width:1px;}#need-svg-1-mermaid-figure-1 .edge-thickness-thick{stroke-width:3.5px;}#need-svg-1-mermaid-figure-1 .edge-pattern-solid{stroke-dasharray:0;}#need-svg-1-mermaid-figure-1 .edge-thickness-invisible{stroke-width:0;fill:none;}#need-svg-1-mermaid-figure-1 .edge-pattern-dashed{stroke-dasharray:3;}#need-svg-1-mermaid-figure-1 .edge-pattern-dotted{stroke-dasharray:2;}#need-svg-1-mermaid-figure-1 .marker{fill:currentColor;stroke:currentColor;}#need-svg-1-mermaid-figure-1 .marker.cross{stroke:currentColor;}#need-svg-1-mermaid-figure-1 svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#need-svg-1-mermaid-figure-1 p{margin:0;}#need-svg-1-mermaid-figure-1 .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#need-svg-1-mermaid-figure-1 .cluster-label text{fill:#333;}#need-svg-1-mermaid-figure-1 .cluster-label span{color:#333;}#need-svg-1-mermaid-figure-1 .cluster-label span p{background-color:transparent;}#need-svg-1-mermaid-figure-1 .label text,#need-svg-1-mermaid-figure-1 span{fill:#333;color:#333;}#need-svg-1-mermaid-figure-1 .node rect,#need-svg-1-mermaid-figure-1 .node circle,#need-svg-1-mermaid-figure-1 .node ellipse,#need-svg-1-mermaid-figure-1 .node polygon,#need-svg-1-mermaid-figure-1 .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#need-svg-1-mermaid-figure-1 .rough-node .label text,#need-svg-1-mermaid-figure-1 .node .label text,#need-svg-1-mermaid-figure-1 .image-shape .label,#need-svg-1-mermaid-figure-1 .icon-shape .label{text-anchor:middle;}#need-svg-1-mermaid-figure-1 .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#need-svg-1-mermaid-figure-1 .rough-node .label,#need-svg-1-mermaid-figure-1 .node .label,#need-svg-1-mermaid-figure-1 .image-shape .label,#need-svg-1-mermaid-figure-1 .icon-shape .label{text-align:center;}#need-svg-1-mermaid-figure-1 .node.clickable{cursor:pointer;}#need-svg-1-mermaid-figure-1 .root .anchor path{fill:currentColor!important;stroke-width:0;stroke:currentColor;}#need-svg-1-mermaid-figure-1 .arrowheadPath{fill:currentColor;}#need-svg-1-mermaid-figure-1 .edgePath .path{stroke:currentColor;stroke-width:2.0px;}#need-svg-1-mermaid-figure-1 .flowchart-link{stroke:currentColor;fill:none;}#need-svg-1-mermaid-figure-1 .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#need-svg-1-mermaid-figure-1 .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#need-svg-1-mermaid-figure-1 .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#need-svg-1-mermaid-figure-1 .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#need-svg-1-mermaid-figure-1 .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#need-svg-1-mermaid-figure-1 .cluster text{fill:#333;}#need-svg-1-mermaid-figure-1 .cluster span{color:#333;}#need-svg-1-mermaid-figure-1 div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#need-svg-1-mermaid-figure-1 .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#need-svg-1-mermaid-figure-1 rect.text{fill:none;stroke-width:0;}#need-svg-1-mermaid-figure-1 .icon-shape,#need-svg-1-mermaid-figure-1 .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#need-svg-1-mermaid-figure-1 .icon-shape p,#need-svg-1-mermaid-figure-1 .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#need-svg-1-mermaid-figure-1 .icon-shape rect,#need-svg-1-mermaid-figure-1 .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#need-svg-1-mermaid-figure-1 .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#need-svg-1-mermaid-figure-1 .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#need-svg-1-mermaid-figure-1 :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}#need-svg-1-mermaid-figure-1 .need_type_architecture_decision rect{fill:#e6fffb!important;stroke:#0f5f5b!important;color:#134e4a!important;}#need-svg-1-mermaid-figure-1 .need_type_architecture_decision polygon{fill:#e6fffb!important;stroke:#0f5f5b!important;color:#134e4a!important;}#need-svg-1-mermaid-figure-1 .need_type_architecture_decision ellipse{fill:#e6fffb!important;stroke:#0f5f5b!important;color:#134e4a!important;}#need-svg-1-mermaid-figure-1 .need_type_architecture_decision circle{fill:#e6fffb!important;stroke:#0f5f5b!important;color:#134e4a!important;}#need-svg-1-mermaid-figure-1 .need_type_architecture_decision path{fill:#e6fffb!important;stroke:#0f5f5b!important;color:#134e4a!important;}#need-svg-1-mermaid-figure-1 .need_type_architecture_decision tspan{fill:#134e4a!important;}#need-svg-1-mermaid-figure-1 .need_type_component rect{fill:#fef3c7!important;stroke:#b45309!important;color:#78350f!important;}#need-svg-1-mermaid-figure-1 .need_type_component polygon{fill:#fef3c7!important;stroke:#b45309!important;color:#78350f!important;}#need-svg-1-mermaid-figure-1 .need_type_component ellipse{fill:#fef3c7!important;stroke:#b45309!important;color:#78350f!important;}#need-svg-1-mermaid-figure-1 .need_type_component circle{fill:#fef3c7!important;stroke:#b45309!important;color:#78350f!important;}#need-svg-1-mermaid-figure-1 .need_type_component path{fill:#fef3c7!important;stroke:#b45309!important;color:#78350f!important;}#need-svg-1-mermaid-figure-1 .need_type_component tspan{fill:#78350f!important;}#need-svg-1-mermaid-figure-1 .need_type_container rect{fill:#ecfccb!important;stroke:#4d7c0f!important;color:#365314!important;}#need-svg-1-mermaid-figure-1 .need_type_container polygon{fill:#ecfccb!important;stroke:#4d7c0f!important;color:#365314!important;}#need-svg-1-mermaid-figure-1 .need_type_container ellipse{fill:#ecfccb!important;stroke:#4d7c0f!important;color:#365314!important;}#need-svg-1-mermaid-figure-1 .need_type_container circle{fill:#ecfccb!important;stroke:#4d7c0f!important;color:#365314!important;}#need-svg-1-mermaid-figure-1 .need_type_container path{fill:#ecfccb!important;stroke:#4d7c0f!important;color:#365314!important;}#need-svg-1-mermaid-figure-1 .need_type_container tspan{fill:#365314!important;}#need-svg-1-mermaid-figure-1 .need_type_evidence rect{fill:#dcfce7!important;stroke:#15803d!important;color:#14532d!important;}#need-svg-1-mermaid-figure-1 .need_type_evidence polygon{fill:#dcfce7!important;stroke:#15803d!important;color:#14532d!important;}#need-svg-1-mermaid-figure-1 .need_type_evidence ellipse{fill:#dcfce7!important;stroke:#15803d!important;color:#14532d!important;}#need-svg-1-mermaid-figure-1 .need_type_evidence circle{fill:#dcfce7!important;stroke:#15803d!important;color:#14532d!important;}#need-svg-1-mermaid-figure-1 .need_type_evidence path{fill:#dcfce7!important;stroke:#15803d!important;color:#14532d!important;}#need-svg-1-mermaid-figure-1 .need_type_evidence tspan{fill:#14532d!important;}#need-svg-1-mermaid-figure-1 .need_type_functional_requirement rect{fill:#dbeafe!important;stroke:#2563eb!important;color:#1e3a8a!important;}#need-svg-1-mermaid-figure-1 .need_type_functional_requirement polygon{fill:#dbeafe!important;stroke:#2563eb!important;color:#1e3a8a!important;}#need-svg-1-mermaid-figure-1 .need_type_functional_requirement ellipse{fill:#dbeafe!important;stroke:#2563eb!important;color:#1e3a8a!important;}#need-svg-1-mermaid-figure-1 .need_type_functional_requirement circle{fill:#dbeafe!important;stroke:#2563eb!important;color:#1e3a8a!important;}#need-svg-1-mermaid-figure-1 .need_type_functional_requirement path{fill:#dbeafe!important;stroke:#2563eb!important;color:#1e3a8a!important;}#need-svg-1-mermaid-figure-1 .need_type_functional_requirement tspan{fill:#1e3a8a!important;}#need-svg-1-mermaid-figure-1 .need_type_interface rect{fill:#ffedd5!important;stroke:#c2410c!important;color:#7c2d12!important;}#need-svg-1-mermaid-figure-1 .need_type_interface polygon{fill:#ffedd5!important;stroke:#c2410c!important;color:#7c2d12!important;}#need-svg-1-mermaid-figure-1 .need_type_interface ellipse{fill:#ffedd5!important;stroke:#c2410c!important;color:#7c2d12!important;}#need-svg-1-mermaid-figure-1 .need_type_interface circle{fill:#ffedd5!important;stroke:#c2410c!important;color:#7c2d12!important;}#need-svg-1-mermaid-figure-1 .need_type_interface path{fill:#ffedd5!important;stroke:#c2410c!important;color:#7c2d12!important;}#need-svg-1-mermaid-figure-1 .need_type_interface tspan{fill:#7c2d12!important;}#need-svg-1-mermaid-figure-1 .need_type_source_module rect{fill:#f5f5f4!important;stroke:#57534e!important;color:#292524!important;}#need-svg-1-mermaid-figure-1 .need_type_source_module polygon{fill:#f5f5f4!important;stroke:#57534e!important;color:#292524!important;}#need-svg-1-mermaid-figure-1 .need_type_source_module ellipse{fill:#f5f5f4!important;stroke:#57534e!important;color:#292524!important;}#need-svg-1-mermaid-figure-1 .need_type_source_module circle{fill:#f5f5f4!important;stroke:#57534e!important;color:#292524!important;}#need-svg-1-mermaid-figure-1 .need_type_source_module path{fill:#f5f5f4!important;stroke:#57534e!important;color:#292524!important;}#need-svg-1-mermaid-figure-1 .need_type_source_module tspan{fill:#292524!important;}#need-svg-1-mermaid-figure-1 .need_type_system rect{fill:#e0f2fe!important;stroke:#0369a1!important;color:#0c4a6e!important;}#need-svg-1-mermaid-figure-1 .need_type_system polygon{fill:#e0f2fe!important;stroke:#0369a1!important;color:#0c4a6e!important;}#need-svg-1-mermaid-figure-1 .need_type_system ellipse{fill:#e0f2fe!important;stroke:#0369a1!important;color:#0c4a6e!important;}#need-svg-1-mermaid-figure-1 .need_type_system circle{fill:#e0f2fe!important;stroke:#0369a1!important;color:#0c4a6e!important;}#need-svg-1-mermaid-figure-1 .need_type_system path{fill:#e0f2fe!important;stroke:#0369a1!important;color:#0c4a6e!important;}#need-svg-1-mermaid-figure-1 .need_type_system tspan{fill:#0c4a6e!important;}#need-svg-1-mermaid-figure-1 .need_type_test_case rect{fill:#ccfbf1!important;stroke:#0f766e!important;color:#134e4a!important;}#need-svg-1-mermaid-figure-1 .need_type_test_case polygon{fill:#ccfbf1!important;stroke:#0f766e!important;color:#134e4a!important;}#need-svg-1-mermaid-figure-1 .need_type_test_case ellipse{fill:#ccfbf1!important;stroke:#0f766e!important;color:#134e4a!important;}#need-svg-1-mermaid-figure-1 .need_type_test_case circle{fill:#ccfbf1!important;stroke:#0f766e!important;color:#134e4a!important;}#need-svg-1-mermaid-figure-1 .need_type_test_case path{fill:#ccfbf1!important;stroke:#0f766e!important;color:#134e4a!important;}#need-svg-1-mermaid-figure-1 .need_type_test_case tspan{fill:#134e4a!important;}</style>
+<g><marker id="need-svg-1-mermaid-1788749071865_flowchart-v2-pointEnd" class="marker flowchart-v2" viewbox="0 0 10 10" refx="5" refy="5" markerunits="userSpaceOnUse" markerwidth="8" markerheight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker><marker id="need-svg-1-mermaid-1788749071865_flowchart-v2-pointStart" class="marker flowchart-v2" viewbox="0 0 10 10" refx="4.5" refy="5" markerunits="userSpaceOnUse" markerwidth="8" markerheight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker><marker id="need-svg-1-mermaid-1788749071865_flowchart-v2-circleEnd" class="marker flowchart-v2" viewbox="0 0 10 10" refx="11" refy="5" markerunits="userSpaceOnUse" markerwidth="11" markerheight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></circle></marker><marker id="need-svg-1-mermaid-1788749071865_flowchart-v2-circleStart" class="marker flowchart-v2" viewbox="0 0 10 10" refx="-1" refy="5" markerunits="userSpaceOnUse" markerwidth="11" markerheight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></circle></marker><marker id="need-svg-1-mermaid-1788749071865_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewbox="0 0 11 11" refx="12" refy="5.2" markerunits="userSpaceOnUse" markerwidth="11" markerheight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"></path></marker><marker id="need-svg-1-mermaid-1788749071865_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewbox="0 0 11 11" refx="-1" refy="5.2" markerunits="userSpaceOnUse" markerwidth="11" markerheight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"></path></marker><g class="root"><g class="clusters"></g><g class="edgePaths"><path d="M181.907,825.8L207.17,857.05C232.433,888.3,282.959,950.8,335.273,904.171C387.588,857.543,441.692,701.786,468.744,623.907L495.795,546.029" id="need-svg-1-L_n1_n8_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="need-svg-1-L_n1_n8_0" data-points="W3sieCI6MTgxLjkwNjk2MjAwOTIwNTU5LCJ5Ijo4MjUuODAwMDA2ODY2NDU1MX0seyJ4IjozMzMuNDg0Mzc1LCJ5IjoxMDEzLjMwMDAwMzA1MTc1Nzh9LHsieCI6NDk3LjEwNzkzOTU0NDEyMTM0LCJ5Ijo1NDIuMjUwMDAzODE0Njk3M31d" marker-end="url(#need-svg-1-mermaid-1788749071865_flowchart-v2-pointEnd)"></path><path d="M188.996,825.8L213.078,851.717C237.159,877.633,285.322,929.467,340.581,955.383C395.841,981.3,458.198,981.3,522.112,981.3C586.026,981.3,651.497,981.3,697.368,981.3C743.24,981.3,769.51,981.3,782.646,981.3L795.781,981.3" id="need-svg-1-L_n1_n2_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="need-svg-1-L_n1_n2_0" data-points="W3sieCI6MTg4Ljk5NjIzNzQ4MDM5NzU4LCJ5Ijo4MjUuODAwMDA2ODY2NDU1MX0seyJ4IjozMzMuNDg0Mzc1LCJ5Ijo5ODEuMzAwMDAzMDUxNzU3OH0seyJ4Ijo1MjAuNTU0Njg3NSwieSI6OTgxLjMwMDAwMzA1MTc1Nzh9LHsieCI6NzE2Ljk2ODc1LCJ5Ijo5ODEuMzAwMDAzMDUxNzU3OH0seyJ4Ijo3OTkuNzgxMjUsInkiOjk4MS4zMDAwMDMwNTE3NTc4fV0=" marker-end="url(#need-svg-1-mermaid-1788749071865_flowchart-v2-pointEnd)"></path><path d="M203.097,825.8L224.828,844.383C246.559,862.967,290.022,900.133,342.931,918.717C395.841,937.3,458.198,937.3,522.112,937.3C586.026,937.3,651.497,937.3,715.325,848.329C779.154,759.359,841.338,581.417,872.431,492.447L903.523,403.476" id="need-svg-1-L_n1_n3_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="need-svg-1-L_n1_n3_0" data-points="W3sieCI6MjAzLjA5NjY4OTg0MzMxNTcsInkiOjgyNS44MDAwMDY4NjY0NTUxfSx7IngiOjMzMy40ODQzNzUsInkiOjkzNy4zMDAwMDMwNTE3NTc4fSx7IngiOjUyMC41NTQ2ODc1LCJ5Ijo5MzcuMzAwMDAzMDUxNzU3OH0seyJ4Ijo3MTYuOTY4NzUsInkiOjkzNy4zMDAwMDMwNTE3NTc4fSx7IngiOjkwNC44NDI3OTIwMTk5NDU1LCJ5IjozOTkuNzAwMDA0NTc3NjM2N31d" marker-end="url(#need-svg-1-mermaid-1788749071865_flowchart-v2-pointEnd)"></path><path d="M259.609,818.727L271.922,823.806C284.234,828.884,308.859,839.042,332.75,844.121C356.641,849.2,379.797,849.2,391.375,849.2L402.953,849.2" id="need-svg-1-L_n1_n9_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="need-svg-1-L_n1_n9_0" data-points="W3sieCI6MjU5LjYwOTM3NSwieSI6ODE4LjcyNjcxMjYzMzQwMzR9LHsieCI6MzMzLjQ4NDM3NSwieSI6ODQ5LjIwMDAwNDU3NzYzNjd9LHsieCI6NDA2Ljk1MzEyNSwieSI6ODQ5LjIwMDAwNDU3NzYzNjd9XQ==" marker-end="url(#need-svg-1-mermaid-1788749071865_flowchart-v2-pointEnd)"></path><path d="M259.609,730.062L271.922,726.418C284.234,722.775,308.859,715.487,333.638,711.844C358.417,708.2,383.349,708.2,395.815,708.2L408.281,708.2" id="need-svg-1-L_n1_n14_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="need-svg-1-L_n1_n14_0" data-points="W3sieCI6MjU5LjYwOTM3NSwieSI6NzMwLjA2MjA4NzEwMzQ5Mjl9LHsieCI6MzMzLjQ4NDM3NSwieSI6NzA4LjIwMDAwNDU3NzYzNjd9LHsieCI6NDEyLjI4MTI1LCJ5Ijo3MDguMjAwMDA0NTc3NjM2N31d" marker-end="url(#need-svg-1-mermaid-1788749071865_flowchart-v2-pointEnd)"></path><path d="M200.144,708.4L222.367,688.542C244.591,668.683,289.038,628.967,342.439,609.108C395.841,589.25,458.198,589.25,522.112,589.25C586.026,589.25,651.497,589.25,697.232,586.743C742.967,584.236,768.965,579.221,781.964,576.714L794.963,574.207" id="need-svg-1-L_n1_n15_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="need-svg-1-L_n1_n15_0" data-points="W3sieCI6MjAwLjE0NDA2ODkyMTgxMTM3LCJ5Ijo3MDguNDAwMDA1MzQwNTc2Mn0seyJ4IjozMzMuNDg0Mzc1LCJ5Ijo1ODkuMjUwMDAzODE0Njk3M30seyJ4Ijo1MjAuNTU0Njg3NSwieSI6NTg5LjI1MDAwMzgxNDY5NzN9LHsieCI6NzE2Ljk2ODc1LCJ5Ijo1ODkuMjUwMDAzODE0Njk3M30seyJ4Ijo3OTguODkwNjI1LCJ5Ijo1NzMuNDQ5MTgyNTA1NzMxfV0=" marker-end="url(#need-svg-1-mermaid-1788749071865_flowchart-v2-pointEnd)"></path><path d="M1044.781,981.3L1057.102,981.3C1069.422,981.3,1094.063,981.3,1118.314,981.3C1142.565,981.3,1166.427,981.3,1178.358,981.3L1190.289,981.3" id="need-svg-1-L_n2_n5_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="need-svg-1-L_n2_n5_0" data-points="W3sieCI6MTA0NC43ODEyNSwieSI6OTgxLjMwMDAwMzA1MTc1Nzh9LHsieCI6MTExOC43MDMxMjUsInkiOjk4MS4zMDAwMDMwNTE3NTc4fSx7IngiOjExOTQuMjg5MDYyNSwieSI6OTgxLjMwMDAwMzA1MTc1Nzh9XQ==" marker-end="url(#need-svg-1-mermaid-1788749071865_flowchart-v2-pointEnd)"></path><path d="M1044.781,349.8L1057.102,349.8C1069.422,349.8,1094.063,349.8,1118.413,349.8C1142.764,349.8,1166.826,349.8,1178.856,349.8L1190.887,349.8" id="need-svg-1-L_n3_n4_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="need-svg-1-L_n3_n4_0" data-points="W3sieCI6MTA0NC43ODEyNSwieSI6MzQ5LjgwMDAwMzA1MTc1Nzh9LHsieCI6MTExOC43MDMxMjUsInkiOjM0OS44MDAwMDMwNTE3NTc4fSx7IngiOjExOTQuODg2NzE4NzUsInkiOjM0OS44MDAwMDMwNTE3NTc4fV0=" marker-end="url(#need-svg-1-mermaid-1788749071865_flowchart-v2-pointEnd)"></path><path d="M1446.926,349.8L1455.546,349.8C1464.167,349.8,1481.408,349.8,1514.014,397.687C1546.621,445.575,1594.594,541.349,1618.581,589.236L1642.567,637.124" id="need-svg-1-L_n4_n13_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="need-svg-1-L_n4_n13_0" data-points="W3sieCI6MTQ0Ni45MjU3ODEyNSwieSI6MzQ5LjgwMDAwMzA1MTc1Nzh9LHsieCI6MTQ5OC42NDg0Mzc1LCJ5IjozNDkuODAwMDAzMDUxNzU3OH0seyJ4IjoxNjQ0LjM1ODU2MTU3MDAyNjcsInkiOjY0MC43MDAwMDQ1Nzc2MzY3fV0=" marker-end="url(#need-svg-1-mermaid-1788749071865_flowchart-v2-pointEnd)"></path><path d="M1447.523,981.3L1456.044,981.3C1464.565,981.3,1481.607,981.3,1513.717,938.816C1545.827,896.332,1593.005,811.365,1616.594,768.881L1640.183,726.397" id="need-svg-1-L_n5_n13_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="need-svg-1-L_n5_n13_0" data-points="W3sieCI6MTQ0Ny41MjM0Mzc1LCJ5Ijo5ODEuMzAwMDAzMDUxNzU3OH0seyJ4IjoxNDk4LjY0ODQzNzUsInkiOjk4MS4zMDAwMDMwNTE3NTc4fSx7IngiOjE2NDIuMTI0NjA2OTYxNTk5LCJ5Ijo3MjIuOTAwMDAxNTI1ODc4OX1d" marker-end="url(#need-svg-1-mermaid-1788749071865_flowchart-v2-pointEnd)"></path><path d="M635.047,498.795L648.701,501.663C662.354,504.53,689.661,510.265,726.742,494.169C763.822,478.072,810.676,440.145,834.102,421.181L857.529,402.217" id="need-svg-1-L_n8_n3_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="need-svg-1-L_n8_n3_0" data-points="W3sieCI6NjM1LjA0Njg3NSwieSI6NDk4Ljc5NTEzOTI1MDgzNzQ1fSx7IngiOjcxNi45Njg3NSwieSI6NTE2LjAwMDAwMzgxNDY5NzN9LHsieCI6ODYwLjYzODA4NTA0MDYwMTYsInkiOjM5OS43MDAwMDQ1Nzc2MzY3fV0=" marker-end="url(#need-svg-1-mermaid-1788749071865_flowchart-v2-pointEnd)"></path><path d="M635.047,444.613L648.701,441.02C662.354,437.426,689.661,430.238,723.479,439.077C757.296,447.917,797.624,472.784,817.788,485.217L837.952,497.651" id="need-svg-1-L_n8_n15_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="need-svg-1-L_n8_n15_0" data-points="W3sieCI6NjM1LjA0Njg3NSwieSI6NDQ0LjYxMzQzMzYyMzM0MTR9LHsieCI6NzE2Ljk2ODc1LCJ5Ijo0MjMuMDUwMDAzMDUxNzU3OH0seyJ4Ijo4NDEuMzU2MzM3ODUxMDMsInkiOjQ5OS43NTAwMDM4MTQ2OTcyN31d" marker-end="url(#need-svg-1-mermaid-1788749071865_flowchart-v2-pointEnd)"></path><path d="M258.094,447.004L270.659,451.628C283.224,456.253,308.354,465.501,332.349,470.126C356.344,474.75,379.203,474.75,390.633,474.75L402.063,474.75" id="need-svg-1-L_n10_n8_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="need-svg-1-L_n10_n8_0" data-points="W3sieCI6MjU4LjA5Mzc1LCJ5Ijo0NDcuMDAzNzkxNjkzNDg1MTR9LHsieCI6MzMzLjQ4NDM3NSwieSI6NDc0Ljc1MDAwMzgxNDY5NzI3fSx7IngiOjQwNi4wNjI1LCJ5Ijo0NzQuNzUwMDAzODE0Njk3Mjd9XQ==" marker-end="url(#need-svg-1-mermaid-1788749071865_flowchart-v2-pointEnd)"></path><path d="M258.094,369.383L270.659,366.119C283.224,362.856,308.354,356.328,352.098,353.064C395.841,349.8,458.198,349.8,522.112,349.8C586.026,349.8,651.497,349.8,697.368,349.8C743.24,349.8,769.51,349.8,782.646,349.8L795.781,349.8" id="need-svg-1-L_n10_n3_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="need-svg-1-L_n10_n3_0" data-points="W3sieCI6MjU4LjA5Mzc1LCJ5IjozNjkuMzgzMzM2Njc0MDgzMzV9LHsieCI6MzMzLjQ4NDM3NSwieSI6MzQ5LjgwMDAwMzA1MTc1Nzh9LHsieCI6NTIwLjU1NDY4NzUsInkiOjM0OS44MDAwMDMwNTE3NTc4fSx7IngiOjcxNi45Njg3NSwieSI6MzQ5LjgwMDAwMzA1MTc1Nzh9LHsieCI6Nzk5Ljc4MTI1LCJ5IjozNDkuODAwMDAzMDUxNzU3OH1d" marker-end="url(#need-svg-1-mermaid-1788749071865_flowchart-v2-pointEnd)"></path><path d="M257.805,285.974L270.418,291.278C283.031,296.583,308.258,307.191,338.13,326.975C368.002,346.76,402.519,375.719,419.778,390.199L437.036,404.679" id="need-svg-1-L_n11_n8_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="need-svg-1-L_n11_n8_0" data-points="W3sieCI6MjU3LjgwNDY4NzUsInkiOjI4NS45NzM4OTU4Mzc0OTM2fSx7IngiOjMzMy40ODQzNzUsInkiOjMxNy44MDAwMDMwNTE3NTc4fSx7IngiOjQ0MC4xMDA3NDY1NDgzMDUxLCJ5Ijo0MDcuMjUwMDAzODE0Njk3Mjd9XQ==" marker-end="url(#need-svg-1-mermaid-1788749071865_flowchart-v2-pointEnd)"></path><path d="M257.805,202.058L270.418,198.782C283.031,195.506,308.258,188.953,352.049,185.676C395.841,182.4,458.198,182.4,522.112,182.4C586.026,182.4,651.497,182.4,707.735,201.562C763.972,220.724,810.976,259.048,834.478,278.21L857.98,297.372" id="need-svg-1-L_n11_n3_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="need-svg-1-L_n11_n3_0" data-points="W3sieCI6MjU3LjgwNDY4NzUsInkiOjIwMi4wNTg0MjE1MDUwOTgzNX0seyJ4IjozMzMuNDg0Mzc1LCJ5IjoxODIuNDAwMDAxNTI1ODc4OX0seyJ4Ijo1MjAuNTU0Njg3NSwieSI6MTgyLjQwMDAwMTUyNTg3ODl9LHsieCI6NzE2Ljk2ODc1LCJ5IjoxODIuNDAwMDAxNTI1ODc4OX0seyJ4Ijo4NjEuMDc5OTcxODA0NjgxOCwieSI6Mjk5LjkwMDAwMTUyNTg3ODl9XQ==" marker-end="url(#need-svg-1-mermaid-1788749071865_flowchart-v2-pointEnd)"></path><path d="M260.906,119.878L273.003,124.965C285.099,130.052,309.292,140.226,345.745,187.544C382.198,234.862,430.912,319.323,455.268,361.554L479.625,403.785" id="need-svg-1-L_n12_n8_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="need-svg-1-L_n12_n8_0" data-points="W3sieCI6MjYwLjkwNjI1LCJ5IjoxMTkuODc4MjE2MDM4MDU4N30seyJ4IjozMzMuNDg0Mzc1LCJ5IjoxNTAuNDAwMDAxNTI1ODc4OX0seyJ4Ijo0ODEuNjIzNzYxMDE3MzYwMywieSI6NDA3LjI1MDAwMzgxNDY5NzI3fV0=" marker-end="url(#need-svg-1-mermaid-1788749071865_flowchart-v2-pointEnd)"></path><path d="M260.906,66.7L273.003,66.7C285.099,66.7,309.292,66.7,352.566,66.7C395.841,66.7,458.198,66.7,522.112,66.7C586.026,66.7,651.497,66.7,712.029,105.027C772.56,143.354,828.152,220.008,855.948,258.335L883.744,296.662" id="need-svg-1-L_n12_n3_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="need-svg-1-L_n12_n3_0" data-points="W3sieCI6MjYwLjkwNjI1LCJ5Ijo2Ni43MDAwMDA3NjI5Mzk0NX0seyJ4IjozMzMuNDg0Mzc1LCJ5Ijo2Ni43MDAwMDA3NjI5Mzk0NX0seyJ4Ijo1MjAuNTU0Njg3NSwieSI6NjYuNzAwMDAwNzYyOTM5NDV9LHsieCI6NzE2Ljk2ODc1LCJ5Ijo2Ni43MDAwMDA3NjI5Mzk0NX0seyJ4Ijo4ODYuMDkyMjkyMTAzNjY2MywieSI6Mjk5LjkwMDAwMTUyNTg3ODl9XQ==" marker-end="url(#need-svg-1-mermaid-1788749071865_flowchart-v2-pointEnd)"></path><path d="M628.828,708.2L643.518,708.2C658.208,708.2,687.589,708.2,716.832,710.812C746.076,713.424,775.183,718.648,789.736,721.26L804.289,723.873" id="need-svg-1-L_n14_n6_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="need-svg-1-L_n14_n6_0" data-points="W3sieCI6NjI4LjgyODEyNSwieSI6NzA4LjIwMDAwNDU3NzYzNjd9LHsieCI6NzE2Ljk2ODc1LCJ5Ijo3MDguMjAwMDA0NTc3NjM2N30seyJ4Ijo4MDguMjI2NTYyNSwieSI6NzI0LjU3OTE4NTU3OTc1NTd9XQ==" marker-end="url(#need-svg-1-mermaid-1788749071865_flowchart-v2-pointEnd)"></path><path d="M1045.672,549.65L1057.844,549.65C1070.016,549.65,1094.359,549.65,1118.036,549.65C1141.714,549.65,1164.724,549.65,1176.229,549.65L1187.734,549.65" id="need-svg-1-L_n15_n7_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="need-svg-1-L_n15_n7_0" data-points="W3sieCI6MTA0NS42NzE4NzUsInkiOjU0OS42NTAwMDUzNDA1NzYyfSx7IngiOjExMTguNzAzMTI1LCJ5Ijo1NDkuNjUwMDA1MzQwNTc2Mn0seyJ4IjoxMTkxLjczNDM3NSwieSI6NTQ5LjY1MDAwNTM0MDU3NjJ9XQ==" marker-end="url(#need-svg-1-mermaid-1788749071865_flowchart-v2-pointEnd)"></path></g><g class="edgeLabels"><g class="edgeLabel" transform="translate(375.73949, 891.65327)"><g class="label" data-id="need-svg-1-L_n1_n8_0" transform="translate(-37.796875, -12)"><foreignobject width="75.59375" height="24"><div class="labelBkg" xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;">
+<span class="edgeLabel">
+<p>
+Addresses
+</p>
+</span>
+</div>
+</foreignobject></g></g><g class="edgeLabel" transform="translate(520.5546875, 981.3000030517578)"><g class="label" data-id="need-svg-1-L_n1_n2_0" transform="translate(-35.1328125, -12)"><foreignobject width="70.265625" height="24"><div class="labelBkg" xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;">
+<span class="edgeLabel">
+<p>
+Applies to
+</p>
+</span>
+</div>
+</foreignobject></g></g><g class="edgeLabel" transform="translate(520.5546875, 937.3000030517578)"><g class="label" data-id="need-svg-1-L_n1_n3_0" transform="translate(-35.1328125, -12)"><foreignobject width="70.265625" height="24"><div class="labelBkg" xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;">
+<span class="edgeLabel">
+<p>
+Applies to
+</p>
+</span>
+</div>
+</foreignobject></g></g><g class="edgeLabel" transform="translate(333.484375, 849.2000045776367)"><g class="label" data-id="need-svg-1-L_n1_n9_0" transform="translate(-35.1328125, -12)"><foreignobject width="70.265625" height="24"><div class="labelBkg" xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;">
+<span class="edgeLabel">
+<p>
+Applies to
+</p>
+</span>
+</div>
+</foreignobject></g></g><g class="edgeLabel" transform="translate(333.484375, 708.2000045776367)"><g class="label" data-id="need-svg-1-L_n1_n14_0" transform="translate(-47.578125, -12)"><foreignobject width="95.15625" height="24"><div class="labelBkg" xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;">
+<span class="edgeLabel">
+<p>
+Confirmed by
+</p>
+</span>
+</div>
+</foreignobject></g></g><g class="edgeLabel" transform="translate(520.5546875, 589.2500038146973)"><g class="label" data-id="need-svg-1-L_n1_n15_0" transform="translate(-47.578125, -12)"><foreignobject width="95.15625" height="24"><div class="labelBkg" xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;">
+<span class="edgeLabel">
+<p>
+Confirmed by
+</p>
+</span>
+</div>
+</foreignobject></g></g><g class="edgeLabel" transform="translate(1118.703125, 981.3000030517578)"><g class="label" data-id="need-svg-1-L_n2_n5_0" transform="translate(-23.5703125, -12)"><foreignobject width="47.140625" height="24"><div class="labelBkg" xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;">
+<span class="edgeLabel">
+<p>
+Part of
+</p>
+</span>
+</div>
+</foreignobject></g></g><g class="edgeLabel" transform="translate(1118.703125, 349.8000030517578)"><g class="label" data-id="need-svg-1-L_n3_n4_0" transform="translate(-23.5703125, -12)"><foreignobject width="47.140625" height="24"><div class="labelBkg" xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;">
+<span class="edgeLabel">
+<p>
+Part of
+</p>
+</span>
+</div>
+</foreignobject></g></g><g class="edgeLabel" transform="translate(1498.6484375, 349.8000030517578)"><g class="label" data-id="need-svg-1-L_n4_n13_0" transform="translate(-23.5703125, -12)"><foreignobject width="47.140625" height="24"><div class="labelBkg" xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;">
+<span class="edgeLabel">
+<p>
+Part of
+</p>
+</span>
+</div>
+</foreignobject></g></g><g class="edgeLabel" transform="translate(1498.6484375, 981.3000030517578)"><g class="label" data-id="need-svg-1-L_n5_n13_0" transform="translate(-23.5703125, -12)"><foreignobject width="47.140625" height="24"><div class="labelBkg" xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;">
+<span class="edgeLabel">
+<p>
+Part of
+</p>
+</span>
+</div>
+</foreignobject></g></g><g class="edgeLabel" transform="translate(756.2718, 484.18428)"><g class="label" data-id="need-svg-1-L_n8_n3_0" transform="translate(-56.921875, -12)"><foreignobject width="113.84375" height="24"><div class="labelBkg" xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;">
+<span class="edgeLabel">
+<p>
+Implemented by
+</p>
+</span>
+</div>
+</foreignobject></g></g><g class="edgeLabel" transform="translate(743.10948, 439.16893)"><g class="label" data-id="need-svg-1-L_n8_n15_0" transform="translate(-37.359375, -12)"><foreignobject width="74.71875" height="24"><div class="labelBkg" xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;">
+<span class="edgeLabel">
+<p>
+Verified by
+</p>
+</span>
+</div>
+</foreignobject></g></g><g class="edgeLabel" transform="translate(333.484375, 474.75000381469727)"><g class="label" data-id="need-svg-1-L_n10_n8_0" transform="translate(-41.3515625, -12)"><foreignobject width="82.703125" height="24"><div class="labelBkg" xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;">
+<span class="edgeLabel">
+<p>
+Implements
+</p>
+</span>
+</div>
+</foreignobject></g></g><g class="edgeLabel" transform="translate(520.5546875, 349.8000030517578)"><g class="label" data-id="need-svg-1-L_n10_n3_0" transform="translate(-23.5703125, -12)"><foreignobject width="47.140625" height="24"><div class="labelBkg" xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;">
+<span class="edgeLabel">
+<p>
+Part of
+</p>
+</span>
+</div>
+</foreignobject></g></g><g class="edgeLabel" transform="translate(355.34495, 336.14079)"><g class="label" data-id="need-svg-1-L_n11_n8_0" transform="translate(-41.3515625, -12)"><foreignobject width="82.703125" height="24"><div class="labelBkg" xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;">
+<span class="edgeLabel">
+<p>
+Implements
+</p>
+</span>
+</div>
+</foreignobject></g></g><g class="edgeLabel" transform="translate(520.5546875, 182.4000015258789)"><g class="label" data-id="need-svg-1-L_n11_n3_0" transform="translate(-23.5703125, -12)"><foreignobject width="47.140625" height="24"><div class="labelBkg" xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;">
+<span class="edgeLabel">
+<p>
+Part of
+</p>
+</span>
+</div>
+</foreignobject></g></g><g class="edgeLabel" transform="translate(387.88562, 244.72305)"><g class="label" data-id="need-svg-1-L_n12_n8_0" transform="translate(-41.3515625, -12)"><foreignobject width="82.703125" height="24"><div class="labelBkg" xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;">
+<span class="edgeLabel">
+<p>
+Implements
+</p>
+</span>
+</div>
+</foreignobject></g></g><g class="edgeLabel" transform="translate(520.5546875, 66.70000076293945)"><g class="label" data-id="need-svg-1-L_n12_n3_0" transform="translate(-23.5703125, -12)"><foreignobject width="47.140625" height="24"><div class="labelBkg" xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;">
+<span class="edgeLabel">
+<p>
+Part of
+</p>
+</span>
+</div>
+</foreignobject></g></g><g class="edgeLabel" transform="translate(716.96875, 708.2000045776367)"><g class="label" data-id="need-svg-1-L_n14_n6_0" transform="translate(-48.03125, -12)"><foreignobject width="96.0625" height="24"><div class="labelBkg" xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;">
+<span class="edgeLabel">
+<p>
+Evidenced by
+</p>
+</span>
+</div>
+</foreignobject></g></g><g class="edgeLabel" transform="translate(1118.703125, 549.6500053405762)"><g class="label" data-id="need-svg-1-L_n15_n7_0" transform="translate(-48.03125, -12)"><foreignobject width="96.0625" height="24"><div class="labelBkg" xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;">
+<span class="edgeLabel">
+<p>
+Evidenced by
+</p>
+</span>
+</div>
+</foreignobject></g></g></g><g class="nodes"><g class="node default need_type_architecture_decision" id="need-svg-1-flowchart-n1-0" transform="translate(134.453125, 767.1000061035156)"><rect class="basic label-container" style="fill:#e6fffb !important;stroke:#0f5f5b !important" x="-125.15625" y="-58.70000076293945" width="250.3125" height="117.4000015258789"></rect><g class="label" style="color:#134e4a !important" transform="translate(0, -43.70000076293945)"><rect></rect><g><rect class="background" style="stroke: none"></rect><text y="-10.1" style="fill:#134e4a !important"><tspan class="text-outer-tspan" x="0" y="-0.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">ADR-004</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> Drive</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> static</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> and</tspan></tspan><tspan class="text-outer-tspan" x="0" y="1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">interactive</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> graphs</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> from</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> the</tspan></tspan><tspan class="text-outer-tspan" x="0" y="2.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">same</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> projection</tspan></tspan><tspan class="text-outer-tspan" x="0" y="3.2em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">architecture-decision</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan></tspan><tspan class="text-outer-tspan" x="0" y="4.300000000000001em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">accepted</tspan></tspan></text></g></g></g><g class="node default need_type_component" id="need-svg-1-flowchart-n2-1" transform="translate(922.28125, 981.3000030517578)"><rect class="basic label-container" style="fill:#fef3c7 !important;stroke:#b45309 !important" x="-122.5" y="-49.900001525878906" width="245" height="99.80000305175781"></rect><g class="label" style="color:#78350f !important" transform="translate(0, -34.900001525878906)"><rect></rect><g><rect class="background" style="stroke: none"></rect><text y="-10.1" style="fill:#78350f !important"><tspan class="text-outer-tspan" x="0" y="-0.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">COMP-EXTENSION</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan></tspan><tspan class="text-outer-tspan" x="0" y="1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">Quarto</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> presentation</tspan></tspan><tspan class="text-outer-tspan" x="0" y="2.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">extension</tspan></tspan><tspan class="text-outer-tspan" x="0" y="3.2em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">component</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> implemented</tspan></tspan></text></g></g></g><g class="node default need_type_component" id="need-svg-1-flowchart-n3-2" transform="translate(922.28125, 349.8000030517578)"><rect class="basic label-container" style="fill:#fef3c7 !important;stroke:#b45309 !important" x="-122.5" y="-49.900001525878906" width="245" height="99.80000305175781"></rect><g class="label" style="color:#78350f !important" transform="translate(0, -34.900001525878906)"><rect></rect><g><rect class="background" style="stroke: none"></rect><text y="-10.1" style="fill:#78350f !important"><tspan class="text-outer-tspan" x="0" y="-0.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">COMP-GRAPH</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> Graph</tspan></tspan><tspan class="text-outer-tspan" x="0" y="1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">projection</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> and</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> exploration</tspan></tspan><tspan class="text-outer-tspan" x="0" y="2.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">subsystem</tspan></tspan><tspan class="text-outer-tspan" x="0" y="3.2em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">component</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> implemented</tspan></tspan></text></g></g></g><g class="node default need_type_container" id="need-svg-1-flowchart-n4-3" transform="translate(1320.90625, 349.8000030517578)"><rect class="basic label-container" style="fill:#ecfccb !important;stroke:#4d7c0f !important" x="-126.01953125" y="-41.099998474121094" width="252.0390625" height="82.19999694824219"></rect><g class="label" style="color:#365314 !important" transform="translate(0, -26.099998474121094)"><rect></rect><g><rect class="background" style="stroke: none"></rect><text y="-10.1" style="fill:#365314 !important"><tspan class="text-outer-tspan" x="0" y="-0.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">CONTAINER-PYTHON-PK</tspan></tspan><tspan class="text-outer-tspan" x="0" y="1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">G</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> Python</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> package</tspan></tspan><tspan class="text-outer-tspan" x="0" y="2.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">container</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> approved</tspan></tspan></text></g></g></g><g class="node default need_type_container" id="need-svg-1-flowchart-n5-4" transform="translate(1320.90625, 981.3000030517578)"><rect class="basic label-container" style="fill:#ecfccb !important;stroke:#4d7c0f !important" x="-126.6171875" y="-49.900001525878906" width="253.234375" height="99.80000305175781"></rect><g class="label" style="color:#365314 !important" transform="translate(0, -34.900001525878906)"><rect></rect><g><rect class="background" style="stroke: none"></rect><text y="-10.1" style="fill:#365314 !important"><tspan class="text-outer-tspan" x="0" y="-0.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">CONTAINER-QUARTO-EX</tspan></tspan><tspan class="text-outer-tspan" x="0" y="1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">T</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> Quarto</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> presentation</tspan></tspan><tspan class="text-outer-tspan" x="0" y="2.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">extension</tspan></tspan><tspan class="text-outer-tspan" x="0" y="3.2em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">container</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> approved</tspan></tspan></text></g></g></g><g class="node default need_type_evidence" id="need-svg-1-flowchart-n6-5" transform="translate(922.28125, 745.0500068664551)"><rect class="basic label-container" style="fill:#dcfce7 !important;stroke:#15803d !important" x="-114.0546875" y="-41.099998474121094" width="228.109375" height="82.19999694824219"></rect><g class="label" style="color:#14532d !important" transform="translate(0, -26.099998474121094)"><rect></rect><g><rect class="background" style="stroke: none"></rect><text y="-10.1" style="fill:#14532d !important"><tspan class="text-outer-tspan" x="0" y="-0.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">EVD-006</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> Public</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> graph</tspan></tspan><tspan class="text-outer-tspan" x="0" y="1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">machine</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> evidence</tspan></tspan><tspan class="text-outer-tspan" x="0" y="2.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">evidence</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> verified</tspan></tspan></text></g></g></g><g class="node default need_type_evidence" id="need-svg-1-flowchart-n7-6" transform="translate(1320.90625, 549.6500053405762)"><rect class="basic label-container" style="fill:#dcfce7 !important;stroke:#15803d !important" x="-129.171875" y="-41.099998474121094" width="258.34375" height="82.19999694824219"></rect><g class="label" style="color:#14532d !important" transform="translate(0, -26.099998474121094)"><rect></rect><g><rect class="background" style="stroke: none"></rect><text y="-10.1" style="fill:#14532d !important"><tspan class="text-outer-tspan" x="0" y="-0.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">EVD-010</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> Interactive</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> graph</tspan></tspan><tspan class="text-outer-tspan" x="0" y="1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">asset</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> integrity</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> tests</tspan></tspan><tspan class="text-outer-tspan" x="0" y="2.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">evidence</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> verified</tspan></tspan></text></g></g></g><g class="node default need_type_functional_requirement" id="need-svg-1-flowchart-n8-7" transform="translate(520.5546875, 474.75000381469727)"><rect class="basic label-container" style="fill:#dbeafe !important;stroke:#2563eb !important" x="-114.4921875" y="-67.5" width="228.984375" height="135"></rect><g class="label" style="color:#1e3a8a !important" transform="translate(0, -52.5)"><rect></rect><g><rect class="background" style="stroke: none"></rect><text y="-10.1" style="fill:#1e3a8a !important"><tspan class="text-outer-tspan" x="0" y="-0.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">FUN-004</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> Explore</tspan></tspan><tspan class="text-outer-tspan" x="0" y="1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">traceability</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> interactively</tspan></tspan><tspan class="text-outer-tspan" x="0" y="2.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">using</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> semantic</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> graph</tspan></tspan><tspan class="text-outer-tspan" x="0" y="3.2em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">controls</tspan></tspan><tspan class="text-outer-tspan" x="0" y="4.300000000000001em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">functional-requirement</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan></tspan><tspan class="text-outer-tspan" x="0" y="5.4em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">approved</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> high</tspan></tspan></text></g></g></g><g class="node default need_type_interface" id="need-svg-1-flowchart-n9-8" transform="translate(520.5546875, 849.2000045776367)"><rect class="basic label-container" style="fill:#ffedd5 !important;stroke:#c2410c !important" x="-113.6015625" y="-41.099998474121094" width="227.203125" height="82.19999694824219"></rect><g class="label" style="color:#7c2d12 !important" transform="translate(0, -26.099998474121094)"><rect></rect><g><rect class="background" style="stroke: none"></rect><text y="-10.1" style="fill:#7c2d12 !important"><tspan class="text-outer-tspan" x="0" y="-0.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">IF-003</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> Public</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> graph</tspan></tspan><tspan class="text-outer-tspan" x="0" y="1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">projection</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> contract</tspan></tspan><tspan class="text-outer-tspan" x="0" y="2.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">interface</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> implemented</tspan></tspan></text></g></g></g><g class="node default need_type_source_module" id="need-svg-1-flowchart-n10-9" transform="translate(134.453125, 401.50000381469727)"><rect class="basic label-container" style="fill:#f5f5f4 !important;stroke:#57534e !important" x="-123.640625" y="-58.70000076293945" width="247.28125" height="117.4000015258789"></rect><g class="label" style="color:#292524 !important" transform="translate(0, -43.70000076293945)"><rect></rect><g><rect class="background" style="stroke: none"></rect><text y="-10.1" style="fill:#292524 !important"><tspan class="text-outer-tspan" x="0" y="-0.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">SRC-GRAPH-CONTEXT</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan></tspan><tspan class="text-outer-tspan" x="0" y="1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">Cytoscape</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> semantic</tspan></tspan><tspan class="text-outer-tspan" x="0" y="2.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">context</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> module</tspan></tspan><tspan class="text-outer-tspan" x="0" y="3.2em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">source-module</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan></tspan><tspan class="text-outer-tspan" x="0" y="4.300000000000001em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">implemented</tspan></tspan></text></g></g></g><g class="node default need_type_source_module" id="need-svg-1-flowchart-n11-10" transform="translate(134.453125, 234.10000228881836)"><rect class="basic label-container" style="fill:#f5f5f4 !important;stroke:#57534e !important" x="-123.3515625" y="-58.70000076293945" width="246.703125" height="117.4000015258789"></rect><g class="label" style="color:#292524 !important" transform="translate(0, -43.70000076293945)"><rect></rect><g><rect class="background" style="stroke: none"></rect><text y="-10.1" style="fill:#292524 !important"><tspan class="text-outer-tspan" x="0" y="-0.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">SRC-GRAPH-EXPLORE</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan></tspan><tspan class="text-outer-tspan" x="0" y="1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">Cytoscape</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> exploration</tspan></tspan><tspan class="text-outer-tspan" x="0" y="2.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">module</tspan></tspan><tspan class="text-outer-tspan" x="0" y="3.2em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">source-module</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan></tspan><tspan class="text-outer-tspan" x="0" y="4.300000000000001em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">implemented</tspan></tspan></text></g></g></g><g class="node default need_type_source_module" id="need-svg-1-flowchart-n12-11" transform="translate(134.453125, 66.70000076293945)"><rect class="basic label-container" style="fill:#f5f5f4 !important;stroke:#57534e !important" x="-126.453125" y="-58.70000076293945" width="252.90625" height="117.4000015258789"></rect><g class="label" style="color:#292524 !important" transform="translate(0, -43.70000076293945)"><rect></rect><g><rect class="background" style="stroke: none"></rect><text y="-10.1" style="fill:#292524 !important"><tspan class="text-outer-tspan" x="0" y="-0.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">SRC-GRAPH-PROJECTIO</tspan></tspan><tspan class="text-outer-tspan" x="0" y="1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">N</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> Graph</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> selection</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> and</tspan></tspan><tspan class="text-outer-tspan" x="0" y="2.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">projection</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> module</tspan></tspan><tspan class="text-outer-tspan" x="0" y="3.2em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">source-module</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan></tspan><tspan class="text-outer-tspan" x="0" y="4.300000000000001em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">implemented</tspan></tspan></text></g></g></g><g class="node default need_type_system" id="need-svg-1-flowchart-n13-12" transform="translate(1664.9453125, 681.8000030517578)"><rect class="basic label-container" style="fill:#e0f2fe !important;stroke:#0369a1 !important" x="-117.7265625" y="-41.099998474121094" width="235.453125" height="82.19999694824219"></rect><g class="label" style="color:#0c4a6e !important" transform="translate(0, -26.099998474121094)"><rect></rect><g><rect class="background" style="stroke: none"></rect><text y="-10.1" style="fill:#0c4a6e !important"><tspan class="text-outer-tspan" x="0" y="-0.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">SYS-QUARTO-NEEDS</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan></tspan><tspan class="text-outer-tspan" x="0" y="1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">Quarto-Needs</tspan></tspan><tspan class="text-outer-tspan" x="0" y="2.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">system</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> approved</tspan></tspan></text></g></g></g><g class="node default need_type_test_case" id="need-svg-1-flowchart-n14-13" transform="translate(520.5546875, 708.2000045776367)"><rect class="basic label-container" style="fill:#ccfbf1 !important;stroke:#0f766e !important" x="-108.2734375" y="-49.900001525878906" width="216.546875" height="99.80000305175781"></rect><g class="label" style="color:#134e4a !important" transform="translate(0, -34.900001525878906)"><rect></rect><g><rect class="background" style="stroke: none"></rect><text y="-10.1" style="fill:#134e4a !important"><tspan class="text-outer-tspan" x="0" y="-0.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">TC-006</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> Public</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> graph</tspan></tspan><tspan class="text-outer-tspan" x="0" y="1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">contract</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> and</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> safety</tspan></tspan><tspan class="text-outer-tspan" x="0" y="2.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">regression</tspan></tspan><tspan class="text-outer-tspan" x="0" y="3.2em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">test-case</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> passed</tspan></tspan></text></g></g></g><g class="node default need_type_test_case" id="need-svg-1-flowchart-n15-14" transform="translate(922.28125, 549.6500053405762)"><rect class="basic label-container" style="fill:#ccfbf1 !important;stroke:#0f766e !important" x="-123.390625" y="-49.900001525878906" width="246.78125" height="99.80000305175781"></rect><g class="label" style="color:#134e4a !important" transform="translate(0, -34.900001525878906)"><rect></rect><g><rect class="background" style="stroke: none"></rect><text y="-10.1" style="fill:#134e4a !important"><tspan class="text-outer-tspan" x="0" y="-0.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">TC-010</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> Interactive</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> graph</tspan></tspan><tspan class="text-outer-tspan" x="0" y="1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">exploration</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> asset</tspan></tspan><tspan class="text-outer-tspan" x="0" y="2.1em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">regression</tspan></tspan><tspan class="text-outer-tspan" x="0" y="3.2em" dy="1.1em"><tspan font-style="normal" class="text-inner-tspan" font-weight="normal">test-case</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> ·</tspan><tspan font-style="normal" class="text-inner-tspan" font-weight="normal"> passed</tspan></tspan></text></g></g></g></g></g></g></svg>
+</div>
+<p>mode: catalog · nodes: 15 / 200.0 · edges: 20 / 600.0</p>
+<table class="need-graph-table caption-top table" data-need-graph-role="node">
+<caption></caption>
+<thead><tr class="header">
+<th>ID</th>
+<th>Title</th>
+<th>Type</th>
+<th>Status</th>
+<th>Priority</th>
+<th>Tags</th>
+<th>Change</th>
+</tr></thead>
+<tbody>
+<tr class="odd" data-need-graph-row-id="ADR-004">
+<td><a href="architecture.html#ADR-004">ADR-004</a></td>
+<td>Drive static and interactive graphs from the same projection</td>
+<td><span class="need-badge need-type need-type-architecture-decision">architecture-decision</span></td>
+<td><span class="need-badge need-status need-status-accepted">accepted</span></td>
+<td></td>
+<td>
+<a href="tags.html?tag=graph" class="need-tag-link"><span class="need-badge need-tag need-tag-graph">graph</span></a>
+
+<a href="tags.html?tag=progressive-enhancement" class="need-tag-link"><span class="need-badge need-tag need-tag-progressive-enhancement">progressive-enhancement</span></a>
+
+<a href="tags.html?tag=accessibility" class="need-tag-link"><span class="need-badge need-tag need-tag-accessibility">accessibility</span></a>
+</td>
+<td></td>
+</tr>
+<tr class="even" data-need-graph-row-id="COMP-EXTENSION">
+<td><a href="architecture.html#COMP-EXTENSION">COMP-EXTENSION</a></td>
+<td>Quarto presentation extension</td>
+<td><span class="need-badge need-type need-type-component">component</span></td>
+<td><span class="need-badge need-status need-status-implemented">implemented</span></td>
+<td></td>
+<td>
+<a href="tags.html?tag=quarto" class="need-tag-link"><span class="need-badge need-tag need-tag-quarto">quarto</span></a>
+
+<a href="tags.html?tag=lua" class="need-tag-link"><span class="need-badge need-tag need-tag-lua">lua</span></a>
+
+<a href="tags.html?tag=documentation" class="need-tag-link"><span class="need-badge need-tag need-tag-documentation">documentation</span></a>
+</td>
+<td></td>
+</tr>
+<tr class="odd" data-need-graph-row-id="COMP-GRAPH">
+<td><a href="architecture.html#COMP-GRAPH">COMP-GRAPH</a></td>
+<td>Graph projection and exploration subsystem</td>
+<td><span class="need-badge need-type need-type-component">component</span></td>
+<td><span class="need-badge need-status need-status-implemented">implemented</span></td>
+<td></td>
+<td>
+<a href="tags.html?tag=graph" class="need-tag-link"><span class="need-badge need-tag need-tag-graph">graph</span></a>
+
+<a href="tags.html?tag=cytoscape" class="need-tag-link"><span class="need-badge need-tag need-tag-cytoscape">cytoscape</span></a>
+
+<a href="tags.html?tag=projection" class="need-tag-link"><span class="need-badge need-tag need-tag-projection">projection</span></a>
+</td>
+<td></td>
+</tr>
+<tr class="even" data-need-graph-row-id="CONTAINER-PYTHON-PKG">
+<td><a href="architecture.html#CONTAINER-PYTHON-PKG">CONTAINER-PYTHON-PKG</a></td>
+<td>Python package</td>
+<td><span class="need-badge need-type need-type-container">container</span></td>
+<td><span class="need-badge need-status need-status-approved">approved</span></td>
+<td></td>
+<td>
+<a href="tags.html?tag=architecture" class="need-tag-link"><span class="need-badge need-tag need-tag-architecture">architecture</span></a>
+
+<a href="tags.html?tag=c4" class="need-tag-link"><span class="need-badge need-tag need-tag-c4">c4</span></a>
+</td>
+<td></td>
+</tr>
+<tr class="odd" data-need-graph-row-id="CONTAINER-QUARTO-EXT">
+<td><a href="architecture.html#CONTAINER-QUARTO-EXT">CONTAINER-QUARTO-EXT</a></td>
+<td>Quarto presentation extension</td>
+<td><span class="need-badge need-type need-type-container">container</span></td>
+<td><span class="need-badge need-status need-status-approved">approved</span></td>
+<td></td>
+<td>
+<a href="tags.html?tag=architecture" class="need-tag-link"><span class="need-badge need-tag need-tag-architecture">architecture</span></a>
+
+<a href="tags.html?tag=c4" class="need-tag-link"><span class="need-badge need-tag need-tag-c4">c4</span></a>
+</td>
+<td></td>
+</tr>
+<tr class="even" data-need-graph-row-id="EVD-006">
+<td><a href="verification.html#EVD-006">EVD-006</a></td>
+<td>Public graph machine evidence</td>
+<td><span class="need-badge need-type need-type-evidence">evidence</span></td>
+<td><span class="need-badge need-status need-status-verified">verified</span></td>
+<td></td>
+<td>
+<a href="tags.html?tag=jsonschema" class="need-tag-link"><span class="need-badge need-tag need-tag-jsonschema">jsonschema</span></a>
+
+<a href="tags.html?tag=graph" class="need-tag-link"><span class="need-badge need-tag need-tag-graph">graph</span></a>
+
+<a href="tags.html?tag=security" class="need-tag-link"><span class="need-badge need-tag need-tag-security">security</span></a>
+
+<a href="tags.html?tag=machine-evidence" class="need-tag-link"><span class="need-badge need-tag need-tag-machine-evidence">machine-evidence</span></a>
+</td>
+<td></td>
+</tr>
+<tr class="odd" data-need-graph-row-id="EVD-010">
+<td><a href="verification.html#EVD-010">EVD-010</a></td>
+<td>Interactive graph asset integrity tests</td>
+<td><span class="need-badge need-type need-type-evidence">evidence</span></td>
+<td><span class="need-badge need-status need-status-verified">verified</span></td>
+<td></td>
+<td>
+<a href="tags.html?tag=javascript" class="need-tag-link"><span class="need-badge need-tag need-tag-javascript">javascript</span></a>
+
+<a href="tags.html?tag=cytoscape" class="need-tag-link"><span class="need-badge need-tag need-tag-cytoscape">cytoscape</span></a>
+
+<a href="tags.html?tag=assets" class="need-tag-link"><span class="need-badge need-tag need-tag-assets">assets</span></a>
+</td>
+<td></td>
+</tr>
+<tr class="even" data-need-graph-row-id="FUN-004">
+<td><a href="requirements.html#FUN-004">FUN-004</a></td>
+<td>Explore traceability interactively using semantic graph controls</td>
+<td><span class="need-badge need-type need-type-functional-requirement">functional-requirement</span></td>
+<td><span class="need-badge need-status need-status-approved">approved</span></td>
+<td><span class="need-badge need-priority need-priority-high">high</span></td>
+<td>
+<a href="tags.html?tag=graph" class="need-tag-link"><span class="need-badge need-tag need-tag-graph">graph</span></a>
+
+<a href="tags.html?tag=cytoscape" class="need-tag-link"><span class="need-badge need-tag need-tag-cytoscape">cytoscape</span></a>
+
+<a href="tags.html?tag=exploration" class="need-tag-link"><span class="need-badge need-tag need-tag-exploration">exploration</span></a>
+</td>
+<td></td>
+</tr>
+<tr class="odd" data-need-graph-row-id="IF-003">
+<td><a href="architecture.html#IF-003">IF-003</a></td>
+<td>Public graph projection contract</td>
+<td><span class="need-badge need-type need-type-interface">interface</span></td>
+<td><span class="need-badge need-status need-status-implemented">implemented</span></td>
+<td></td>
+<td>
+<a href="tags.html?tag=json" class="need-tag-link"><span class="need-badge need-tag need-tag-json">json</span></a>
+
+<a href="tags.html?tag=graph" class="need-tag-link"><span class="need-badge need-tag need-tag-graph">graph</span></a>
+
+<a href="tags.html?tag=projection" class="need-tag-link"><span class="need-badge need-tag need-tag-projection">projection</span></a>
+</td>
+<td></td>
+</tr>
+<tr class="even" data-need-graph-row-id="SRC-GRAPH-CONTEXT">
+<td><a href="implementation.html#SRC-GRAPH-CONTEXT">SRC-GRAPH-CONTEXT</a></td>
+<td>Cytoscape semantic context module</td>
+<td><span class="need-badge need-type need-type-source-module">source-module</span></td>
+<td><span class="need-badge need-status need-status-implemented">implemented</span></td>
+<td></td>
+<td>
+<a href="tags.html?tag=graph" class="need-tag-link"><span class="need-badge need-tag need-tag-graph">graph</span></a>
+
+<a href="tags.html?tag=cytoscape" class="need-tag-link"><span class="need-badge need-tag need-tag-cytoscape">cytoscape</span></a>
+
+<a href="tags.html?tag=traversal" class="need-tag-link"><span class="need-badge need-tag need-tag-traversal">traversal</span></a>
+</td>
+<td></td>
+</tr>
+<tr class="odd" data-need-graph-row-id="SRC-GRAPH-EXPLORE">
+<td><a href="implementation.html#SRC-GRAPH-EXPLORE">SRC-GRAPH-EXPLORE</a></td>
+<td>Cytoscape exploration module</td>
+<td><span class="need-badge need-type need-type-source-module">source-module</span></td>
+<td><span class="need-badge need-status need-status-implemented">implemented</span></td>
+<td></td>
+<td>
+<a href="tags.html?tag=graph" class="need-tag-link"><span class="need-badge need-tag need-tag-graph">graph</span></a>
+
+<a href="tags.html?tag=cytoscape" class="need-tag-link"><span class="need-badge need-tag need-tag-cytoscape">cytoscape</span></a>
+
+<a href="tags.html?tag=exploration" class="need-tag-link"><span class="need-badge need-tag need-tag-exploration">exploration</span></a>
+
+<a href="tags.html?tag=filters" class="need-tag-link"><span class="need-badge need-tag need-tag-filters">filters</span></a>
+</td>
+<td></td>
+</tr>
+<tr class="even" data-need-graph-row-id="SRC-GRAPH-PROJECTION">
+<td><a href="implementation.html#SRC-GRAPH-PROJECTION">SRC-GRAPH-PROJECTION</a></td>
+<td>Graph selection and projection module</td>
+<td><span class="need-badge need-type need-type-source-module">source-module</span></td>
+<td><span class="need-badge need-status need-status-implemented">implemented</span></td>
+<td></td>
+<td>
+<a href="tags.html?tag=graph" class="need-tag-link"><span class="need-badge need-tag need-tag-graph">graph</span></a>
+
+<a href="tags.html?tag=selection" class="need-tag-link"><span class="need-badge need-tag need-tag-selection">selection</span></a>
+
+<a href="tags.html?tag=projection" class="need-tag-link"><span class="need-badge need-tag need-tag-projection">projection</span></a>
+</td>
+<td></td>
+</tr>
+<tr class="odd" data-need-graph-row-id="SYS-QUARTO-NEEDS">
+<td><a href="architecture.html#SYS-QUARTO-NEEDS">SYS-QUARTO-NEEDS</a></td>
+<td>Quarto-Needs</td>
+<td><span class="need-badge need-type need-type-system">system</span></td>
+<td><span class="need-badge need-status need-status-approved">approved</span></td>
+<td></td>
+<td>
+<a href="tags.html?tag=architecture" class="need-tag-link"><span class="need-badge need-tag need-tag-architecture">architecture</span></a>
+
+<a href="tags.html?tag=c4" class="need-tag-link"><span class="need-badge need-tag need-tag-c4">c4</span></a>
+</td>
+<td></td>
+</tr>
+<tr class="even" data-need-graph-row-id="TC-006">
+<td><a href="verification.html#TC-006">TC-006</a></td>
+<td>Public graph contract and safety regression</td>
+<td><span class="need-badge need-type need-type-test-case">test-case</span></td>
+<td><span class="need-badge need-status need-status-passed">passed</span></td>
+<td></td>
+<td>
+<a href="tags.html?tag=graph" class="need-tag-link"><span class="need-badge need-tag need-tag-graph">graph</span></a>
+
+<a href="tags.html?tag=schema" class="need-tag-link"><span class="need-badge need-tag need-tag-schema">schema</span></a>
+
+<a href="tags.html?tag=security" class="need-tag-link"><span class="need-badge need-tag need-tag-security">security</span></a>
+
+<a href="tags.html?tag=limits" class="need-tag-link"><span class="need-badge need-tag need-tag-limits">limits</span></a>
+</td>
+<td></td>
+</tr>
+<tr class="odd" data-need-graph-row-id="TC-010">
+<td><a href="verification.html#TC-010">TC-010</a></td>
+<td>Interactive graph exploration asset regression</td>
+<td><span class="need-badge need-type need-type-test-case">test-case</span></td>
+<td><span class="need-badge need-status need-status-passed">passed</span></td>
+<td></td>
+<td>
+<a href="tags.html?tag=graph" class="need-tag-link"><span class="need-badge need-tag need-tag-graph">graph</span></a>
+
+<a href="tags.html?tag=cytoscape" class="need-tag-link"><span class="need-badge need-tag need-tag-cytoscape">cytoscape</span></a>
+
+<a href="tags.html?tag=exploration" class="need-tag-link"><span class="need-badge need-tag need-tag-exploration">exploration</span></a>
+</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<table class="need-graph-table caption-top table" data-need-graph-role="edge">
+<caption></caption>
+<thead><tr class="header">
+<th>Source</th>
+<th>Relation</th>
+<th>Target</th>
+<th>Change</th>
+<th>Impact</th>
+</tr></thead>
+<tbody>
+<tr class="odd" data-need-graph-row-id="ADR-004|addresses|FUN-004">
+<td><a href="architecture.html#ADR-004">ADR-004</a></td>
+<td>Addresses</td>
+<td><a href="requirements.html#FUN-004">FUN-004</a></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even" data-need-graph-row-id="ADR-004|applies-to|COMP-EXTENSION">
+<td><a href="architecture.html#ADR-004">ADR-004</a></td>
+<td>Applies to</td>
+<td><a href="architecture.html#COMP-EXTENSION">COMP-EXTENSION</a></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd" data-need-graph-row-id="ADR-004|applies-to|COMP-GRAPH">
+<td><a href="architecture.html#ADR-004">ADR-004</a></td>
+<td>Applies to</td>
+<td><a href="architecture.html#COMP-GRAPH">COMP-GRAPH</a></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even" data-need-graph-row-id="ADR-004|applies-to|IF-003">
+<td><a href="architecture.html#ADR-004">ADR-004</a></td>
+<td>Applies to</td>
+<td><a href="architecture.html#IF-003">IF-003</a></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd" data-need-graph-row-id="ADR-004|confirmed-by|TC-006">
+<td><a href="architecture.html#ADR-004">ADR-004</a></td>
+<td>Confirmed by</td>
+<td><a href="verification.html#TC-006">TC-006</a></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even" data-need-graph-row-id="ADR-004|confirmed-by|TC-010">
+<td><a href="architecture.html#ADR-004">ADR-004</a></td>
+<td>Confirmed by</td>
+<td><a href="verification.html#TC-010">TC-010</a></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd" data-need-graph-row-id="COMP-EXTENSION|part-of|CONTAINER-QUARTO-EXT">
+<td><a href="architecture.html#COMP-EXTENSION">COMP-EXTENSION</a></td>
+<td>Part of</td>
+<td><a href="architecture.html#CONTAINER-QUARTO-EXT">CONTAINER-QUARTO-EXT</a></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even" data-need-graph-row-id="COMP-GRAPH|part-of|CONTAINER-PYTHON-PKG">
+<td><a href="architecture.html#COMP-GRAPH">COMP-GRAPH</a></td>
+<td>Part of</td>
+<td><a href="architecture.html#CONTAINER-PYTHON-PKG">CONTAINER-PYTHON-PKG</a></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd" data-need-graph-row-id="CONTAINER-PYTHON-PKG|part-of|SYS-QUARTO-NEEDS">
+<td><a href="architecture.html#CONTAINER-PYTHON-PKG">CONTAINER-PYTHON-PKG</a></td>
+<td>Part of</td>
+<td><a href="architecture.html#SYS-QUARTO-NEEDS">SYS-QUARTO-NEEDS</a></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even" data-need-graph-row-id="CONTAINER-QUARTO-EXT|part-of|SYS-QUARTO-NEEDS">
+<td><a href="architecture.html#CONTAINER-QUARTO-EXT">CONTAINER-QUARTO-EXT</a></td>
+<td>Part of</td>
+<td><a href="architecture.html#SYS-QUARTO-NEEDS">SYS-QUARTO-NEEDS</a></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd" data-need-graph-row-id="FUN-004|implemented-by|COMP-GRAPH">
+<td><a href="requirements.html#FUN-004">FUN-004</a></td>
+<td>Implemented by</td>
+<td><a href="architecture.html#COMP-GRAPH">COMP-GRAPH</a></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even" data-need-graph-row-id="FUN-004|verified-by|TC-010">
+<td><a href="requirements.html#FUN-004">FUN-004</a></td>
+<td>Verified by</td>
+<td><a href="verification.html#TC-010">TC-010</a></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd" data-need-graph-row-id="SRC-GRAPH-CONTEXT|implements|FUN-004">
+<td><a href="implementation.html#SRC-GRAPH-CONTEXT">SRC-GRAPH-CONTEXT</a></td>
+<td>Implements</td>
+<td><a href="requirements.html#FUN-004">FUN-004</a></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even" data-need-graph-row-id="SRC-GRAPH-CONTEXT|part-of|COMP-GRAPH">
+<td><a href="implementation.html#SRC-GRAPH-CONTEXT">SRC-GRAPH-CONTEXT</a></td>
+<td>Part of</td>
+<td><a href="architecture.html#COMP-GRAPH">COMP-GRAPH</a></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd" data-need-graph-row-id="SRC-GRAPH-EXPLORE|implements|FUN-004">
+<td><a href="implementation.html#SRC-GRAPH-EXPLORE">SRC-GRAPH-EXPLORE</a></td>
+<td>Implements</td>
+<td><a href="requirements.html#FUN-004">FUN-004</a></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even" data-need-graph-row-id="SRC-GRAPH-EXPLORE|part-of|COMP-GRAPH">
+<td><a href="implementation.html#SRC-GRAPH-EXPLORE">SRC-GRAPH-EXPLORE</a></td>
+<td>Part of</td>
+<td><a href="architecture.html#COMP-GRAPH">COMP-GRAPH</a></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd" data-need-graph-row-id="SRC-GRAPH-PROJECTION|implements|FUN-004">
+<td><a href="implementation.html#SRC-GRAPH-PROJECTION">SRC-GRAPH-PROJECTION</a></td>
+<td>Implements</td>
+<td><a href="requirements.html#FUN-004">FUN-004</a></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even" data-need-graph-row-id="SRC-GRAPH-PROJECTION|part-of|COMP-GRAPH">
+<td><a href="implementation.html#SRC-GRAPH-PROJECTION">SRC-GRAPH-PROJECTION</a></td>
+<td>Part of</td>
+<td><a href="architecture.html#COMP-GRAPH">COMP-GRAPH</a></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd" data-need-graph-row-id="TC-006|evidenced-by|EVD-006">
+<td><a href="verification.html#TC-006">TC-006</a></td>
+<td>Evidenced by</td>
+<td><a href="verification.html#EVD-006">EVD-006</a></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even" data-need-graph-row-id="TC-010|evidenced-by|EVD-010">
+<td><a href="verification.html#TC-010">TC-010</a></td>
+<td>Evidenced by</td>
+<td><a href="verification.html#EVD-010">EVD-010</a></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<div class="need-graph-container">
+<div class="need-graph-controls" data-need-graph-controls="requirement-to-code-view">
+<label class="visually-hidden" for="requirement-to-code-view-search">Search graph</label><input id="requirement-to-code-view-search" class="need-graph-search" type="search" placeholder="Search by ID or title"><label class="visually-hidden" for="requirement-to-code-view-color">Color nodes by</label><select id="requirement-to-code-view-color" class="need-graph-color" data-need-graph-color=""><option value="change" selected>Color: change</option>
+<option value="type">Color: type</option>
+<option value="status">Color: status</option>
+<option value="priority">Color: priority</option>
+<option value="none">No color</option></select><button type="button" class="need-graph-fit">Fit</button><button type="button" class="need-graph-reset">Reset</button><button type="button" class="need-graph-fullscreen">Fullscreen</button><button type="button" class="need-graph-export-png">Export PNG</button>
+</div>
+<div class="need-graph-canvas" data-need-graph-canvas="requirement-to-code-view" role="img" aria-label="Interactive traceability graph">
+<div class="need-graph-loading">Loading interactive graph…</div>
+<div id="requirement-to-code-view-minimap" class="cytoscape-navigator" data-need-graph-minimap="requirement-to-code-view" aria-hidden="true"></div>
+</div>
+<div class="need-graph-status visually-hidden" role="status" data-need-graph-status="requirement-to-code-view"></div>
+<script type="application/json" data-need-graph-data="requirement-to-code-view">{"edges":[{"label":"Addresses","provenance":[{"anchor":"ADR-004","file":"architecture.qmd","line":235}],"relation":"addresses","source":"ADR-004","target":"FUN-004"},{"label":"Applies to","provenance":[{"anchor":"ADR-004","file":"architecture.qmd","line":235}],"relation":"applies-to","source":"ADR-004","target":"COMP-EXTENSION"},{"label":"Applies to","provenance":[{"anchor":"ADR-004","file":"architecture.qmd","line":235}],"relation":"applies-to","source":"ADR-004","target":"COMP-GRAPH"},{"label":"Applies to","provenance":[{"anchor":"ADR-004","file":"architecture.qmd","line":235}],"relation":"applies-to","source":"ADR-004","target":"IF-003"},{"label":"Confirmed by","provenance":[{"anchor":"ADR-004","file":"architecture.qmd","line":235}],"relation":"confirmed-by","source":"ADR-004","target":"TC-006"},{"label":"Confirmed by","provenance":[{"anchor":"ADR-004","file":"architecture.qmd","line":235}],"relation":"confirmed-by","source":"ADR-004","target":"TC-010"},{"label":"Part of","provenance":[{"anchor":"COMP-EXTENSION","file":"architecture.qmd","line":71}],"relation":"part-of","source":"COMP-EXTENSION","target":"CONTAINER-QUARTO-EXT"},{"label":"Part of","provenance":[{"anchor":"COMP-GRAPH","file":"architecture.qmd","line":77}],"relation":"part-of","source":"COMP-GRAPH","target":"CONTAINER-PYTHON-PKG"},{"label":"Part of","provenance":[{"anchor":"CONTAINER-PYTHON-PKG","file":"architecture.qmd","line":33}],"relation":"part-of","source":"CONTAINER-PYTHON-PKG","target":"SYS-QUARTO-NEEDS"},{"label":"Part of","provenance":[{"anchor":"CONTAINER-QUARTO-EXT","file":"architecture.qmd","line":39}],"relation":"part-of","source":"CONTAINER-QUARTO-EXT","target":"SYS-QUARTO-NEEDS"},{"label":"Implemented by","provenance":[{"anchor":"FUN-004","file":"requirements.qmd","line":37}],"relation":"implemented-by","source":"FUN-004","target":"COMP-GRAPH"},{"label":"Verified by","provenance":[{"anchor":"FUN-004","file":"requirements.qmd","line":37}],"relation":"verified-by","source":"FUN-004","target":"TC-010"},{"label":"Implements","provenance":[{"anchor":"SRC-GRAPH-CONTEXT","file":"implementation.qmd","line":59}],"relation":"implements","source":"SRC-GRAPH-CONTEXT","target":"FUN-004"},{"label":"Part of","provenance":[{"anchor":"SRC-GRAPH-CONTEXT","file":"implementation.qmd","line":59}],"relation":"part-of","source":"SRC-GRAPH-CONTEXT","target":"COMP-GRAPH"},{"label":"Implements","provenance":[{"anchor":"SRC-GRAPH-EXPLORE","file":"implementation.qmd","line":65}],"relation":"implements","source":"SRC-GRAPH-EXPLORE","target":"FUN-004"},{"label":"Part of","provenance":[{"anchor":"SRC-GRAPH-EXPLORE","file":"implementation.qmd","line":65}],"relation":"part-of","source":"SRC-GRAPH-EXPLORE","target":"COMP-GRAPH"},{"label":"Implements","provenance":[{"anchor":"SRC-GRAPH-PROJECTION","file":"implementation.qmd","line":53}],"relation":"implements","source":"SRC-GRAPH-PROJECTION","target":"FUN-004"},{"label":"Part of","provenance":[{"anchor":"SRC-GRAPH-PROJECTION","file":"implementation.qmd","line":53}],"relation":"part-of","source":"SRC-GRAPH-PROJECTION","target":"COMP-GRAPH"},{"label":"Evidenced by","provenance":[{"anchor":"TC-006","file":"verification.qmd","line":39}],"relation":"evidenced-by","source":"TC-006","target":"EVD-006"},{"label":"Evidenced by","provenance":[{"anchor":"TC-010","file":"verification.qmd","line":63}],"relation":"evidenced-by","source":"TC-010","target":"EVD-010"}],"nodes":[{"href":"architecture.html#ADR-004","id":"ADR-004","priority":null,"status":"accepted","tags":["graph","progressive-enhancement","accessibility"],"title":"Drive static and interactive graphs from the same projection","type":"architecture-decision"},{"href":"architecture.html#COMP-EXTENSION","id":"COMP-EXTENSION","priority":null,"status":"implemented","tags":["quarto","lua","documentation"],"title":"Quarto presentation extension","type":"component"},{"href":"architecture.html#COMP-GRAPH","id":"COMP-GRAPH","priority":null,"status":"implemented","tags":["graph","cytoscape","projection"],"title":"Graph projection and exploration subsystem","type":"component"},{"href":"architecture.html#CONTAINER-PYTHON-PKG","id":"CONTAINER-PYTHON-PKG","priority":null,"status":"approved","tags":["architecture","c4"],"technology":"Python 3.12","title":"Python package","type":"container"},{"href":"architecture.html#CONTAINER-QUARTO-EXT","id":"CONTAINER-QUARTO-EXT","priority":null,"status":"approved","tags":["architecture","c4"],"technology":"Quarto/Pandoc Lua filters","title":"Quarto presentation extension","type":"container"},{"href":"verification.html#EVD-006","id":"EVD-006","priority":null,"status":"verified","tags":["jsonschema","graph","security","machine-evidence"],"title":"Public graph machine evidence","type":"evidence"},{"href":"verification.html#EVD-010","id":"EVD-010","priority":null,"status":"verified","tags":["javascript","cytoscape","assets"],"title":"Interactive graph asset integrity tests","type":"evidence"},{"href":"requirements.html#FUN-004","id":"FUN-004","priority":"high","status":"approved","tags":["graph","cytoscape","exploration"],"title":"Explore traceability interactively using semantic graph controls","type":"functional-requirement"},{"href":"architecture.html#IF-003","id":"IF-003","priority":null,"status":"implemented","tags":["json","graph","projection"],"title":"Public graph projection contract","type":"interface"},{"href":"implementation.html#SRC-GRAPH-CONTEXT","id":"SRC-GRAPH-CONTEXT","priority":null,"status":"implemented","tags":["graph","cytoscape","traversal"],"title":"Cytoscape semantic context module","type":"source-module"},{"href":"implementation.html#SRC-GRAPH-EXPLORE","id":"SRC-GRAPH-EXPLORE","priority":null,"status":"implemented","tags":["graph","cytoscape","exploration","filters"],"title":"Cytoscape exploration module","type":"source-module"},{"href":"implementation.html#SRC-GRAPH-PROJECTION","id":"SRC-GRAPH-PROJECTION","priority":null,"status":"implemented","tags":["graph","selection","projection"],"title":"Graph selection and projection module","type":"source-module"},{"href":"architecture.html#SYS-QUARTO-NEEDS","id":"SYS-QUARTO-NEEDS","priority":null,"status":"approved","tags":["architecture","c4"],"title":"Quarto-Needs","type":"system"},{"href":"verification.html#TC-006","id":"TC-006","priority":null,"status":"passed","tags":["graph","schema","security","limits"],"title":"Public graph contract and safety regression","type":"test-case"},{"href":"verification.html#TC-010","id":"TC-010","priority":null,"status":"passed","tags":["graph","cytoscape","exploration"],"title":"Interactive graph exploration asset regression","type":"test-case"}],"relationCatalogVersion":"4","relationSemantics":{"addressed-by":{"directLabel":"Addressed by","family":"decision-addressing","impactDirection":"source_to_target","inverseLabel":"Addresses","sourceRole":"driver","targetRole":"decision","traversalDirection":"source_to_target"},"addresses":{"directLabel":"Addresses","family":"decision-addressing","impactDirection":"target_to_source","inverseLabel":"Addressed by","sourceRole":"decision","targetRole":"driver","traversalDirection":"target_to_source"},"applies-to":{"directLabel":"Applies to","family":"decision-scope","impactDirection":"source_to_target","inverseLabel":"Decision applies to","sourceRole":"decision","targetRole":"architecture-element","traversalDirection":"source_to_target"},"confirmed-by":{"directLabel":"Confirmed by","family":"decision-confirmation","impactDirection":"both","inverseLabel":"Confirms","sourceRole":"decision","targetRole":"confirmation","traversalDirection":"source_to_target"},"confirms":{"directLabel":"Confirms","family":"decision-confirmation","impactDirection":"both","inverseLabel":"Confirmed by","sourceRole":"confirmation","targetRole":"decision","traversalDirection":"target_to_source"},"conflicts-with":{"directLabel":"Conflicts with","family":"conflict","impactDirection":"both","inverseLabel":"Conflicts with","sourceRole":"subject","targetRole":"subject","traversalDirection":"none"},"constrains":{"directLabel":"Constrains","family":"constraint","impactDirection":"none","inverseLabel":"Constrained by","sourceRole":"constraint","targetRole":"subject","traversalDirection":"source_to_target"},"decomposes":{"directLabel":"Decomposes","family":"decomposition","impactDirection":"none","inverseLabel":"Part of","sourceRole":"whole","targetRole":"part","traversalDirection":"source_to_target"},"depends-on":{"directLabel":"Depends on","family":"dependency","impactDirection":"target_to_source","inverseLabel":"Depended on by","sourceRole":"dependent","targetRole":"dependency","traversalDirection":"target_to_source"},"derives-from":{"directLabel":"Derives from","family":"derivation","impactDirection":"target_to_source","inverseLabel":"Source for","sourceRole":"derived","targetRole":"source","traversalDirection":"target_to_source"},"evidenced-by":{"directLabel":"Evidenced by","family":"evidence","impactDirection":"source_to_target","inverseLabel":"Evidences","sourceRole":"test","targetRole":"evidence","traversalDirection":"source_to_target"},"evidences":{"directLabel":"Evidences","family":"evidence","impactDirection":"target_to_source","inverseLabel":"Evidenced by","sourceRole":"evidence","targetRole":"test","traversalDirection":"target_to_source"},"implemented-by":{"directLabel":"Implemented by","family":"implementation","impactDirection":"source_to_target","inverseLabel":"Implements","sourceRole":"requirement","targetRole":"implementation-artifact","traversalDirection":"source_to_target"},"implements":{"directLabel":"Implements","family":"implementation","impactDirection":"target_to_source","inverseLabel":"Implemented by","sourceRole":"implementation-artifact","targetRole":"requirement","traversalDirection":"target_to_source"},"justified-by":{"directLabel":"Justified by","family":"justification","impactDirection":"none","inverseLabel":"Justifies","sourceRole":"subject","targetRole":"justification","traversalDirection":"source_to_target"},"mitigates":{"directLabel":"Mitigates","family":"mitigation","impactDirection":"target_to_source","inverseLabel":"Mitigated by","sourceRole":"mitigation","targetRole":"risk","traversalDirection":"target_to_source"},"part-of":{"directLabel":"Part of","family":"decomposition","impactDirection":"source_to_target","inverseLabel":"Decomposes","sourceRole":"part","targetRole":"whole","traversalDirection":"source_to_target"},"references":{"directLabel":"References","family":"reference","impactDirection":"none","inverseLabel":"Referenced by","sourceRole":"source","targetRole":"target","traversalDirection":"none"},"refines":{"directLabel":"Refines","family":"refinement","impactDirection":"target_to_source","inverseLabel":"Refined by","sourceRole":"refinement","targetRole":"subject","traversalDirection":"target_to_source"},"superseded-by":{"directLabel":"Superseded by","family":"decision-lineage","impactDirection":"source_to_target","inverseLabel":"Supersedes","sourceRole":"predecessor","targetRole":"successor","traversalDirection":"source_to_target"},"supersedes":{"directLabel":"Supersedes","family":"decision-lineage","impactDirection":"target_to_source","inverseLabel":"Superseded by","sourceRole":"successor","targetRole":"predecessor","traversalDirection":"target_to_source"},"validated-by":{"directLabel":"Validated by","family":"verification","impactDirection":"source_to_target","inverseLabel":"Validates","sourceRole":"requirement","targetRole":"test","traversalDirection":"source_to_target"},"verified-by":{"directLabel":"Verified by","family":"verification","impactDirection":"source_to_target","inverseLabel":"Verifies","sourceRole":"requirement","targetRole":"test","traversalDirection":"source_to_target"},"verifies":{"directLabel":"Verifies","family":"verification","impactDirection":"target_to_source","inverseLabel":"Verified by","sourceRole":"test","targetRole":"requirement","traversalDirection":"target_to_source"}},"schemaVersion":"graph-public-v1","typeRoles":{"actor":"architecture-element","architecture-decision":"decision","component":"architecture-element","container":"architecture-element","evidence":"evidence","external-system":"architecture-element","functional-requirement":"requirement","interface":"architecture-element","non-functional-requirement":"requirement","risk":"risk","source-module":"implementation-artifact","stakeholder-need":"need","system":"architecture-element","system-requirement":"requirement","test-case":"verification"},"view":{"id":"need-graph-query-requirement-to-code","layout":"hierarchical","limits":{"edges":600,"nodes":200},"mode":"catalog","query":"requirement-to-code","seed":17}}</script>
+</div>
+</div>
+</section><section id="six-vertical-slices" class="level2" data-number="6.8"><h2 data-number="6.8" class="anchored" data-anchor-id="six-vertical-slices">
+<span class="header-section-number">6.8</span> Six vertical slices</h2>
+<p>The following slices are intentionally reused throughout the rest of the case study.</p>
+<p><strong>Interactive graph exploration:</strong> <code>STK-001 → SYS-006 → FUN-004 → ADR-004 → COMP-GRAPH → SRC-GRAPH-OUTPUT / SRC-GRAPH-CONTEXT / SRC-GRAPH-EXPLORE → TC-006 / TC-010 → EVD-006 / EVD-010</code>.</p>
+<p><strong>Multilingual engineering:</strong> <code>STK-005 → SYS-005 → FUN-006 → ADR-005 → COMP-I18N → SRC-PRE-RENDER → TC-005 → EVD-005</code>.</p>
+<p><strong>Architecture decision management:</strong> <code>STK-004 → SYS-004 → ADR-001…ADR-006 → SRC-RULES → TC-004 → EVD-004</code>.</p>
+<p><strong>Engineering change analysis:</strong> <code>STK-003 → SYS-003 → FUN-005 → COMP-BASELINE → SRC-BASELINE / SRC-DIFF / SRC-IMPACT → TC-011 → EVD-011</code>.</p>
+<p><strong>Margin TOC usability:</strong> <code>SYS-002 → FUN-009 → ADR-007 → COMP-EXTENSION → SRC-MARGIN-SIDEBAR → TC-014 → EVD-014</code>.</p>
+<p><strong>Extension-first distribution:</strong> <code>STK-008 → SYS-009 → FUN-018 / FUN-019 / NFR-008 / NFR-009 → ADR-019 → COMP-EXTENSION → SRC-QUARTO-INTEGRATION / SRC-BOOTSTRAP → TC-025…TC-031 → EVD-025…EVD-031</code>.</p>
+
+
+</section></main><!-- /main --><script>
+(() => {
+  const locale = document.documentElement.lang || "en";
+  const isPt = locale.toLowerCase().startsWith("pt");
+
+  const asDir = (url) => new URL("./", url);
+
+  const relativeHref = (from, to) => {
+    const fromParts = asDir(from).pathname.split("/").filter(Boolean);
+    const toParts = to.pathname.split("/").filter(Boolean);
+    let common = 0;
+    while (common < fromParts.length && common < toParts.length && fromParts[common] === toParts[common]) common += 1;
+    const up = Array(fromParts.length - common).fill("..");
+    const down = toParts.slice(common);
+    return `${[...up, ...down].join("/") || "./"}${to.search}${to.hash}`;
+  };
+
+  const homeLink = document.querySelector(
+    ".sidebar-title a, a.sidebar-title, .navbar-brand, .quarto-secondary-nav a[href]"
+  );
+  const fallbackHome = "index.html";
+  const localizedHome = new URL(homeLink?.getAttribute("href") || fallbackHome, window.location.href);
+
+  let bookRoot;
+  if (isPt && /\/pt-BR\//i.test(localizedHome.pathname)) {
+    bookRoot = new URL("../", asDir(localizedHome));
+  } else {
+    bookRoot = asDir(localizedHome);
+  }
+
+  const current = new URL(window.location.href);
+  let logicalPath;
+  if (isPt) {
+    const marker = "/pt-BR/";
+    const index = current.pathname.toLowerCase().indexOf(marker.toLowerCase());
+    logicalPath = index >= 0 ? current.pathname.slice(index + marker.length) : current.pathname.split("/").pop();
+    logicalPath = logicalPath || "index.html";
+  } else {
+    const rootPath = bookRoot.pathname.endsWith("/") ? bookRoot.pathname : `${bookRoot.pathname}/`;
+    logicalPath = current.pathname.startsWith(rootPath)
+      ? current.pathname.slice(rootPath.length)
+      : current.pathname.split("/").pop();
+    logicalPath = logicalPath || "index.html";
+  }
+
+  const target = isPt
+    ? new URL(logicalPath, bookRoot)
+    : new URL(`pt-BR/${logicalPath}`, bookRoot);
+  target.search = current.search;
+  target.hash = current.hash;
+
+  const targetLabel = isPt ? "English" : "Português (Brasil)";
+  const currentLabel = isPt ? "PT-BR" : "EN";
+
+  document.querySelectorAll("#languages-links-parent, .babelquarto-languages-button").forEach((node) => {
+    const oldWrapper = node.closest("#languages-links-parent, .nav-item.dropdown, .dropdown") || node;
+    if (!oldWrapper.classList.contains("quarto-needs-language-switch")) oldWrapper.remove();
+  });
+
+  const wrapper = document.createElement("div");
+  wrapper.id = "quarto-needs-language-switch";
+  wrapper.className = "dropdown quarto-needs-language-switch";
+  wrapper.innerHTML = `
+    <a id="languages-button"
+       class="nav-link dropdown-toggle"
+       href="#"
+       role="button"
+       data-bs-toggle="dropdown"
+       aria-expanded="false"
+       aria-label="${isPt ? "Idioma" : "Language"}">
+      <span class="quarto-needs-language-globe" aria-hidden="true">🌐</span>
+      <span class="quarto-needs-current-language">${currentLabel}</span>
+    </a>
+    <ul id="languages-links"
+        class="dropdown-menu dropdown-menu-end"
+        aria-labelledby="languages-button">
+      <li><a class="dropdown-item" href="${relativeHref(current, target)}">${targetLabel}</a></li>
+    </ul>`;
+
+  // Colors are intentionally not set here: language-switch.css resolves
+  // them through live Bootstrap theme variables, which stay correct across
+  // dark themes and runtime theme toggles. A snapshot taken at load time
+  // went stale on dark sites and left the switcher with light chrome.
+
+  const place = () => {
+    const secondarySearch = document.querySelector(
+      "#quarto-header .quarto-secondary-nav .quarto-search-button"
+    );
+    if (secondarySearch && secondarySearch.parentElement) {
+      const host = secondarySearch.parentElement;
+      if (wrapper.parentElement !== host || secondarySearch.nextElementSibling !== wrapper) {
+        host.insertBefore(wrapper, secondarySearch.nextSibling);
+      }
+      return true;
+    }
+
+    const primarySearch = document.querySelector("#quarto-header .navbar #quarto-search");
+    if (primarySearch && primarySearch.parentElement) {
+      const host = primarySearch.parentElement;
+      if (wrapper.parentElement !== host || primarySearch.nextElementSibling !== wrapper) {
+        host.insertBefore(wrapper, primarySearch.nextSibling);
+      }
+      return true;
+    }
+
+    const tools = document.querySelector("#quarto-header .quarto-navbar-tools");
+    if (tools) {
+      tools.appendChild(wrapper);
+      return true;
+    }
+    return false;
+  };
+
+  place();
+  requestAnimationFrame(place);
+  setTimeout(place, 100);
+  setTimeout(place, 500);
+  setTimeout(place, 1200);
+})();
+</script><script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script><nav class="page-navigation column-body"><div class="nav-page nav-page-previous">
+      <a href="./architecture.html" class="pagination-link" aria-label="Architecture: where requirements become design">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">5</span>  <span class="chapter-title">Architecture: where requirements become design</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./verification.html" class="pagination-link" aria-label="Verification: proving the engineering claims">
+        <span class="nav-page-text"><span class="chapter-number">7</span>  <span class="chapter-title">Verification: proving the engineering claims</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body>
+</html>
