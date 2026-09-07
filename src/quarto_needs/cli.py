@@ -455,8 +455,42 @@ def _export(root: Path, args: argparse.Namespace, config: NeedsConfig | None) ->
     return profile_exit_code(effective.profile, False, report.gate_failures())
 
 
+# Commands intercepted by cli_entry before argparse ever runs. They are not
+# subparsers here, so `--help` would otherwise present this argparse group as
+# the whole CLI and hide half of it. Listing them keeps the entry point's help
+# honest without moving dispatch into argparse.
+DISPATCHED_COMMAND_HELP = """
+commands handled by the outer dispatch layer:
+  suspect --git BASE..HEAD
+                        Traceability claims needing review after a change
+  pr-report --git BASE..HEAD
+                        Combined change/impact/suspect review report
+  github-report --git BASE..HEAD
+                        Summary, annotations, and check projection for GitHub
+  diff|impact --git BASE..HEAD
+                        Compare two committed Git states instead of a baseline
+  variant list|show NAME
+                        Inspect configured build variants
+  export --format reqif|jsonld
+                        ReqIF 1.2 and JSON-LD interchange projections
+  migrate SOURCE        Migration plans for sphinx-needs, doorstop, strictdoc,
+                        openfasttrace
+  oslc discover|catalog|query
+                        Bounded read-only OSLC RM federation
+  lsp                   Run the language server over stdio
+
+`oslc` and `migrate` subcommands accept their own --help. The complete
+reference for every command above is the CLI reference chapter of the manual.
+"""
+
+
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="quarto-needs", description="Requirements-as-code engine for Quarto")
+    parser = argparse.ArgumentParser(
+        prog="quarto-needs",
+        description="Requirements-as-code engine for Quarto",
+        epilog=DISPATCHED_COMMAND_HELP,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser.add_argument("--root", help="Project root (default: current directory)")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("scan", help="Parse project and write .quarto-needs/needs.json")
