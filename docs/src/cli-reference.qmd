@@ -1,0 +1,218 @@
+# Command-line reference
+
+Install the standalone CLI for analysis, automation, migration, and editor workflows:
+
+```bash
+pip install quarto-needs
+```
+
+The commands below run from the project directory. To select another project, place `--root` before the command:
+
+```bash
+quarto-needs --root examples/quarto-needs quality --format json
+```
+
+The root defaults to the current directory. Output paths are relative to the selected project unless absolute. Existing-baseline arguments to `baseline inspect`, `diff`, `impact`, and `export --baseline` are instead resolved from the shell's current directory; use an absolute path when combining them with another `--root`.
+
+## Analyze, validate, and select
+
+| Command | Result |
+|---|---|
+| `quarto-needs scan` | Analyze sources and write `.quarto-needs/needs.json`, the installed extension's `generated-index.lua`, and graph projections consumed by Quarto. |
+| `quarto-needs check` | Print validation findings and object/error/warning counts. |
+| `quarto-needs coverage` | Print JSON with requirement counts and implementation/verification trace coverage. |
+| `quarto-needs trace REQ-001` | List reachable upstream and downstream IDs in the analyzed graph. Replace `REQ-001` with an existing object ID. |
+| `quarto-needs quality` | Report scoped metrics, gaps, findings, and configured quality gates. |
+| `quarto-needs query accepted-decisions` | Print the ordered IDs selected by a configured named query. |
+
+Analysis commands read the current sources; a preceding `scan` is not required. `scan` is the operation that publishes the generated artifacts used by the extension.
+
+`scan` and `check` fail when findings have error severity. Use `quality` to enforce numeric quality gates: under `strict`, failed gates return an error; `default` and `advisory` report them without a failing gate verdict. Structural failures remain blocking. See [Governance and quality](governance.qmd).
+
+```bash
+quarto-needs quality --format json --output artifacts/quality.json
+quarto-needs query accepted-decisions --format json
+```
+
+`quality --output` always writes JSON, even when its console format remains `text`. `query --format json` returns the query name and its ordered `ids`; an unknown query returns exit code `2`. Define the example query as shown in [Engineering model](engineering-model.qmd).
+
+## Export graph and automation artifacts
+
+| Format | Example | Contents |
+|---|---|---|
+| `json` | `quarto-needs export --format json --output artifacts/needs.json` | Canonical graph JSON. This is the default format. |
+| `csv` | `quarto-needs export --format csv --output artifacts/csv` | A directory containing `objects.csv`, `relations.csv`, and `findings.csv`. |
+| `sarif` | `quarto-needs export --format sarif --output artifacts/findings.sarif` | Findings for code-scanning consumers. |
+| `junit` | `quarto-needs export --format junit --output artifacts/gates.xml` | Quality-gate results as JUnit XML. |
+| `markdown` | `quarto-needs export --format markdown --output artifacts/summary.md` | Human-readable engineering and quality summary. |
+| `reqif` | `quarto-needs export --format reqif --output artifacts/requirements.reqif` | ReqIF 1.2 interchange projection. |
+| `jsonld` | `quarto-needs export --format jsonld --output artifacts/graph.jsonld` | JSON-LD graph projection. |
+
+Without `--output`, JSON/CSV/SARIF/JUnit/Markdown all use `.quarto-needs/needs.json`. Supply an explicit destination when changing format; for CSV, that destination must be a directory. ReqIF defaults to `.quarto-needs/requirements.reqif`, and JSON-LD to `.quarto-needs/graph.jsonld`.
+
+Markdown can include a baseline change summary:
+
+```bash
+quarto-needs export --format markdown \
+  --baseline baselines/quarto-needs.json --output artifacts/changes.md
+```
+
+`--baseline` is supported only for Markdown. JSON/CSV/SARIF/JUnit/Markdown exports write their artifacts before returning their applicable quality verdict. SARIF can also record structural findings when no valid snapshot exists, then exit with an error. ReqIF and JSON-LD require a valid snapshot and do not apply the quality-gate exit policy. See [Interoperability and federation](interoperability.qmd).
+
+## Baselines, semantic diff, and impact
+
+```bash
+quarto-needs baseline create
+quarto-needs baseline inspect baselines/quarto-needs.json --format json
+quarto-needs diff baselines/quarto-needs.json --format json
+quarto-needs impact baselines/quarto-needs.json --format json
+```
+
+`baseline create` captures the current analyzed graph at `baselines/quarto-needs.json`. Choose another destination with `--output`; replacing an existing baseline requires `--force`. `--format json` prints its path and validity. `--allow-invalid` permits a diagnostic baseline with `valid: false` for a structurally invalid project; such an artifact is not a normal comparison baseline.
+
+`baseline inspect` summarizes an existing artifact. `diff` compares it with current sources, distinguishing additions, removals, field changes, relocation, relation changes, and compatible derived results. `impact` follows the catalog's semantic impact directions and reports affected objects with witness paths; it does not modify objects or rerun tests.
+
+Configuration or reference-date changes can suppress incompatible derived comparisons. To deliberately resolve the baseline under the current configuration and reference date, use:
+
+```bash
+quarto-needs diff baselines/quarto-needs.json --recompute-with current
+quarto-needs impact baselines/quarto-needs.json --recompute-with current
+```
+
+These commands default to `--format text`; JSON is available for automation. `diff` applies the active profile to gate regressions. Finding affected objects alone does not make `impact` fail.
+
+## Compare committed Git states and report changes
+
+The Git forms analyze two committed project states through the same engineering engine. They require Git, a project path present at both revisions, and an explicit two-dot `BASE..HEAD` range. They exclude uncommitted edits and reject three-dot ranges. Both states use the head commit's timestamp as their common reference time.
+
+```bash
+quarto-needs diff --git HEAD~1..HEAD --format json
+quarto-needs impact --git HEAD~1..HEAD --format json
+quarto-needs suspect --git HEAD~1..HEAD --format json
+quarto-needs pr-report --git HEAD~1..HEAD --format markdown
+quarto-needs github-report --git HEAD~1..HEAD --format annotations
+```
+
+| Command | What it adds |
+|---|---|
+| `diff --git` | Semantic changes between the two committed states. |
+| `impact --git` | Affected objects and paths from the change origins. |
+| `suspect --git` | Traceability claims that need review after a change, with their origins and witnesses. It does not mark authored objects automatically. |
+| `pr-report --git` | Combined change, impact, suspect-claim, finding, and gate-regression report for review. |
+| `github-report --git` | GitHub-oriented summary, annotation commands, and check-result projection. It prints output locally; it does not publish a check or comment. |
+
+All five accept `--recompute-with current`. Here, “current” is the head commit's configuration and common reference date, not uncommitted working-tree configuration. `diff`, `impact`, and `suspect` support text/JSON output; `pr-report` supports text/JSON/Markdown; `github-report` also supports `annotations`.
+
+For a summary with links to a published model:
+
+```bash
+quarto-needs github-report --git HEAD~1..HEAD \
+  --format markdown --model-url https://example.org/model/
+```
+
+`diff` and `pr-report` apply the head profile to gate regressions. `github-report` returns `1` for a failure conclusion caused by new error findings or gate regressions; suspect claims alone produce a neutral conclusion. Use `--format json` to inspect the full projection. The GitHub Issues adapter described in [Interoperability](interoperability.qmd) is a separate library feature.
+
+## Evidence validation and attestation
+
+```bash
+quarto-needs evidence check .quarto-needs/evidence/pytest-provider.json
+quarto-needs evidence attest .quarto-needs/evidence/pytest-provider.json \
+  --output .quarto-needs/evidence/pytest.json --expires-hours 24
+quarto-needs evidence check .quarto-needs/evidence/pytest.json --format json
+```
+
+`evidence check` accepts raw or attested pytest and generic machine-check payloads. It checks their modeled bindings and, for attestations, graph/configuration identity and freshness. `evidence attest` wraps an existing raw payload; it does not execute the provider. Run `evidence check` afterward for semantic validation.
+
+Attestation requires `--output`. Expiration is optional; `--expires-hours` must be positive. `--source-revision` overrides the revision otherwise taken from `GITHUB_SHA`. Both actions default to text and accept `--format json`. See [Executable evidence](executable-evidence.qmd) and [Machine evidence providers](evidence-providers.qmd) for payloads, generation, and diagnostics.
+
+## Named build variants
+
+```bash
+quarto-needs variant list --format json
+quarto-needs variant show assurance-slice --format json
+```
+
+`list` reports every configured selection; `show` reports one variant's ordered membership. Both default to text and support JSON containing the variant and semantic-graph fingerprints. An unknown variant returns `2`. These commands inspect selections; they do not launch a Quarto build. Define variants as described in [Derived fields and build variants](derived-variants.qmd).
+
+## Migration plans and reviewed application
+
+| Source | Plan example | Meaning of mapping keys |
+|---|---|---|
+| Sphinx-Needs | `quarto-needs migrate sphinx-needs source/needs.json` | Source type for `--type-map`; source link field for `--relation-map`. `--version` selects an export version. |
+| Doorstop | `quarto-needs migrate doorstop source/doorstop` | Document prefix for `--type-map`; child-document prefix for `--relation-map`. |
+| StrictDoc | `quarto-needs migrate strictdoc source/spec.sdoc` | Node tag for `--type-map`; relation `TYPE` for `--relation-map`. |
+| OpenFastTrace | `quarto-needs migrate openfasttrace source/trace.xml` | `doctype` for `--type-map`; link keyword for `--relation-map`. |
+
+Each command writes `.quarto-needs/migrations/<source>-plan.json` by default. `--output` changes that plan destination, not the authored `.qmd` destination. An unresolved migration still writes a reviewable plan and returns `1`.
+
+All four adapters accept repeated `--type-map SOURCE=TARGET`, `--relation-map SOURCE=RELATION`, `--destination SOURCE_ID=path.qmd`, and `--id-map SOURCE_ID=CANONICAL_ID` options. Destination and ID mappings are applied when `--apply-plan` is selected:
+
+```bash
+quarto-needs migrate sphinx-needs source/needs.json \
+  --type-map req=functional-requirement \
+  --destination REQ_001=requirements.qmd \
+  --apply-plan --show-content
+```
+
+The apply plan defaults to `.quarto-needs/migrations/<source>-apply-plan.json`; use `--apply-output` to change it. `--show-content` includes candidate Markdown in the text preview. `--format json` prints the migration plan, apply plan, or write result for the selected stage.
+
+After reviewing a ready apply plan, repeat the same input and mappings with `--apply-plan --write`. The command rebuilds and validates the plan before creating files; it does not ingest an edited plan JSON as a write instruction. Writes are create-only, require all items to be ready, reject existing destinations and IDs, and roll back newly written files if post-write validation fails. See [Migrating from other tools](migrations.qmd) for the complete workflow.
+
+## OSLC discovery, catalogs, and queries
+
+Install the optional RDF dependencies first:
+
+```bash
+pip install 'quarto-needs[oslc]'
+quarto-needs oslc catalog https://provider.example/oslc/catalog --format json
+quarto-needs oslc discover https://provider.example/oslc/sp/requirements --format json
+quarto-needs oslc query https://provider.example/oslc/query/requirements \
+  --service-provider-uri https://provider.example/oslc/sp/requirements --format json
+```
+
+Replace the example addresses with endpoints advertised by your provider. `catalog` lists provider and nested-catalog URIs without following nested catalogs. `discover` inspects one provider's RM services, query capabilities, and resource shapes; `--no-shapes` disables shape retrieval. `query` performs a bounded GET and reports member URIs and nodes already inline in that response. It does not fetch every member, reconcile objects, or create local requirements.
+
+For reusable provider settings, configure `.quarto-needs.toml`:
+
+```toml
+[federation.oslc.profiles.requirements]
+service-provider-uri = "https://provider.example/oslc/sp/requirements"
+bearer-token-env = "OSLC_TOKEN"
+timeout-seconds = 10.0
+```
+
+```bash
+quarto-needs oslc discover --profile requirements
+quarto-needs oslc query https://provider.example/oslc/query/requirements \
+  --profile requirements --max-members 500
+```
+
+Set `OSLC_TOKEN` in your environment before using that profile. A profile replaces the explicit service-provider argument; combining both is rejected. `catalog` uses direct options and has no `--profile`. `--bearer-token-env ENV_VAR` reads credentials without persisting their value.
+
+| Setting | Default | CLI override |
+|---|---|---|
+| Cache directory | `.quarto-needs/oslc-cache` | `--cache-dir PATH` |
+| Cache maximum age | 3600 seconds | `--max-age-seconds N` |
+| Permit stale cached fallback | false | `--allow-stale` / `--disallow-stale` |
+| HTTP timeout | 10 seconds | `--timeout-seconds N` |
+| Response size | 2,000,000 bytes | `--max-bytes N` |
+| Redirect count | 3 | `--max-redirects N` |
+| RDF node count | 5000 | `--max-nodes N` |
+| Query members | 1000 | `query --max-members N` |
+| Catalog providers / nested catalogs | 200 / 50 | `catalog --max-providers N` / `--max-nested-catalogs N` |
+
+CLI settings override profile settings. `--now` supplies an explicit ISO-8601 retrieval instant for reproducible runs; otherwise current UTC time is used. See [Interoperability and federation](interoperability.qmd) for the distinction between CLI results and library-level observation/reconciliation APIs.
+
+## Editor integration
+
+```bash
+quarto-needs --root /path/to/project lsp
+```
+
+`lsp` runs the language server over standard input/output until the editor closes it. Normally the editor starts this process. See [Language server and editor authoring](language-server.qmd) for completion, navigation, rename, diagnostics, and unsaved-buffer behavior.
+
+## Automation and exit status
+
+The common statuses are `0` for success, `1` for a validation/policy or readiness failure, `2` for invalid arguments/configuration/artifacts, and `3` for handled I/O or transport errors. A nonzero status can accompany a successfully written diagnostic artifact; check the command's verdict as well as file existence. Gate policy and the exceptions described above determine whether semantic findings cause failure.
+
+Prefer documented JSON formats for machine consumers. `NO_COLOR=1` disables console color. `SOURCE_DATE_EPOCH` supplies a deterministic reference date for ordinary graph analysis; Git-range commands use their shared head-commit timestamp instead. Evidence generation and OSLC retrieval have their own timestamp behavior described in their sections.

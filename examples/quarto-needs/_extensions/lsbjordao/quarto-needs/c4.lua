@@ -22,6 +22,18 @@ local views = dofile(script_dir() .. "views.lua")
 local VALID_LEVELS = {context = true, container = true, component = true, code = true}
 local MERMAID_BACKEND = "mermaid"
 
+-- Structurizr, PlantUML and D2 are optional local renderers. Pandoc represents
+-- some failed process invocations as PandocError userdata; a renderer helper
+-- may therefore raise while trying to turn that failure into a normal
+-- `(nil, message)` result. Keep the shortcode boundary fail-soft regardless:
+-- an unavailable or broken optional renderer must fall back to source text,
+-- never abort the whole Quarto book render.
+local function safe_renderer_call(renderer, ...)
+  local ok, value, message = pcall(renderer, ...)
+  if not ok then return nil, tostring(value) end
+  return value, message
+end
+
 local function project_dir()
   local ok, directory = pcall(function() return quarto.project.directory end)
   if ok and type(directory) == "string" and directory ~= "" then return directory end
@@ -78,12 +90,23 @@ function M.render_shortcode(args, kwargs)
     local language = decoded.language or backend
     local description = views.tr("Architecture diagram", "Diagrama de arquitetura")
     if views.is_html_format() then
-      local svg = views.diagram_inline_svg(backend, decoded.source, description, "need-c4-figure")
+      local svg = safe_renderer_call(
+        views.diagram_inline_svg,
+        backend,
+        decoded.source,
+        description,
+        "need-c4-figure"
+      )
       if svg then
         return pandoc.Div({pandoc.RawBlock("html", svg)}, pandoc.Attr("", {"need-c4-scroll"}))
       end
     else
-      local image_name = views.render_diagram_asset(backend, decoded.source, "quarto-needs-c4-" .. backend)
+      local image_name = safe_renderer_call(
+        views.render_diagram_asset,
+        backend,
+        decoded.source,
+        "quarto-needs-c4-" .. backend
+      )
       if image_name then
         return pandoc.Div({pandoc.Para({
           pandoc.Image({pandoc.Str(description)}, image_name, "", pandoc.Attr("", {"need-c4-figure"}, {role="img"}))

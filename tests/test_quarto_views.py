@@ -15,10 +15,18 @@ from quarto_needs.cli_entry import main as cli_main
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def install_fixture_extension(project: Path) -> None:
+    # Match `quarto add lsbjordao/quarto-needs`: the contributed bootstrap
+    # command resolves its entry point through the GitHub namespace.
+    extension = project / "_extensions" / "lsbjordao" / "quarto-needs"
+    extension.parent.mkdir(parents=True)
+    shutil.copytree(ROOT / "_extensions" / "quarto-needs", extension)
+
+
 def copy_fixture_project(tmp_path: Path, name: str) -> Path:
     project = tmp_path / name
     shutil.copytree(ROOT / "tests" / "fixtures" / name, project)
-    shutil.copytree(ROOT / "_extensions", project / "_extensions")
+    install_fixture_extension(project)
     return project
 
 
@@ -894,7 +902,7 @@ def test_need_graph_static_table_renders_status_and_priority_as_badges(tmp_path:
     for its own header — page-wide assertions cannot tell the two apart."""
     project = tmp_path / "graph-badges"
     project.mkdir()
-    shutil.copytree(ROOT / "_extensions", project / "_extensions")
+    install_fixture_extension(project)
     (project / "_quarto.yml").write_text(
         "project:\n  type: website\n  output-dir: _site\n\n"
         'website:\n  title: "Graph badge fixture"\n\n'
@@ -941,7 +949,7 @@ def test_need_tags_renders_chip_index_and_full_table(tmp_path: Path) -> None:
     the chips, the rows, the status line, and the script itself."""
     project = tmp_path / "tags-index"
     project.mkdir()
-    shutil.copytree(ROOT / "_extensions", project / "_extensions")
+    install_fixture_extension(project)
     (project / "_quarto.yml").write_text(
         "project:\n  type: website\n  output-dir: _site\n\n"
         'website:\n  title: "Tags fixture"\n\n'
@@ -989,7 +997,7 @@ def test_tag_badges_deep_link_to_the_configured_tags_page(tmp_path: Path) -> Non
     through the same link_target logic as every other cross-page link."""
     project = tmp_path / "tags-deeplink"
     project.mkdir()
-    shutil.copytree(ROOT / "_extensions", project / "_extensions")
+    install_fixture_extension(project)
     (project / "_quarto.yml").write_text(
         "project:\n  type: website\n  output-dir: _site\n\n"
         'website:\n  title: "Tags deep-link fixture"\n\n'
@@ -1038,7 +1046,7 @@ def test_card_tags_deep_link_even_without_any_shortcode(tmp_path: Path) -> None:
     the filter's Lua engine. Card tag badges deep-link even there."""
     project = tmp_path / "card-deeplink"
     project.mkdir()
-    shutil.copytree(ROOT / "_extensions", project / "_extensions")
+    install_fixture_extension(project)
     (project / "_quarto.yml").write_text(
         "project:\n  type: website\n  output-dir: _site\n\n"
         'website:\n  title: "Card deep-link fixture"\n\n'
@@ -1075,7 +1083,7 @@ def test_need_card_carries_its_tags_below_the_description(tmp_path: Path) -> Non
     underneath the tags, never above them."""
     project = tmp_path / "card-tags"
     project.mkdir()
-    shutil.copytree(ROOT / "_extensions", project / "_extensions")
+    install_fixture_extension(project)
     (project / "_quarto.yml").write_text(
         "project:\n  type: website\n  output-dir: _site\n\n"
         'website:\n  title: "Card tags fixture"\n\n'
@@ -1114,7 +1122,7 @@ def test_need_graph_renders_a_table_with_zero_edges_without_crashing(tmp_path: P
     first fixture in this whole suite to exercise a genuinely empty table."""
     project = tmp_path / "edgeless"
     project.mkdir()
-    shutil.copytree(ROOT / "_extensions", project / "_extensions")
+    install_fixture_extension(project)
     (project / "_quarto.yml").write_text(
         "project:\n  type: website\n  output-dir: _site\n\n"
         'website:\n  title: "Edgeless fixture"\n\n'
@@ -1148,7 +1156,7 @@ def test_named_query_view_gets_its_own_overlay_when_allowlisted(tmp_path: Path) 
     table count a second graph instance would throw off)."""
     project = tmp_path / "named-query-overlays"
     project.mkdir()
-    shutil.copytree(ROOT / "_extensions", project / "_extensions")
+    install_fixture_extension(project)
     (project / "_quarto.yml").write_text(
         "project:\n  type: website\n  output-dir: _site\n\n"
         'website:\n  title: "Named query overlay fixture"\n\n'

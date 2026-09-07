@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<link rel="alternate" hreflang="en" href="/executable-evidence.html" />
-<link rel="alternate" hreflang="pt-BR" href="/pt-BR/executable-evidence.html" />
+<link rel="alternate" hreflang="en" href="/cli-reference.html" />
+<link rel="alternate" hreflang="pt-BR" href="/pt-BR/cli-reference.html" />
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.8.26">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>8  Executable verification and machine evidence – Quarto-Needs — Manual</title>
+<title>18  Command-line reference – Quarto-Needs — Manual</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -57,8 +57,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 }
 </style>
 <script src="site_libs/quarto-nav/quarto-nav.js"></script><script src="site_libs/quarto-nav/headroom.min.js"></script><script src="site_libs/clipboard/clipboard.min.js"></script><script src="site_libs/quarto-search/autocomplete.umd.js"></script><script src="site_libs/quarto-search/fuse.min.js"></script><script src="site_libs/quarto-search/quarto-search.js"></script><meta name="quarto:offset" content="./">
-<link href="./evidence-providers.html" rel="next">
-<link href="./c4-architecture.html" rel="prev">
+<link href="./reference.html" rel="next">
+<link href="./language-server.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script><script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script><script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script><script src="site_libs/quarto-html/popper.min.js"></script><script src="site_libs/quarto-html/tippy.umd.min.js"></script><script src="site_libs/quarto-html/anchor.min.js"></script><link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script><link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
@@ -114,7 +114,7 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./executable-evidence.html"><span class="chapter-number">8</span>  <span class="chapter-title">Executable verification and machine evidence</span></a></li></ol></nav><a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./cli-reference.html"><span class="chapter-number">18</span>  <span class="chapter-title">Command-line reference</span></a></li></ol></nav><a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
   </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
@@ -165,7 +165,7 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./executable-evidence.html" class="sidebar-item-text sidebar-link active">
+  <a href="./executable-evidence.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">8</span>  <span class="chapter-title">Executable verification and machine evidence</span></span></a>
   </div>
 </li>
@@ -225,7 +225,7 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./cli-reference.html" class="sidebar-item-text sidebar-link">
+  <a href="./cli-reference.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text"><span class="chapter-number">18</span>  <span class="chapter-title">Command-line reference</span></span></a>
   </div>
 </li>
@@ -243,18 +243,22 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
         <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">Table of contents</h2>
    
   <ul>
-<li><a href="#link-pytest-tests-to-engineering-objects" id="toc-link-pytest-tests-to-engineering-objects" class="nav-link active" data-scroll-target="#link-pytest-tests-to-engineering-objects"><span class="header-section-number">8.1</span> Link pytest tests to engineering objects</a></li>
-  <li><a href="#generate-deterministic-provider-evidence" id="toc-generate-deterministic-provider-evidence" class="nav-link" data-scroll-target="#generate-deterministic-provider-evidence"><span class="header-section-number">8.2</span> Generate deterministic provider evidence</a></li>
-  <li><a href="#provider-neutral-attestation-envelope" id="toc-provider-neutral-attestation-envelope" class="nav-link" data-scroll-target="#provider-neutral-attestation-envelope"><span class="header-section-number">8.3</span> Provider-neutral attestation envelope</a></li>
-  <li><a href="#validate-evidence-against-the-current-model" id="toc-validate-evidence-against-the-current-model" class="nav-link" data-scroll-target="#validate-evidence-against-the-current-model"><span class="header-section-number">8.4</span> Validate evidence against the current model</a></li>
-  <li><a href="#evidence-diagnostics" id="toc-evidence-diagnostics" class="nav-link" data-scroll-target="#evidence-diagnostics"><span class="header-section-number">8.5</span> Evidence diagnostics</a></li>
-  <li><a href="#self-hosted-example" id="toc-self-hosted-example" class="nav-link" data-scroll-target="#self-hosted-example"><span class="header-section-number">8.6</span> Self-hosted example</a></li>
+<li><a href="#analyze-validate-and-select" id="toc-analyze-validate-and-select" class="nav-link active" data-scroll-target="#analyze-validate-and-select"><span class="header-section-number">18.1</span> Analyze, validate, and select</a></li>
+  <li><a href="#export-graph-and-automation-artifacts" id="toc-export-graph-and-automation-artifacts" class="nav-link" data-scroll-target="#export-graph-and-automation-artifacts"><span class="header-section-number">18.2</span> Export graph and automation artifacts</a></li>
+  <li><a href="#baselines-semantic-diff-and-impact" id="toc-baselines-semantic-diff-and-impact" class="nav-link" data-scroll-target="#baselines-semantic-diff-and-impact"><span class="header-section-number">18.3</span> Baselines, semantic diff, and impact</a></li>
+  <li><a href="#compare-committed-git-states-and-report-changes" id="toc-compare-committed-git-states-and-report-changes" class="nav-link" data-scroll-target="#compare-committed-git-states-and-report-changes"><span class="header-section-number">18.4</span> Compare committed Git states and report changes</a></li>
+  <li><a href="#evidence-validation-and-attestation" id="toc-evidence-validation-and-attestation" class="nav-link" data-scroll-target="#evidence-validation-and-attestation"><span class="header-section-number">18.5</span> Evidence validation and attestation</a></li>
+  <li><a href="#named-build-variants" id="toc-named-build-variants" class="nav-link" data-scroll-target="#named-build-variants"><span class="header-section-number">18.6</span> Named build variants</a></li>
+  <li><a href="#migration-plans-and-reviewed-application" id="toc-migration-plans-and-reviewed-application" class="nav-link" data-scroll-target="#migration-plans-and-reviewed-application"><span class="header-section-number">18.7</span> Migration plans and reviewed application</a></li>
+  <li><a href="#oslc-discovery-catalogs-and-queries" id="toc-oslc-discovery-catalogs-and-queries" class="nav-link" data-scroll-target="#oslc-discovery-catalogs-and-queries"><span class="header-section-number">18.8</span> OSLC discovery, catalogs, and queries</a></li>
+  <li><a href="#editor-integration" id="toc-editor-integration" class="nav-link" data-scroll-target="#editor-integration"><span class="header-section-number">18.9</span> Editor integration</a></li>
+  <li><a href="#automation-and-exit-status" id="toc-automation-and-exit-status" class="nav-link" data-scroll-target="#automation-and-exit-status"><span class="header-section-number">18.10</span> Automation and exit status</a></li>
   </ul></nav>
 </div>
 <!-- main -->
 <main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><div class="quarto-title">
 <h1 class="title">
-<span class="chapter-number">8</span>  <span class="chapter-title">Executable verification and machine evidence</span>
+<span class="chapter-number">18</span>  <span class="chapter-title">Command-line reference</span>
 </h1>
 </div>
 
@@ -269,289 +273,360 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
   
 
 
-</header><p>Quarto-Needs distinguishes three claims that are often collapsed into one:</p>
-<ol type="1">
-<li>a <strong>requirement</strong> states an engineering obligation;</li>
-<li>a modeled <strong>test-case</strong> states how that obligation is verified;</li>
-<li>
-<strong>machine evidence</strong> records what executable test actually ran and whether its linkage agrees with the engineering model.</li>
-</ol>
-<p>This distinction prevents a green test suite from being treated automatically as proof for an unrelated requirement.</p>
-<section id="link-pytest-tests-to-engineering-objects" class="level2" data-number="8.1"><h2 data-number="8.1" class="anchored" data-anchor-id="link-pytest-tests-to-engineering-objects">
-<span class="header-section-number">8.1</span> Link pytest tests to engineering objects</h2>
-<p>The Quarto-Needs pytest plugin provides two markers:</p>
+</header><p>Install the standalone CLI for analysis, automation, migration, and editor workflows:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pytest</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="at">@pytest.mark.requirement</span>(<span class="st">"FUN-004"</span>)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="at">@pytest.mark.quarto_need_test_case</span>(<span class="st">"TC-010"</span>)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> test_graph_exploration_assets():</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    ...</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install quarto-needs</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p><code>requirement</code> identifies the engineering obligations claimed by the executable test. <code>quarto_need_test_case</code> binds the pytest node to one or more modeled <code>test-case</code> objects.</p>
-<p>The model should carry the reciprocal executable binding:</p>
-<pre class="qmd"><code>::: {.need #TC-010 type="test-case" status="passed"
-      pytest-nodeid="tests/test_graph.py::test_graph_exploration_assets"
-      evidenced-by="EVD-010"}
-## Interactive graph exploration regression
-...
-:::</code></pre>
-<p>The stable pytest node ID is a physical execution reference. It does not replace the modeled test-case, which remains the engineering verification object.</p>
-</section><section id="generate-deterministic-provider-evidence" class="level2" data-number="8.2"><h2 data-number="8.2" class="anchored" data-anchor-id="generate-deterministic-provider-evidence">
-<span class="header-section-number">8.2</span> Generate deterministic provider evidence</h2>
-<p>Writing an artifact is opt-in. Ordinary pytest runs have no Quarto-Needs file side effects.</p>
+<p>The commands below run from the project directory. To select another project, place <code>--root</code> before the command:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pytest</span> <span class="dt">\</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--quarto-needs-evidence</span><span class="op">=</span>.quarto-needs/evidence/pytest-provider.json</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> <span class="at">--root</span> examples/quarto-needs quality <span class="at">--format</span> json</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p>The same destination can be supplied with <code>QUARTO_NEEDS_PYTEST_EVIDENCE</code>.</p>
-<p>The version-1 provider artifact is validated by <code>schemas/evidence-pytest-v1.schema.json</code> and contains deterministic semantic execution data:</p>
-<div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb4"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"provider"</span><span class="fu">:</span> <span class="st">"pytest"</span><span class="fu">,</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"schemaVersion"</span><span class="fu">:</span> <span class="st">"1"</span><span class="fu">,</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"tests"</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"nodeid"</span><span class="fu">:</span> <span class="st">"tests/test_graph.py::test_graph_exploration_assets"</span><span class="fu">,</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"outcome"</span><span class="fu">:</span> <span class="st">"passed"</span><span class="fu">,</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"requirements"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"FUN-004"</span><span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"testCases"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"TC-010"</span><span class="ot">]</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
-</div>
-<p>Evidence v1 intentionally exposes only <code>passed</code>, <code>failed</code>, and <code>skipped</code>. Pytest’s richer expected-failure semantics are normalized conservatively: an expected XFAIL is recorded as <code>skipped</code>, while any XPASS is recorded as <code>failed</code>, including a non-strict XPASS that pytest itself may report as a passing test. An unexpected pass therefore cannot become positive engineering evidence silently.</p>
-<p>Timestamps and durations are intentionally excluded from the provider payload so identical engineering results remain reproducible.</p>
-</section><section id="provider-neutral-attestation-envelope" class="level2" data-number="8.3"><h2 data-number="8.3" class="anchored" data-anchor-id="provider-neutral-attestation-envelope">
-<span class="header-section-number">8.3</span> Provider-neutral attestation envelope</h2>
-<p>Execution provenance belongs to a separate provider-neutral envelope defined by <code>schemas/evidence-envelope-v1.schema.json</code>. This preserves deterministic provider output while binding that output to a concrete engineering state.</p>
-<p>Create an attestation from a provider payload with:</p>
-<div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> <span class="at">--root</span> . evidence attest <span class="dt">\</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  .quarto-needs/evidence/pytest-provider.json <span class="dt">\</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--output</span> .quarto-needs/evidence/pytest.json <span class="dt">\</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--expires-hours</span> 24</span></code></pre></div>
-<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
-</div>
-<p><code>--source-revision</code> may be supplied explicitly. In GitHub Actions, <code>GITHUB_SHA</code> is captured automatically when no explicit revision is provided.</p>
-<p>An envelope records:</p>
-<ul>
-<li>provider name and version;</li>
-<li>
-<code>generatedAt</code> and optional <code>expiresAt</code> timestamps;</li>
-<li>optional source revision;</li>
-<li>the current configuration, semantic-graph, and representation fingerprints;</li>
-<li>the provider artifact schema;</li>
-<li>a canonical SHA-256 digest of the embedded provider payload;</li>
-<li>the provider payload itself.</li>
-</ul>
-<p>Conceptually:</p>
-<div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb6"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"schemaVersion"</span><span class="fu">:</span> <span class="st">"1"</span><span class="fu">,</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"quarto-needs-evidence"</span><span class="fu">,</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"provider"</span><span class="fu">:</span> <span class="fu">{</span><span class="dt">"name"</span><span class="fu">:</span> <span class="st">"pytest"</span><span class="fu">,</span> <span class="dt">"version"</span><span class="fu">:</span> <span class="st">"8.0"</span><span class="fu">},</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"generatedAt"</span><span class="fu">:</span> <span class="st">"2026-08-30T12:00:00Z"</span><span class="fu">,</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"expiresAt"</span><span class="fu">:</span> <span class="st">"2026-08-31T12:00:00Z"</span><span class="fu">,</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"subject"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"sourceRevision"</span><span class="fu">:</span> <span class="st">"abc123"</span><span class="fu">,</span></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"configurationFingerprint"</span><span class="fu">:</span> <span class="st">"..."</span><span class="fu">,</span></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"semanticGraphFingerprint"</span><span class="fu">:</span> <span class="st">"..."</span><span class="fu">,</span></span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"representationFingerprint"</span><span class="fu">:</span> <span class="st">"..."</span></span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"artifact"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"schema"</span><span class="fu">:</span> <span class="st">"evidence-pytest-v1"</span><span class="fu">,</span></span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"digest"</span><span class="fu">:</span> <span class="st">"sha256:..."</span><span class="fu">,</span></span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"payload"</span><span class="fu">:</span> <span class="fu">{</span><span class="dt">"provider"</span><span class="fu">:</span> <span class="st">"pytest"</span><span class="fu">,</span> <span class="dt">"schemaVersion"</span><span class="fu">:</span> <span class="st">"1"</span><span class="fu">,</span> <span class="dt">"tests"</span><span class="fu">:</span> <span class="ot">[]</span><span class="fu">}</span></span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
-</div>
-<p>The envelope is intentionally provider-neutral. Pytest is the first executable provider, while <code>evidence-checks-v1</code> provides a common deterministic payload for JUnit XML, coverage.py, Quarto render, JSON Schema validation, lint, and type-check adapters.</p>
-<p>The payload digest is checked before semantic validation. A modified payload therefore cannot keep using an old attestation silently.</p>
-</section><section id="validate-evidence-against-the-current-model" class="level2" data-number="8.4"><h2 data-number="8.4" class="anchored" data-anchor-id="validate-evidence-against-the-current-model">
-<span class="header-section-number">8.4</span> Validate evidence against the current model</h2>
-<p>Generation is only half of the contract. Validate either a raw provider artifact or an attested envelope against the canonical engineering graph:</p>
-<div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> evidence check .quarto-needs/evidence/pytest.json</span></code></pre></div>
-<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
-</div>
-<p>For machine consumers:</p>
-<div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> evidence check <span class="dt">\</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  .quarto-needs/evidence/pytest.json <span class="dt">\</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--format</span> json</span></code></pre></div>
-<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
-</div>
-<p>The command remains backward compatible with raw <code>evidence-pytest-v1</code>. It also understands raw/attested <code>evidence-checks-v1</code>. When an attestation is supplied, provenance is validated against the current snapshot.</p>
-<p>The pytest semantic check verifies that:</p>
-<ul>
-<li>every executable test passed;</li>
-<li>every evidence entry is bound to a modeled test-case;</li>
-<li>every referenced test-case exists;</li>
-<li>its modeled <code>pytest-nodeid</code> equals the executable node ID;</li>
-<li>every referenced requirement exists;</li>
-<li>every requirement claimed by the executable test is actually connected by a verification-family relation to a bound modeled test-case;</li>
-<li>reciprocally, every requirement that the model says is verified by a bound modeled test-case is claimed by the executable test;</li>
-<li>every modeled test-case carrying <code>pytest-nodeid</code> is present in the evidence artifact.</li>
-</ul>
-<p>For attested evidence it also verifies that:</p>
-<ul>
-<li>the configuration fingerprint still matches;</li>
-<li>the semantic graph fingerprint still matches;</li>
-<li>the representation fingerprint still matches;</li>
-<li>
-<code>generatedAt</code> is a valid, non-future timestamp;</li>
-<li>an explicit <code>expiresAt</code>, when present, has not expired and does not precede <code>generatedAt</code>;</li>
-<li>when <code>GITHUB_SHA</code> is available, an attested <code>sourceRevision</code> agrees with the current CI revision.</li>
-</ul>
-<p>A successful artifact therefore supports the chain in both directions and ties the executable result to the graph state it was meant to prove:</p>
-<pre class="text"><code>requirement --verified-by--&gt; modeled test-case
-                              │
-                              │ execution binding
-                              ▼
-                         executable provider
-                              │
-                              ▼
-                    deterministic provider payload
-                              │ SHA-256 + graph fingerprints
-                              ▼
-                   provider-neutral attestation</code></pre>
-</section><section id="evidence-diagnostics" class="level2" data-number="8.5"><h2 data-number="8.5" class="anchored" data-anchor-id="evidence-diagnostics">
-<span class="header-section-number">8.5</span> Evidence diagnostics</h2>
-<p>Provider-specific pytest diagnostics use stable <code>EVD1xx</code> codes:</p>
+<p>The root defaults to the current directory. Output paths are relative to the selected project unless absolute. Existing-baseline arguments to <code>baseline inspect</code>, <code>diff</code>, <code>impact</code>, and <code>export --baseline</code> are instead resolved from the shell’s current directory; use an absolute path when combining them with another <code>--root</code>.</p>
+<section id="analyze-validate-and-select" class="level2" data-number="18.1"><h2 data-number="18.1" class="anchored" data-anchor-id="analyze-validate-and-select">
+<span class="header-section-number">18.1</span> Analyze, validate, and select</h2>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 50%">
 <col style="width: 50%">
 </colgroup>
 <thead><tr class="header">
-<th>Code</th>
-<th>Meaning</th>
+<th>Command</th>
+<th>Result</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><code>EVD101</code></td>
-<td>executable outcome is not <code>passed</code>
-</td>
+<td><code>quarto-needs scan</code></td>
+<td>Analyze sources and write <code>.quarto-needs/needs.json</code>, the installed extension’s <code>generated-index.lua</code>, and graph projections consumed by Quarto.</td>
 </tr>
 <tr class="even">
-<td><code>EVD102</code></td>
-<td>executable test has no modeled test-case binding</td>
+<td><code>quarto-needs check</code></td>
+<td>Print validation findings and object/error/warning counts.</td>
 </tr>
 <tr class="odd">
-<td><code>EVD103</code></td>
-<td>evidence references an unknown test-case</td>
+<td><code>quarto-needs coverage</code></td>
+<td>Print JSON with requirement counts and implementation/verification trace coverage.</td>
 </tr>
 <tr class="even">
-<td><code>EVD104</code></td>
-<td>referenced modeled test-case has no <code>pytest-nodeid</code>
-</td>
+<td><code>quarto-needs trace REQ-001</code></td>
+<td>List reachable upstream and downstream IDs in the analyzed graph. Replace <code>REQ-001</code> with an existing object ID.</td>
 </tr>
 <tr class="odd">
-<td><code>EVD105</code></td>
-<td>modeled and executable pytest node IDs disagree</td>
+<td><code>quarto-needs quality</code></td>
+<td>Report scoped metrics, gaps, findings, and configured quality gates.</td>
 </tr>
 <tr class="even">
-<td><code>EVD106</code></td>
-<td>evidence references an unknown requirement</td>
-</tr>
-<tr class="odd">
-<td><code>EVD107</code></td>
-<td>executable test claims a requirement not verified by a bound modeled test-case</td>
-</tr>
-<tr class="even">
-<td><code>EVD108</code></td>
-<td>a modeled pytest-bound test-case is missing from the artifact</td>
-</tr>
-<tr class="odd">
-<td><code>EVD109</code></td>
-<td>a bound modeled test-case verifies a requirement that the executable test does not claim</td>
+<td><code>quarto-needs query accepted-decisions</code></td>
+<td>Print the ordered IDs selected by a configured named query.</td>
 </tr>
 </tbody>
 </table>
-<p>Provider-neutral attestation diagnostics use <code>EVD2xx</code>:</p>
+<p>Analysis commands read the current sources; a preceding <code>scan</code> is not required. <code>scan</code> is the operation that publishes the generated artifacts used by the extension.</p>
+<p><code>scan</code> and <code>check</code> fail when findings have error severity. Use <code>quality</code> to enforce numeric quality gates: under <code>strict</code>, failed gates return an error; <code>default</code> and <code>advisory</code> report them without a failing gate verdict. Structural failures remain blocking. See <a href="./governance.html">Governance and quality</a>.</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> quality <span class="at">--format</span> json <span class="at">--output</span> artifacts/quality.json</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> query accepted-decisions <span class="at">--format</span> json</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p><code>quality --output</code> always writes JSON, even when its console format remains <code>text</code>. <code>query --format json</code> returns the query name and its ordered <code>ids</code>; an unknown query returns exit code <code>2</code>. Define the example query as shown in <a href="./engineering-model.html">Engineering model</a>.</p>
+</section><section id="export-graph-and-automation-artifacts" class="level2" data-number="18.2"><h2 data-number="18.2" class="anchored" data-anchor-id="export-graph-and-automation-artifacts">
+<span class="header-section-number">18.2</span> Export graph and automation artifacts</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead><tr class="header">
+<th>Format</th>
+<th>Example</th>
+<th>Contents</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>json</code></td>
+<td><code>quarto-needs export --format json --output artifacts/needs.json</code></td>
+<td>Canonical graph JSON. This is the default format.</td>
+</tr>
+<tr class="even">
+<td><code>csv</code></td>
+<td><code>quarto-needs export --format csv --output artifacts/csv</code></td>
+<td>A directory containing <code>objects.csv</code>, <code>relations.csv</code>, and <code>findings.csv</code>.</td>
+</tr>
+<tr class="odd">
+<td><code>sarif</code></td>
+<td><code>quarto-needs export --format sarif --output artifacts/findings.sarif</code></td>
+<td>Findings for code-scanning consumers.</td>
+</tr>
+<tr class="even">
+<td><code>junit</code></td>
+<td><code>quarto-needs export --format junit --output artifacts/gates.xml</code></td>
+<td>Quality-gate results as JUnit XML.</td>
+</tr>
+<tr class="odd">
+<td><code>markdown</code></td>
+<td><code>quarto-needs export --format markdown --output artifacts/summary.md</code></td>
+<td>Human-readable engineering and quality summary.</td>
+</tr>
+<tr class="even">
+<td><code>reqif</code></td>
+<td><code>quarto-needs export --format reqif --output artifacts/requirements.reqif</code></td>
+<td>ReqIF 1.2 interchange projection.</td>
+</tr>
+<tr class="odd">
+<td><code>jsonld</code></td>
+<td><code>quarto-needs export --format jsonld --output artifacts/graph.jsonld</code></td>
+<td>JSON-LD graph projection.</td>
+</tr>
+</tbody>
+</table>
+<p>Without <code>--output</code>, JSON/CSV/SARIF/JUnit/Markdown all use <code>.quarto-needs/needs.json</code>. Supply an explicit destination when changing format; for CSV, that destination must be a directory. ReqIF defaults to <code>.quarto-needs/requirements.reqif</code>, and JSON-LD to <code>.quarto-needs/graph.jsonld</code>.</p>
+<p>Markdown can include a baseline change summary:</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> export <span class="at">--format</span> markdown <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--baseline</span> baselines/quarto-needs.json <span class="at">--output</span> artifacts/changes.md</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p><code>--baseline</code> is supported only for Markdown. JSON/CSV/SARIF/JUnit/Markdown exports write their artifacts before returning their applicable quality verdict. SARIF can also record structural findings when no valid snapshot exists, then exit with an error. ReqIF and JSON-LD require a valid snapshot and do not apply the quality-gate exit policy. See <a href="./interoperability.html">Interoperability and federation</a>.</p>
+</section><section id="baselines-semantic-diff-and-impact" class="level2" data-number="18.3"><h2 data-number="18.3" class="anchored" data-anchor-id="baselines-semantic-diff-and-impact">
+<span class="header-section-number">18.3</span> Baselines, semantic diff, and impact</h2>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> baseline create</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> baseline inspect baselines/quarto-needs.json <span class="at">--format</span> json</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> diff baselines/quarto-needs.json <span class="at">--format</span> json</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> impact baselines/quarto-needs.json <span class="at">--format</span> json</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p><code>baseline create</code> captures the current analyzed graph at <code>baselines/quarto-needs.json</code>. Choose another destination with <code>--output</code>; replacing an existing baseline requires <code>--force</code>. <code>--format json</code> prints its path and validity. <code>--allow-invalid</code> permits a diagnostic baseline with <code>valid: false</code> for a structurally invalid project; such an artifact is not a normal comparison baseline.</p>
+<p><code>baseline inspect</code> summarizes an existing artifact. <code>diff</code> compares it with current sources, distinguishing additions, removals, field changes, relocation, relation changes, and compatible derived results. <code>impact</code> follows the catalog’s semantic impact directions and reports affected objects with witness paths; it does not modify objects or rerun tests.</p>
+<p>Configuration or reference-date changes can suppress incompatible derived comparisons. To deliberately resolve the baseline under the current configuration and reference date, use:</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> diff baselines/quarto-needs.json <span class="at">--recompute-with</span> current</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> impact baselines/quarto-needs.json <span class="at">--recompute-with</span> current</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>These commands default to <code>--format text</code>; JSON is available for automation. <code>diff</code> applies the active profile to gate regressions. Finding affected objects alone does not make <code>impact</code> fail.</p>
+</section><section id="compare-committed-git-states-and-report-changes" class="level2" data-number="18.4"><h2 data-number="18.4" class="anchored" data-anchor-id="compare-committed-git-states-and-report-changes">
+<span class="header-section-number">18.4</span> Compare committed Git states and report changes</h2>
+<p>The Git forms analyze two committed project states through the same engineering engine. They require Git, a project path present at both revisions, and an explicit two-dot <code>BASE..HEAD</code> range. They exclude uncommitted edits and reject three-dot ranges. Both states use the head commit’s timestamp as their common reference time.</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> diff <span class="at">--git</span> HEAD~1..HEAD <span class="at">--format</span> json</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> impact <span class="at">--git</span> HEAD~1..HEAD <span class="at">--format</span> json</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> suspect <span class="at">--git</span> HEAD~1..HEAD <span class="at">--format</span> json</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> pr-report <span class="at">--git</span> HEAD~1..HEAD <span class="at">--format</span> markdown</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> github-report <span class="at">--git</span> HEAD~1..HEAD <span class="at">--format</span> annotations</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 50%">
 <col style="width: 50%">
 </colgroup>
 <thead><tr class="header">
-<th>Code</th>
-<th>Meaning</th>
+<th>Command</th>
+<th>What it adds</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><code>EVD201</code></td>
-<td>attestation has no valid subject</td>
+<td><code>diff --git</code></td>
+<td>Semantic changes between the two committed states.</td>
 </tr>
 <tr class="even">
-<td><code>EVD202</code></td>
-<td>configuration fingerprint is stale</td>
+<td><code>impact --git</code></td>
+<td>Affected objects and paths from the change origins.</td>
 </tr>
 <tr class="odd">
-<td><code>EVD203</code></td>
-<td>semantic graph fingerprint is stale</td>
+<td><code>suspect --git</code></td>
+<td>Traceability claims that need review after a change, with their origins and witnesses. It does not mark authored objects automatically.</td>
 </tr>
 <tr class="even">
-<td><code>EVD204</code></td>
-<td>representation fingerprint is stale</td>
+<td><code>pr-report --git</code></td>
+<td>Combined change, impact, suspect-claim, finding, and gate-regression report for review.</td>
 </tr>
 <tr class="odd">
-<td><code>EVD205</code></td>
-<td>attested source revision differs from the expected revision</td>
+<td><code>github-report --git</code></td>
+<td>GitHub-oriented summary, annotation commands, and check-result projection. It prints output locally; it does not publish a check or comment.</td>
+</tr>
+</tbody>
+</table>
+<p>All five accept <code>--recompute-with current</code>. Here, “current” is the head commit’s configuration and common reference date, not uncommitted working-tree configuration. <code>diff</code>, <code>impact</code>, and <code>suspect</code> support text/JSON output; <code>pr-report</code> supports text/JSON/Markdown; <code>github-report</code> also supports <code>annotations</code>.</p>
+<p>For a summary with links to a published model:</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> github-report <span class="at">--git</span> HEAD~1..HEAD <span class="dt">\</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--format</span> markdown <span class="at">--model-url</span> https://example.org/model/</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p><code>diff</code> and <code>pr-report</code> apply the head profile to gate regressions. <code>github-report</code> returns <code>1</code> for a failure conclusion caused by new error findings or gate regressions; suspect claims alone produce a neutral conclusion. Use <code>--format json</code> to inspect the full projection. The GitHub Issues adapter described in <a href="./interoperability.html">Interoperability</a> is a separate library feature.</p>
+</section><section id="evidence-validation-and-attestation" class="level2" data-number="18.5"><h2 data-number="18.5" class="anchored" data-anchor-id="evidence-validation-and-attestation">
+<span class="header-section-number">18.5</span> Evidence validation and attestation</h2>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> evidence check .quarto-needs/evidence/pytest-provider.json</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> evidence attest .quarto-needs/evidence/pytest-provider.json <span class="dt">\</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--output</span> .quarto-needs/evidence/pytest.json <span class="at">--expires-hours</span> 24</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> evidence check .quarto-needs/evidence/pytest.json <span class="at">--format</span> json</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p><code>evidence check</code> accepts raw or attested pytest and generic machine-check payloads. It checks their modeled bindings and, for attestations, graph/configuration identity and freshness. <code>evidence attest</code> wraps an existing raw payload; it does not execute the provider. Run <code>evidence check</code> afterward for semantic validation.</p>
+<p>Attestation requires <code>--output</code>. Expiration is optional; <code>--expires-hours</code> must be positive. <code>--source-revision</code> overrides the revision otherwise taken from <code>GITHUB_SHA</code>. Both actions default to text and accept <code>--format json</code>. See <a href="./executable-evidence.html">Executable evidence</a> and <a href="./evidence-providers.html">Machine evidence providers</a> for payloads, generation, and diagnostics.</p>
+</section><section id="named-build-variants" class="level2" data-number="18.6"><h2 data-number="18.6" class="anchored" data-anchor-id="named-build-variants">
+<span class="header-section-number">18.6</span> Named build variants</h2>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> variant list <span class="at">--format</span> json</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> variant show assurance-slice <span class="at">--format</span> json</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p><code>list</code> reports every configured selection; <code>show</code> reports one variant’s ordered membership. Both default to text and support JSON containing the variant and semantic-graph fingerprints. An unknown variant returns <code>2</code>. These commands inspect selections; they do not launch a Quarto build. Define variants as described in <a href="./derived-variants.html">Derived fields and build variants</a>.</p>
+</section><section id="migration-plans-and-reviewed-application" class="level2" data-number="18.7"><h2 data-number="18.7" class="anchored" data-anchor-id="migration-plans-and-reviewed-application">
+<span class="header-section-number">18.7</span> Migration plans and reviewed application</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead><tr class="header">
+<th>Source</th>
+<th>Plan example</th>
+<th>Meaning of mapping keys</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Sphinx-Needs</td>
+<td><code>quarto-needs migrate sphinx-needs source/needs.json</code></td>
+<td>Source type for <code>--type-map</code>; source link field for <code>--relation-map</code>. <code>--version</code> selects an export version.</td>
 </tr>
 <tr class="even">
-<td><code>EVD206</code></td>
+<td>Doorstop</td>
+<td><code>quarto-needs migrate doorstop source/doorstop</code></td>
+<td>Document prefix for <code>--type-map</code>; child-document prefix for <code>--relation-map</code>.</td>
+</tr>
+<tr class="odd">
+<td>StrictDoc</td>
+<td><code>quarto-needs migrate strictdoc source/spec.sdoc</code></td>
+<td>Node tag for <code>--type-map</code>; relation <code>TYPE</code> for <code>--relation-map</code>.</td>
+</tr>
+<tr class="even">
+<td>OpenFastTrace</td>
+<td><code>quarto-needs migrate openfasttrace source/trace.xml</code></td>
 <td>
-<code>generatedAt</code> is invalid</td>
+<code>doctype</code> for <code>--type-map</code>; link keyword for <code>--relation-map</code>.</td>
 </tr>
+</tbody>
+</table>
+<p>Each command writes <code>.quarto-needs/migrations/&lt;source&gt;-plan.json</code> by default. <code>--output</code> changes that plan destination, not the authored <code>.qmd</code> destination. An unresolved migration still writes a reviewable plan and returns <code>1</code>.</p>
+<p>All four adapters accept repeated <code>--type-map SOURCE=TARGET</code>, <code>--relation-map SOURCE=RELATION</code>, <code>--destination SOURCE_ID=path.qmd</code>, and <code>--id-map SOURCE_ID=CANONICAL_ID</code> options. Destination and ID mappings are applied when <code>--apply-plan</code> is selected:</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> migrate sphinx-needs source/needs.json <span class="dt">\</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--type-map</span> req=functional-requirement <span class="dt">\</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--destination</span> REQ_001=requirements.qmd <span class="dt">\</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--apply-plan</span> <span class="at">--show-content</span></span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>The apply plan defaults to <code>.quarto-needs/migrations/&lt;source&gt;-apply-plan.json</code>; use <code>--apply-output</code> to change it. <code>--show-content</code> includes candidate Markdown in the text preview. <code>--format json</code> prints the migration plan, apply plan, or write result for the selected stage.</p>
+<p>After reviewing a ready apply plan, repeat the same input and mappings with <code>--apply-plan --write</code>. The command rebuilds and validates the plan before creating files; it does not ingest an edited plan JSON as a write instruction. Writes are create-only, require all items to be ready, reject existing destinations and IDs, and roll back newly written files if post-write validation fails. See <a href="./migrations.html">Migrating from other tools</a> for the complete workflow.</p>
+</section><section id="oslc-discovery-catalogs-and-queries" class="level2" data-number="18.8"><h2 data-number="18.8" class="anchored" data-anchor-id="oslc-discovery-catalogs-and-queries">
+<span class="header-section-number">18.8</span> OSLC discovery, catalogs, and queries</h2>
+<p>Install the optional RDF dependencies first:</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="st">'quarto-needs[oslc]'</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> oslc catalog https://provider.example/oslc/catalog <span class="at">--format</span> json</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> oslc discover https://provider.example/oslc/sp/requirements <span class="at">--format</span> json</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> oslc query https://provider.example/oslc/query/requirements <span class="dt">\</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--service-provider-uri</span> https://provider.example/oslc/sp/requirements <span class="at">--format</span> json</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>Replace the example addresses with endpoints advertised by your provider. <code>catalog</code> lists provider and nested-catalog URIs without following nested catalogs. <code>discover</code> inspects one provider’s RM services, query capabilities, and resource shapes; <code>--no-shapes</code> disables shape retrieval. <code>query</code> performs a bounded GET and reports member URIs and nodes already inline in that response. It does not fetch every member, reconcile objects, or create local requirements.</p>
+<p>For reusable provider settings, configure <code>.quarto-needs.toml</code>:</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb13"><pre class="sourceCode toml code-with-copy"><code class="sourceCode toml"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[federation.oslc.profiles.requirements]</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="dt">service-provider-uri</span> <span class="op">=</span> <span class="st">"https://provider.example/oslc/sp/requirements"</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="dt">bearer-token-env</span> <span class="op">=</span> <span class="st">"OSLC_TOKEN"</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="dt">timeout-seconds</span> <span class="op">=</span> <span class="fl">10.0</span></span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb14"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> oslc discover <span class="at">--profile</span> requirements</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> oslc query https://provider.example/oslc/query/requirements <span class="dt">\</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> requirements <span class="at">--max-members</span> 500</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>Set <code>OSLC_TOKEN</code> in your environment before using that profile. A profile replaces the explicit service-provider argument; combining both is rejected. <code>catalog</code> uses direct options and has no <code>--profile</code>. <code>--bearer-token-env ENV_VAR</code> reads credentials without persisting their value.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead><tr class="header">
+<th>Setting</th>
+<th>Default</th>
+<th>CLI override</th>
+</tr></thead>
+<tbody>
 <tr class="odd">
-<td><code>EVD207</code></td>
-<td>evidence claims to have been generated in the future</td>
+<td>Cache directory</td>
+<td><code>.quarto-needs/oslc-cache</code></td>
+<td><code>--cache-dir PATH</code></td>
 </tr>
 <tr class="even">
-<td><code>EVD208</code></td>
-<td>evidence exceeds a caller-supplied maximum age</td>
+<td>Cache maximum age</td>
+<td>3600 seconds</td>
+<td><code>--max-age-seconds N</code></td>
 </tr>
 <tr class="odd">
-<td><code>EVD209</code></td>
+<td>Permit stale cached fallback</td>
+<td>false</td>
 <td>
-<code>expiresAt</code> is invalid</td>
+<code>--allow-stale</code> / <code>--disallow-stale</code>
+</td>
 </tr>
 <tr class="even">
-<td><code>EVD210</code></td>
-<td>evidence has expired</td>
+<td>HTTP timeout</td>
+<td>10 seconds</td>
+<td><code>--timeout-seconds N</code></td>
 </tr>
 <tr class="odd">
-<td><code>EVD211</code></td>
+<td>Response size</td>
+<td>2,000,000 bytes</td>
+<td><code>--max-bytes N</code></td>
+</tr>
+<tr class="even">
+<td>Redirect count</td>
+<td>3</td>
+<td><code>--max-redirects N</code></td>
+</tr>
+<tr class="odd">
+<td>RDF node count</td>
+<td>5000</td>
+<td><code>--max-nodes N</code></td>
+</tr>
+<tr class="even">
+<td>Query members</td>
+<td>1000</td>
+<td><code>query --max-members N</code></td>
+</tr>
+<tr class="odd">
+<td>Catalog providers / nested catalogs</td>
+<td>200 / 50</td>
 <td>
-<code>expiresAt</code> precedes <code>generatedAt</code>
+<code>catalog --max-providers N</code> / <code>--max-nested-catalogs N</code>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Generic machine-check validation uses <code>EVD3xx</code>; see <a href="./evidence-providers.html">Machine evidence providers</a>.</p>
-<p><code>EVD107</code> and <code>EVD109</code> form the reciprocal traceability gate: together they require agreement between executable markers and the model’s verification relations rather than accepting either source as authoritative on its own.</p>
-<p>Malformed, unsupported, or digest-invalid evidence artifacts are usage/artifact errors and exit with code <code>2</code>. I/O failures exit <code>3</code>. A structurally readable artifact that disagrees with the engineering model or whose attestation is stale exits <code>1</code>.</p>
-</section><section id="self-hosted-example" class="level2" data-number="8.6"><h2 data-number="8.6" class="anchored" data-anchor-id="self-hosted-example">
-<span class="header-section-number">8.6</span> Self-hosted example</h2>
-<p>The self-hosted Quarto-Needs case study exercises the complete flow directly:</p>
+<p>CLI settings override profile settings. <code>--now</code> supplies an explicit ISO-8601 retrieval instant for reproducible runs; otherwise current UTC time is used. See <a href="./interoperability.html">Interoperability and federation</a> for the distinction between CLI results and library-level observation/reconciliation APIs.</p>
+</section><section id="editor-integration" class="level2" data-number="18.9"><h2 data-number="18.9" class="anchored" data-anchor-id="editor-integration">
+<span class="header-section-number">18.9</span> Editor integration</h2>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> evidence-self-example</span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> <span class="at">--root</span> /path/to/project lsp</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p>That target:</p>
-<ol type="1">
-<li>executes representative real tests for ADR governance, public graph safety, named graph views, and impact analysis;</li>
-<li>writes the deterministic provider artifact to <code>examples/quarto-needs/.quarto-needs/evidence/pytest-provider.json</code>;</li>
-<li>creates a 24-hour attestation at <code>examples/quarto-needs/.quarto-needs/evidence/pytest.json</code>, including <code>GITHUB_SHA</code> automatically in CI;</li>
-<li>validates the attestation against the current self-hosted engineering graph.</li>
-</ol>
-<p><code>make render-self-example</code> depends on this target, so the example cannot render successfully with stale fingerprints, an expired attestation, a mismatched CI revision, or inconsistent executable bindings.</p>
+<p><code>lsp</code> runs the language server over standard input/output until the editor closes it. Normally the editor starts this process. See <a href="./language-server.html">Language server and editor authoring</a> for completion, navigation, rename, diagnostics, and unsaved-buffer behavior.</p>
+</section><section id="automation-and-exit-status" class="level2" data-number="18.10"><h2 data-number="18.10" class="anchored" data-anchor-id="automation-and-exit-status">
+<span class="header-section-number">18.10</span> Automation and exit status</h2>
+<p>The common statuses are <code>0</code> for success, <code>1</code> for a validation/policy or readiness failure, <code>2</code> for invalid arguments/configuration/artifacts, and <code>3</code> for handled I/O or transport errors. A nonzero status can accompany a successfully written diagnostic artifact; check the command’s verdict as well as file existence. Gate policy and the exceptions described above determine whether semantic findings cause failure.</p>
+<p>Prefer documented JSON formats for machine consumers. <code>NO_COLOR=1</code> disables console color. <code>SOURCE_DATE_EPOCH</code> supplies a deterministic reference date for ordinary graph analysis; Git-range commands use their shared head-commit timestamp instead. Evidence generation and OSLC retrieval have their own timestamp behavior described in their sections.</p>
 
 
 </section></main><!-- /main --><script>
@@ -1073,13 +1148,13 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
     }
   });
   </script><nav class="page-navigation"><div class="nav-page nav-page-previous">
-      <a href="./c4-architecture.html" class="pagination-link" aria-label="C4 Architecture Projections">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">7</span>  <span class="chapter-title">C4 Architecture Projections</span></span>
+      <a href="./language-server.html" class="pagination-link" aria-label="Language server and editor authoring">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">17</span>  <span class="chapter-title">Language server and editor authoring</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./evidence-providers.html" class="pagination-link" aria-label="Machine evidence providers">
-        <span class="nav-page-text"><span class="chapter-number">9</span>  <span class="chapter-title">Machine evidence providers</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./reference.html" class="pagination-link" aria-label="Practical reference">
+        <span class="nav-page-text"><span class="chapter-number">19</span>  <span class="chapter-title">Practical reference</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

@@ -7,7 +7,7 @@
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.8.26">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>16  Language server and editor authoring – Quarto-Needs — Manual</title>
+<title>17  Language server and editor authoring – Quarto-Needs — Manual</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -57,7 +57,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 }
 </style>
 <script src="site_libs/quarto-nav/quarto-nav.js"></script><script src="site_libs/quarto-nav/headroom.min.js"></script><script src="site_libs/clipboard/clipboard.min.js"></script><script src="site_libs/quarto-search/autocomplete.umd.js"></script><script src="site_libs/quarto-search/fuse.min.js"></script><script src="site_libs/quarto-search/quarto-search.js"></script><meta name="quarto:offset" content="./">
-<link href="./reference.html" rel="next">
+<link href="./cli-reference.html" rel="next">
 <link href="./migrations.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script><script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script><script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script><script src="site_libs/quarto-html/popper.min.js"></script><script src="site_libs/quarto-html/tippy.umd.min.js"></script><script src="site_libs/quarto-html/anchor.min.js"></script><link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
@@ -114,7 +114,7 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./language-server.html"><span class="chapter-number">16</span>  <span class="chapter-title">Language server and editor authoring</span></a></li></ol></nav><a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./language-server.html"><span class="chapter-number">17</span>  <span class="chapter-title">Language server and editor authoring</span></a></li></ol></nav><a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
   </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
@@ -147,80 +147,92 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./views-reference.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>  <span class="chapter-title">Views and shortcodes</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./architecture-decisions.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">5</span>  <span class="chapter-title">Architecture Decision Management</span></span></a>
+ <span class="menu-text"><span class="chapter-number">6</span>  <span class="chapter-title">Architecture Decision Management</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./c4-architecture.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">6</span>  <span class="chapter-title">C4 Architecture Projections</span></span></a>
+ <span class="menu-text"><span class="chapter-number">7</span>  <span class="chapter-title">C4 Architecture Projections</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./executable-evidence.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">7</span>  <span class="chapter-title">Executable verification and machine evidence</span></span></a>
+ <span class="menu-text"><span class="chapter-number">8</span>  <span class="chapter-title">Executable verification and machine evidence</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./evidence-providers.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">8</span>  <span class="chapter-title">Machine evidence providers</span></span></a>
+ <span class="menu-text"><span class="chapter-number">9</span>  <span class="chapter-title">Machine evidence providers</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./governance.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">9</span>  <span class="chapter-title">Governance and quality</span></span></a>
+ <span class="menu-text"><span class="chapter-number">10</span>  <span class="chapter-title">Governance and quality</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./declarative-policies.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">10</span>  <span class="chapter-title">Declarative engineering policies</span></span></a>
+ <span class="menu-text"><span class="chapter-number">11</span>  <span class="chapter-title">Declarative engineering policies</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./type-schemas.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">11</span>  <span class="chapter-title">Per-type attribute schemas</span></span></a>
+ <span class="menu-text"><span class="chapter-number">12</span>  <span class="chapter-title">Per-type attribute schemas</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./graph-constraints.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">12</span>  <span class="chapter-title">Declarative graph constraints</span></span></a>
+ <span class="menu-text"><span class="chapter-number">13</span>  <span class="chapter-title">Declarative graph constraints</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./derived-variants.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">13</span>  <span class="chapter-title">Derived fields and build variants</span></span></a>
+ <span class="menu-text"><span class="chapter-number">14</span>  <span class="chapter-title">Derived fields and build variants</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./interoperability.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">14</span>  <span class="chapter-title">Interoperability and Federation</span></span></a>
+ <span class="menu-text"><span class="chapter-number">15</span>  <span class="chapter-title">Interoperability and Federation</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./migrations.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">15</span>  <span class="chapter-title">Migrating from Other Tools</span></span></a>
+ <span class="menu-text"><span class="chapter-number">16</span>  <span class="chapter-title">Migrating from Other Tools</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./language-server.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">16</span>  <span class="chapter-title">Language server and editor authoring</span></span></a>
+ <span class="menu-text"><span class="chapter-number">17</span>  <span class="chapter-title">Language server and editor authoring</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cli-reference.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">18</span>  <span class="chapter-title">Command-line reference</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./reference.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">17</span>  <span class="chapter-title">Practical reference</span></span></a>
+ <span class="menu-text"><span class="chapter-number">19</span>  <span class="chapter-title">Practical reference</span></span></a>
   </div>
 </li>
     </ul>
@@ -231,21 +243,21 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
         <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">Table of contents</h2>
    
   <ul>
-<li><a href="#starting-the-server" id="toc-starting-the-server" class="nav-link active" data-scroll-target="#starting-the-server"><span class="header-section-number">16.1</span> Starting the server</a></li>
-  <li><a href="#capabilities" id="toc-capabilities" class="nav-link" data-scroll-target="#capabilities"><span class="header-section-number">16.2</span> Capabilities</a></li>
-  <li><a href="#unsaved-buffers" id="toc-unsaved-buffers" class="nav-link" data-scroll-target="#unsaved-buffers"><span class="header-section-number">16.3</span> Unsaved buffers</a></li>
-  <li><a href="#context-aware-completion" id="toc-context-aware-completion" class="nav-link" data-scroll-target="#context-aware-completion"><span class="header-section-number">16.4</span> Context-aware completion</a></li>
-  <li><a href="#hover" id="toc-hover" class="nav-link" data-scroll-target="#hover"><span class="header-section-number">16.5</span> Hover</a></li>
-  <li><a href="#definitions-and-references" id="toc-definitions-and-references" class="nav-link" data-scroll-target="#definitions-and-references"><span class="header-section-number">16.6</span> Definitions and references</a></li>
-  <li><a href="#relation-aware-rename" id="toc-relation-aware-rename" class="nav-link" data-scroll-target="#relation-aware-rename"><span class="header-section-number">16.7</span> Relation-aware rename</a></li>
-  <li><a href="#diagnostics" id="toc-diagnostics" class="nav-link" data-scroll-target="#diagnostics"><span class="header-section-number">16.8</span> Diagnostics</a></li>
-  <li><a href="#languageservice-as-the-reusable-boundary" id="toc-languageservice-as-the-reusable-boundary" class="nav-link" data-scroll-target="#languageservice-as-the-reusable-boundary"><span class="header-section-number">16.9</span> LanguageService as the reusable boundary</a></li>
+<li><a href="#starting-the-server" id="toc-starting-the-server" class="nav-link active" data-scroll-target="#starting-the-server"><span class="header-section-number">17.1</span> Starting the server</a></li>
+  <li><a href="#capabilities" id="toc-capabilities" class="nav-link" data-scroll-target="#capabilities"><span class="header-section-number">17.2</span> Capabilities</a></li>
+  <li><a href="#unsaved-buffers" id="toc-unsaved-buffers" class="nav-link" data-scroll-target="#unsaved-buffers"><span class="header-section-number">17.3</span> Unsaved buffers</a></li>
+  <li><a href="#context-aware-completion" id="toc-context-aware-completion" class="nav-link" data-scroll-target="#context-aware-completion"><span class="header-section-number">17.4</span> Context-aware completion</a></li>
+  <li><a href="#hover" id="toc-hover" class="nav-link" data-scroll-target="#hover"><span class="header-section-number">17.5</span> Hover</a></li>
+  <li><a href="#definitions-and-references" id="toc-definitions-and-references" class="nav-link" data-scroll-target="#definitions-and-references"><span class="header-section-number">17.6</span> Definitions and references</a></li>
+  <li><a href="#relation-aware-rename" id="toc-relation-aware-rename" class="nav-link" data-scroll-target="#relation-aware-rename"><span class="header-section-number">17.7</span> Relation-aware rename</a></li>
+  <li><a href="#diagnostics" id="toc-diagnostics" class="nav-link" data-scroll-target="#diagnostics"><span class="header-section-number">17.8</span> Diagnostics</a></li>
+  <li><a href="#languageservice-as-the-reusable-boundary" id="toc-languageservice-as-the-reusable-boundary" class="nav-link" data-scroll-target="#languageservice-as-the-reusable-boundary"><span class="header-section-number">17.9</span> LanguageService as the reusable boundary</a></li>
   </ul></nav>
 </div>
 <!-- main -->
 <main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><div class="quarto-title">
 <h1 class="title">
-<span class="chapter-number">16</span>  <span class="chapter-title">Language server and editor authoring</span>
+<span class="chapter-number">17</span>  <span class="chapter-title">Language server and editor authoring</span>
 </h1>
 </div>
 
@@ -275,16 +287,16 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
                     │
                     ▼
           VS Code or other clients</code></pre>
-<section id="starting-the-server" class="level2" data-number="16.1"><h2 data-number="16.1" class="anchored" data-anchor-id="starting-the-server">
-<span class="header-section-number">16.1</span> Starting the server</h2>
+<section id="starting-the-server" class="level2" data-number="17.1"><h2 data-number="17.1" class="anchored" data-anchor-id="starting-the-server">
+<span class="header-section-number">17.1</span> Starting the server</h2>
 <p>The installed CLI exposes the stdio server directly:</p>
 <div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> <span class="at">--root</span> /path/to/project lsp</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p>Normally an editor extension starts this process automatically. Running it directly is primarily useful when integrating another LSP-capable editor or debugging protocol traffic.</p>
-</section><section id="capabilities" class="level2" data-number="16.2"><h2 data-number="16.2" class="anchored" data-anchor-id="capabilities">
-<span class="header-section-number">16.2</span> Capabilities</h2>
+</section><section id="capabilities" class="level2" data-number="17.2"><h2 data-number="17.2" class="anchored" data-anchor-id="capabilities">
+<span class="header-section-number">17.2</span> Capabilities</h2>
 <p>The server currently advertises:</p>
 <ul>
 <li>full-document text synchronization with open/save/close lifecycle;</li>
@@ -296,8 +308,8 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 <li>document symbols;</li>
 <li>workspace symbols;</li>
 <li>push diagnostics.</li>
-</ul></section><section id="unsaved-buffers" class="level2" data-number="16.3"><h2 data-number="16.3" class="anchored" data-anchor-id="unsaved-buffers">
-<span class="header-section-number">16.3</span> Unsaved buffers</h2>
+</ul></section><section id="unsaved-buffers" class="level2" data-number="17.3"><h2 data-number="17.3" class="anchored" data-anchor-id="unsaved-buffers">
+<span class="header-section-number">17.3</span> Unsaved buffers</h2>
 <p>Open documents are analyzed as <strong>in-memory overlays</strong>. Quarto-Needs does not write unsaved editor text to the repository.</p>
 <p>An overlay uses the same QMD declaration parser and the same project analyzer as a saved file. This means an unsaved change can immediately affect:</p>
 <ul>
@@ -311,8 +323,8 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 <li>references and refactors.</li>
 </ul>
 <p>If a buffer becomes structurally invalid while the user is typing, the server records the structural findings from that attempted analysis while retaining the last valid semantic snapshot for cross-file navigation. Once the buffer becomes valid again, the complete canonical graph is replaced by the newly analyzed state.</p>
-</section><section id="context-aware-completion" class="level2" data-number="16.4"><h2 data-number="16.4" class="anchored" data-anchor-id="context-aware-completion">
-<span class="header-section-number">16.4</span> Context-aware completion</h2>
+</section><section id="context-aware-completion" class="level2" data-number="17.4"><h2 data-number="17.4" class="anchored" data-anchor-id="context-aware-completion">
+<span class="header-section-number">17.4</span> Context-aware completion</h2>
 <p>Completion is semantic rather than a flat vocabulary dump.</p>
 <p>For example:</p>
 <pre class="qmd"><code>::: {.need #FUN-010 type="fun█"}</code></pre>
@@ -322,8 +334,8 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 <p>For relation values:</p>
 <pre class="qmd"><code>::: {.need #FUN-010 type="functional-requirement" verified-by="TC-█"}</code></pre>
 <p>object candidates are filtered by the configured endpoint policy for <code>verified-by</code>. If only <code>test-case</code> objects are valid targets, requirements or architecture components are not offered.</p>
-</section><section id="hover" class="level2" data-number="16.5"><h2 data-number="16.5" class="anchored" data-anchor-id="hover">
-<span class="header-section-number">16.5</span> Hover</h2>
+</section><section id="hover" class="level2" data-number="17.5"><h2 data-number="17.5" class="anchored" data-anchor-id="hover">
+<span class="header-section-number">17.5</span> Hover</h2>
 <p>Hover exposes canonical object metadata, including:</p>
 <ul>
 <li>ID and title;</li>
@@ -333,8 +345,8 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 <li>safe derived fields materialized by Phase 3 configuration.</li>
 </ul>
 <p>Derived values are displayed separately from authored attributes because they remain computed projections.</p>
-</section><section id="definitions-and-references" class="level2" data-number="16.6"><h2 data-number="16.6" class="anchored" data-anchor-id="definitions-and-references">
-<span class="header-section-number">16.6</span> Definitions and references</h2>
+</section><section id="definitions-and-references" class="level2" data-number="17.6"><h2 data-number="17.6" class="anchored" data-anchor-id="definitions-and-references">
+<span class="header-section-number">17.6</span> Definitions and references</h2>
 <p>Quarto-Needs maintains an exact source-span index for semantic ID positions. Definitions and references therefore point to identifier ranges rather than only approximate source lines.</p>
 <p>The index recognizes IDs in:</p>
 <ul>
@@ -347,8 +359,8 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 <code>{{&lt; need ... &gt;}}</code> shortcodes.</li>
 </ul>
 <p>Arbitrary prose that happens to contain the same text as an object ID is not considered a semantic reference.</p>
-</section><section id="relation-aware-rename" class="level2" data-number="16.7"><h2 data-number="16.7" class="anchored" data-anchor-id="relation-aware-rename">
-<span class="header-section-number">16.7</span> Relation-aware rename</h2>
+</section><section id="relation-aware-rename" class="level2" data-number="17.7"><h2 data-number="17.7" class="anchored" data-anchor-id="relation-aware-rename">
+<span class="header-section-number">17.7</span> Relation-aware rename</h2>
 <p><code>prepareRename</code> succeeds only when the cursor is on a semantic object-ID span. A rename returns a standard LSP <code>WorkspaceEdit</code>; the server does not mutate project files itself.</p>
 <p>The edit updates:</p>
 <ul>
@@ -360,12 +372,12 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 </ul>
 <p>Localized files remain excluded from the canonical engineering graph, but identity refactors update them so presentation parity is not broken.</p>
 <p>Narrative mentions are deliberately left untouched. Renaming also rejects a target ID that already belongs to another object.</p>
-</section><section id="diagnostics" class="level2" data-number="16.8"><h2 data-number="16.8" class="anchored" data-anchor-id="diagnostics">
-<span class="header-section-number">16.8</span> Diagnostics</h2>
+</section><section id="diagnostics" class="level2" data-number="17.8"><h2 data-number="17.8" class="anchored" data-anchor-id="diagnostics">
+<span class="header-section-number">17.8</span> Diagnostics</h2>
 <p>Diagnostics are projections of the canonical findings, including structural validation, lifecycle and relation errors, configured policies, type schemas, and graph constraints.</p>
 <p>The LSP does not invent editor-specific versions of those rules.</p>
-</section><section id="languageservice-as-the-reusable-boundary" class="level2" data-number="16.9"><h2 data-number="16.9" class="anchored" data-anchor-id="languageservice-as-the-reusable-boundary">
-<span class="header-section-number">16.9</span> LanguageService as the reusable boundary</h2>
+</section><section id="languageservice-as-the-reusable-boundary" class="level2" data-number="17.9"><h2 data-number="17.9" class="anchored" data-anchor-id="languageservice-as-the-reusable-boundary">
+<span class="header-section-number">17.9</span> LanguageService as the reusable boundary</h2>
 <p>Protocol transport lives in <code>lsp_server.py</code>, while editor-independent semantics live in <code>language_service.py</code>. This separation makes it possible to reuse editor services from future integrations without coupling the engineering model to VS Code or JSON-RPC.</p>
 <p>The intended rule remains:</p>
 <blockquote class="blockquote">
@@ -893,12 +905,12 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
   });
   </script><nav class="page-navigation"><div class="nav-page nav-page-previous">
       <a href="./migrations.html" class="pagination-link" aria-label="Migrating from Other Tools">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">15</span>  <span class="chapter-title">Migrating from Other Tools</span></span>
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">16</span>  <span class="chapter-title">Migrating from Other Tools</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./reference.html" class="pagination-link" aria-label="Practical reference">
-        <span class="nav-page-text"><span class="chapter-number">17</span>  <span class="chapter-title">Practical reference</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./cli-reference.html" class="pagination-link" aria-label="Command-line reference">
+        <span class="nav-page-text"><span class="chapter-number">18</span>  <span class="chapter-title">Command-line reference</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

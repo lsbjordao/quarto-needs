@@ -41,6 +41,9 @@ The book can project the graph with shortcodes such as:
 
 Views read the canonical artifact; they do not reimplement semantic rules in the renderer.
 
+The [views reference](views-reference.qmd) documents every registered shortcode,
+its selectors and options, interactive controls, and page-sidebar configuration.
+
 ## Tag index and deep linking
 
 For a clickable tag catalog, create a chapter (e.g. `tags.qmd`) containing:

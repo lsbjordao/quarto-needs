@@ -1,0 +1,241 @@
+# Views and shortcodes
+
+Activate `filters: [quarto-needs]` as described in [Getting started](getting-started.qmd). The extension analyzes the project before rendering; views consume the generated graph and projections. Use `.need` blocks to declare objects and shortcodes to reference or present them.
+
+Examples below assume the referenced IDs exist. A `query` names a query declared in `.quarto-needs.toml`, rather than an expression written inside the shortcode. See [Engineering model](engineering-model.qmd) for a complete query declaration.
+
+## Shortcode inventory
+
+| Shortcode | Result |
+|---|---|
+| `need` | Inline link to one object, optionally including its title. |
+| `need-table` | Object table with configurable columns. |
+| `need-list` | Bulleted object links and titles, with optional badges. |
+| `need-count` | Inline count of selected objects. |
+| `need-matrix` | Relation matrix between two sets of object types. |
+| `need-backlinks` | Incoming relations for one object. |
+| `need-inspector` | One object's metadata, relations, provenance, and findings. |
+| `need-flow` | Bounded static Mermaid traceability diagram. |
+| `need-dashboard` | Coverage, distributions, gaps, and finding counts. |
+| `need-graph` | Static graph and tables, enhanced with HTML exploration. |
+| `need-c4` | Architecture diagram or Code-level table. |
+| `need-tags` | Tag catalog and object table. |
+| `adr-table` | Architecture decision table with date-aware selection. |
+| `adr-count` | Inline count of selected architecture decisions. |
+
+## Shared object selection
+
+`need-table`, `need-list`, `need-count`, and `need-tags` accept these options:
+
+| Option | Meaning |
+|---|---|
+| `query` | Select from a materialized named query before applying the other filters. |
+| `ids` | Object IDs. |
+| `types` or `type` | Object types; the two spellings are aliases. |
+| `status` | Lifecycle states. |
+| `priority` | Priority values. |
+| `tags` | Objects having at least one listed tag. |
+| `sort` | Fields in ascending order, such as `priority;title`; ID breaks ties. |
+
+Filter values accept comma or semicolon separators and match case-insensitively. Values within one filter are alternatives; different filters must all match. With no filters, these views select all objects. With no `sort`, ordering is by ID. Priority sorting uses `critical`, `high`, `medium`, `low`, then unspecified values. Other sort fields use text order. Shortcode sorting does not accept the query grammar's `id:asc` syntax or a descending suffix.
+
+```markdown
+{{< need-table types="functional-requirement;non-functional-requirement" status="approved" tags="security;audit" sort="priority;id" >}}
+{{< need-list query="accepted-decisions" show="status;date" >}}
+Approved: {{< need-count status="approved" >}}
+```
+
+An unknown query produces an unavailable/unknown-query message. A successful empty selection produces an empty-state message, or `0` for `need-count`. For named-query selection and dashboards, the pre-render publishes the necessary report metadata when a `.quarto-needs.toml` configuration exists.
+
+## References, tables, and lists
+
+### `need`
+
+```markdown
+See {{< need REQ-001 >}} or {{< need REQ-001 title=true >}}.
+```
+
+The first positional argument is the ID. `title=true` appends the object title to the link label. Missing IDs or unavailable objects do not create a valid cross-reference; unresolved object IDs remain visibly marked in HTML. Links are resolved relative to the current chapter.
+
+### `need-table`
+
+In addition to shared selection, `columns` sets the column list, `caption` adds a caption, and `id` names the table anchor. Default columns are `id;title;type;status;priority`. Columns may also name authored attributes or outgoing relations; relation columns link to their targets.
+
+```markdown
+{{< need-table types="functional-requirement" columns="id;title;status;verified-by" caption="Verification links" id="verification-table" >}}
+```
+
+In HTML, tables have text search and clickable sortable headers. PDF and DOCX retain the static table. For tables, matrices, inspectors, dashboards, tag catalogs, and ADR tables, omitted IDs are generated; requested IDs are normalized and duplicates receive a numeric suffix.
+
+### `need-list` and `need-count`
+
+`need-list` presents each object's linked ID and title. Its optional `show` list adds badges for `status` or authored attributes such as `priority` and `date`. `need-count` returns the size of the same selected set and has no presentation-specific options.
+
+```markdown
+{{< need-list types="system-requirement" show="status;priority" >}}
+System requirements: {{< need-count types="system-requirement" >}}
+```
+
+### `need-matrix`
+
+`rows` and `columns` select object types, accepting comma or semicolon lists. `relation` is the directed relation to check, defaulting to `verified-by`; `query` restricts the pool for both axes; `id` names the table. A check mark links to the column object when that row-to-column relation exists. A dash means that link is absent.
+
+```markdown
+{{< need-matrix rows="functional-requirement;non-functional-requirement" columns="test-case" relation="verified-by" id="verification-matrix" >}}
+```
+
+Axes are sorted by ID. The matrix does not apply the shared `status`, `priority`, `tags`, or `sort` arguments; use a named query to constrain its pool.
+
+## Inspecting one object
+
+```markdown
+{{< need-backlinks REQ-001 >}}
+{{< need-inspector REQ-001 id="requirement-details" >}}
+```
+
+Both shortcodes require one positional ID. `need-backlinks` lists incoming relations with catalog labels and source links. `need-inspector` adds the title, type/status/priority badges, source location, authored attributes, outgoing and incoming relations, and findings associated with the object. The inspector accepts an optional `id` for its region. Neither shortcode accepts the shared selection filters.
+
+## `need-flow`
+
+Use a rooted flow to explore a neighborhood, or an unrooted flow to diagram a selection:
+
+```markdown
+{{< need-flow root="REQ-001" depth="2" relations="implemented-by;verified-by" direction="LR" >}}
+{{< need-flow types="functional-requirement;test-case" direction="TD" >}}
+```
+
+| Option | Meaning |
+|---|---|
+| `root` | Start from an existing ID and include reachable neighbors in either edge direction. |
+| `depth` | Rooted traversal depth; default `3`, minimum `0`, maximum `10`. |
+| `relations` | Allowed relation names, comma/semicolon separated; omitted means all. |
+| `direction` | Diagram layout: `TD` (default), `TB`, `BT`, `LR`, or `RL`. |
+| `query`, `ids`, `types`/`type`, `status`, `priority`, `tags` | Object selection only when `root` is omitted. |
+
+`direction` controls diagram orientation, not graph traversal. With `root`, object filters and `query` do not restrict the traversal; `relations` and `depth` do. Flows have fixed limits of 100 nodes, 300 edges, and depth 10, with warnings when a requested result is truncated. Objects are selected deterministically by ID; `sort` is not supported.
+
+HTML uses a static SVG where available. Other formats use a rendered image. A rendering failure produces a visible diagram warning; it does not establish that a valid figure was produced.
+
+## `need-dashboard`
+
+```markdown
+{{< need-dashboard >}}
+{{< need-dashboard query="accepted-decisions" id="decision-dashboard" >}}
+```
+
+The dashboard shows the catalog scope and, when available, approved requirements. A `query` adds its report scope to those defaults; it does not replace them. Each scope reports coverage measures, breakdowns, and traceability gaps, followed by finding counts by severity. `id` names the dashboard region. Shared object filters do not apply.
+
+The dashboard requires the report embedded in the generated graph. If it says the report is unavailable, create the project's `.quarto-needs.toml` configuration and render again. Selecting a named scope also requires that query to exist in the configuration.
+
+## `need-graph`
+
+```markdown
+{{< need-graph >}}
+{{< need-graph query="accepted-decisions" id="decision-graph" >}}
+{{< need-graph projection="need-graph-1" root="REQ-001" depth="2" id="requirement-graph" >}}
+```
+
+| Option | Meaning |
+|---|---|
+| `query` or `view` | Named-query projection; equivalent spellings. If both are given, they must agree. |
+| `id` | Unique HTML instance ID; default `need-graph-1`. Use a distinct ID for every graph on a page. |
+| `projection` | Generated projection filename without `.json`; defaults to `id` when no query/view is specified. |
+| `filter` | Comma-separated exact node-field comparisons, e.g. `type=functional-requirement,status=approved`. |
+| `root` | Restrict the loaded projection to the root and its semantic descendants. |
+| `depth` | Rooted traversal depth; default `3`, clamped to `0`–`10`. |
+
+For a second instance of the default graph, set both a new `id` and `projection="need-graph-1"`. A named `query`/`view` resolves its own projection automatically. `filter` is a small, case-sensitive presentation selector for simple scalar values such as ID, type, status, or priority; it is not the shared selector syntax or a general expression language. Filtering happens before rooting, so the root must survive the filter. Neither operation can add objects omitted from the materialized projection.
+
+The default projection starts from the built-in `approved-requirements` query and expands according to `[graph]`. It is not necessarily the entire catalog. To select another population, declare a named query and use `query` or `view`.
+
+### Projection configuration
+
+These options belong in `.quarto-needs.toml`:
+
+```toml
+[graph]
+max-nodes = 100
+max-edges = 300
+depth = 1
+mode = "catalog"
+layout = "hierarchical"
+seed = 1
+# relations = ["implemented-by", "verified-by"]
+# baseline = ".quarto-needs/baseline.json"
+# overlay-queries = ["accepted-decisions"]
+```
+
+The displayed values are defaults. `max-nodes` and `max-edges` are positive integer budgets. `depth` is an integer from 1 to 10 for expansion during materialization, separate from shortcode `depth`. Omit `relations` to include all relation kinds; an explicit empty list is invalid. `layout` is a nonempty layout name and `seed` a nonnegative integer published with the projection; browser controls can adjust presentation independently.
+
+`mode` accepts `catalog`, `diff`, or `impact`. Comparison modes use `baseline`, whose default location is `.quarto-needs/baseline.json`; without a usable baseline the default projection falls back to catalog. A baseline also enables optional comparison overlays for the default graph. `overlay-queries` opts named queries into their own comparison overlays. Unknown names or over-budget overlays are skipped.
+
+When a named-query graph exceeds its budget, its manifest records an unavailable view instead of silently truncating it. The default graph's budget remains a build constraint. Narrow the query or adjust the graph budget when the requested projection cannot be produced.
+
+### HTML exploration
+
+The same projection supplies the static figure, summary, node/edge tables, and interactive canvas. Static content remains useful in PDF/DOCX and when interactive enhancement is unavailable.
+
+| Control | Action |
+|---|---|
+| Search; Type; Status; Family | Compose text, node, and relation-family filters. |
+| Color nodes by | Choose type, status, or priority coloring. |
+| Parents / Children | Show semantic ancestors and descendants of the selected node. |
+| Fixed spacing | Adjust the distance between nodes. |
+| Node details | Open the linked object, inspect its metadata, or copy its ID. |
+| Edge details | Inspect relation semantics and safe declaration provenance. |
+| Traversal | Choose `traceability`, `derivation`, `architecture`, `decision`, `implementation`, `verification`, or `risk`. |
+| Path to root | Highlight the nearest semantic-root path from the selected node. |
+| Path between… | Select the first node, activate the control, then select the second endpoint. |
+| Path trail | Click a path entry to refocus that node. |
+| Fit; Fullscreen; Export PNG | Fit the view, enlarge the canvas, or export an image. |
+| Reset | Clear exploration state and return to the default view. |
+
+Double-click/tap a node to collapse or expand its descendants. Explicit path highlights remain visible even when ordinary filters would hide path nodes. When comparison overlays are available, **Mode** offers **Catalog**, **Changes**, and **Impact**; **Affected only** applies in Impact mode when impacted objects exist. These controls are absent without a usable overlay.
+
+Filters, search, mode, focus, and selected paths are saved in the URL fragment and browser storage. Share the resulting URL to reopen that exploration; URL state takes precedence over locally saved state. Reset clears saved exploration. Give graphs stable, distinct IDs because saved state is keyed by the instance ID.
+
+## Tags and ADRs
+
+### `need-tags`
+
+```markdown
+{{< need-tags types="functional-requirement;architecture-decision" sort="title" id="tag-catalog" >}}
+```
+
+Shared selection determines the table's objects, including objects without tags. HTML adds one chip per tag, an **All** control, and filtering from `?tag=<slug>`. PDF/DOCX retain the table. `id` names the table; columns are fixed to ID, title, type, status, and tags.
+
+To link badges into a catalog chapter, set Quarto metadata:
+
+```yaml
+quarto-needs:
+  tags-page: tags
+  tags-page-pt-br: tags.pt-BR
+```
+
+Use the source chapter stem, optionally ending in `.qmd`, rather than an `.html` filename. Locale-specific keys use lowercase locale names and take precedence over `tags-page`. Set their values to the actual chapter names in your project; omit the override when both languages use the same chapter stem. Links resolve relative to the current chapter and preserve the tag filter.
+
+### `adr-table` and `adr-count`
+
+```markdown
+{{< adr-table status="accepted" decision-makers="Architecture Team" date-from="2026-01-01" date-to="2026-12-31" date-sort="desc" columns="id;title;date;status" caption="Current decisions" id="current-decisions" >}}
+Accepted decisions: {{< adr-count status="accepted" >}}
+```
+
+Both select only `architecture-decision` objects and accept `status`, `tags`, `decision-makers`, `date-from`, `date-to`, and `query`. Status/tag/maker lists use comma or semicolon alternatives and case-insensitive matching. Date bounds are inclusive ISO `YYYY-MM-DD` strings; an object without a date is excluded when a date bound is set. `date-sort` is `desc` by default, or `asc`, with ID as a tie-breaker.
+
+`adr-table` additionally accepts `columns`, `caption`, and `id`; default columns are `id;title;status;date;decision-makers;tags`. Other columns read authored attributes. `adr-count` returns only the selected count. The shared `types`, `priority`, `ids`, and `sort` options do not apply. See [Architecture decisions](architecture-decisions.qmd) for lifecycle and authoring guidance.
+
+## C4 and page layout
+
+`need-c4` requires `root` and `level`, and accepts `backend` for diagram levels. See [C4 architecture](c4-architecture.qmd) for the complete root/type mapping, Mermaid/PlantUML/Structurizr/D2 behavior, Code-level table, and renderer prerequisites.
+
+For an optional right-hand table-of-contents control:
+
+```yaml
+quarto-needs:
+  margin-sidebar-toggle: true
+```
+
+The default is disabled. The control appears on HTML pages that have Quarto's right margin sidebar and a page TOC. It remembers the reader's collapse preference in browser storage, frees content width while collapsed, and restores the layout when expanded. Its labels follow the document language. Below 992 CSS pixels, the control is hidden and Quarto's responsive layout applies. PDF and DOCX are unaffected.
+
+This option controls the right margin TOC. Configure the left Book navigation separately using Quarto's `book.sidebar.collapse-level`. Author `.need` blocks as usual: activating the extension also supplies the card filter, associated styles, and the pre-render integration; no separate shortcode registration is needed.

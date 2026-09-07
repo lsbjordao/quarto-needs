@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="pt-BR" xml:lang="pt-BR"><head>
 
-<link rel="alternate" hreflang="en" href="/architecture-decisions.html" />
-<link rel="alternate" hreflang="pt-BR" href="/pt-BR/architecture-decisions.html" />
+<link rel="alternate" hreflang="en" href="/cli-reference.html" />
+<link rel="alternate" hreflang="pt-BR" href="/pt-BR/cli-reference.html" />
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.8.26">
 
@@ -10,7 +10,7 @@
 
 <meta name="description" content="Requisitos, decisões e rastreabilidade de engenharia como código">
 
-<title>25&nbsp; Architecture Decision Management – Quarto-Needs — Manual</title>
+<title>37&nbsp; Referência da linha de comando – Quarto-Needs — Manual</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -68,8 +68,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./c4-architecture.html" rel="next">
-<link href="./views-reference.html" rel="prev">
+<link href="./reference.html" rel="next">
+<link href="./language-server.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
@@ -143,7 +143,7 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./architecture-decisions.html"><span class="chapter-number">25</span>&nbsp; <span class="chapter-title">Architecture Decision Management</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./cli-reference.html"><span class="chapter-number">37</span>&nbsp; <span class="chapter-title">Referência da linha de comando</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -301,7 +301,7 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./architecture-decisions.html" class="sidebar-item-text sidebar-link active">
+  <a href="./architecture-decisions.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">25</span>&nbsp; <span class="chapter-title">Architecture Decision Management</span></span></a>
   </div>
 </li>
@@ -373,7 +373,7 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./cli-reference.html" class="sidebar-item-text sidebar-link">
+  <a href="./cli-reference.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text"><span class="chapter-number">37</span>&nbsp; <span class="chapter-title">Referência da linha de comando</span></span></a>
   </div>
 </li>
@@ -397,13 +397,16 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
     <h2 id="toc-title">Índice</h2>
    
   <ul>
-  <li><a href="#adr-como-objeto-de-engenharia" id="toc-adr-como-objeto-de-engenharia" class="nav-link active" data-scroll-target="#adr-como-objeto-de-engenharia"><span class="header-section-number">25.1</span> ADR como objeto de engenharia</a></li>
-  <li><a href="#relações-de-decisão" id="toc-relações-de-decisão" class="nav-link" data-scroll-target="#relações-de-decisão"><span class="header-section-number">25.2</span> Relações de decisão</a></li>
-  <li><a href="#exemplo-completo" id="toc-exemplo-completo" class="nav-link" data-scroll-target="#exemplo-completo"><span class="header-section-number">25.3</span> Exemplo completo</a></li>
-  <li><a href="#seleção-e-filtragem-de-adrs" id="toc-seleção-e-filtragem-de-adrs" class="nav-link" data-scroll-target="#seleção-e-filtragem-de-adrs"><span class="header-section-number">25.4</span> Seleção e filtragem de ADRs</a></li>
-  <li><a href="#lifecycle" id="toc-lifecycle" class="nav-link" data-scroll-target="#lifecycle"><span class="header-section-number">25.5</span> Lifecycle</a></li>
-  <li><a href="#regras-dec" id="toc-regras-dec" class="nav-link" data-scroll-target="#regras-dec"><span class="header-section-number">25.6</span> Regras DEC</a></li>
-  <li><a href="#impacto" id="toc-impacto" class="nav-link" data-scroll-target="#impacto"><span class="header-section-number">25.7</span> Impacto</a></li>
+  <li><a href="#analisar-validar-e-selecionar" id="toc-analisar-validar-e-selecionar" class="nav-link active" data-scroll-target="#analisar-validar-e-selecionar"><span class="header-section-number">37.1</span> Analisar, validar e selecionar</a></li>
+  <li><a href="#exportar-o-grafo-e-artefatos-de-automação" id="toc-exportar-o-grafo-e-artefatos-de-automação" class="nav-link" data-scroll-target="#exportar-o-grafo-e-artefatos-de-automação"><span class="header-section-number">37.2</span> Exportar o grafo e artefatos de automação</a></li>
+  <li><a href="#baselines-diff-semântico-e-impacto" id="toc-baselines-diff-semântico-e-impacto" class="nav-link" data-scroll-target="#baselines-diff-semântico-e-impacto"><span class="header-section-number">37.3</span> Baselines, diff semântico e impacto</a></li>
+  <li><a href="#comparar-estados-versionados-no-git-e-relatar-mudanças" id="toc-comparar-estados-versionados-no-git-e-relatar-mudanças" class="nav-link" data-scroll-target="#comparar-estados-versionados-no-git-e-relatar-mudanças"><span class="header-section-number">37.4</span> Comparar estados versionados no Git e relatar mudanças</a></li>
+  <li><a href="#validação-e-atestação-de-evidência" id="toc-validação-e-atestação-de-evidência" class="nav-link" data-scroll-target="#validação-e-atestação-de-evidência"><span class="header-section-number">37.5</span> Validação e atestação de evidência</a></li>
+  <li><a href="#variantes-nomeadas-de-build" id="toc-variantes-nomeadas-de-build" class="nav-link" data-scroll-target="#variantes-nomeadas-de-build"><span class="header-section-number">37.6</span> Variantes nomeadas de build</a></li>
+  <li><a href="#planos-de-migração-e-aplicação-revisada" id="toc-planos-de-migração-e-aplicação-revisada" class="nav-link" data-scroll-target="#planos-de-migração-e-aplicação-revisada"><span class="header-section-number">37.7</span> Planos de migração e aplicação revisada</a></li>
+  <li><a href="#descoberta-catálogos-e-consultas-oslc" id="toc-descoberta-catálogos-e-consultas-oslc" class="nav-link" data-scroll-target="#descoberta-catálogos-e-consultas-oslc"><span class="header-section-number">37.8</span> Descoberta, catálogos e consultas OSLC</a></li>
+  <li><a href="#integração-com-editores" id="toc-integração-com-editores" class="nav-link" data-scroll-target="#integração-com-editores"><span class="header-section-number">37.9</span> Integração com editores</a></li>
+  <li><a href="#automação-e-códigos-de-saída" id="toc-automação-e-códigos-de-saída" class="nav-link" data-scroll-target="#automação-e-códigos-de-saída"><span class="header-section-number">37.10</span> Automação e códigos de saída</a></li>
   </ul>
 </nav>
     </div>
@@ -412,7 +415,7 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title"><span class="chapter-number">25</span>&nbsp; <span class="chapter-title">Architecture Decision Management</span></h1>
+<h1 class="title"><span class="chapter-number">37</span>&nbsp; <span class="chapter-title">Referência da linha de comando</span></h1>
 </div>
 
 
@@ -429,20 +432,59 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 </header>
 
 
-<section id="adr-como-objeto-de-engenharia" class="level2" data-number="25.1">
-<h2 data-number="25.1" class="anchored" data-anchor-id="adr-como-objeto-de-engenharia"><span class="header-section-number">25.1</span> ADR como objeto de engenharia</h2>
-<p>No Quarto-Needs, um ADR não é um arquivo solto mantido ao lado dos requisitos. O objeto canônico é <code>architecture-decision</code>, com lifecycle, atributos, relações e validação no mesmo grafo usado pelo restante da engenharia.</p>
-<p>Isso preserva uma distinção importante:</p>
-<ul>
-<li>requisito expressa uma necessidade ou obrigação sobre o sistema;</li>
-<li>decisão arquitetural registra uma escolha tomada em resposta a drivers;</li>
-<li>componente/interface materializa a arquitetura;</li>
-<li>teste/evidência confirma comportamento ou conformidade.</li>
-</ul>
-<p>Portanto, uma decisão <strong>não satisfaz</strong> nem <strong>implementa</strong> diretamente um requisito. Ela o <code>addresses</code>.</p>
+<p>Instale o CLI independente para análise, automação, migração e integração com editores:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install quarto-needs</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Os comandos abaixo são executados no diretório do projeto. Para selecionar outro projeto, coloque <code>--root</code> antes do comando:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> <span class="at">--root</span> examples/quarto-needs quality <span class="at">--format</span> json</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p>A raiz padrão é o diretório atual. Caminhos de saída são relativos ao projeto selecionado, salvo quando absolutos. Os argumentos de baseline existente em <code>baseline inspect</code>, <code>diff</code>, <code>impact</code> e <code>export --baseline</code> são resolvidos a partir do diretório atual do shell; use um caminho absoluto ao combiná-los com outro <code>--root</code>.</p>
+<section id="analisar-validar-e-selecionar" class="level2" data-number="37.1">
+<h2 data-number="37.1" class="anchored" data-anchor-id="analisar-validar-e-selecionar"><span class="header-section-number">37.1</span> Analisar, validar e selecionar</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Comando</th>
+<th>Resultado</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>quarto-needs scan</code></td>
+<td>Analisa as fontes e grava <code>.quarto-needs/needs.json</code>, o <code>generated-index.lua</code> da extensão instalada e as projeções de grafo consumidas pelo Quarto.</td>
+</tr>
+<tr class="even">
+<td><code>quarto-needs check</code></td>
+<td>Exibe findings de validação e contagens de objetos, erros e avisos.</td>
+</tr>
+<tr class="odd">
+<td><code>quarto-needs coverage</code></td>
+<td>Exibe JSON com contagens de requisitos e cobertura de rastreabilidade de implementação/verificação.</td>
+</tr>
+<tr class="even">
+<td><code>quarto-needs trace REQ-001</code></td>
+<td>Lista IDs alcançáveis a montante e a jusante no grafo analisado. Substitua <code>REQ-001</code> por um ID existente.</td>
+</tr>
+<tr class="odd">
+<td><code>quarto-needs quality</code></td>
+<td>Relata métricas por escopo, lacunas, findings e quality gates configurados.</td>
+</tr>
+<tr class="even">
+<td><code>quarto-needs query accepted-decisions</code></td>
+<td>Exibe os IDs ordenados selecionados por uma consulta nomeada configurada.</td>
+</tr>
+</tbody>
+</table>
+<p>Os comandos de análise leem as fontes atuais; não é necessário executar <code>scan</code> antes. <code>scan</code> é a operação que publica os artefatos gerados usados pela extensão.</p>
+<p><code>scan</code> e <code>check</code> falham quando há findings com severidade de erro. Use <code>quality</code> para aplicar quality gates numéricos: no perfil <code>strict</code>, gates reprovados retornam erro; <code>default</code> e <code>advisory</code> os relatam sem uma reprovação do processo por gate. Falhas estruturais permanecem bloqueantes. Veja <a href="./governance.html">Governança e qualidade</a>.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> quality <span class="at">--format</span> json <span class="at">--output</span> artifacts/quality.json</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> query accepted-decisions <span class="at">--format</span> json</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>quality --output</code> sempre grava JSON, mesmo quando o formato do console permanece <code>text</code>. <code>query --format json</code> retorna o nome da consulta e seus <code>ids</code> ordenados; uma consulta desconhecida retorna o código <code>2</code>. Defina a consulta do exemplo conforme <a href="./engineering-model.html">Modelo de engenharia</a>.</p>
 </section>
-<section id="relações-de-decisão" class="level2" data-number="25.2">
-<h2 data-number="25.2" class="anchored" data-anchor-id="relações-de-decisão"><span class="header-section-number">25.2</span> Relações de decisão</h2>
+<section id="exportar-o-grafo-e-artefatos-de-automação" class="level2" data-number="37.2">
+<h2 data-number="37.2" class="anchored" data-anchor-id="exportar-o-grafo-e-artefatos-de-automação"><span class="header-section-number">37.2</span> Exportar o grafo e artefatos de automação</h2>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 33%">
@@ -451,92 +493,76 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 </colgroup>
 <thead>
 <tr class="header">
-<th>Relação</th>
-<th>Sentido recomendado</th>
-<th>Significado</th>
+<th>Formato</th>
+<th>Exemplo</th>
+<th>Conteúdo</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><code>addresses</code></td>
-<td>ADR → driver</td>
-<td>requisito, necessidade ou risco que motivou a decisão</td>
+<td><code>json</code></td>
+<td><code>quarto-needs export --format json --output artifacts/needs.json</code></td>
+<td>JSON do grafo canônico. É o formato padrão.</td>
 </tr>
 <tr class="even">
-<td><code>applies-to</code></td>
-<td>ADR → elemento arquitetural</td>
-<td>componentes/interfaces afetados pela decisão</td>
+<td><code>csv</code></td>
+<td><code>quarto-needs export --format csv --output artifacts/csv</code></td>
+<td>Diretório com <code>objects.csv</code>, <code>relations.csv</code> e <code>findings.csv</code>.</td>
 </tr>
 <tr class="odd">
-<td><code>confirmed-by</code></td>
-<td>ADR → confirmação</td>
-<td>teste ou evidência que confirma a decisão</td>
+<td><code>sarif</code></td>
+<td><code>quarto-needs export --format sarif --output artifacts/findings.sarif</code></td>
+<td>Findings para ferramentas de análise de código.</td>
 </tr>
 <tr class="even">
-<td><code>supersedes</code></td>
-<td>ADR nova → ADR anterior</td>
-<td>lineage de substituição</td>
+<td><code>junit</code></td>
+<td><code>quarto-needs export --format junit --output artifacts/gates.xml</code></td>
+<td>Resultados de quality gates em JUnit XML.</td>
+</tr>
+<tr class="odd">
+<td><code>markdown</code></td>
+<td><code>quarto-needs export --format markdown --output artifacts/summary.md</code></td>
+<td>Resumo legível de engenharia e qualidade.</td>
+</tr>
+<tr class="even">
+<td><code>reqif</code></td>
+<td><code>quarto-needs export --format reqif --output artifacts/requirements.reqif</code></td>
+<td>Projeção de intercâmbio ReqIF 1.2.</td>
+</tr>
+<tr class="odd">
+<td><code>jsonld</code></td>
+<td><code>quarto-needs export --format jsonld --output artifacts/graph.jsonld</code></td>
+<td>Projeção do grafo em JSON-LD.</td>
 </tr>
 </tbody>
 </table>
-<p>As formas inversas <code>addressed-by</code>, <code>confirms</code> e <code>superseded-by</code> pertencem às mesmas famílias semânticas.</p>
+<p>Sem <code>--output</code>, JSON/CSV/SARIF/JUnit/Markdown usam <code>.quarto-needs/needs.json</code>. Informe um destino explícito ao mudar o formato; para CSV, o destino deve ser um diretório. ReqIF usa <code>.quarto-needs/requirements.reqif</code> por padrão, e JSON-LD usa <code>.quarto-needs/graph.jsonld</code>.</p>
+<p>Markdown pode incluir um resumo das mudanças em relação a um baseline:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> export <span class="at">--format</span> markdown <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--baseline</span> baselines/quarto-needs.json <span class="at">--output</span> artifacts/changes.md</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>--baseline</code> é aceito somente para Markdown. As exportações JSON/CSV/SARIF/JUnit/Markdown gravam seus artefatos antes de retornar o veredito de qualidade aplicável. SARIF também pode registrar findings estruturais quando não existe um snapshot válido, retornando erro em seguida. ReqIF e JSON-LD exigem um snapshot válido e não aplicam a política de saída dos quality gates. Veja <a href="./interoperability.html">Interoperabilidade e federação</a>.</p>
 </section>
-<section id="exemplo-completo" class="level2" data-number="25.3">
-<h2 data-number="25.3" class="anchored" data-anchor-id="exemplo-completo"><span class="header-section-number">25.3</span> Exemplo completo</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>::: {.need #ADR-007 type="architecture-decision" status="accepted"}</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>date: 2026-08-28</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>revisit-after: 2027-08-28</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>decision-makers: Architecture Team</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>addresses: NFR-003;RISK-002</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>applies-to: COMP-004;IF-003</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>confirmed-by: TC-010;TC-015</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>tags: audit;privacy</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">## Separar a trilha de auditoria do processamento transacional</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="fu">### Context and Problem Statement</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>...</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="fu">### Decision Drivers</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>...</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="fu">### Considered Options</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>...</span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="fu">### Decision Outcome</span></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>...</span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="fu">### Consequences</span></span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>...</span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="fu">### Confirmation</span></span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>...</span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>:::</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Campos usados por consultas e regras ficam estruturados. Contexto, alternativas, resultado e consequências permanecem em Markdown. A estrutura narrativa é compatível com práticas de ADR como MADR sem acoplar o núcleo a uma única apresentação textual.</p>
-<p><code>revisit-after</code> é opcional. Use-o para decisões cuja validade deva ser reconsiderada após uma data conhecida — por exemplo, restrições tecnológicas temporárias, arquiteturas de transição ou decisões vinculadas a um padrão externo. Ele não substitui <code>superseded</code>: uma revisão pode concluir que a decisão existente continua válida.</p>
+<section id="baselines-diff-semântico-e-impacto" class="level2" data-number="37.3">
+<h2 data-number="37.3" class="anchored" data-anchor-id="baselines-diff-semântico-e-impacto"><span class="header-section-number">37.3</span> Baselines, diff semântico e impacto</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> baseline create</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> baseline inspect baselines/quarto-needs.json <span class="at">--format</span> json</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> diff baselines/quarto-needs.json <span class="at">--format</span> json</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> impact baselines/quarto-needs.json <span class="at">--format</span> json</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>baseline create</code> captura o grafo analisado atual em <code>baselines/quarto-needs.json</code>. Escolha outro destino com <code>--output</code>; substituir um baseline existente exige <code>--force</code>. <code>--format json</code> exibe seu caminho e validade. <code>--allow-invalid</code> permite um baseline de diagnóstico com <code>valid: false</code> para um projeto estruturalmente inválido; esse artefato não é um baseline normal de comparação.</p>
+<p><code>baseline inspect</code> resume um artefato existente. <code>diff</code> o compara com as fontes atuais, distinguindo adições, remoções, mudanças de campos, relocação, mudanças de relações e resultados derivados compatíveis. <code>impact</code> segue as direções semânticas de impacto do catálogo e relata objetos afetados com caminhos explicativos; não modifica objetos nem executa testes novamente.</p>
+<p>Mudanças de configuração ou data de referência podem suprimir comparações derivadas incompatíveis. Para resolver deliberadamente o baseline sob a configuração e a data de referência atuais, use:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> diff baselines/quarto-needs.json <span class="at">--recompute-with</span> current</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> impact baselines/quarto-needs.json <span class="at">--recompute-with</span> current</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Esses comandos usam <code>--format text</code> por padrão; JSON está disponível para automação. <code>diff</code> aplica o perfil ativo às regressões de gate. Encontrar objetos afetados, por si só, não faz <code>impact</code> falhar.</p>
 </section>
-<section id="seleção-e-filtragem-de-adrs" class="level2" data-number="25.4">
-<h2 data-number="25.4" class="anchored" data-anchor-id="seleção-e-filtragem-de-adrs"><span class="header-section-number">25.4</span> Seleção e filtragem de ADRs</h2>
-<p>As decisões arquiteturais podem ser apresentadas como um catálogo filtrado com <code>adr-table</code>, ou contadas com <code>adr-count</code>. Os filtros podem ser combinados por status do lifecycle, tags, decisores e intervalos de datas ISO; <code>date-sort</code> controla a ordenação cronológica.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>{{&lt; adr-table status="accepted" tags="security;audit" date-from="2026-01-01" date-sort="desc" &gt;}}</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>Decisões aceitas: {{&lt; adr-count status="accepted" &gt;}}</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Os seletores disponíveis são <code>status</code>, <code>tags</code>, <code>decision-makers</code>, <code>date-from</code>, <code>date-to</code> e <code>query</code>. As colunas padrão são <code>id</code>, <code>title</code>, <code>status</code>, <code>date</code>, <code>decision-makers</code> e <code>tags</code>.</p>
-<p>Named queries também são materializadas como projeções de grafo reutilizáveis. Se o projeto declarar uma query chamada <code>accepted-decisions</code>, a mesma seleção avaliada pelo Python pode ser explorada sem reescrever o filtro em Lua:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>{{&lt; need-graph query="accepted-decisions" &gt;}}</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
-<p><code>view="accepted-decisions"</code> é uma forma equivalente orientada à apresentação. A avaliação da query continua pertencendo exclusivamente ao core Python.</p>
-</section>
-<section id="lifecycle" class="level2" data-number="25.5">
-<h2 data-number="25.5" class="anchored" data-anchor-id="lifecycle"><span class="header-section-number">25.5</span> Lifecycle</h2>
-<p>O lifecycle recomendado é:</p>
-<pre class="text"><code>proposed ──► accepted ──► deprecated
-    │            │
-    └──► rejected└──► superseded</code></pre>
-<p>Uma decisão <code>superseded</code> deve manter lineage explícito. A substituta aponta para a anterior com <code>supersedes</code>, permitindo reconstruir a história sem editar retroativamente decisões antigas.</p>
-</section>
-<section id="regras-dec" class="level2" data-number="25.6">
-<h2 data-number="25.6" class="anchored" data-anchor-id="regras-dec"><span class="header-section-number">25.6</span> Regras DEC</h2>
-<p>A implementação inclui:</p>
+<section id="comparar-estados-versionados-no-git-e-relatar-mudanças" class="level2" data-number="37.4">
+<h2 data-number="37.4" class="anchored" data-anchor-id="comparar-estados-versionados-no-git-e-relatar-mudanças"><span class="header-section-number">37.4</span> Comparar estados versionados no Git e relatar mudanças</h2>
+<p>As formas com Git analisam dois estados versionados do projeto pelo mesmo mecanismo de engenharia. Elas exigem Git, um caminho de projeto presente nas duas revisões e um intervalo explícito de dois pontos <code>BASE..HEAD</code>. Alterações não commitadas ficam fora da análise, e intervalos de três pontos são rejeitados. Os dois estados usam o timestamp do commit final como referência temporal comum.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> diff <span class="at">--git</span> HEAD~1..HEAD <span class="at">--format</span> json</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> impact <span class="at">--git</span> HEAD~1..HEAD <span class="at">--format</span> json</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> suspect <span class="at">--git</span> HEAD~1..HEAD <span class="at">--format</span> json</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> pr-report <span class="at">--git</span> HEAD~1..HEAD <span class="at">--format</span> markdown</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> github-report <span class="at">--git</span> HEAD~1..HEAD <span class="at">--format</span> annotations</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 50%">
@@ -544,48 +570,191 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 </colgroup>
 <thead>
 <tr class="header">
-<th>Código</th>
-<th>Verificação</th>
+<th>Comando</th>
+<th>O que acrescenta</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><code>DEC001</code></td>
-<td>decisão aceita deve ter pelo menos um driver (<code>addresses</code>)</td>
+<td><code>diff --git</code></td>
+<td>Mudanças semânticas entre os dois estados versionados.</td>
 </tr>
 <tr class="even">
-<td><code>DEC002</code></td>
-<td>decisão aceita deve declarar escopo arquitetural (<code>applies-to</code>)</td>
+<td><code>impact --git</code></td>
+<td>Objetos afetados e caminhos a partir das origens das mudanças.</td>
 </tr>
 <tr class="odd">
-<td><code>DEC003</code></td>
-<td>decisão aceita deve declarar confirmação (<code>confirmed-by</code>)</td>
+<td><code>suspect --git</code></td>
+<td>Afirmações de rastreabilidade que precisam de revisão após uma mudança, com suas origens e caminhos explicativos. Não marca automaticamente objetos nas fontes.</td>
 </tr>
 <tr class="even">
-<td><code>DEC004</code></td>
-<td>decisão marcada <code>superseded</code> precisa de lineage consistente</td>
+<td><code>pr-report --git</code></td>
+<td>Relatório combinado de mudanças, impacto, afirmações suspeitas, findings e regressões de gate para revisão.</td>
 </tr>
 <tr class="odd">
-<td><code>DEC005</code></td>
-<td>o grafo de supersessão de decisões deve ser acíclico</td>
-</tr>
-<tr class="even">
-<td><code>DEC006</code></td>
-<td>decisão aceita com <code>revisit-after</code> é reportada quando sua data de revisão está vencida ou é inválida</td>
+<td><code>github-report --git</code></td>
+<td>Resumo, comandos de anotação e projeção de resultado de check para GitHub. Exibe a saída localmente; não publica checks nem comentários.</td>
 </tr>
 </tbody>
 </table>
-<p>Metadados obrigatórios, como data e decisores, permanecem cobertos pela política <code>required-attributes</code>. As regras são configuráveis pelo mesmo mecanismo usado pelas regras <code>REQxxx</code>. Achados dependentes de data usam o mesmo mecanismo de data de referência reproduzível do vencimento de evidências (<code>SOURCE_DATE_EPOCH</code> quando fornecido).</p>
+<p>Os cinco aceitam <code>--recompute-with current</code>. Aqui, “current” é a configuração do commit final e a data de referência comum, não a configuração não commitada da árvore de trabalho. <code>diff</code>, <code>impact</code> e <code>suspect</code> aceitam texto/JSON; <code>pr-report</code> aceita texto/JSON/Markdown; <code>github-report</code> também aceita <code>annotations</code>.</p>
+<p>Para um resumo com links para um modelo publicado:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> github-report <span class="at">--git</span> HEAD~1..HEAD <span class="dt">\</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--format</span> markdown <span class="at">--model-url</span> https://example.org/model/</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>diff</code> e <code>pr-report</code> aplicam o perfil do commit final às regressões de gate. <code>github-report</code> retorna <code>1</code> para uma conclusão de falha causada por novos findings de erro ou regressões de gate; apenas afirmações suspeitas produzem uma conclusão neutra. Use <code>--format json</code> para inspecionar a projeção completa. O adaptador de GitHub Issues descrito em <a href="./interoperability.html">Interoperabilidade</a> é uma funcionalidade separada da biblioteca.</p>
 </section>
-<section id="impacto" class="level2" data-number="25.7">
-<h2 data-number="25.7" class="anchored" data-anchor-id="impacto"><span class="header-section-number">25.7</span> Impacto</h2>
-<p>A direção de impacto fica declarada no catálogo de relações. Assim, uma alteração em um requisito pode propagar para a decisão que o endereça; a decisão pode propagar para elementos arquiteturais e confirmações.</p>
-<pre class="text"><code>NFR-014 changed
-   ↓
-ADR-007
-   ├──► COMP-004
-   └──► TC-010 ──► EVD-010</code></pre>
-<p>Esse encadeamento é o principal ganho de integrar Requirements Engineering e Architecture Decision Management: o racional deixa de ser texto isolado e passa a participar da análise de mudança.</p>
+<section id="validação-e-atestação-de-evidência" class="level2" data-number="37.5">
+<h2 data-number="37.5" class="anchored" data-anchor-id="validação-e-atestação-de-evidência"><span class="header-section-number">37.5</span> Validação e atestação de evidência</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> evidence check .quarto-needs/evidence/pytest-provider.json</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> evidence attest .quarto-needs/evidence/pytest-provider.json <span class="dt">\</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--output</span> .quarto-needs/evidence/pytest.json <span class="at">--expires-hours</span> 24</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> evidence check .quarto-needs/evidence/pytest.json <span class="at">--format</span> json</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>evidence check</code> aceita payloads brutos ou atestados de pytest e de verificações genéricas. Verifica seus vínculos com o modelo e, nas atestações, identidade do grafo/configuração e atualidade. <code>evidence attest</code> encapsula um payload bruto existente; não executa o provedor. Execute <code>evidence check</code> depois para a validação semântica.</p>
+<p>A atestação exige <code>--output</code>. A expiração é opcional; <code>--expires-hours</code> deve ser positivo. <code>--source-revision</code> substitui a revisão que, na ausência dessa opção, é obtida de <code>GITHUB_SHA</code>. As duas ações usam texto por padrão e aceitam <code>--format json</code>. Veja <a href="./executable-evidence.html">Evidência executável</a> e <a href="./evidence-providers.html">Provedores de evidência de máquina</a> para payloads, geração e diagnósticos.</p>
+</section>
+<section id="variantes-nomeadas-de-build" class="level2" data-number="37.6">
+<h2 data-number="37.6" class="anchored" data-anchor-id="variantes-nomeadas-de-build"><span class="header-section-number">37.6</span> Variantes nomeadas de build</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> variant list <span class="at">--format</span> json</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> variant show assurance-slice <span class="at">--format</span> json</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>list</code> relata todas as seleções configuradas; <code>show</code> relata os membros ordenados de uma variante. Ambos usam texto por padrão e aceitam JSON com fingerprints da variante e do grafo semântico. Uma variante desconhecida retorna <code>2</code>. Esses comandos inspecionam seleções; não iniciam um build do Quarto. Defina variantes conforme <a href="./derived-variants.html">Campos derivados e variantes de build</a>.</p>
+</section>
+<section id="planos-de-migração-e-aplicação-revisada" class="level2" data-number="37.7">
+<h2 data-number="37.7" class="anchored" data-anchor-id="planos-de-migração-e-aplicação-revisada"><span class="header-section-number">37.7</span> Planos de migração e aplicação revisada</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Origem</th>
+<th>Exemplo de plano</th>
+<th>Significado das chaves de mapeamento</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Sphinx-Needs</td>
+<td><code>quarto-needs migrate sphinx-needs source/needs.json</code></td>
+<td>Tipo de origem em <code>--type-map</code>; campo de links de origem em <code>--relation-map</code>. <code>--version</code> seleciona uma versão da exportação.</td>
+</tr>
+<tr class="even">
+<td>Doorstop</td>
+<td><code>quarto-needs migrate doorstop source/doorstop</code></td>
+<td>Prefixo de documento em <code>--type-map</code>; prefixo do documento filho em <code>--relation-map</code>.</td>
+</tr>
+<tr class="odd">
+<td>StrictDoc</td>
+<td><code>quarto-needs migrate strictdoc source/spec.sdoc</code></td>
+<td>Tag do nó em <code>--type-map</code>; <code>TYPE</code> da relação em <code>--relation-map</code>.</td>
+</tr>
+<tr class="even">
+<td>OpenFastTrace</td>
+<td><code>quarto-needs migrate openfasttrace source/trace.xml</code></td>
+<td><code>doctype</code> em <code>--type-map</code>; palavra-chave do link em <code>--relation-map</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Cada comando grava <code>.quarto-needs/migrations/&lt;source&gt;-plan.json</code> por padrão. <code>--output</code> muda o destino desse plano, não o destino autoral <code>.qmd</code>. Uma migração com pendências ainda grava um plano revisável e retorna <code>1</code>.</p>
+<p>Os quatro adaptadores aceitam opções repetidas <code>--type-map SOURCE=TARGET</code>, <code>--relation-map SOURCE=RELATION</code>, <code>--destination SOURCE_ID=path.qmd</code> e <code>--id-map SOURCE_ID=CANONICAL_ID</code>. Os mapeamentos de destino e ID são aplicados quando <code>--apply-plan</code> está selecionado:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> migrate sphinx-needs source/needs.json <span class="dt">\</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--type-map</span> req=functional-requirement <span class="dt">\</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--destination</span> REQ_001=requirements.qmd <span class="dt">\</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--apply-plan</span> <span class="at">--show-content</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p>O plano de aplicação usa <code>.quarto-needs/migrations/&lt;source&gt;-apply-plan.json</code> por padrão; altere-o com <code>--apply-output</code>. <code>--show-content</code> inclui o Markdown candidato na prévia textual. <code>--format json</code> exibe o plano de migração, o plano de aplicação ou o resultado da escrita da etapa selecionada.</p>
+<p>Depois de revisar um plano de aplicação pronto, repita a mesma entrada e os mesmos mapeamentos com <code>--apply-plan --write</code>. O comando reconstrói e valida o plano antes de criar arquivos; não recebe um JSON de plano editado como instrução de escrita. As escritas somente criam arquivos, exigem que todos os itens estejam prontos, rejeitam destinos e IDs existentes e revertem os arquivos recém-criados se a validação posterior falhar. Veja <a href="./migrations.html">Migração de outras ferramentas</a> para o fluxo completo.</p>
+</section>
+<section id="descoberta-catálogos-e-consultas-oslc" class="level2" data-number="37.8">
+<h2 data-number="37.8" class="anchored" data-anchor-id="descoberta-catálogos-e-consultas-oslc"><span class="header-section-number">37.8</span> Descoberta, catálogos e consultas OSLC</h2>
+<p>Instale primeiro as dependências opcionais de RDF:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="st">'quarto-needs[oslc]'</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> oslc catalog https://provider.example/oslc/catalog <span class="at">--format</span> json</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> oslc discover https://provider.example/oslc/sp/requirements <span class="at">--format</span> json</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> oslc query https://provider.example/oslc/query/requirements <span class="dt">\</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--service-provider-uri</span> https://provider.example/oslc/sp/requirements <span class="at">--format</span> json</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Substitua os endereços de exemplo pelos endpoints anunciados pelo seu provedor. <code>catalog</code> lista URIs de provedores e de catálogos aninhados sem seguir esses catálogos. <code>discover</code> inspeciona os serviços RM, capacidades de consulta e Resource Shapes de um provedor; <code>--no-shapes</code> desativa a recuperação de shapes. <code>query</code> executa um GET delimitado e relata URIs de membros e nós já incluídos naquela resposta. Não busca cada membro, reconcilia objetos nem cria requisitos locais.</p>
+<p>Para configurações reutilizáveis de provedor, configure <code>.quarto-needs.toml</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode toml code-with-copy"><code class="sourceCode toml"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[federation.oslc.profiles.requirements]</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="dt">service-provider-uri</span> <span class="op">=</span> <span class="st">"https://provider.example/oslc/sp/requirements"</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="dt">bearer-token-env</span> <span class="op">=</span> <span class="st">"OSLC_TOKEN"</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="dt">timeout-seconds</span> <span class="op">=</span> <span class="fl">10.0</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> oslc discover <span class="at">--profile</span> requirements</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> oslc query https://provider.example/oslc/query/requirements <span class="dt">\</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--profile</span> requirements <span class="at">--max-members</span> 500</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Defina <code>OSLC_TOKEN</code> no ambiente antes de usar esse perfil. O perfil substitui o argumento explícito de Service Provider; combinar os dois é rejeitado. <code>catalog</code> usa opções diretas e não possui <code>--profile</code>. <code>--bearer-token-env ENV_VAR</code> lê credenciais sem persistir seu valor.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Configuração</th>
+<th>Padrão</th>
+<th>Opção de CLI</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Diretório de cache</td>
+<td><code>.quarto-needs/oslc-cache</code></td>
+<td><code>--cache-dir PATH</code></td>
+</tr>
+<tr class="even">
+<td>Idade máxima do cache</td>
+<td>3600 segundos</td>
+<td><code>--max-age-seconds N</code></td>
+</tr>
+<tr class="odd">
+<td>Permitir fallback para cache vencido</td>
+<td>false</td>
+<td><code>--allow-stale</code> / <code>--disallow-stale</code></td>
+</tr>
+<tr class="even">
+<td>Timeout HTTP</td>
+<td>10 segundos</td>
+<td><code>--timeout-seconds N</code></td>
+</tr>
+<tr class="odd">
+<td>Tamanho da resposta</td>
+<td>2.000.000 bytes</td>
+<td><code>--max-bytes N</code></td>
+</tr>
+<tr class="even">
+<td>Quantidade de redirecionamentos</td>
+<td>3</td>
+<td><code>--max-redirects N</code></td>
+</tr>
+<tr class="odd">
+<td>Quantidade de nós RDF</td>
+<td>5000</td>
+<td><code>--max-nodes N</code></td>
+</tr>
+<tr class="even">
+<td>Membros da consulta</td>
+<td>1000</td>
+<td><code>query --max-members N</code></td>
+</tr>
+<tr class="odd">
+<td>Provedores / catálogos aninhados</td>
+<td>200 / 50</td>
+<td><code>catalog --max-providers N</code> / <code>--max-nested-catalogs N</code></td>
+</tr>
+</tbody>
+</table>
+<p>Opções de CLI prevalecem sobre as configurações do perfil. <code>--now</code> fornece um instante explícito de recuperação em ISO-8601 para execuções reproduzíveis; na ausência dessa opção, usa-se a hora UTC atual. Veja <a href="./interoperability.html">Interoperabilidade e federação</a> para a distinção entre resultados do CLI e APIs de observação/reconciliação da biblioteca.</p>
+</section>
+<section id="integração-com-editores" class="level2" data-number="37.9">
+<h2 data-number="37.9" class="anchored" data-anchor-id="integração-com-editores"><span class="header-section-number">37.9</span> Integração com editores</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> <span class="at">--root</span> /path/to/project lsp</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>lsp</code> executa o servidor de linguagem pela entrada/saída padrão até o editor encerrá-lo. Normalmente, o editor inicia esse processo. Veja <a href="./language-server.html">Servidor de linguagem e autoria no editor</a> para completar código, navegar, renomear, receber diagnósticos e trabalhar com alterações não salvas.</p>
+</section>
+<section id="automação-e-códigos-de-saída" class="level2" data-number="37.10">
+<h2 data-number="37.10" class="anchored" data-anchor-id="automação-e-códigos-de-saída"><span class="header-section-number">37.10</span> Automação e códigos de saída</h2>
+<p>Os códigos comuns são <code>0</code> para sucesso, <code>1</code> para falha de validação/política ou plano com pendências, <code>2</code> para argumentos/configurações/artefatos inválidos e <code>3</code> para erros tratados de I/O ou transporte. Um código diferente de zero pode acompanhar um artefato de diagnóstico gravado com sucesso; verifique o veredito do comando além da existência do arquivo. A política de gates e as exceções descritas acima determinam quando findings semânticos causam falha.</p>
+<p>Prefira os formatos JSON documentados para consumidores de máquina. <code>NO_COLOR=1</code> desativa cores no console. <code>SOURCE_DATE_EPOCH</code> fornece uma data de referência determinística para a análise comum do grafo; comandos com intervalo Git usam o timestamp compartilhado do commit final. Geração de evidência e recuperação OSLC têm seus próprios comportamentos de timestamp, descritos nas respectivas seções.</p>
 
 
 </section>
@@ -1113,13 +1282,13 @@ ADR-007
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./views-reference.html" class="pagination-link" aria-label="Visões e shortcodes">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">24</span>&nbsp; <span class="chapter-title">Visões e shortcodes</span></span>
+      <a href="./language-server.html" class="pagination-link" aria-label="Servidor de linguagem e autoria no editor">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">36</span>&nbsp; <span class="chapter-title">Servidor de linguagem e autoria no editor</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./c4-architecture.html" class="pagination-link" aria-label="Projeções de Arquitetura C4">
-        <span class="nav-page-text"><span class="chapter-number">26</span>&nbsp; <span class="chapter-title">Projeções de Arquitetura C4</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./reference.html" class="pagination-link" aria-label="Referência prática">
+        <span class="nav-page-text"><span class="chapter-number">38</span>&nbsp; <span class="chapter-title">Referência prática</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
