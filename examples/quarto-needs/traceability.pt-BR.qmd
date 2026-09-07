@@ -72,6 +72,12 @@ Evidência
 
 Um teste descreve a atividade de verificação; a evidência registra a base durável para afirmar que a atividade foi bem-sucedida.
 
+A mesma pergunta pode ser feita como matriz, em vez de grafo. Cada linha é um requisito, cada coluna um caso de teste, e a marca de verificação é uma relação `verified-by` declarada:
+
+{{< need-matrix rows="functional-requirement;non-functional-requirement" columns="test-case" relation="verified-by" id="verification-matrix" >}}
+
+Matriz e grafo respondem a perguntas diferentes sobre as mesmas arestas. O grafo mostra até onde uma cadeia alcança; a matriz mostra, de relance, quais células de uma grade obrigação-por-verificação continuam vazias. Uma linha vazia é um requisito que nenhum teste reivindica.
+
 ## 5. Siga quatro histórias completas de engenharia
 
 O modelo contém quatro cortes verticais intencionalmente fortes. Eles funcionam como exercícios guiados porque cada um atravessa várias camadas de engenharia.
@@ -115,6 +121,16 @@ Clique em uma aresta para inspecionar:
 - proveniência relativa e segura da declaração.
 
 O inspetor é, portanto, uma explicação do grafo, e não apenas um tooltip.
+
+A mesma explicação está disponível como conteúdo estático da página, que sobrevive à exportação para PDF e DOCX e funciona sem JavaScript. O `need-inspector` renderiza o registro de engenharia completo de um objeto:
+
+{{< need-inspector FUN-004 id="fun-004-inspector" >}}
+
+O `need-backlinks` responde à pergunta mais estreita — quem aponta *para* este objeto:
+
+{{< need-backlinks COMP-GRAPH >}}
+
+Ambos leem o mesmo snapshot canônico do canvas interativo, então uma afirmação visível no navegador é reproduzível em uma cópia impressa de revisão.
 
 ## 7. Use perfis de travessia como lentes de engenharia
 

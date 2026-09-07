@@ -53,9 +53,17 @@ This is not a synthetic taxonomy. The objects describe capabilities and architec
 
 ## Live overview
 
+The model currently holds {{< need-count >}} engineering objects: {{< need-count types="stakeholder-need" >}} stakeholder needs, {{< need-count types="system-requirement;functional-requirement;non-functional-requirement" >}} requirements, {{< need-count types="architecture-decision" >}} architecture decisions, and {{< need-count types="source-module" >}} source modules. Every number on this page is read from the graph at render time, so it cannot drift from the model.
+
 The table below is generated from the same engineering graph used by the rest of the book.
 
 {{< need-table types="system-requirement" columns="id;title;status;priority" sort="priority;id" >}}
+
+Individual objects are referenced inline: the stakeholder need {{< need STK-001 title=true >}} is refined by system requirements and eventually reaches source modules and tests. Any such reference is a real link into the object's declaration.
+
+The stakeholder needs that motivate everything else:
+
+{{< need-list types="stakeholder-need" show="status" sort="id" >}}
 
 The graph is progressively enhanced: the static representation remains available, while the HTML view adds semantic traversal, filtering, root paths, edge inspection, collapse/expand, and fixed spacing.
 

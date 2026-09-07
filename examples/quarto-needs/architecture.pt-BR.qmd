@@ -513,7 +513,11 @@ A renderização tem exatamente uma responsabilidade de instalação, e as vers�
 
 ## Visualizações geradas de arquitetura
 
-{{< need-table query="architecture-decisions" columns="id;title;status" sort="id" >}}
+O livro registra {{< need-count types="architecture-decision" >}} decisões arquiteturais, {{< adr-count status="accepted" >}} delas aceitas. Os dois números são lidos do grafo, então a primeira decisão proposta ou superada os altera sem que ninguém edite esta frase.
+
+O `adr-table` é a visão consciente de decisões: seleciona apenas objetos `architecture-decision` e entende seus campos de data, então as decisões ordenam da mais recente para a mais antiga e podem ser delimitadas por uma janela de revisão.
+
+{{< adr-table status="accepted" columns="id;title;date;decision-makers;tags" date-sort="desc" caption="Decisões aceitas, da mais recente para a mais antiga" id="accepted-decisions" >}}
 
 {{< need-graph view="architecture-decisions" id="decision-view" >}}
 

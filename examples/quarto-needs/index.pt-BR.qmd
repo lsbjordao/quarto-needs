@@ -53,9 +53,17 @@ Não se trata de uma taxonomia sintética. Os objetos descrevem capacidades e es
 
 ## Visão geral ao vivo
 
+O modelo contém atualmente {{< need-count >}} objetos de engenharia: {{< need-count types="stakeholder-need" >}} necessidades de stakeholder, {{< need-count types="system-requirement;functional-requirement;non-functional-requirement" >}} requisitos, {{< need-count types="architecture-decision" >}} decisões arquiteturais e {{< need-count types="source-module" >}} módulos de código. Todo número desta página é lido do grafo no momento da renderização, então não pode divergir do modelo.
+
 A tabela abaixo é gerada a partir do mesmo grafo de engenharia usado no restante do livro.
 
 {{< need-table types="system-requirement" columns="id;title;status;priority" sort="priority;id" >}}
+
+Objetos individuais são referenciados inline: a necessidade de stakeholder {{< need STK-001 title=true >}} é refinada por requisitos de sistema e alcança, por fim, módulos de código e testes. Qualquer referência dessas é um link real para a declaração do objeto.
+
+As necessidades de stakeholder que motivam todo o resto:
+
+{{< need-list types="stakeholder-need" show="status" sort="id" >}}
 
 O grafo recebe aprimoramento progressivo: a representação estática permanece disponível, enquanto a visualização HTML acrescenta travessia semântica, filtros, caminhos até a raiz, inspeção de arestas, colapso/expansão e espaçamento fixo.
 

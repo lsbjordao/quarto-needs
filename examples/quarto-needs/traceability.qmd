@@ -72,6 +72,12 @@ Evidence
 
 A test describes the verification activity; evidence records the durable basis for claiming that the activity succeeded.
 
+The same question can be asked as a matrix instead of a graph. Each row is a requirement, each column a test case, and a check mark is a declared `verified-by` relation:
+
+{{< need-matrix rows="functional-requirement;non-functional-requirement" columns="test-case" relation="verified-by" id="verification-matrix" >}}
+
+A matrix and a graph answer different questions about the same edges. The graph shows how far a chain reaches; the matrix shows, at a glance, which cells of an obligation-by-check grid are still empty. An empty row is a requirement no test claims.
+
 ## 5. Follow four complete engineering stories
 
 The model contains four intentionally strong vertical slices. They are useful as guided exercises because each crosses several engineering layers.
@@ -115,6 +121,16 @@ Click an edge to inspect:
 - safe relative declaration provenance.
 
 The inspector is therefore an explanation of the graph, not merely a tooltip.
+
+The same explanation is available as static page content, which survives PDF and DOCX export and works without JavaScript. `need-inspector` renders one object's full engineering record:
+
+{{< need-inspector FUN-004 id="fun-004-inspector" >}}
+
+`need-backlinks` answers the narrower question — who points *at* this object:
+
+{{< need-backlinks COMP-GRAPH >}}
+
+Both read the same canonical snapshot as the interactive canvas, so a claim visible in the browser is reproducible in a printed review copy.
 
 ## 7. Use traversal profiles as engineering lenses
 

@@ -264,8 +264,18 @@ Verify the extension manifest keeps declaring its supported Quarto floor. The fl
 
 ## Verification views
 
+The model carries {{< need-count types="test-case" >}} test cases and {{< need-count types="evidence" >}} evidence objects. Of those test cases, {{< need-count types="test-case" status="passed" >}} are passing.
+
 {{< need-table types="test-case" columns="id;title;status;pytest-nodeid" sort="id" >}}
 
 {{< need-table types="evidence" columns="id;title;status;provider;artifact" sort="id" >}}
 
 {{< need-graph view="verification-assets" id="verification-assets-view" >}}
+
+## Coverage dashboard
+
+The dashboard is computed from the same snapshot as the tables above. It reports each configured scope's coverage, the gaps behind those percentages, and the finding counts — the numbers `quarto-needs quality` enforces as gates in CI.
+
+{{< need-dashboard id="verification-dashboard" >}}
+
+A percentage here is not a claim that verification succeeded. `verification-trace` counts requirements that name a test case; `verification-successful` additionally requires that test to be passing, and `evidence` requires the chain to reach unexpired evidence. The distance between those three columns is the honest measure of assurance.

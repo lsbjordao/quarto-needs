@@ -264,8 +264,18 @@ O `TC-031` está ligado à regressão executável que fixa o piso declarado do m
 
 ## Views de verificação
 
+O modelo carrega {{< need-count types="test-case" >}} casos de teste e {{< need-count types="evidence" >}} objetos de evidência. Desses casos de teste, {{< need-count types="test-case" status="passed" >}} estão passando.
+
 {{< need-table types="test-case" columns="id;title;status;pytest-nodeid" sort="id" >}}
 
 {{< need-table types="evidence" columns="id;title;status;provider;artifact" sort="id" >}}
 
 {{< need-graph view="verification-assets" id="verification-assets-view" >}}
+
+## Painel de cobertura
+
+O painel é calculado a partir do mesmo snapshot das tabelas acima. Ele relata a cobertura de cada escopo configurado, as lacunas por trás desses percentuais e as contagens de achados — os números que o `quarto-needs quality` aplica como gates na CI.
+
+{{< need-dashboard id="verification-dashboard" >}}
+
+Um percentual aqui não afirma que a verificação teve sucesso. `verification-trace` conta requisitos que nomeiam um caso de teste; `verification-successful` exige adicionalmente que esse teste esteja passando, e `evidence` exige que a cadeia alcance evidência não expirada. A distância entre essas três colunas é a medida honesta de garantia.

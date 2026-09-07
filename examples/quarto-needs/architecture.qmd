@@ -513,7 +513,11 @@ Rendering has exactly one installation responsibility, and extension and engine 
 
 ## Generated architecture views
 
-{{< need-table query="architecture-decisions" columns="id;title;status" sort="id" >}}
+The book records {{< need-count types="architecture-decision" >}} architecture decisions, {{< adr-count status="accepted" >}} of them accepted. Both numbers are read from the graph, so the first proposed or superseded decision changes them without anyone editing this sentence.
+
+`adr-table` is the decision-aware view: it selects only `architecture-decision` objects and understands their date fields, so decisions sort newest-first and can be bounded by a review window.
+
+{{< adr-table status="accepted" columns="id;title;date;decision-makers;tags" date-sort="desc" caption="Accepted decisions, most recent first" id="accepted-decisions" >}}
 
 {{< need-graph view="architecture-decisions" id="decision-view" >}}
 

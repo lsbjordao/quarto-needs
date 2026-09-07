@@ -46,6 +46,21 @@ On CI, a successful multilingual render uploads `_book/` as a build artifact. On
 
 Published case study: **https://lsbjordao.github.io/quarto-needs/examples/quarto-needs/**
 
+## View coverage
+
+The case study exercises every registered Quarto-Needs shortcode, so it doubles as a rendered reference for the view layer:
+
+| Shortcode | Where |
+|---|---|
+| `need`, `need-count`, `need-list`, `need-table` | `index.qmd` and most chapters |
+| `need-graph` | `traceability.qmd` and every domain chapter |
+| `need-matrix`, `need-inspector`, `need-backlinks` | `traceability.qmd` |
+| `need-dashboard` | `verification.qmd` |
+| `adr-table`, `adr-count` | `architecture.qmd` |
+| `need-c4` | `architecture.qmd`, all four backends |
+| `need-flow` | `interoperability.qmd` |
+| `need-tags` | `tags.qmd` |
+
 ## Learning path
 
 The example is organized around six reusable vertical slices (two more, covering OSLC federation and GitHub issues federation, are traced in `interoperability.qmd`):
