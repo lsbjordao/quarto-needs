@@ -367,3 +367,42 @@ def test_part_of_max_cardinality_uses_the_existing_generic_policy_mechanism(
     )
     findings = [f for f in run_rules(snapshot, config) if f.code == "REQ010"]
     assert [f.object_id for f in findings] == ["DOUBLE-PARENTED"]
+
+
+def test_risk_gate_without_its_rule_is_a_configuration_error(tmp_path: Path) -> None:
+    """`require-risk-mitigation` counts REQ013, which is opt-in.
+
+    Enabling only the gate reported a pass for every project, including one
+    carrying unmitigated critical risks. That is false assurance, so the
+    incoherent pair is rejected the way any other bad configuration is.
+    """
+    (tmp_path / ".quarto-needs.toml").write_text(
+        "[gates]\nrequire-risk-mitigation = true\n", encoding="utf-8"
+    )
+
+    with pytest.raises(ConfigurationError) as error:
+        load_config(tmp_path)
+
+    assert "REQ013" in str(error.value)
+
+
+def test_risk_gate_with_its_rule_enabled_loads(tmp_path: Path) -> None:
+    (tmp_path / ".quarto-needs.toml").write_text(
+        "[gates]\nrequire-risk-mitigation = true\n\n"
+        '[rules.REQ013]\nenabled = true\n',
+        encoding="utf-8",
+    )
+
+    config = load_config(tmp_path)
+
+    assert config.gates.require_risk_mitigation is True
+
+
+def test_risk_gate_absent_leaves_req013_optional(tmp_path: Path) -> None:
+    (tmp_path / ".quarto-needs.toml").write_text(
+        "[gates]\nmax-errors = 0\n", encoding="utf-8"
+    )
+
+    config = load_config(tmp_path)
+
+    assert config.gates.require_risk_mitigation is False

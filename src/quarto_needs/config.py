@@ -714,7 +714,7 @@ def load_config(root: Path) -> NeedsConfig:
     derived = _parse_derived(document.get("derived"))
     variants = _parse_variants(document.get("variants"))
 
-    return NeedsConfig(
+    config = NeedsConfig(
         profile=profile,
         required_attributes=MappingProxyType(required),
         relation_policies=MappingProxyType(
@@ -744,3 +744,10 @@ def load_config(root: Path) -> NeedsConfig:
         derived_sources=MappingProxyType(derived),
         variant_sources=MappingProxyType(variants),
     )
+    # Imported here rather than at module scope: rules.py depends on this
+    # module, and the rule registry is the single source of truth for whether
+    # a gate's backing rule would actually run.
+    from .rules import validate_gate_rule_dependencies
+
+    validate_gate_rule_dependencies(config)
+    return config

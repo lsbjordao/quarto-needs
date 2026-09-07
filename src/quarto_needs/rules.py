@@ -479,7 +479,27 @@ def _resolved_severity(spec: RuleSpec, config: NeedsConfig) -> str | None:
     return setting.severity
 
 
+def validate_gate_rule_dependencies(config: NeedsConfig) -> None:
+    """Reject gates that can only ever pass because their rule is inactive.
+
+    `require-risk-mitigation` is measured by counting REQ013 findings, and
+    REQ013 is opt-in. Enabling the gate alone therefore reports a pass for
+    every project, including one carrying unmitigated critical risks — a
+    false assurance rather than a missing check. The two declarations have to
+    agree, so an incoherent pair is a configuration error like any other.
+    """
+    if not config.gates.require_risk_mitigation:
+        return
+    if _resolved_severity(RULES["REQ013"], config) is None:
+        raise ConfigurationError(
+            "[gates] require-risk-mitigation counts REQ013 findings, but rule "
+            "REQ013 is not enabled, so the gate could only ever pass. Add "
+            '[rules.REQ013] enabled = true, or remove the gate.'
+        )
+
+
 def run_rules(snapshot: AnalysisSnapshot, config: NeedsConfig) -> tuple[Finding, ...]:
+    validate_gate_rule_dependencies(config)
     ctx = RuleContext(snapshot=snapshot, config=config)
     findings: list[Finding] = []
     for code in sorted(RULES):
