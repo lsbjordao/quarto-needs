@@ -34,7 +34,7 @@ quarto-needs quality --format json --output artifacts/quality.json
 quarto-needs query accepted-decisions --format json
 ```
 
-`quality --output` always writes JSON, even when its console format remains `text`. `query --format json` returns the query name and its ordered `ids`; an unknown query returns exit code `2`. Define the example query as shown in [Engineering model](engineering-model.qmd).
+`quality --output` always writes JSON, even when its console format remains `text`. `query --format json` returns the query name and its ordered `ids`; an unknown query returns exit code `2`. Define the example query as shown in [Named queries](named-queries.qmd).
 
 ## Export graph and automation artifacts
 
@@ -170,7 +170,7 @@ quarto-needs oslc query https://provider.example/oslc/query/requirements \
   --service-provider-uri https://provider.example/oslc/sp/requirements --format json
 ```
 
-Replace the example addresses with endpoints advertised by your provider. `catalog` lists provider and nested-catalog URIs without following nested catalogs. `discover` inspects one provider's RM services, query capabilities, and resource shapes; `--no-shapes` disables shape retrieval. `query` performs a bounded GET and reports member URIs and nodes already inline in that response. It does not fetch every member, reconcile objects, or create local requirements.
+Replace the example addresses with endpoints advertised by your provider. `catalog` lists provider and nested-catalog URIs without following nested catalogs. `discover` inspects one provider's RM services, query capabilities, and resource shapes; `--no-shapes` disables shape retrieval and `--shapes` forces it on, overriding a profile that turned it off. `query` performs a bounded GET and reports member URIs and nodes already inline in that response. It does not fetch every member, reconcile objects, or create local requirements.
 
 For reusable provider settings, configure `.quarto-needs.toml`:
 
@@ -189,17 +189,20 @@ quarto-needs oslc query https://provider.example/oslc/query/requirements \
 
 Set `OSLC_TOKEN` in your environment before using that profile. A profile replaces the explicit service-provider argument; combining both is rejected. `catalog` uses direct options and has no `--profile`. `--bearer-token-env ENV_VAR` reads credentials without persisting their value.
 
-| Setting | Default | CLI override |
-|---|---|---|
-| Cache directory | `.quarto-needs/oslc-cache` | `--cache-dir PATH` |
-| Cache maximum age | 3600 seconds | `--max-age-seconds N` |
-| Permit stale cached fallback | false | `--allow-stale` / `--disallow-stale` |
-| HTTP timeout | 10 seconds | `--timeout-seconds N` |
-| Response size | 2,000,000 bytes | `--max-bytes N` |
-| Redirect count | 3 | `--max-redirects N` |
-| RDF node count | 5000 | `--max-nodes N` |
-| Query members | 1000 | `query --max-members N` |
-| Catalog providers / nested catalogs | 200 / 50 | `catalog --max-providers N` / `--max-nested-catalogs N` |
+| Setting | Profile key | Default | CLI override |
+|---|---|---|---|
+| Service provider | `service-provider-uri` | — | `--service-provider-uri URI` |
+| Bearer token variable | `bearer-token-env` | — | `--bearer-token-env ENV_VAR` |
+| Cache directory | `cache-dir` | `.quarto-needs/oslc-cache` | `--cache-dir PATH` |
+| Cache maximum age | `max-age-seconds` | 3600 seconds | `--max-age-seconds N` |
+| Permit stale cached fallback | `allow-stale` | false | `--allow-stale` / `--disallow-stale` |
+| HTTP timeout | `timeout-seconds` | 10 seconds | `--timeout-seconds N` |
+| Response size | `max-bytes` | 2,000,000 bytes | `--max-bytes N` |
+| Redirect count | `max-redirects` | 3 | `--max-redirects N` |
+| RDF node count | `max-nodes` | 5000 | `--max-nodes N` |
+| Retrieve resource shapes | `fetch-shapes` | true | `discover --shapes` / `--no-shapes` |
+| Query members | — | 1000 | `query --max-members N` |
+| Catalog providers / nested catalogs | — | 200 / 50 | `catalog --max-providers N` / `--max-nested-catalogs N` |
 
 CLI settings override profile settings. `--now` supplies an explicit ISO-8601 retrieval instant for reproducible runs; otherwise current UTC time is used. See [Interoperability and federation](interoperability.qmd) for the distinction between CLI results and library-level observation/reconciliation APIs.
 

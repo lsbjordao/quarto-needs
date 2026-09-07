@@ -34,7 +34,7 @@ quarto-needs quality --format json --output artifacts/quality.json
 quarto-needs query accepted-decisions --format json
 ```
 
-`quality --output` sempre grava JSON, mesmo quando o formato do console permanece `text`. `query --format json` retorna o nome da consulta e seus `ids` ordenados; uma consulta desconhecida retorna o código `2`. Defina a consulta do exemplo conforme [Modelo de engenharia](engineering-model.qmd).
+`quality --output` sempre grava JSON, mesmo quando o formato do console permanece `text`. `query --format json` retorna o nome da consulta e seus `ids` ordenados; uma consulta desconhecida retorna o código `2`. Defina a consulta do exemplo conforme [Consultas nomeadas](named-queries.qmd).
 
 ## Exportar o grafo e artefatos de automação
 
@@ -170,7 +170,7 @@ quarto-needs oslc query https://provider.example/oslc/query/requirements \
   --service-provider-uri https://provider.example/oslc/sp/requirements --format json
 ```
 
-Substitua os endereços de exemplo pelos endpoints anunciados pelo seu provedor. `catalog` lista URIs de provedores e de catálogos aninhados sem seguir esses catálogos. `discover` inspeciona os serviços RM, capacidades de consulta e Resource Shapes de um provedor; `--no-shapes` desativa a recuperação de shapes. `query` executa um GET delimitado e relata URIs de membros e nós já incluídos naquela resposta. Não busca cada membro, reconcilia objetos nem cria requisitos locais.
+Substitua os endereços de exemplo pelos endpoints anunciados pelo seu provedor. `catalog` lista URIs de provedores e de catálogos aninhados sem seguir esses catálogos. `discover` inspeciona os serviços RM, capacidades de consulta e Resource Shapes de um provedor; `--no-shapes` desativa a recuperação de shapes e `--shapes` a força, sobrescrevendo um profile que a tenha desligado. `query` executa um GET delimitado e relata URIs de membros e nós já incluídos naquela resposta. Não busca cada membro, reconcilia objetos nem cria requisitos locais.
 
 Para configurações reutilizáveis de provedor, configure `.quarto-needs.toml`:
 
@@ -189,17 +189,20 @@ quarto-needs oslc query https://provider.example/oslc/query/requirements \
 
 Defina `OSLC_TOKEN` no ambiente antes de usar esse perfil. O perfil substitui o argumento explícito de Service Provider; combinar os dois é rejeitado. `catalog` usa opções diretas e não possui `--profile`. `--bearer-token-env ENV_VAR` lê credenciais sem persistir seu valor.
 
-| Configuração | Padrão | Opção de CLI |
-|---|---|---|
-| Diretório de cache | `.quarto-needs/oslc-cache` | `--cache-dir PATH` |
-| Idade máxima do cache | 3600 segundos | `--max-age-seconds N` |
-| Permitir fallback para cache vencido | false | `--allow-stale` / `--disallow-stale` |
-| Timeout HTTP | 10 segundos | `--timeout-seconds N` |
-| Tamanho da resposta | 2.000.000 bytes | `--max-bytes N` |
-| Quantidade de redirecionamentos | 3 | `--max-redirects N` |
-| Quantidade de nós RDF | 5000 | `--max-nodes N` |
-| Membros da consulta | 1000 | `query --max-members N` |
-| Provedores / catálogos aninhados | 200 / 50 | `catalog --max-providers N` / `--max-nested-catalogs N` |
+| Configuração | Chave do profile | Padrão | Opção de CLI |
+|---|---|---|---|
+| Service provider | `service-provider-uri` | — | `--service-provider-uri URI` |
+| Variável do bearer token | `bearer-token-env` | — | `--bearer-token-env ENV_VAR` |
+| Diretório de cache | `cache-dir` | `.quarto-needs/oslc-cache` | `--cache-dir PATH` |
+| Idade máxima do cache | `max-age-seconds` | 3600 segundos | `--max-age-seconds N` |
+| Permitir fallback para cache vencido | `allow-stale` | false | `--allow-stale` / `--disallow-stale` |
+| Timeout HTTP | `timeout-seconds` | 10 segundos | `--timeout-seconds N` |
+| Tamanho da resposta | `max-bytes` | 2.000.000 bytes | `--max-bytes N` |
+| Quantidade de redirecionamentos | `max-redirects` | 3 | `--max-redirects N` |
+| Quantidade de nós RDF | `max-nodes` | 5000 | `--max-nodes N` |
+| Recuperar Resource Shapes | `fetch-shapes` | true | `discover --shapes` / `--no-shapes` |
+| Membros da consulta | — | 1000 | `query --max-members N` |
+| Provedores / catálogos aninhados | — | 200 / 50 | `catalog --max-providers N` / `--max-nested-catalogs N` |
 
 Opções de CLI prevalecem sobre as configurações do perfil. `--now` fornece um instante explícito de recuperação em ISO-8601 para execuções reproduzíveis; na ausência dessa opção, usa-se a hora UTC atual. Veja [Interoperabilidade e federação](interoperability.qmd) para a distinção entre resultados do CLI e APIs de observação/reconciliação da biblioteca.
 

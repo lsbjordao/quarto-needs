@@ -2,7 +2,7 @@
 
 Ative `filters: [quarto-needs]` conforme [Primeiros passos](getting-started.qmd). A extensão analisa o projeto antes da renderização; as visões consomem o grafo e as projeções geradas. Use blocos `.need` para declarar objetos e shortcodes para referenciá-los ou apresentá-los.
 
-Os exemplos abaixo pressupõem que os IDs referenciados existem. `query` nomeia uma consulta declarada em `.quarto-needs.toml`, em vez de uma expressão escrita dentro do shortcode. Veja uma declaração completa de consulta em [Modelo de engenharia](engineering-model.qmd). As visões renderizam os títulos no idioma da página quando existem irmãos de títulos localizados; veja [Títulos localizados](authoring.qmd#títulos-localizados).
+Os exemplos abaixo pressupõem que os IDs referenciados existem. `query` nomeia uma consulta declarada em `.quarto-needs.toml`, em vez de uma expressão escrita dentro do shortcode. Veja a gramática completa de consultas em [Consultas nomeadas](named-queries.qmd). As visões renderizam os títulos no idioma da página quando existem irmãos de títulos localizados; veja [Títulos localizados](authoring.qmd#títulos-localizados).
 
 ## Inventário de shortcodes
 

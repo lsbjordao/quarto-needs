@@ -1,0 +1,206 @@
+# Consultas nomeadas
+
+Uma consulta nomeada é o único mecanismo de seleção do Quarto-Needs. Ela é declarada uma vez em `.quarto-needs.toml`, avaliada apenas pelo core Python e então reutilizada por visões, governança e CLI. Não existe uma segunda linguagem de consulta: shortcodes e controles do navegador filtram uma seleção já materializada, nunca interpretam texto de consulta.
+
+Uma única declaração atende, portanto, a todos os consumidores:
+
+| Consumidor | Como o nome da consulta é usado |
+|---|---|
+| Visões | `query=` / `view=` em `need-table`, `need-list`, `need-count`, `need-tags`, `need-dashboard`, `need-graph`, `adr-table` e `adr-count`. |
+| Governança | `scope` em `[gates]`, `[policies.*]`, `[constraints.*]`, `[derived.*]` e `[variants.*]`. |
+| Projeções do grafo | `overlay-queries` em `[graph]` e a projeção publicada para todo grafo baseado em `query`. |
+| CLI | `quarto-needs query <nome>`. |
+
+## Declarar uma consulta
+
+Toda consulta é uma tabela `[queries.<nome>]`. O nome é o identificador usado em todos os outros lugares.
+
+```toml
+[queries.accepted-decisions]
+all = [
+  { field = "type", op = "eq", value = "architecture-decision" },
+  { field = "status", op = "eq", value = "accepted" },
+]
+sort = ["id:asc"]
+```
+
+A tabela de uma consulta aceita exatamente duas chaves: um combinador de topo (`all`, `any` ou `not`) e um `sort` opcional. Uma consulta sem combinador, ou com mais de um, é erro de configuração — isso mantém o predicado explícito em vez de deixar um operador implícito.
+
+## Combinadores
+
+Combinadores agrupam cláusulas e podem ser aninhados.
+
+| Combinador | Valor | Significado |
+|---|---|---|
+| `all` | Array não vazio de cláusulas | Todas as cláusulas precisam corresponder (E lógico). |
+| `any` | Array não vazio de cláusulas | Ao menos uma cláusula precisa corresponder (OU lógico). |
+| `not` | Uma única cláusula | A cláusula não pode corresponder (NÃO lógico). |
+
+Um combinador não pode dividir a mesma tabela com outra chave, então o aninhamento usa uma tabela interna:
+
+```toml
+[queries.unverified-approved-requirements]
+all = [
+  { field = "type", op = "contains", value = "requirement" },
+  { field = "status", op = "eq", value = "approved" },
+  { not = { relation = "verified-by", direction = "out", op = "exists" } },
+]
+sort = ["priority:asc", "id:asc"]
+```
+
+## Cláusulas de campo
+
+Uma cláusula de campo seleciona por uma propriedade do objeto.
+
+```toml
+all = [{ field = "status", op = "eq", value = "approved" }]
+```
+
+Apenas estes campos podem ser endereçados:
+
+| Campo | Origem |
+|---|---|
+| `id` | Identificador do objeto. |
+| `title` | Título do objeto. |
+| `type` | Tipo de engenharia. |
+| `status` | Status do ciclo de vida. |
+| `priority` | O atributo `priority`; ausente quando nunca foi declarado. |
+| `tags` | A lista de tags do objeto. |
+| `attributes.<nome>` | Qualquer atributo declarado, por exemplo `attributes.decision-makers`. |
+
+Qualquer outro nome de campo é rejeitado no carregamento, em vez de silenciosamente não corresponder a nada.
+
+### Operadores de campo
+
+| Operador | Chave de valor exigida | Significado |
+|---|---|---|
+| `eq` | `value` | Igualdade. Strings comparam sem diferenciar maiúsculas; números comparam numericamente; booleanos comparam apenas com booleanos. |
+| `in` | `values` (array não vazio) | Igualdade com qualquer membro da lista, usando a mesma comparação de `eq`. |
+| `contains` | `value` (escalar) | Pertencimento para valores de lista, como `tags`; substring sem diferenciar maiúsculas para valores string. |
+| `exists` | — | O campo está presente no objeto. |
+| `missing` | — | O campo está ausente do objeto. |
+
+`exists` e `missing` não aceitam valor de comparação; fornecer um é erro. `eq` e `contains` exigem um `value` escalar, e `in` exige um array `values` não vazio.
+
+`exists`/`missing` só fazem sentido para campos que podem estar ausentes — `priority` e `attributes.<nome>`. `id`, `title`, `type`, `status` e `tags` estão sempre presentes, então `missing` nunca corresponde a eles.
+
+```toml
+[queries.unprioritized-objects]
+all = [
+  { field = "priority", op = "missing" },
+]
+
+[queries.expiring-evidence]
+all = [
+  { field = "type", op = "eq", value = "evidence" },
+  { field = "attributes.expires", op = "exists" },
+]
+
+[queries.security-critical]
+all = [
+  { field = "tags", op = "contains", value = "security" },
+  { field = "priority", op = "in", values = ["critical", "high"] },
+]
+```
+
+## Cláusulas de relação
+
+Uma cláusula de relação seleciona pela presença de uma aresta tipada, e não por um valor armazenado.
+
+```toml
+all = [{ relation = "verified-by", direction = "out", op = "exists" }]
+```
+
+| Chave | Valores | Significado |
+|---|---|---|
+| `relation` | Um nome de relação do catálogo | Rejeitado no carregamento quando o nome é desconhecido. |
+| `direction` | `out`, `in`, `either` | De qual lado do objeto a aresta precisa estar. |
+| `op` | `exists`, `missing` | Se essa aresta precisa estar presente ou ausente. |
+
+A direção é avaliada pelo pareamento de inversas do catálogo, não pela orientação bruta da aresta. `implemented-by`/`implements`, `verified-by`/`verifies` e `supersedes`/`superseded-by` são pares, de modo que um requisito declarando `implemented-by` e um módulo de código declarando `implements` produzem a mesma correspondência. Qual lado declarou a relação, portanto, não altera o resultado da consulta.
+
+Cláusulas de relação aceitam apenas `exists` e `missing`; elas não comparam valores do outro extremo. Para restringir também o outro extremo, modele isso com um caminho obrigatório em `[constraints.*]` — veja [Restrições de grafo](graph-constraints.qmd).
+
+```toml
+[queries.orphan-requirements]
+all = [
+  { field = "type", op = "contains", value = "requirement" },
+  { relation = "derives-from", direction = "either", op = "missing" },
+]
+```
+
+## Ordenação
+
+`sort` é um array de tokens. Cada token é um nome de campo com sufixo opcional `:asc` (padrão) ou `:desc`.
+
+```toml
+sort = ["priority:asc", "status:desc", "id:asc"]
+```
+
+Tokens de ordenação aceitam os mesmos campos das cláusulas de campo, incluindo `attributes.<nome>`. Duas regras são específicas da ordenação:
+
+- `priority` ordena por posto — `critical`, `high`, `medium`, `low` e, por fim, objetos sem prioridade — em vez de alfabeticamente.
+- Todo outro campo ordena como texto sem diferenciar maiúsculas; valores de lista como `tags` são unidos antes da comparação, e valores ausentes ordenam como vazio.
+
+O ID do objeto sempre desempata, então o resultado de uma consulta é totalmente determinístico. Omitir `sort` ordena o resultado apenas por ID.
+
+Note a diferença em relação à ordenação dos shortcodes: o argumento `sort=` de uma visão aceita apenas nomes de campo ascendentes (`sort="priority;id"`). A forma `field:desc` pertence à gramática de consultas em `.quarto-needs.toml`.
+
+## A consulta embutida
+
+`approved-requirements` sempre existe sem ser declarada. É o escopo padrão dos gates e a população inicial da projeção de grafo padrão, e está definida como:
+
+```toml
+[queries.approved-requirements]
+all = [
+  { field = "type", op = "contains", value = "requirement" },
+  { field = "status", op = "eq", value = "approved" },
+]
+sort = ["priority:asc", "id:asc"]
+```
+
+Como corresponde a `type` contendo `requirement`, ela cobre `system-requirement`, `functional-requirement` e `non-functional-requirement` sem listá-los. Declarar `[queries.approved-requirements]` no projeto sobrescreve a definição embutida para todos os consumidores.
+
+## Limites e comportamento em falha
+
+Uma consulta pode conter no máximo 100 cláusulas e aninhar no máximo 10 níveis. Ambos os limites mantêm a materialização limitada e previsível.
+
+Problemas em consultas são erros de configuração, relatados quando o projeto é analisado e não quando alguma página é renderizada: campo ou nome de relação desconhecido, operador não suportado, valor ausente ou malformado, combinador dividindo a tabela com outra chave, ou direção de ordenação inválida. `quarto-needs query <nome>` retorna código `2` para uma consulta inexistente e lista os nomes existentes.
+
+Uma consulta válida que não corresponde a nada não é erro. As visões renderizam seu estado vazio, `need-count` renderiza `0`, e as métricas com escopo relatam denominador zero.
+
+## Verificar uma consulta
+
+Avalie uma consulta pela linha de comando antes de ligá-la a uma visão ou a um gate:
+
+```bash
+quarto-needs query security-critical
+quarto-needs query security-critical --format json
+```
+
+A forma texto imprime os IDs ordenados, um por linha. A forma JSON retorna o nome da consulta e o mesmo array `ids` ordenado, que é exatamente o que visões e escopos consomem. Veja a [referência da linha de comando](cli-reference.qmd).
+
+## Usar o nome da consulta
+
+Uma vez declarado, o mesmo nome conduz apresentação e governança:
+
+```markdown
+{{< need-table query="security-critical" columns="id;title;status;priority" >}}
+{{< need-count query="security-critical" >}}
+{{< need-graph view="security-critical" >}}
+```
+
+```toml
+[gates]
+scope = "security-critical"
+min-verification-trace = 100.0
+
+[policies.SECURITY_NEEDS_TEST]
+scope = "security-critical"
+assert-relation = "verified-by"
+target-role = "verification"
+minimum = 1
+severity = "error"
+```
+
+Esse é o valor prático de nomear uma seleção: a população que um painel mostra e a população que um gate exige não podem divergir, porque são a mesma declaração. Projeções de grafo acrescentam uma restrição — um grafo baseado em consulta que excede o orçamento de `[graph]` é publicado como indisponível em vez de truncado; veja [Visões e shortcodes](views-reference.qmd).

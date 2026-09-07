@@ -23,6 +23,56 @@ Metadados computáveis ficam no preâmbulo do bloco; explicações humanas perma
 
 Uma seção `### Rationale` dentro do bloco é indexada no campo rationale computável do objeto — assim diffs por campo, baselines e exportações a enxergam — enquanto o corpo é preservado verbatim. Uma chave `rationale:` no preâmbulo, quando presente, tem precedência.
 
+### Anatomia de um bloco
+
+Um bloco `.need` tem três partes, nesta ordem:
+
+1. **A cerca de abertura**, que carrega o `#ID` obrigatório e atributos inline opcionais.
+2. **O preâmbulo**, uma região `chave: valor` no estilo YAML. Ele termina no primeiro cabeçalho, ou na primeira linha que não seja `chave: valor` nem um item de lista `-`. Linhas em branco dentro dele são ignoradas, não o encerram.
+3. **O corpo**, Markdown comum. Seu primeiro cabeçalho vira o título do objeto; sem cabeçalho, o título recai para o ID.
+
+Como uma linha de prosa encerra o preâmbulo, mantenha toda linha `chave: valor` acima do corpo. Uma linha de metadado escrita *depois* de uma frase é lida como texto do corpo: não é atributo, não é relação e não gera diagnóstico.
+
+Tanto os atributos da cerca quanto o preâmbulo escrevem no mesmo conjunto de chaves, então `status` pode ser declarado em qualquer um dos dois. Quando a mesma chave aparece nos dois, **o preâmbulo vence**. Use a cerca para escalares curtos e o preâmbulo para o que se beneficia de ficar em linha própria.
+
+### Chaves reservadas
+
+Estas chaves têm significado definido; todo o resto vira um atributo consultável.
+
+| Chave | Padrão | Significado |
+|---|---|---|
+| `#ID` | — | Obrigatório. A identidade do objeto, dada na cerca como identificador Pandoc. |
+| `type` | `need` | Tipo de engenharia. Conduz papéis, atributos obrigatórios, prefixos e cor do selo. |
+| `status` | `draft` | Status do ciclo de vida. Validado contra `allowed-statuses` quando configurado. |
+| `title` | primeiro cabeçalho do corpo | Título do objeto. Recai para o ID quando nenhum dos dois existe. |
+| `rationale` | seção `### Rationale` | Rationale computável. A chave tem precedência sobre a seção. |
+
+`priority`, `tags` e `date` são atributos comuns, não chaves reservadas, mas recebem apresentação dedicada: `priority` ganha selo e ordenação por posto, `tags` renderiza como chips e alimenta o catálogo de tags, e `date` aparece nos cards de decisão arquitetural.
+
+### Relações e atributos
+
+Toda chave de preâmbulo que nomeia uma relação do catálogo declara relações; qualquer outra chave vira um atributo legível como `attributes.<nome>` nas [consultas nomeadas](named-queries.qmd).
+
+```markdown
+::: {.need #FUN-014 type="functional-requirement" status="approved" priority="high"}
+derives-from: SYS-003
+verified-by: TC-020, TC-021
+implemented-by:
+  - COMP-PARSER
+  - COMP-ANALYSIS
+owner: Platform team
+expires: 2027-01-31
+
+## Rejeitar declarações malformadas
+:::
+```
+
+Múltiplos alvos são escritos como um valor separado por vírgulas ou ponto e vírgula, ou como lista `-` nas linhas seguintes. As duas formas são equivalentes.
+
+Declare cada chave **uma única vez** por bloco. O preâmbulo é um mapeamento, então repetir uma chave preserva apenas a última ocorrência; escreva `verified-by: TC-020, TC-021` ou a forma de lista em vez de duas linhas `verified-by:`. Uma chave repetida é reportada como `QND003`, de modo que o valor descartado não passe despercebido.
+
+Alvos de relação não são resolvidos durante o parsing. Um alvo que não nomeia nenhum objeto declarado é reportado como `REQ005` na validação, e é assim que erros de digitação aparecem em vez de virarem becos sem saída silenciosos.
+
 ## Referências e visualizações
 
 O livro pode projetar o grafo com shortcodes como:

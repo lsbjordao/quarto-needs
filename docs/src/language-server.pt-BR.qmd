@@ -61,6 +61,8 @@ Um overlay usa o mesmo parser de declarações QMD e o mesmo analisador de proje
 
 Se um buffer ficar estruturalmente inválido enquanto o usuário digita, o servidor registra os findings estruturais da tentativa de análise e mantém o último snapshot semântico válido para navegação entre arquivos. Assim que o buffer volta a ser válido, o grafo canônico completo é substituído pelo novo estado analisado.
 
+Um `.quarto-needs.toml` que deixa de carregar é tratado da mesma forma. O servidor mantém o último snapshot válido e reporta o erro de configuração como um diagnóstico `CFG001` no próprio arquivo de configuração, de modo que editar uma configuração inválida não congela silenciosamente os diagnósticos do resto do projeto.
+
 ## Completion contextual
 
 A completion é semântica, e não uma lista indiscriminada de termos.

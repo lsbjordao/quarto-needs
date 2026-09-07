@@ -61,6 +61,8 @@ An overlay uses the same QMD declaration parser and the same project analyzer as
 
 If a buffer becomes structurally invalid while the user is typing, the server records the structural findings from that attempted analysis while retaining the last valid semantic snapshot for cross-file navigation. Once the buffer becomes valid again, the complete canonical graph is replaced by the newly analyzed state.
 
+A `.quarto-needs.toml` that stops loading is handled the same way. The server keeps its last valid snapshot and reports the configuration error as a `CFG001` diagnostic on the configuration file itself, so editing an invalid configuration does not silently freeze diagnostics for the rest of the project.
+
 ## Context-aware completion
 
 Completion is semantic rather than a flat vocabulary dump.

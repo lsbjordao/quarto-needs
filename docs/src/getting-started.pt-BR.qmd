@@ -23,6 +23,14 @@ quarto render
 
 A extensão fornece seu próprio pre-render e provisiona a versão correspondente do engine Python em um runtime gerenciado e local ao projeto. Você **não** precisa adicionar `project.pre-render: quarto-needs scan` nem instalar o CLI independente apenas para renderizar.
 
+O engine é instalado como `quarto-needs==<versão da extensão>` a partir do índice de pacotes, em `.quarto-needs/runtime/`. Quando esse índice não está acessível — uma máquina sem rede, ou uma versão ainda não publicada — `QUARTO_NEEDS_ENGINE_SOURCE` sobrescreve a origem:
+
+```bash
+QUARTO_NEEDS_ENGINE_SOURCE=/caminho/para/quarto-needs quarto render
+```
+
+O valor precisa ser um caminho local de sistema de arquivos para um checkout ou um wheel. Uma URL remota é recusada, assim como um caminho inexistente; a variável não pode ser definida por um arquivo do projeto. Quando o provisionamento falha, a renderização para com uma mensagem acionável citando essa variável, em vez de produzir um livro parcialmente renderizado.
+
 Para um projeto novo, o starter template já inclui e ativa a extensão:
 
 ```bash

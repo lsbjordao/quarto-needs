@@ -106,6 +106,14 @@ severity = "error"
 
 The self-hosted model already requires 100% verification coverage. This declarative policy independently expresses the project-specific governance expectation, so a future approved requirement without a verification relation produces `POLICY:APPROVED_REQUIRES_TEST` and blocks the strict quality gate.
 
-## Current boundary
+## Where this layer ends
 
-Phase 3.1 intentionally starts with required-relation policies. Later policy phases may add bounded type-schema constraints, graph path/cardinality/cycle constraints, and safe derived values. Those capabilities should extend the canonical policy model rather than add arbitrary expression evaluation.
+`[policies.*]` deliberately covers one question: does a scoped object hold enough of a required relation? Anything structurally richer belongs to a sibling declarative layer rather than to an expanded policy grammar:
+
+| Need | Layer |
+|---|---|
+| Attribute value and shape constraints | `[types.<type>.attribute-schema]` — [per-type attribute schemas](type-schemas.qmd) |
+| Required paths, forbidden cycles, connectivity, relation ceilings | `[constraints.*]` — [graph constraints](graph-constraints.qmd) |
+| Computed values and selected build slices | `[derived.*]` and `[variants.*]` — [derived fields and build variants](derived-variants.qmd) |
+
+Each of these is bounded the same way policies are: a declarative table compiled by the core, never an expression evaluator. Extending governance means adding an explicit capability of this kind, not opening an escape hatch for code execution.

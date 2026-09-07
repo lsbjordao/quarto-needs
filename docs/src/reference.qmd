@@ -16,7 +16,7 @@ including `quarto-needs: margin-sidebar-toggle:` and `tags-page:`, belong in
 | `[types.*]` | Required attributes, prefixes, semantic roles and allowed statuses: [engineering model](engineering-model.qmd), [authoring](authoring.qmd) and [type schemas](type-schemas.qmd). |
 | `[relations.*]` | Allowed endpoint types and minimum/maximum cardinality: [governance](governance.qmd). |
 | `[governance]` | Test/risk types, success and ineffective statuses, and evidence expiry; see the defaults below. |
-| `[queries.*]` | Reusable selections: [CLI query examples](cli-reference.qmd) and [graph views](engineering-model.qmd). |
+| `[queries.*]` | Reusable selections and the full query grammar: [named queries](named-queries.qmd). |
 | `[policies.*]` | Scoped declarative assertions: [policies](declarative-policies.qmd). |
 | `[constraints.*]` | Required paths, cycles, connectivity and cardinality: [graph constraints](graph-constraints.qmd). |
 | `[derived.*]`, `[variants.*]` | Derived attributes and selected build variants: [derived values and variants](derived-variants.qmd). |

@@ -25,7 +25,50 @@ enabled = true
 severity = "error"
 ```
 
-Structural rules cannot be disabled. Decision rules use the `DECxxx` namespace; identification and type policies use `IDxxx`/`OBJxxx`.
+### How a rule becomes active
+
+Not every registered rule runs in every project. A rule reaches the findings list in one of three ways:
+
+| Activation | Meaning |
+|---|---|
+| **Always** | Runs in every project, with or without `.quarto-needs.toml`. |
+| **Configured** | Runs as soon as the configuration it depends on exists — declaring `required-attributes`, `id-prefix`, `allowed-statuses`, an `attribute-schema`, or a `[relations.*]` policy activates the matching rule automatically. |
+| **Opt-in** | Runs only after an explicit `[rules.<code>] enabled = true`. |
+
+The opt-in group matters in practice: decision governance and the implementation, evidence, risk, orphan, and expiry rules stay silent until the project asks for them. A project that expects `DEC001` to complain about an undriven decision must enable it.
+
+Any active rule can be turned off with `enabled = false`, or re-graded with `severity`, except where the catalog below says otherwise.
+
+### Rule catalog
+
+| Code | Checks | Default severity | Activation |
+|---|---|---|---|
+| `REQ002` | Requirement declarations should explain why they exist. | `warning` | Always |
+| `REQ004` | Every engineering object needs a unique ID. | `error` | Always (structural) |
+| `REQ005` | Relations must point at declared objects. | `error` | Always (structural) |
+| `REQ006` | Approved requirements need a verification relation. | `warning` | Always |
+| `REQ008` | Configured types may require attributes. | `warning` | Configured |
+| `REQ009` | Configured relations restrict endpoint types. | `warning` | Configured |
+| `REQ010` | Configured relations may constrain cardinality. | `warning` | Configured |
+| `REQ011` | Approved requirements need an implementation-family relation. | `warning` | Opt-in |
+| `REQ012` | Tests with status `approved` or `passed` need evidence-family relations. | `warning` | Opt-in |
+| `REQ013` | High/critical risks need incoming mitigation relations. | `warning` | Opt-in |
+| `REQ014` | Objects with no relations in either direction. | `info` | Opt-in |
+| `REQ015` | Evidence carrying an expiry attribute must still be valid. | `warning` | Opt-in |
+| `ID001` | Object IDs may be governed by a prefix per engineering type. | `warning` | Configured |
+| `OBJ001` | Object status must belong to the configured lifecycle for its type. | `warning` | Configured |
+| `OBJ002` | Object attributes may be constrained by a per-type JSON Schema. | `error` | Configured |
+| `DEC001` | Accepted decisions should address at least one engineering driver. | `warning` | Opt-in |
+| `DEC002` | Accepted decisions should identify affected architecture elements. | `warning` | Opt-in |
+| `DEC003` | Accepted decisions should define how conformance is confirmed. | `warning` | Opt-in |
+| `DEC004` | Superseded decisions need explicit lineage to another decision. | `warning` | Opt-in |
+| `DEC005` | Supersession lineage must remain acyclic. | `error` | Opt-in |
+| `DEC006` | Accepted decisions with `revisit-after` dates should be reviewed when due. | `warning` | Opt-in |
+| `ARC001` | `part-of` must connect adjacent C4 layers (system → container → component → source-module). | `error` | Always |
+
+Severity may be `error`, `warning`, or `info`, except where the rule restricts it: `REQ004` and `REQ005` are structural, so they can be neither disabled nor re-graded; `REQ006` accepts only `error` or `warning`; `DEC005` and `ARC001` accept only `error`. An unsupported value is a configuration error rather than a silently ignored setting.
+
+Decision rules use the `DECxxx` namespace, identification and type policies use `IDxxx`/`OBJxxx`, and architecture layering uses `ARCxxx`. Evidence validation uses the separate `EVDxxx` namespace described in [Executable evidence](executable-evidence.qmd) and [Machine evidence providers](evidence-providers.qmd); those codes are reported by the evidence commands, not by `[rules.*]`.
 
 ## Relations and cardinality
 
@@ -43,6 +86,25 @@ allowed-target-types = [
 minimum-per-source = 1
 ```
 
+| Setting | Meaning |
+|---|---|
+| `allowed-source-types` | Types permitted at the declaring end. Activates `REQ009`. |
+| `allowed-target-types` | Types permitted at the referenced end. Activates `REQ009`. |
+| `minimum-per-source` | Fewest edges of this relation each eligible source must declare. Activates `REQ010`. |
+| `maximum-per-source` | Most edges of this relation one source may declare. Activates `REQ010`. |
+
+Use `maximum-per-source = 1` for relations that must stay single-valued — a component belonging to exactly one container, or a decision superseding exactly one predecessor:
+
+```toml
+[relations."part-of"]
+allowed-source-types = ["container", "component", "source-module"]
+allowed-target-types = ["system", "container", "component"]
+minimum-per-source = 1
+maximum-per-source = 1
+```
+
+Omitting a bound leaves that side unconstrained. Declaring any of these four keys activates the corresponding rule automatically; no `[rules.*]` entry is needed.
+
 This turns modeling conventions into verifiable invariants.
 
 ## Quality gates
@@ -52,11 +114,39 @@ This turns modeling conventions into verifiable invariants.
 scope = "approved-requirements"
 max-errors = 0
 min-implementation-trace = 100.0
+min-implementation-effective = 100.0
 min-verification-trace = 100.0
+min-verification-successful = 100.0
 min-evidence = 100.0
+require-risk-mitigation = true
 ```
 
 Gates are appropriate for measurable properties of a set, while rules describe localized violations on objects or relations.
+
+| Setting | Type | Default | Meaning |
+|---|---|---|---|
+| `scope` | Named query | `approved-requirements` | The population every percentage gate measures. |
+| `max-errors` | Integer | `0` | Maximum error-severity findings allowed in the whole project. |
+| `min-implementation-trace` | Percent | unset | Share of the scope with an implementation-family relation. |
+| `min-implementation-effective` | Percent | unset | Share of the scope whose implementation endpoint is not in an ineffective status. |
+| `min-verification-trace` | Percent | unset | Share of the scope with a verification-family relation. |
+| `min-verification-successful` | Percent | unset | Share of the scope verified by a test in a successful status. |
+| `min-evidence` | Percent | unset | Share of the scope reaching unexpired evidence. |
+| `require-risk-mitigation` | Boolean | `false` | Requires zero `REQ013` findings. |
+
+The paired `-trace` and `-effective`/`-successful` gates are the difference between a link existing and that link meaning something. `min-verification-trace` accepts a requirement that names a test case; `min-verification-successful` additionally demands that the test carries a successful status. Which statuses count is `[governance]` policy — see [Practical reference](reference.qmd).
+
+An unset percentage gate is not evaluated. A gate whose `scope` query selects nothing passes with an empty denominator, because an absent population cannot be under-covered; `quality` reports the denominator alongside every percentage so a vacuous pass is visible rather than implied.
+
+`require-risk-mitigation` counts findings from rule `REQ013`, which is opt-in. Enabling the gate alone could only ever pass, so that pair is rejected as a configuration error rather than reporting a vacuous success. Enable both:
+
+```toml
+[rules.REQ013]
+enabled = true
+
+[gates]
+require-risk-mitigation = true
+```
 
 ## Baseline, diff, and impact
 

@@ -176,6 +176,8 @@ requirement --verified-by--> modeled test-case
 
 ## Evidence diagnostics
 
+`EVD001` precedes all of them: it reports a pytest artifact whose `tests` array is missing or malformed. Because no check could be interpreted, no `EVD1xx` diagnostic is produced alongside it.
+
 Provider-specific pytest diagnostics use stable `EVD1xx` codes:
 
 | Code | Meaning |

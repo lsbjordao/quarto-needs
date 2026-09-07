@@ -17,7 +17,7 @@ em `_quarto.yml` ou nos metadados do documento.
 | `[types.*]` | Atributos obrigatórios, prefixos, papéis semânticos e estados permitidos: [modelo de engenharia](engineering-model.qmd), [autoria](authoring.qmd) e [esquemas de tipos](type-schemas.qmd). |
 | `[relations.*]` | Tipos permitidos nas extremidades e cardinalidade mínima/máxima: [governança](governance.qmd). |
 | `[governance]` | Tipos de teste/risco, estados de sucesso e ineficácia e expiração de evidências; veja os padrões abaixo. |
-| `[queries.*]` | Seleções reutilizáveis: [exemplos de consulta na CLI](cli-reference.qmd) e [visualizações de grafo](engineering-model.qmd). |
+| `[queries.*]` | Seleções reutilizáveis e a gramática completa de consultas: [consultas nomeadas](named-queries.qmd). |
 | `[policies.*]` | Asserções declarativas por escopo: [políticas](declarative-policies.qmd). |
 | `[constraints.*]` | Caminhos obrigatórios, ciclos, conectividade e cardinalidade: [restrições de grafo](graph-constraints.qmd). |
 | `[derived.*]`, `[variants.*]` | Atributos derivados e variantes selecionadas para uma build: [valores derivados e variantes](derived-variants.qmd). |

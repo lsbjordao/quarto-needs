@@ -1,0 +1,206 @@
+# Named queries
+
+A named query is the single selection mechanism of Quarto-Needs. It is declared once in `.quarto-needs.toml`, evaluated only by the Python core, and then reused by views, governance, and the CLI. There is no second query language: shortcodes and browser controls filter an already materialized selection, they never interpret query text.
+
+One declaration therefore serves every consumer:
+
+| Consumer | How the query name is used |
+|---|---|
+| Views | `query=` / `view=` on `need-table`, `need-list`, `need-count`, `need-tags`, `need-dashboard`, `need-graph`, `adr-table`, `adr-count`. |
+| Governance | `scope` in `[gates]`, `[policies.*]`, `[constraints.*]`, `[derived.*]`, and `[variants.*]`. |
+| Graph projections | `[graph]` `overlay-queries`, and the projection published for every `query`-backed graph. |
+| CLI | `quarto-needs query <name>`. |
+
+## Declaring a query
+
+Every query is a `[queries.<name>]` table. The name is the identifier used everywhere else.
+
+```toml
+[queries.accepted-decisions]
+all = [
+  { field = "type", op = "eq", value = "architecture-decision" },
+  { field = "status", op = "eq", value = "accepted" },
+]
+sort = ["id:asc"]
+```
+
+A query table accepts exactly two keys: one top-level combinator (`all`, `any`, or `not`) and an optional `sort`. A query without a combinator, or with more than one, is a configuration error — this keeps the predicate explicit instead of implying an operator.
+
+## Combinators
+
+Combinators group clauses and may nest.
+
+| Combinator | Value | Meaning |
+|---|---|---|
+| `all` | Non-empty array of clauses | Every clause must match (logical AND). |
+| `any` | Non-empty array of clauses | At least one clause must match (logical OR). |
+| `not` | A single clause | The clause must not match (logical NOT). |
+
+A combinator cannot share its table with another key, so nesting uses an inner table:
+
+```toml
+[queries.unverified-approved-requirements]
+all = [
+  { field = "type", op = "contains", value = "requirement" },
+  { field = "status", op = "eq", value = "approved" },
+  { not = { relation = "verified-by", direction = "out", op = "exists" } },
+]
+sort = ["priority:asc", "id:asc"]
+```
+
+## Field clauses
+
+A field clause selects on one property of the object.
+
+```toml
+all = [{ field = "status", op = "eq", value = "approved" }]
+```
+
+Only these fields can be addressed:
+
+| Field | Source |
+|---|---|
+| `id` | Object identifier. |
+| `title` | Object title. |
+| `type` | Engineering type. |
+| `status` | Lifecycle status. |
+| `priority` | The `priority` attribute; absent when never authored. |
+| `tags` | The object's tag list. |
+| `attributes.<name>` | Any authored attribute, for example `attributes.decision-makers`. |
+
+Any other field name is rejected at load time rather than silently matching nothing.
+
+### Field operators
+
+| Operator | Required value key | Meaning |
+|---|---|---|
+| `eq` | `value` | Equality. Strings compare case-insensitively; numbers compare numerically; booleans compare only with booleans. |
+| `in` | `values` (non-empty array) | Equality against any member of the list, using the same comparison as `eq`. |
+| `contains` | `value` (scalar) | Membership for list values such as `tags`; case-insensitive substring for string values. |
+| `exists` | — | The field is present on the object. |
+| `missing` | — | The field is absent from the object. |
+
+`exists` and `missing` take no comparison value; supplying one is an error. `eq` and `contains` require a scalar `value`, and `in` requires a non-empty `values` array.
+
+`exists`/`missing` are only meaningful for fields that can be absent — `priority` and `attributes.<name>`. `id`, `title`, `type`, `status`, and `tags` are always present, so `missing` never matches them.
+
+```toml
+[queries.unprioritized-objects]
+all = [
+  { field = "priority", op = "missing" },
+]
+
+[queries.expiring-evidence]
+all = [
+  { field = "type", op = "eq", value = "evidence" },
+  { field = "attributes.expires", op = "exists" },
+]
+
+[queries.security-critical]
+all = [
+  { field = "tags", op = "contains", value = "security" },
+  { field = "priority", op = "in", values = ["critical", "high"] },
+]
+```
+
+## Relation clauses
+
+A relation clause selects on the presence of a typed edge rather than on a stored value.
+
+```toml
+all = [{ relation = "verified-by", direction = "out", op = "exists" }]
+```
+
+| Key | Values | Meaning |
+|---|---|---|
+| `relation` | A relation name from the catalog | Rejected at load time when the name is unknown. |
+| `direction` | `out`, `in`, `either` | Which side of the object the edge must be on. |
+| `op` | `exists`, `missing` | Whether that edge must be present or absent. |
+
+Direction is evaluated against the catalog's inverse pairing, not against raw edge orientation. `implemented-by`/`implements`, `verified-by`/`verifies`, and `supersedes`/`superseded-by` are paired, so a requirement declaring `implemented-by` and a source module declaring `implements` produce the same match. Which side authored the relation therefore does not change query results.
+
+Relation clauses support only `exists` and `missing`; they cannot compare endpoint values. To constrain the other endpoint as well, model it with a `[constraints.*]` required path instead — see [Graph constraints](graph-constraints.qmd).
+
+```toml
+[queries.orphan-requirements]
+all = [
+  { field = "type", op = "contains", value = "requirement" },
+  { relation = "derives-from", direction = "either", op = "missing" },
+]
+```
+
+## Sorting
+
+`sort` is an array of tokens. Each token is a field name with an optional `:asc` (default) or `:desc` suffix.
+
+```toml
+sort = ["priority:asc", "status:desc", "id:asc"]
+```
+
+Sort tokens accept the same fields as field clauses, including `attributes.<name>`. Two rules are specific to sorting:
+
+- `priority` sorts by rank — `critical`, `high`, `medium`, `low`, then objects with no priority — rather than alphabetically.
+- Every other field sorts as case-insensitive text; list values such as `tags` are joined before comparison, and absent values sort as empty.
+
+The object ID always breaks remaining ties, so a query result is fully deterministic. Omitting `sort` orders the result by ID alone.
+
+Note the difference from shortcode sorting: the `sort=` argument on a view accepts only ascending field names (`sort="priority;id"`). The `field:desc` form belongs to the query grammar in `.quarto-needs.toml`.
+
+## The built-in query
+
+`approved-requirements` always exists without being declared. It is the default scope for gates and the starting population of the default graph projection, and it is defined as:
+
+```toml
+[queries.approved-requirements]
+all = [
+  { field = "type", op = "contains", value = "requirement" },
+  { field = "status", op = "eq", value = "approved" },
+]
+sort = ["priority:asc", "id:asc"]
+```
+
+Because it matches on `type` containing `requirement`, it covers `system-requirement`, `functional-requirement`, and `non-functional-requirement` without listing them. Declaring `[queries.approved-requirements]` yourself overrides the built-in definition for every consumer.
+
+## Limits and failure behavior
+
+A query may contain at most 100 clauses and nest at most 10 levels. Both limits keep materialization bounded and predictable.
+
+Query problems are configuration errors, reported when the project is analyzed rather than when a page happens to render: an unknown field or relation name, an unsupported operator, a missing or malformed value, a combinator sharing its table with another key, or an invalid sort direction. `quarto-needs query <name>` exits with code `2` for a query that does not exist and lists the names that do.
+
+A valid query that matches nothing is not an error. Views render their empty state, `need-count` renders `0`, and scoped metrics report a zero denominator.
+
+## Verifying a query
+
+Evaluate a query from the command line before wiring it into a view or a gate:
+
+```bash
+quarto-needs query security-critical
+quarto-needs query security-critical --format json
+```
+
+The text form prints the ordered IDs, one per line. The JSON form returns the query name and the same ordered `ids` array, which is exactly what views and scopes consume. See the [command-line reference](cli-reference.qmd).
+
+## Using the query name
+
+Once declared, the same name drives presentation and governance:
+
+```markdown
+{{< need-table query="security-critical" columns="id;title;status;priority" >}}
+{{< need-count query="security-critical" >}}
+{{< need-graph view="security-critical" >}}
+```
+
+```toml
+[gates]
+scope = "security-critical"
+min-verification-trace = 100.0
+
+[policies.SECURITY_NEEDS_TEST]
+scope = "security-critical"
+assert-relation = "verified-by"
+target-role = "verification"
+minimum = 1
+severity = "error"
+```
+
+That is the practical value of naming a selection: the population a dashboard shows and the population a gate enforces cannot drift apart, because they are the same declaration. Graph projections add one constraint — a query-backed graph that exceeds the `[graph]` budget is published as unavailable rather than truncated; see [Views and shortcodes](views-reference.qmd).

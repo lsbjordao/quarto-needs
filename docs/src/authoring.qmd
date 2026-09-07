@@ -23,6 +23,56 @@ Machine-queryable metadata stays in the block preamble; human explanations remai
 
 A `### Rationale` section inside the block is indexed into the object's machine-readable rationale field — so per-field diffs, baselines, and exports see it — while the body itself is preserved verbatim. A `rationale:` preamble key, when present, takes precedence.
 
+### Anatomy of a block
+
+A `.need` block has three parts, in this order:
+
+1. **The opening fence**, which carries the required `#ID` and optional inline attributes.
+2. **The preamble**, a YAML-like `key: value` region. It ends at the first heading, or at the first line that is neither `key: value` nor a `-` list item. Blank lines inside it are ignored, not terminators.
+3. **The body**, ordinary Markdown. Its first heading becomes the object title; without a heading, the title falls back to the ID.
+
+Because a prose line closes the preamble, keep every `key: value` line above the body. A metadata line written *after* a sentence is read as body text: it is not an attribute, not a relation, and produces no diagnostic.
+
+Both the fence attributes and the preamble write to the same set of keys, so `status` can be declared in either place. When the same key appears in both, **the preamble wins**. Use the fence for short scalars and the preamble for anything that benefits from being on its own line.
+
+### Reserved keys
+
+These keys have defined meaning; everything else becomes a queryable attribute.
+
+| Key | Default | Meaning |
+|---|---|---|
+| `#ID` | — | Required. The object's identity, given on the fence as a Pandoc identifier. |
+| `type` | `need` | Engineering type. Drives roles, required attributes, prefixes, and badge color. |
+| `status` | `draft` | Lifecycle status. Validated against `allowed-statuses` when configured. |
+| `title` | first body heading | Object title. Falls back to the ID when neither is present. |
+| `rationale` | `### Rationale` section | Machine-readable rationale. The key takes precedence over the section. |
+
+`priority`, `tags`, and `date` are ordinary attributes rather than reserved keys, but they receive dedicated presentation: `priority` gets a badge and rank-aware sorting, `tags` renders as tag chips and feeds the tag catalog, and `date` appears on architecture-decision cards.
+
+### Relations and attributes
+
+Any preamble key that names a relation in the catalog declares relations; every other key becomes an attribute readable as `attributes.<name>` in [named queries](named-queries.qmd).
+
+```markdown
+::: {.need #FUN-014 type="functional-requirement" status="approved" priority="high"}
+derives-from: SYS-003
+verified-by: TC-020, TC-021
+implemented-by:
+  - COMP-PARSER
+  - COMP-ANALYSIS
+owner: Platform team
+expires: 2027-01-31
+
+## Reject malformed declarations
+:::
+```
+
+Multiple targets are written either as one value separated by commas or semicolons, or as a `-` list on the following lines. The two forms are equivalent.
+
+Declare each key **once** per block. The preamble is a mapping, so repeating a key keeps only its last occurrence; write `verified-by: TC-020, TC-021` or the list form instead of two `verified-by:` lines. A repeated key is reported as `QND003` so the discarded value cannot pass unnoticed.
+
+Relation targets are not resolved while parsing. A target that names no declared object is reported as `REQ005` during validation, which is how typos surface instead of becoming silent dead ends.
+
 ## References and views
 
 The book can project the graph with shortcodes such as:

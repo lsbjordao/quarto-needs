@@ -94,6 +94,20 @@ O verificador checa:
 
 A validação genérica usa diagnósticos `EVD3xx`. Ela é separada dos diagnósticos pytest `EVD1xx` e dos diagnósticos provider-neutral de atestação/frescor `EVD2xx`.
 
+| Código | Significado |
+|---|---|
+| `EVD301` | o payload não tem um array `checks` válido, ou contém um check que não é objeto |
+| `EVD302` | o resultado de um check de máquina não é `passed` |
+| `EVD303` | um check de máquina não está vinculado a um objeto de evidência modelado |
+| `EVD304` | um check de máquina referencia um caso de teste desconhecido |
+| `EVD305` | um check de máquina referencia um requisito desconhecido |
+| `EVD306` | um requisito reivindicado não está ligado por verificação a um caso de teste que o check reivindica |
+| `EVD307` | um check de máquina referencia um objeto de evidência desconhecido |
+| `EVD308` | a evidência modelada declara um `provider` diferente do da evidência de máquina |
+| `EVD309` | a evidência modelada não evidencia um caso de teste que o check reivindica |
+
+`EVD306` e `EVD309` são a contraparte genérica do portão recíproco descrito em [Evidência executável](executable-evidence.qmd): um provedor só pode reivindicar um requisito quando o modelo, de forma independente, liga esse requisito ao caso de teste reivindicado, e apenas quando o objeto de evidência modelado está ele próprio conectado a ele.
+
 ## Fronteira de confiança
 
 Um resultado do provider nunca é suficiente por si só. Evidência positiva de engenharia exige concordância de todas as camadas aplicáveis:

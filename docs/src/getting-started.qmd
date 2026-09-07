@@ -23,6 +23,14 @@ quarto render
 
 The extension supplies its own pre-render step and provisions the matching Python engine into a project-local managed runtime. You do **not** need to add `project.pre-render: quarto-needs scan` or install the standalone CLI just to render.
 
+The engine is installed as `quarto-needs==<extension version>` from the package index, into `.quarto-needs/runtime/`. When that index is unreachable — an air-gapped machine, or a version not published yet — `QUARTO_NEEDS_ENGINE_SOURCE` overrides where it comes from:
+
+```bash
+QUARTO_NEEDS_ENGINE_SOURCE=/path/to/quarto-needs quarto render
+```
+
+The value must be a local filesystem path to a checkout or a wheel. A remote URL is refused, and so is a path that does not exist; the override cannot be set from a project file. When provisioning fails, the render stops with an actionable message naming this variable rather than producing a partially rendered book.
+
 For a new project, the starter template bundles and activates the extension:
 
 ```bash

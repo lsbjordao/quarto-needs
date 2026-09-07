@@ -176,6 +176,8 @@ requisito --verified-by--> caso de teste modelado
 
 ## Diagnósticos de evidência
 
+`EVD001` precede todos eles: reporta um artefato pytest cujo array `tests` está ausente ou malformado. Como nenhum check pôde ser interpretado, nenhum diagnóstico `EVD1xx` é produzido junto dele.
+
 Os diagnósticos específicos do pytest usam códigos `EVD1xx`:
 
 | Código | Significado |

@@ -94,6 +94,20 @@ The validator checks:
 
 Generic validation uses `EVD3xx` diagnostics. This is separate from pytest-specific `EVD1xx` diagnostics and provider-neutral attestation/freshness `EVD2xx` diagnostics.
 
+| Code | Meaning |
+|---|---|
+| `EVD301` | the payload has no valid `checks` array, or contains a non-object check |
+| `EVD302` | a machine check outcome is not `passed` |
+| `EVD303` | a machine check is not bound to a modeled evidence object |
+| `EVD304` | a machine check references an unknown test-case |
+| `EVD305` | a machine check references an unknown requirement |
+| `EVD306` | a claimed requirement is not verification-linked to a test-case the check claims |
+| `EVD307` | a machine check references an unknown evidence object |
+| `EVD308` | modeled evidence declares a different `provider` than the machine evidence |
+| `EVD309` | modeled evidence does not evidence a test-case the check claims |
+
+`EVD306` and `EVD309` are the generic counterpart of the reciprocal gate described in [Executable evidence](executable-evidence.qmd): a provider may claim a requirement only when the model independently links that requirement to the claimed test-case, and only when the modeled evidence object is itself connected to it.
+
 ## Trust boundary
 
 A provider result is never sufficient by itself. Positive engineering evidence requires all applicable layers to agree:

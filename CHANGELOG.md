@@ -24,6 +24,10 @@ Initial release at alpha maturity (classifier `Development Status :: 3 - Alpha`)
 
 ### Fixed
 
+- A repeated `.need` preamble key silently discarded every value but the last, dropping authored relations with no diagnostic and letting a project still validate as fully traced. Repeats are now reported as `QND003` at the offending line; the merge semantics are unchanged.
+- `[gates] require-risk-mitigation = true` reported `[PASS]` for every project when rule `REQ013` was left disabled, because the gate counts that rule's findings and `REQ013` is opt-in — a project with unmitigated critical risks passed its own risk gate. The incoherent pair is now rejected at configuration load.
+- A `.quarto-needs.toml` that stopped loading while the language server was running silenced it: the error escaped into the dispatch loop's catch-all, which skipped the entire `publishDiagnostics` reply, so the editor kept stale diagnostics with no indication that anything had broken. The server now keeps its last valid snapshot and reports the failure as a `CFG001` diagnostic on the configuration file.
+- `quarto-needs --help` presented only the argparse subcommands, hiding the Git-range change reports, `variant`, ReqIF/JSON-LD interchange, `migrate`, `oslc`, and `lsp`. The entry point now lists the commands its outer dispatch layer handles.
 - Real `quarto add lsbjordao/quarto-needs` distribution now follows Quarto's owner-scoped `_extensions/lsbjordao/quarto-needs/` layout, including the managed bootstrap and generated Lua index consumed by the active extension.
 - The starter template keeps a deliberately unscoped bundled extension with a matching bootstrap path while current Quarto releases retain the upstream scoped-template copy bug.
 - README, quickstart, and manual examples now distinguish extension activation from installation, distinguish the optional standalone CLI from rendering, document the review-first migration CLI accurately, include the required OSLC query context, and no longer advertise a nonexistent public GitHub-Issues CLI.

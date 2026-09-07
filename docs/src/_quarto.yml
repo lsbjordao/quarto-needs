@@ -12,6 +12,7 @@ book:
     - index.qmd
     - getting-started.qmd
     - engineering-model.qmd
+    - named-queries.qmd
     - authoring.qmd
     - views-reference.qmd
     - architecture-decisions.qmd

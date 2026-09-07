@@ -106,6 +106,14 @@ severity = "error"
 
 O modelo autocontido já exige 100% de cobertura de verificação. Essa política declarativa expressa de forma independente a expectativa de governança específica do projeto; assim, um requisito aprovado futuro sem relação de verificação produz `POLICY:APPROVED_REQUIRES_TEST` e bloqueia o quality gate estrito.
 
-## Limite atual
+## Onde esta camada termina
 
-A Phase 3.1 começa intencionalmente com políticas de relação obrigatória. Fases posteriores podem acrescentar, de forma igualmente limitada, schemas por tipo, restrições de caminhos/cardinalidade/ciclos do grafo e valores derivados seguros. Essas capacidades devem ampliar o modelo canônico de políticas, e não introduzir avaliação arbitrária de expressões.
+`[policies.*]` cobre deliberadamente uma pergunta: um objeto no escopo possui o suficiente de uma relação obrigatória? Qualquer coisa estruturalmente mais rica pertence a uma camada declarativa irmã, e não a uma gramática de políticas ampliada:
+
+| Necessidade | Camada |
+|---|---|
+| Restrições de valor e forma de atributos | `[types.<tipo>.attribute-schema]` — [esquemas de atributos por tipo](type-schemas.qmd) |
+| Caminhos obrigatórios, ciclos proibidos, conectividade, tetos de relação | `[constraints.*]` — [restrições de grafo](graph-constraints.qmd) |
+| Valores computados e fatias de build selecionadas | `[derived.*]` e `[variants.*]` — [campos derivados e variantes de build](derived-variants.qmd) |
+
+Cada uma delas é limitada do mesmo modo que as políticas: uma tabela declarativa compilada pelo core, nunca um avaliador de expressões. Ampliar a governança significa acrescentar uma capacidade explícita desse tipo, e não abrir uma saída para execução de código.

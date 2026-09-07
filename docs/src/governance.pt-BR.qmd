@@ -25,7 +25,50 @@ enabled = true
 severity = "error"
 ```
 
-Regras estruturais não podem ser desligadas. Regras de decisão usam o namespace `DECxxx`; políticas de identificação e tipo usam `IDxxx`/`OBJxxx`.
+### Como uma regra se torna ativa
+
+Nem toda regra registrada roda em todo projeto. Uma regra chega à lista de achados por um destes três caminhos:
+
+| Ativação | Significado |
+|---|---|
+| **Sempre** | Roda em todo projeto, com ou sem `.quarto-needs.toml`. |
+| **Configurada** | Roda assim que existe a configuração da qual depende — declarar `required-attributes`, `id-prefix`, `allowed-statuses`, um `attribute-schema` ou uma política `[relations.*]` ativa automaticamente a regra correspondente. |
+| **Opcional** | Roda apenas após um `[rules.<código>] enabled = true` explícito. |
+
+O grupo opcional importa na prática: a governança de decisões e as regras de implementação, evidência, risco, objeto órfão e expiração permanecem silenciosas até o projeto pedi-las. Um projeto que espera que `DEC001` reclame de uma decisão sem driver precisa habilitá-la.
+
+Qualquer regra ativa pode ser desligada com `enabled = false`, ou reclassificada com `severity`, exceto onde o catálogo abaixo indicar o contrário.
+
+### Catálogo de regras
+
+| Código | Verifica | Severidade padrão | Ativação |
+|---|---|---|---|
+| `REQ002` | Declarações de requisito devem explicar por que existem. | `warning` | Sempre |
+| `REQ004` | Todo objeto de engenharia precisa de um ID único. | `error` | Sempre (estrutural) |
+| `REQ005` | Relações precisam apontar para objetos declarados. | `error` | Sempre (estrutural) |
+| `REQ006` | Requisitos aprovados precisam de uma relação de verificação. | `warning` | Sempre |
+| `REQ008` | Tipos configurados podem exigir atributos. | `warning` | Configurada |
+| `REQ009` | Relações configuradas restringem os tipos dos extremos. | `warning` | Configurada |
+| `REQ010` | Relações configuradas podem restringir cardinalidade. | `warning` | Configurada |
+| `REQ011` | Requisitos aprovados precisam de uma relação da família de implementação. | `warning` | Opcional |
+| `REQ012` | Testes com status `approved` ou `passed` precisam de relações da família de evidência. | `warning` | Opcional |
+| `REQ013` | Riscos altos/críticos precisam de relações de mitigação entrantes. | `warning` | Opcional |
+| `REQ014` | Objetos sem relações em nenhuma direção. | `info` | Opcional |
+| `REQ015` | Evidência com atributo de expiração precisa continuar válida. | `warning` | Opcional |
+| `ID001` | IDs de objeto podem ser governados por um prefixo por tipo de engenharia. | `warning` | Configurada |
+| `OBJ001` | O status do objeto precisa pertencer ao ciclo de vida configurado para seu tipo. | `warning` | Configurada |
+| `OBJ002` | Atributos do objeto podem ser restringidos por um JSON Schema por tipo. | `error` | Configurada |
+| `DEC001` | Decisões aceitas devem endereçar ao menos um driver de engenharia. | `warning` | Opcional |
+| `DEC002` | Decisões aceitas devem identificar os elementos de arquitetura afetados. | `warning` | Opcional |
+| `DEC003` | Decisões aceitas devem definir como a conformidade é confirmada. | `warning` | Opcional |
+| `DEC004` | Decisões superadas precisam de linhagem explícita para outra decisão. | `warning` | Opcional |
+| `DEC005` | A linhagem de supersessão precisa permanecer acíclica. | `error` | Opcional |
+| `DEC006` | Decisões aceitas com data `revisit-after` devem ser revisadas no vencimento. | `warning` | Opcional |
+| `ARC001` | `part-of` precisa conectar camadas C4 adjacentes (system → container → component → source-module). | `error` | Sempre |
+
+A severidade pode ser `error`, `warning` ou `info`, exceto onde a regra a restringe: `REQ004` e `REQ005` são estruturais, portanto não podem ser desligadas nem reclassificadas; `REQ006` aceita apenas `error` ou `warning`; `DEC005` e `ARC001` aceitam apenas `error`. Um valor não suportado é erro de configuração, e não uma opção silenciosamente ignorada.
+
+Regras de decisão usam o namespace `DECxxx`, políticas de identificação e tipo usam `IDxxx`/`OBJxxx`, e o empilhamento de arquitetura usa `ARCxxx`. A validação de evidência usa o namespace separado `EVDxxx`, descrito em [Evidência executável](executable-evidence.qmd) e [Provedores de evidência de máquina](evidence-providers.qmd); esses códigos são relatados pelos comandos de evidência, não por `[rules.*]`.
 
 ## Relações e cardinalidade
 
@@ -43,6 +86,25 @@ allowed-target-types = [
 minimum-per-source = 1
 ```
 
+| Ajuste | Significado |
+|---|---|
+| `allowed-source-types` | Tipos permitidos no extremo declarante. Ativa `REQ009`. |
+| `allowed-target-types` | Tipos permitidos no extremo referenciado. Ativa `REQ009`. |
+| `minimum-per-source` | Menor número de arestas desta relação que cada origem elegível precisa declarar. Ativa `REQ010`. |
+| `maximum-per-source` | Maior número de arestas desta relação que uma origem pode declarar. Ativa `REQ010`. |
+
+Use `maximum-per-source = 1` para relações que precisam permanecer de valor único — um componente pertencente a exatamente um contêiner, ou uma decisão que supera exatamente uma predecessora:
+
+```toml
+[relations."part-of"]
+allowed-source-types = ["container", "component", "source-module"]
+allowed-target-types = ["system", "container", "component"]
+minimum-per-source = 1
+maximum-per-source = 1
+```
+
+Omitir um limite deixa aquele lado sem restrição. Declarar qualquer uma dessas quatro chaves ativa automaticamente a regra correspondente; nenhuma entrada `[rules.*]` é necessária.
+
 Isso transforma convenções de modelagem em invariantes verificáveis.
 
 ## Quality gates
@@ -52,11 +114,39 @@ Isso transforma convenções de modelagem em invariantes verificáveis.
 scope = "approved-requirements"
 max-errors = 0
 min-implementation-trace = 100.0
+min-implementation-effective = 100.0
 min-verification-trace = 100.0
+min-verification-successful = 100.0
 min-evidence = 100.0
+require-risk-mitigation = true
 ```
 
 Gates são apropriados para propriedades mensuráveis do conjunto, enquanto regras descrevem violações localizadas em objetos ou relações.
+
+| Ajuste | Tipo | Padrão | Significado |
+|---|---|---|---|
+| `scope` | Consulta nomeada | `approved-requirements` | A população medida por todo gate percentual. |
+| `max-errors` | Inteiro | `0` | Máximo de achados com severidade de erro em todo o projeto. |
+| `min-implementation-trace` | Percentual | não definido | Fração do escopo com uma relação da família de implementação. |
+| `min-implementation-effective` | Percentual | não definido | Fração do escopo cujo extremo de implementação não está em status inefetivo. |
+| `min-verification-trace` | Percentual | não definido | Fração do escopo com uma relação da família de verificação. |
+| `min-verification-successful` | Percentual | não definido | Fração do escopo verificada por um teste em status bem-sucedido. |
+| `min-evidence` | Percentual | não definido | Fração do escopo que alcança evidência não expirada. |
+| `require-risk-mitigation` | Booleano | `false` | Exige zero achados `REQ013`. |
+
+Os pares `-trace` e `-effective`/`-successful` são a diferença entre um vínculo existir e esse vínculo significar algo. `min-verification-trace` aceita um requisito que nomeia um caso de teste; `min-verification-successful` exige adicionalmente que o teste carregue um status bem-sucedido. Quais status contam é política de `[governance]` — veja a [referência prática](reference.qmd).
+
+Um gate percentual não definido não é avaliado. Um gate cuja consulta de `scope` não seleciona nada passa com denominador vazio, porque uma população ausente não pode estar sub-coberta; `quality` relata o denominador junto de cada percentual, de modo que uma aprovação vazia fique visível em vez de implícita.
+
+`require-risk-mitigation` conta achados da regra `REQ013`, que é opcional. Habilitar apenas o gate só poderia resultar em aprovação, então esse par é rejeitado como erro de configuração em vez de relatar um sucesso vazio. Habilite os dois:
+
+```toml
+[rules.REQ013]
+enabled = true
+
+[gates]
+require-risk-mitigation = true
+```
 
 ## Baseline, diff e impacto
 

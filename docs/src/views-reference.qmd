@@ -2,7 +2,7 @@
 
 Activate `filters: [quarto-needs]` as described in [Getting started](getting-started.qmd). The extension analyzes the project before rendering; views consume the generated graph and projections. Use `.need` blocks to declare objects and shortcodes to reference or present them.
 
-Examples below assume the referenced IDs exist. A `query` names a query declared in `.quarto-needs.toml`, rather than an expression written inside the shortcode. See [Engineering model](engineering-model.qmd) for a complete query declaration. Views render object titles in the page's language when localized title siblings exist; see [Localized titles](authoring.qmd#localized-titles).
+Examples below assume the referenced IDs exist. A `query` names a query declared in `.quarto-needs.toml`, rather than an expression written inside the shortcode. See [Named queries](named-queries.qmd) for the complete query grammar. Views render object titles in the page's language when localized title siblings exist; see [Localized titles](authoring.qmd#localized-titles).
 
 ## Shortcode inventory
 
