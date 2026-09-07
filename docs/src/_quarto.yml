@@ -13,6 +13,7 @@ book:
     - getting-started.qmd
     - engineering-model.qmd
     - authoring.qmd
+    - views-reference.qmd
     - architecture-decisions.qmd
     - c4-architecture.qmd
     - executable-evidence.qmd
@@ -25,6 +26,7 @@ book:
     - interoperability.qmd
     - migrations.qmd
     - language-server.qmd
+    - cli-reference.qmd
     - reference.qmd
 
 format:

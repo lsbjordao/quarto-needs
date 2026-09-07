@@ -8,7 +8,9 @@ Quarto-Needs separates structural findings from semantic governance. Profiles co
 profile = "strict"
 ```
 
-Under the `strict` profile, gate regressions terminate the command with an error. This allows the published book to be used as a CI-governed artifact, not merely informational documentation.
+The available profiles are `default` (the default), `advisory`, and `strict`. For `quality` and the JSON/CSV/SARIF/JUnit/Markdown exports, `strict` makes failed gates return an error; `default` and `advisory` keep the gate results visible without a failing gate verdict. Structural failures remain blocking in every profile.
+
+`scan` and `check` fail on error-severity findings, but do not enforce numeric gates. A CI workflow that requires coverage thresholds should run `quarto-needs quality` as well. The [command-line reference](cli-reference.qmd) explains the separate exit behavior of change reports.
 
 ## Rules
 
@@ -61,3 +63,5 @@ Gates are appropriate for measurable properties of a set, while rules describe l
 A baseline captures the analyzed state and configuration fingerprint. Diff distinguishes added/removed objects, modified content, relocation, and relation changes. When policy changes, incompatible derived results are explicitly suppressed instead of producing misleading comparisons.
 
 Impact analysis uses semantic direction declared in the catalog. ADR relations participate in this mechanism exactly like implementation, verification, and evidence relations.
+
+See the [command-line reference](cli-reference.qmd) for baseline creation/inspection, comparisons with current sources, `--recompute-with current`, committed Git ranges, suspect claims, and PR/GitHub report generation.

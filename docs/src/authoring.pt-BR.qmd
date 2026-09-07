@@ -41,6 +41,10 @@ O livro pode projetar o grafo com shortcodes como:
 
 As visualizações são leituras do artefato canônico; não reimplementam as regras de semântica no renderer.
 
+A [referência de visualizações](views-reference.qmd) documenta todos os shortcodes
+registrados, seus seletores e opções, os controles interativos e a configuração
+do índice lateral da página.
+
 ## Índice de tags e navegação direta
 
 Para um catálogo interativo de tags, crie um capítulo (ex.: `tags.qmd`) contendo:

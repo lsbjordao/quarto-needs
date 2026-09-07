@@ -1,5 +1,45 @@
 # Practical reference
 
+For executable examples and supported options, see the
+[CLI reference](cli-reference.qmd) and [views reference](views-reference.qmd).
+This chapter summarizes the engineering vocabulary and traceability patterns.
+
+## Configuration map
+
+Engineering policy belongs in `.quarto-needs.toml`. Quarto presentation settings,
+including `quarto-needs: margin-sidebar-toggle:` and `tags-page:`, belong in
+`_quarto.yml` or document metadata.
+
+| TOML setting | Purpose and detailed guide |
+|---|---|
+| `profile`, `[rules.*]`, `[gates]` | Finding severity, enabled rules and numerical gates: [governance](governance.qmd). |
+| `[types.*]` | Required attributes, prefixes, semantic roles and allowed statuses: [engineering model](engineering-model.qmd), [authoring](authoring.qmd) and [type schemas](type-schemas.qmd). |
+| `[relations.*]` | Allowed endpoint types and minimum/maximum cardinality: [governance](governance.qmd). |
+| `[governance]` | Test/risk types, success and ineffective statuses, and evidence expiry; see the defaults below. |
+| `[queries.*]` | Reusable selections: [CLI query examples](cli-reference.qmd) and [graph views](engineering-model.qmd). |
+| `[policies.*]` | Scoped declarative assertions: [policies](declarative-policies.qmd). |
+| `[constraints.*]` | Required paths, cycles, connectivity and cardinality: [graph constraints](graph-constraints.qmd). |
+| `[derived.*]`, `[variants.*]` | Derived attributes and selected build variants: [derived values and variants](derived-variants.qmd). |
+| `[graph]` | Projection budgets, traversal depth, baselines and overlays: [views reference](views-reference.qmd). |
+| `[federation.oslc.profiles.*]` | Endpoint allowlists and bounded OSLC reads: [interoperability](interoperability.qmd). |
+
+The following `[governance]` values are the built-in defaults. Change them when
+your catalog uses different type names or lifecycle statuses:
+
+```toml
+[governance]
+test-types = ["test-case"]
+risk-types = ["risk"]
+successful-test-statuses = ["passed"]
+ineffective-endpoint-statuses = ["disapproved", "rejected", "failed", "deprecated"]
+expiry-attribute = "expires"
+```
+
+These settings distinguish the existence of a trace from an effective
+implementation, successful verification or unexpired evidence. `SOURCE_DATE_EPOCH`
+sets the reference date for reproducible date-sensitive analysis; otherwise the
+engine uses the current date.
+
 ## Common types
 
 | Type | Suggested role | Common prefix |

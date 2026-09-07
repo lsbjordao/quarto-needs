@@ -8,7 +8,9 @@ Quarto-Needs separa achados estruturais de governança semântica. Perfis contro
 profile = "strict"
 ```
 
-No perfil `strict`, regressões de gate encerram o comando com erro. Isso permite usar o livro publicado como artefato governado por CI, não apenas como documentação informativa.
+Os perfis disponíveis são `default` (o padrão), `advisory` e `strict`. Em `quality` e nas exportações JSON/CSV/SARIF/JUnit/Markdown, `strict` faz gates reprovados retornarem erro; `default` e `advisory` mantêm os resultados visíveis sem uma reprovação do processo por gate. Falhas estruturais permanecem bloqueantes em todos os perfis.
+
+`scan` e `check` falham quando há findings com severidade de erro, mas não aplicam gates numéricos. Um fluxo de CI que exige limites de cobertura também deve executar `quarto-needs quality`. A [referência da linha de comando](cli-reference.qmd) explica o comportamento de saída específico dos relatórios de mudança.
 
 ## Regras
 
@@ -61,3 +63,5 @@ Gates são apropriados para propriedades mensuráveis do conjunto, enquanto regr
 Um baseline captura o estado analisado e a fingerprint da configuração. O diff distingue objetos adicionados/removidos, conteúdo modificado, relocação e mudanças de relações. Quando a política muda, resultados derivados incompatíveis são suprimidos explicitamente em vez de produzir comparações enganosas.
 
 A análise de impacto usa a direção semântica declarada no catálogo. Relações ADR participam desse mecanismo exatamente como as relações de implementação, verificação e evidência.
+
+Veja a [referência da linha de comando](cli-reference.qmd) para criação/inspeção de baselines, comparação com fontes atuais, `--recompute-with current`, intervalos Git versionados, afirmações suspeitas e geração de relatórios de PR/GitHub.

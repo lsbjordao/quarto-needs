@@ -1,5 +1,46 @@
 # Referência prática
 
+Para exemplos executáveis e opções disponíveis, consulte a
+[referência da CLI](cli-reference.qmd) e a
+[referência de visualizações](views-reference.qmd).
+Este capítulo resume o vocabulário de engenharia e os padrões de rastreabilidade.
+
+## Mapa de configuração
+
+As políticas de engenharia ficam em `.quarto-needs.toml`. As opções de apresentação
+do Quarto, incluindo `quarto-needs: margin-sidebar-toggle:` e `tags-page:`, ficam
+em `_quarto.yml` ou nos metadados do documento.
+
+| Configuração TOML | Finalidade e guia detalhado |
+|---|---|
+| `profile`, `[rules.*]`, `[gates]` | Severidade dos achados, regras habilitadas e gates numéricos: [governança](governance.qmd). |
+| `[types.*]` | Atributos obrigatórios, prefixos, papéis semânticos e estados permitidos: [modelo de engenharia](engineering-model.qmd), [autoria](authoring.qmd) e [esquemas de tipos](type-schemas.qmd). |
+| `[relations.*]` | Tipos permitidos nas extremidades e cardinalidade mínima/máxima: [governança](governance.qmd). |
+| `[governance]` | Tipos de teste/risco, estados de sucesso e ineficácia e expiração de evidências; veja os padrões abaixo. |
+| `[queries.*]` | Seleções reutilizáveis: [exemplos de consulta na CLI](cli-reference.qmd) e [visualizações de grafo](engineering-model.qmd). |
+| `[policies.*]` | Asserções declarativas por escopo: [políticas](declarative-policies.qmd). |
+| `[constraints.*]` | Caminhos obrigatórios, ciclos, conectividade e cardinalidade: [restrições de grafo](graph-constraints.qmd). |
+| `[derived.*]`, `[variants.*]` | Atributos derivados e variantes selecionadas para uma build: [valores derivados e variantes](derived-variants.qmd). |
+| `[graph]` | Limites da projeção, profundidade de travessia, baselines e overlays: [referência de visualizações](views-reference.qmd). |
+| `[federation.oslc.profiles.*]` | Endpoints permitidos e leituras OSLC com limites: [interoperabilidade](interoperability.qmd). |
+
+Os valores de `[governance]` abaixo são os padrões embutidos. Altere-os quando
+seu catálogo usar outros nomes de tipos ou estados de ciclo de vida:
+
+```toml
+[governance]
+test-types = ["test-case"]
+risk-types = ["risk"]
+successful-test-statuses = ["passed"]
+ineffective-endpoint-statuses = ["disapproved", "rejected", "failed", "deprecated"]
+expiry-attribute = "expires"
+```
+
+Essas opções distinguem a existência de um vínculo de uma implementação efetiva,
+verificação bem-sucedida ou evidência dentro do prazo. `SOURCE_DATE_EPOCH` define
+a data de referência de análises reprodutíveis sensíveis a datas; quando ausente,
+o mecanismo usa a data atual.
+
 ## Tipos comuns
 
 | Tipo | Papel sugerido | Prefixo comum |

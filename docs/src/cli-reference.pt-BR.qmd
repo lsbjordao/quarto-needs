@@ -1,0 +1,218 @@
+# Referência da linha de comando
+
+Instale o CLI independente para análise, automação, migração e integração com editores:
+
+```bash
+pip install quarto-needs
+```
+
+Os comandos abaixo são executados no diretório do projeto. Para selecionar outro projeto, coloque `--root` antes do comando:
+
+```bash
+quarto-needs --root examples/quarto-needs quality --format json
+```
+
+A raiz padrão é o diretório atual. Caminhos de saída são relativos ao projeto selecionado, salvo quando absolutos. Os argumentos de baseline existente em `baseline inspect`, `diff`, `impact` e `export --baseline` são resolvidos a partir do diretório atual do shell; use um caminho absoluto ao combiná-los com outro `--root`.
+
+## Analisar, validar e selecionar
+
+| Comando | Resultado |
+|---|---|
+| `quarto-needs scan` | Analisa as fontes e grava `.quarto-needs/needs.json`, o `generated-index.lua` da extensão instalada e as projeções de grafo consumidas pelo Quarto. |
+| `quarto-needs check` | Exibe findings de validação e contagens de objetos, erros e avisos. |
+| `quarto-needs coverage` | Exibe JSON com contagens de requisitos e cobertura de rastreabilidade de implementação/verificação. |
+| `quarto-needs trace REQ-001` | Lista IDs alcançáveis a montante e a jusante no grafo analisado. Substitua `REQ-001` por um ID existente. |
+| `quarto-needs quality` | Relata métricas por escopo, lacunas, findings e quality gates configurados. |
+| `quarto-needs query accepted-decisions` | Exibe os IDs ordenados selecionados por uma consulta nomeada configurada. |
+
+Os comandos de análise leem as fontes atuais; não é necessário executar `scan` antes. `scan` é a operação que publica os artefatos gerados usados pela extensão.
+
+`scan` e `check` falham quando há findings com severidade de erro. Use `quality` para aplicar quality gates numéricos: no perfil `strict`, gates reprovados retornam erro; `default` e `advisory` os relatam sem uma reprovação do processo por gate. Falhas estruturais permanecem bloqueantes. Veja [Governança e qualidade](governance.qmd).
+
+```bash
+quarto-needs quality --format json --output artifacts/quality.json
+quarto-needs query accepted-decisions --format json
+```
+
+`quality --output` sempre grava JSON, mesmo quando o formato do console permanece `text`. `query --format json` retorna o nome da consulta e seus `ids` ordenados; uma consulta desconhecida retorna o código `2`. Defina a consulta do exemplo conforme [Modelo de engenharia](engineering-model.qmd).
+
+## Exportar o grafo e artefatos de automação
+
+| Formato | Exemplo | Conteúdo |
+|---|---|---|
+| `json` | `quarto-needs export --format json --output artifacts/needs.json` | JSON do grafo canônico. É o formato padrão. |
+| `csv` | `quarto-needs export --format csv --output artifacts/csv` | Diretório com `objects.csv`, `relations.csv` e `findings.csv`. |
+| `sarif` | `quarto-needs export --format sarif --output artifacts/findings.sarif` | Findings para ferramentas de análise de código. |
+| `junit` | `quarto-needs export --format junit --output artifacts/gates.xml` | Resultados de quality gates em JUnit XML. |
+| `markdown` | `quarto-needs export --format markdown --output artifacts/summary.md` | Resumo legível de engenharia e qualidade. |
+| `reqif` | `quarto-needs export --format reqif --output artifacts/requirements.reqif` | Projeção de intercâmbio ReqIF 1.2. |
+| `jsonld` | `quarto-needs export --format jsonld --output artifacts/graph.jsonld` | Projeção do grafo em JSON-LD. |
+
+Sem `--output`, JSON/CSV/SARIF/JUnit/Markdown usam `.quarto-needs/needs.json`. Informe um destino explícito ao mudar o formato; para CSV, o destino deve ser um diretório. ReqIF usa `.quarto-needs/requirements.reqif` por padrão, e JSON-LD usa `.quarto-needs/graph.jsonld`.
+
+Markdown pode incluir um resumo das mudanças em relação a um baseline:
+
+```bash
+quarto-needs export --format markdown \
+  --baseline baselines/quarto-needs.json --output artifacts/changes.md
+```
+
+`--baseline` é aceito somente para Markdown. As exportações JSON/CSV/SARIF/JUnit/Markdown gravam seus artefatos antes de retornar o veredito de qualidade aplicável. SARIF também pode registrar findings estruturais quando não existe um snapshot válido, retornando erro em seguida. ReqIF e JSON-LD exigem um snapshot válido e não aplicam a política de saída dos quality gates. Veja [Interoperabilidade e federação](interoperability.qmd).
+
+## Baselines, diff semântico e impacto
+
+```bash
+quarto-needs baseline create
+quarto-needs baseline inspect baselines/quarto-needs.json --format json
+quarto-needs diff baselines/quarto-needs.json --format json
+quarto-needs impact baselines/quarto-needs.json --format json
+```
+
+`baseline create` captura o grafo analisado atual em `baselines/quarto-needs.json`. Escolha outro destino com `--output`; substituir um baseline existente exige `--force`. `--format json` exibe seu caminho e validade. `--allow-invalid` permite um baseline de diagnóstico com `valid: false` para um projeto estruturalmente inválido; esse artefato não é um baseline normal de comparação.
+
+`baseline inspect` resume um artefato existente. `diff` o compara com as fontes atuais, distinguindo adições, remoções, mudanças de campos, relocação, mudanças de relações e resultados derivados compatíveis. `impact` segue as direções semânticas de impacto do catálogo e relata objetos afetados com caminhos explicativos; não modifica objetos nem executa testes novamente.
+
+Mudanças de configuração ou data de referência podem suprimir comparações derivadas incompatíveis. Para resolver deliberadamente o baseline sob a configuração e a data de referência atuais, use:
+
+```bash
+quarto-needs diff baselines/quarto-needs.json --recompute-with current
+quarto-needs impact baselines/quarto-needs.json --recompute-with current
+```
+
+Esses comandos usam `--format text` por padrão; JSON está disponível para automação. `diff` aplica o perfil ativo às regressões de gate. Encontrar objetos afetados, por si só, não faz `impact` falhar.
+
+## Comparar estados versionados no Git e relatar mudanças
+
+As formas com Git analisam dois estados versionados do projeto pelo mesmo mecanismo de engenharia. Elas exigem Git, um caminho de projeto presente nas duas revisões e um intervalo explícito de dois pontos `BASE..HEAD`. Alterações não commitadas ficam fora da análise, e intervalos de três pontos são rejeitados. Os dois estados usam o timestamp do commit final como referência temporal comum.
+
+```bash
+quarto-needs diff --git HEAD~1..HEAD --format json
+quarto-needs impact --git HEAD~1..HEAD --format json
+quarto-needs suspect --git HEAD~1..HEAD --format json
+quarto-needs pr-report --git HEAD~1..HEAD --format markdown
+quarto-needs github-report --git HEAD~1..HEAD --format annotations
+```
+
+| Comando | O que acrescenta |
+|---|---|
+| `diff --git` | Mudanças semânticas entre os dois estados versionados. |
+| `impact --git` | Objetos afetados e caminhos a partir das origens das mudanças. |
+| `suspect --git` | Afirmações de rastreabilidade que precisam de revisão após uma mudança, com suas origens e caminhos explicativos. Não marca automaticamente objetos nas fontes. |
+| `pr-report --git` | Relatório combinado de mudanças, impacto, afirmações suspeitas, findings e regressões de gate para revisão. |
+| `github-report --git` | Resumo, comandos de anotação e projeção de resultado de check para GitHub. Exibe a saída localmente; não publica checks nem comentários. |
+
+Os cinco aceitam `--recompute-with current`. Aqui, “current” é a configuração do commit final e a data de referência comum, não a configuração não commitada da árvore de trabalho. `diff`, `impact` e `suspect` aceitam texto/JSON; `pr-report` aceita texto/JSON/Markdown; `github-report` também aceita `annotations`.
+
+Para um resumo com links para um modelo publicado:
+
+```bash
+quarto-needs github-report --git HEAD~1..HEAD \
+  --format markdown --model-url https://example.org/model/
+```
+
+`diff` e `pr-report` aplicam o perfil do commit final às regressões de gate. `github-report` retorna `1` para uma conclusão de falha causada por novos findings de erro ou regressões de gate; apenas afirmações suspeitas produzem uma conclusão neutra. Use `--format json` para inspecionar a projeção completa. O adaptador de GitHub Issues descrito em [Interoperabilidade](interoperability.qmd) é uma funcionalidade separada da biblioteca.
+
+## Validação e atestação de evidência
+
+```bash
+quarto-needs evidence check .quarto-needs/evidence/pytest-provider.json
+quarto-needs evidence attest .quarto-needs/evidence/pytest-provider.json \
+  --output .quarto-needs/evidence/pytest.json --expires-hours 24
+quarto-needs evidence check .quarto-needs/evidence/pytest.json --format json
+```
+
+`evidence check` aceita payloads brutos ou atestados de pytest e de verificações genéricas. Verifica seus vínculos com o modelo e, nas atestações, identidade do grafo/configuração e atualidade. `evidence attest` encapsula um payload bruto existente; não executa o provedor. Execute `evidence check` depois para a validação semântica.
+
+A atestação exige `--output`. A expiração é opcional; `--expires-hours` deve ser positivo. `--source-revision` substitui a revisão que, na ausência dessa opção, é obtida de `GITHUB_SHA`. As duas ações usam texto por padrão e aceitam `--format json`. Veja [Evidência executável](executable-evidence.qmd) e [Provedores de evidência de máquina](evidence-providers.qmd) para payloads, geração e diagnósticos.
+
+## Variantes nomeadas de build
+
+```bash
+quarto-needs variant list --format json
+quarto-needs variant show assurance-slice --format json
+```
+
+`list` relata todas as seleções configuradas; `show` relata os membros ordenados de uma variante. Ambos usam texto por padrão e aceitam JSON com fingerprints da variante e do grafo semântico. Uma variante desconhecida retorna `2`. Esses comandos inspecionam seleções; não iniciam um build do Quarto. Defina variantes conforme [Campos derivados e variantes de build](derived-variants.qmd).
+
+## Planos de migração e aplicação revisada
+
+| Origem | Exemplo de plano | Significado das chaves de mapeamento |
+|---|---|---|
+| Sphinx-Needs | `quarto-needs migrate sphinx-needs source/needs.json` | Tipo de origem em `--type-map`; campo de links de origem em `--relation-map`. `--version` seleciona uma versão da exportação. |
+| Doorstop | `quarto-needs migrate doorstop source/doorstop` | Prefixo de documento em `--type-map`; prefixo do documento filho em `--relation-map`. |
+| StrictDoc | `quarto-needs migrate strictdoc source/spec.sdoc` | Tag do nó em `--type-map`; `TYPE` da relação em `--relation-map`. |
+| OpenFastTrace | `quarto-needs migrate openfasttrace source/trace.xml` | `doctype` em `--type-map`; palavra-chave do link em `--relation-map`. |
+
+Cada comando grava `.quarto-needs/migrations/<source>-plan.json` por padrão. `--output` muda o destino desse plano, não o destino autoral `.qmd`. Uma migração com pendências ainda grava um plano revisável e retorna `1`.
+
+Os quatro adaptadores aceitam opções repetidas `--type-map SOURCE=TARGET`, `--relation-map SOURCE=RELATION`, `--destination SOURCE_ID=path.qmd` e `--id-map SOURCE_ID=CANONICAL_ID`. Os mapeamentos de destino e ID são aplicados quando `--apply-plan` está selecionado:
+
+```bash
+quarto-needs migrate sphinx-needs source/needs.json \
+  --type-map req=functional-requirement \
+  --destination REQ_001=requirements.qmd \
+  --apply-plan --show-content
+```
+
+O plano de aplicação usa `.quarto-needs/migrations/<source>-apply-plan.json` por padrão; altere-o com `--apply-output`. `--show-content` inclui o Markdown candidato na prévia textual. `--format json` exibe o plano de migração, o plano de aplicação ou o resultado da escrita da etapa selecionada.
+
+Depois de revisar um plano de aplicação pronto, repita a mesma entrada e os mesmos mapeamentos com `--apply-plan --write`. O comando reconstrói e valida o plano antes de criar arquivos; não recebe um JSON de plano editado como instrução de escrita. As escritas somente criam arquivos, exigem que todos os itens estejam prontos, rejeitam destinos e IDs existentes e revertem os arquivos recém-criados se a validação posterior falhar. Veja [Migração de outras ferramentas](migrations.qmd) para o fluxo completo.
+
+## Descoberta, catálogos e consultas OSLC
+
+Instale primeiro as dependências opcionais de RDF:
+
+```bash
+pip install 'quarto-needs[oslc]'
+quarto-needs oslc catalog https://provider.example/oslc/catalog --format json
+quarto-needs oslc discover https://provider.example/oslc/sp/requirements --format json
+quarto-needs oslc query https://provider.example/oslc/query/requirements \
+  --service-provider-uri https://provider.example/oslc/sp/requirements --format json
+```
+
+Substitua os endereços de exemplo pelos endpoints anunciados pelo seu provedor. `catalog` lista URIs de provedores e de catálogos aninhados sem seguir esses catálogos. `discover` inspeciona os serviços RM, capacidades de consulta e Resource Shapes de um provedor; `--no-shapes` desativa a recuperação de shapes. `query` executa um GET delimitado e relata URIs de membros e nós já incluídos naquela resposta. Não busca cada membro, reconcilia objetos nem cria requisitos locais.
+
+Para configurações reutilizáveis de provedor, configure `.quarto-needs.toml`:
+
+```toml
+[federation.oslc.profiles.requirements]
+service-provider-uri = "https://provider.example/oslc/sp/requirements"
+bearer-token-env = "OSLC_TOKEN"
+timeout-seconds = 10.0
+```
+
+```bash
+quarto-needs oslc discover --profile requirements
+quarto-needs oslc query https://provider.example/oslc/query/requirements \
+  --profile requirements --max-members 500
+```
+
+Defina `OSLC_TOKEN` no ambiente antes de usar esse perfil. O perfil substitui o argumento explícito de Service Provider; combinar os dois é rejeitado. `catalog` usa opções diretas e não possui `--profile`. `--bearer-token-env ENV_VAR` lê credenciais sem persistir seu valor.
+
+| Configuração | Padrão | Opção de CLI |
+|---|---|---|
+| Diretório de cache | `.quarto-needs/oslc-cache` | `--cache-dir PATH` |
+| Idade máxima do cache | 3600 segundos | `--max-age-seconds N` |
+| Permitir fallback para cache vencido | false | `--allow-stale` / `--disallow-stale` |
+| Timeout HTTP | 10 segundos | `--timeout-seconds N` |
+| Tamanho da resposta | 2.000.000 bytes | `--max-bytes N` |
+| Quantidade de redirecionamentos | 3 | `--max-redirects N` |
+| Quantidade de nós RDF | 5000 | `--max-nodes N` |
+| Membros da consulta | 1000 | `query --max-members N` |
+| Provedores / catálogos aninhados | 200 / 50 | `catalog --max-providers N` / `--max-nested-catalogs N` |
+
+Opções de CLI prevalecem sobre as configurações do perfil. `--now` fornece um instante explícito de recuperação em ISO-8601 para execuções reproduzíveis; na ausência dessa opção, usa-se a hora UTC atual. Veja [Interoperabilidade e federação](interoperability.qmd) para a distinção entre resultados do CLI e APIs de observação/reconciliação da biblioteca.
+
+## Integração com editores
+
+```bash
+quarto-needs --root /path/to/project lsp
+```
+
+`lsp` executa o servidor de linguagem pela entrada/saída padrão até o editor encerrá-lo. Normalmente, o editor inicia esse processo. Veja [Servidor de linguagem e autoria no editor](language-server.qmd) para completar código, navegar, renomear, receber diagnósticos e trabalhar com alterações não salvas.
+
+## Automação e códigos de saída
+
+Os códigos comuns são `0` para sucesso, `1` para falha de validação/política ou plano com pendências, `2` para argumentos/configurações/artefatos inválidos e `3` para erros tratados de I/O ou transporte. Um código diferente de zero pode acompanhar um artefato de diagnóstico gravado com sucesso; verifique o veredito do comando além da existência do arquivo. A política de gates e as exceções descritas acima determinam quando findings semânticos causam falha.
+
+Prefira os formatos JSON documentados para consumidores de máquina. `NO_COLOR=1` desativa cores no console. `SOURCE_DATE_EPOCH` fornece uma data de referência determinística para a análise comum do grafo; comandos com intervalo Git usam o timestamp compartilhado do commit final. Geração de evidência e recuperação OSLC têm seus próprios comportamentos de timestamp, descritos nas respectivas seções.

@@ -1,0 +1,241 @@
+# Visões e shortcodes
+
+Ative `filters: [quarto-needs]` conforme [Primeiros passos](getting-started.qmd). A extensão analisa o projeto antes da renderização; as visões consomem o grafo e as projeções geradas. Use blocos `.need` para declarar objetos e shortcodes para referenciá-los ou apresentá-los.
+
+Os exemplos abaixo pressupõem que os IDs referenciados existem. `query` nomeia uma consulta declarada em `.quarto-needs.toml`, em vez de uma expressão escrita dentro do shortcode. Veja uma declaração completa de consulta em [Modelo de engenharia](engineering-model.qmd).
+
+## Inventário de shortcodes
+
+| Shortcode | Resultado |
+|---|---|
+| `need` | Link inline para um objeto, opcionalmente com seu título. |
+| `need-table` | Tabela de objetos com colunas configuráveis. |
+| `need-list` | Lista de links e títulos, com badges opcionais. |
+| `need-count` | Contagem inline dos objetos selecionados. |
+| `need-matrix` | Matriz de relações entre dois conjuntos de tipos. |
+| `need-backlinks` | Relações de entrada de um objeto. |
+| `need-inspector` | Metadados, relações, proveniência e achados de um objeto. |
+| `need-flow` | Diagrama estático e limitado de rastreabilidade em Mermaid. |
+| `need-dashboard` | Cobertura, distribuições, lacunas e contagens de achados. |
+| `need-graph` | Grafo estático e tabelas, com exploração interativa no HTML. |
+| `need-c4` | Diagrama arquitetural ou tabela do nível Code. |
+| `need-tags` | Catálogo de tags e tabela de objetos. |
+| `adr-table` | Tabela de decisões arquiteturais com seleção por data. |
+| `adr-count` | Contagem inline das decisões arquiteturais selecionadas. |
+
+## Seleção compartilhada de objetos
+
+`need-table`, `need-list`, `need-count` e `need-tags` aceitam estas opções:
+
+| Opção | Significado |
+|---|---|
+| `query` | Seleciona uma consulta nomeada materializada antes dos demais filtros. |
+| `ids` | IDs dos objetos. |
+| `types` ou `type` | Tipos dos objetos; as duas formas são equivalentes. |
+| `status` | Estados do ciclo de vida. |
+| `priority` | Valores de prioridade. |
+| `tags` | Objetos com pelo menos uma das tags listadas. |
+| `sort` | Campos em ordem crescente, como `priority;title`; ID desempata. |
+
+Valores dos filtros aceitam vírgulas ou ponto e vírgula e ignoram diferenças entre maiúsculas e minúsculas. Valores do mesmo filtro são alternativas; filtros diferentes precisam ser satisfeitos simultaneamente. Sem filtros, essas visões selecionam todos os objetos. Sem `sort`, a ordem é por ID. A ordenação por prioridade usa `critical`, `high`, `medium`, `low` e depois valores não especificados. Outros campos usam ordem textual. A ordenação dos shortcodes não aceita a sintaxe `id:asc` das consultas nem um sufixo de ordem decrescente.
+
+```markdown
+{{< need-table types="functional-requirement;non-functional-requirement" status="approved" tags="security;audit" sort="priority;id" >}}
+{{< need-list query="accepted-decisions" show="status;date" >}}
+Aprovados: {{< need-count status="approved" >}}
+```
+
+Uma consulta desconhecida produz uma mensagem de indisponibilidade/consulta desconhecida. Uma seleção válida sem resultados produz uma mensagem de conjunto vazio, ou `0` em `need-count`. Para seleção por consultas nomeadas e painéis, o pre-render publica os metadados necessários quando existe uma configuração `.quarto-needs.toml`.
+
+## Referências, tabelas e listas
+
+### `need`
+
+```markdown
+Veja {{< need REQ-001 >}} ou {{< need REQ-001 title=true >}}.
+```
+
+O primeiro argumento posicional é o ID. `title=true` acrescenta o título do objeto ao rótulo do link. IDs ausentes ou objetos indisponíveis não criam uma referência válida; IDs não resolvidos ficam visualmente marcados no HTML. Links são resolvidos em relação ao capítulo atual.
+
+### `need-table`
+
+Além da seleção compartilhada, `columns` define as colunas, `caption` acrescenta uma legenda e `id` nomeia a âncora da tabela. As colunas padrão são `id;title;type;status;priority`. Colunas também podem nomear atributos declarados ou relações de saída; colunas de relações contêm links para seus destinos.
+
+```markdown
+{{< need-table types="functional-requirement" columns="id;title;status;verified-by" caption="Vínculos de verificação" id="verification-table" >}}
+```
+
+No HTML, tabelas oferecem busca textual e cabeçalhos clicáveis para ordenar. PDF e DOCX preservam a tabela estática. Em tabelas, matrizes, inspetores, painéis, catálogos de tags e tabelas ADR, IDs omitidos são gerados; IDs fornecidos são normalizados e duplicatas recebem um sufixo numérico.
+
+### `need-list` e `need-count`
+
+`need-list` apresenta o ID com link e o título de cada objeto. Sua lista opcional `show` acrescenta badges de `status` ou atributos declarados como `priority` e `date`. `need-count` retorna o tamanho da mesma seleção e não possui opções específicas de apresentação.
+
+```markdown
+{{< need-list types="system-requirement" show="status;priority" >}}
+Requisitos de sistema: {{< need-count types="system-requirement" >}}
+```
+
+### `need-matrix`
+
+`rows` e `columns` selecionam tipos de objetos e aceitam listas com vírgula ou ponto e vírgula. `relation` é a relação dirigida a verificar, com padrão `verified-by`; `query` restringe o conjunto dos dois eixos; `id` nomeia a tabela. Uma marca de verificação contém um link para o objeto da coluna quando existe a relação da linha para a coluna. Um traço indica ausência desse vínculo.
+
+```markdown
+{{< need-matrix rows="functional-requirement;non-functional-requirement" columns="test-case" relation="verified-by" id="verification-matrix" >}}
+```
+
+Os eixos são ordenados por ID. A matriz não aplica os argumentos compartilhados `status`, `priority`, `tags` ou `sort`; use uma consulta nomeada para restringir seu conjunto.
+
+## Inspeção de um objeto
+
+```markdown
+{{< need-backlinks REQ-001 >}}
+{{< need-inspector REQ-001 id="requirement-details" >}}
+```
+
+Os dois shortcodes exigem um ID posicional. `need-backlinks` lista relações de entrada com rótulos do catálogo e links para as origens. `need-inspector` acrescenta título, badges de tipo/status/prioridade, localização da declaração, atributos declarados, relações de saída e entrada e achados associados ao objeto. O inspetor aceita `id` opcional para sua região. Nenhum deles aceita os filtros compartilhados de seleção.
+
+## `need-flow`
+
+Use um fluxo com raiz para explorar uma vizinhança, ou sem raiz para diagramar uma seleção:
+
+```markdown
+{{< need-flow root="REQ-001" depth="2" relations="implemented-by;verified-by" direction="LR" >}}
+{{< need-flow types="functional-requirement;test-case" direction="TD" >}}
+```
+
+| Opção | Significado |
+|---|---|
+| `root` | Parte de um ID existente e inclui vizinhos alcançáveis nos dois sentidos das arestas. |
+| `depth` | Profundidade da travessia com raiz; padrão `3`, mínimo `0`, máximo `10`. |
+| `relations` | Nomes de relações permitidas, separados por vírgula/ponto e vírgula; omitido inclui todas. |
+| `direction` | Orientação do diagrama: `TD` (padrão), `TB`, `BT`, `LR` ou `RL`. |
+| `query`, `ids`, `types`/`type`, `status`, `priority`, `tags` | Seleção de objetos somente quando `root` é omitido. |
+
+`direction` controla a orientação visual, não a travessia do grafo. Com `root`, filtros de objetos e `query` não restringem a travessia; `relations` e `depth` restringem. Fluxos têm limites fixos de 100 nós, 300 arestas e profundidade 10, com avisos quando o resultado solicitado é truncado. A seleção é determinística por ID; `sort` não é suportado.
+
+HTML usa SVG estático quando disponível. Outros formatos usam uma imagem renderizada. Falhas de renderização produzem um aviso visível do diagrama; isso não comprova que uma figura válida foi produzida.
+
+## `need-dashboard`
+
+```markdown
+{{< need-dashboard >}}
+{{< need-dashboard query="accepted-decisions" id="decision-dashboard" >}}
+```
+
+O painel mostra o escopo do catálogo e, quando disponível, os requisitos aprovados. `query` acrescenta seu escopo de relatório a esses padrões; não os substitui. Cada escopo apresenta medidas de cobertura, distribuições e lacunas de rastreabilidade, seguidas das contagens de achados por severidade. `id` nomeia a região do painel. Filtros compartilhados de objetos não se aplicam.
+
+O painel exige o relatório incorporado ao grafo gerado. Se indicar indisponibilidade, crie a configuração `.quarto-needs.toml` do projeto e renderize novamente. Selecionar um escopo nomeado também exige que a consulta exista nessa configuração.
+
+## `need-graph`
+
+```markdown
+{{< need-graph >}}
+{{< need-graph query="accepted-decisions" id="decision-graph" >}}
+{{< need-graph projection="need-graph-1" root="REQ-001" depth="2" id="requirement-graph" >}}
+```
+
+| Opção | Significado |
+|---|---|
+| `query` ou `view` | Projeção de consulta nomeada; formas equivalentes. Se ambas forem fornecidas, devem coincidir. |
+| `id` | ID único da instância HTML; padrão `need-graph-1`. Use um ID diferente para cada grafo da página. |
+| `projection` | Nome do arquivo de projeção gerado sem `.json`; assume `id` quando não há query/view. |
+| `filter` | Comparações exatas de campos de nós separadas por vírgula, ex.: `type=functional-requirement,status=approved`. |
+| `root` | Restringe a projeção carregada à raiz e seus descendentes semânticos. |
+| `depth` | Profundidade com raiz; padrão `3`, limitada ao intervalo `0`–`10`. |
+
+Para uma segunda instância do grafo padrão, defina um novo `id` e `projection="need-graph-1"`. Uma `query`/`view` nomeada resolve automaticamente sua projeção. `filter` é um seletor simples de apresentação, sensível a maiúsculas e minúsculas, para valores escalares como ID, tipo, status ou prioridade; não é a sintaxe dos seletores compartilhados nem uma linguagem geral de expressões. O filtro é aplicado antes da raiz, que precisa sobreviver à filtragem. Nenhuma dessas operações acrescenta objetos ausentes da projeção materializada.
+
+A projeção padrão parte da consulta incorporada `approved-requirements` e expande conforme `[graph]`. Ela não contém necessariamente o catálogo inteiro. Para outra população, declare uma consulta nomeada e use `query` ou `view`.
+
+### Configuração da projeção
+
+Estas opções pertencem a `.quarto-needs.toml`:
+
+```toml
+[graph]
+max-nodes = 100
+max-edges = 300
+depth = 1
+mode = "catalog"
+layout = "hierarchical"
+seed = 1
+# relations = ["implemented-by", "verified-by"]
+# baseline = ".quarto-needs/baseline.json"
+# overlay-queries = ["accepted-decisions"]
+```
+
+Os valores exibidos são os padrões. `max-nodes` e `max-edges` são limites inteiros positivos. `depth` é um inteiro entre 1 e 10 para expansão durante a materialização, separado de `depth` do shortcode. Omita `relations` para incluir todos os tipos de relação; uma lista explicitamente vazia é inválida. `layout` é um nome de layout não vazio e `seed` um inteiro não negativo publicados com a projeção; os controles do navegador ajustam a apresentação de forma independente.
+
+`mode` aceita `catalog`, `diff` ou `impact`. Modos de comparação usam `baseline`, cujo caminho padrão é `.quarto-needs/baseline.json`; sem um baseline utilizável, a projeção padrão volta ao catálogo. Um baseline também habilita overlays opcionais de comparação no grafo padrão. `overlay-queries` habilita overlays próprios para consultas nomeadas. Nomes desconhecidos ou overlays que excedem os limites são ignorados.
+
+Quando um grafo de consulta nomeada excede seu limite, o manifesto registra uma visão indisponível em vez de truncá-la silenciosamente. O limite do grafo padrão continua sendo uma restrição do build. Restrinja a consulta ou ajuste os limites quando a projeção solicitada não puder ser produzida.
+
+### Exploração no HTML
+
+A mesma projeção fornece figura estática, resumo, tabelas de nós/arestas e canvas interativo. O conteúdo estático continua útil em PDF/DOCX e quando a interatividade está indisponível.
+
+| Controle | Ação |
+|---|---|
+| Busca; Tipo; Status; Família | Combina filtros textuais, de nós e de famílias de relações. |
+| Colorir nós por | Escolhe cores por tipo, status ou prioridade. |
+| Pais / Filhos | Mostra ancestrais e descendentes semânticos do nó selecionado. |
+| Distância fixa | Ajusta a distância entre os nós. |
+| Detalhes do nó | Abre o objeto vinculado, inspeciona metadados ou copia seu ID. |
+| Detalhes da aresta | Inspeciona a semântica da relação e a proveniência segura. |
+| Travessia | Escolhe `traceability`, `derivation`, `architecture`, `decision`, `implementation`, `verification` ou `risk`. |
+| Caminho até a raiz | Destaca o caminho até a raiz semântica mais próxima do nó selecionado. |
+| Caminho entre… | Selecione o primeiro nó, ative o controle e selecione o segundo endpoint. |
+| Trilha do caminho | Clique em uma entrada para focar novamente aquele nó. |
+| Ajustar; Tela cheia; Exportar PNG | Ajusta a visão, amplia o canvas ou exporta uma imagem. |
+| Redefinir | Limpa o estado da exploração e retorna à visão padrão. |
+
+Um clique/toque duplo em um nó recolhe ou expande seus descendentes. Caminhos explicitamente destacados permanecem visíveis mesmo quando filtros comuns ocultariam seus nós. Quando há overlays de comparação, **Modo** oferece **Catálogo**, **Mudanças** e **Impact**; **Somente afetados** aplica-se ao modo Impact quando existem objetos afetados. Esses controles não aparecem sem um overlay utilizável.
+
+Filtros, busca, modo, foco e caminhos selecionados são salvos no fragmento da URL e no armazenamento do navegador. Compartilhe a URL resultante para reabrir a exploração; o estado da URL prevalece sobre o estado local. Redefinir limpa a exploração salva. Use IDs estáveis e distintos, pois o estado é associado ao ID da instância.
+
+## Tags e ADRs
+
+### `need-tags`
+
+```markdown
+{{< need-tags types="functional-requirement;architecture-decision" sort="title" id="tag-catalog" >}}
+```
+
+A seleção compartilhada determina os objetos da tabela, incluindo objetos sem tags. HTML acrescenta um chip por tag, o controle **Todas** e filtragem por `?tag=<slug>`. PDF/DOCX preservam a tabela. `id` nomeia a tabela; as colunas são fixas: ID, título, tipo, status e tags.
+
+Para vincular badges a um capítulo de catálogo, configure os metadados do Quarto:
+
+```yaml
+quarto-needs:
+  tags-page: tags
+  tags-page-pt-br: tags.pt-BR
+```
+
+Use o nome-base do capítulo fonte, opcionalmente com `.qmd`, em vez de um arquivo `.html`. Chaves específicas de idioma usam o nome do locale em minúsculas e prevalecem sobre `tags-page`. Defina os valores conforme os nomes reais dos capítulos; omita a sobrescrita quando os dois idiomas usam o mesmo nome-base. Links são resolvidos em relação ao capítulo atual e preservam o filtro de tag.
+
+### `adr-table` e `adr-count`
+
+```markdown
+{{< adr-table status="accepted" decision-makers="Architecture Team" date-from="2026-01-01" date-to="2026-12-31" date-sort="desc" columns="id;title;date;status" caption="Decisões atuais" id="current-decisions" >}}
+Decisões aceitas: {{< adr-count status="accepted" >}}
+```
+
+Ambos selecionam somente objetos `architecture-decision` e aceitam `status`, `tags`, `decision-makers`, `date-from`, `date-to` e `query`. Listas de status/tags/decisores usam alternativas separadas por vírgula ou ponto e vírgula e ignoram maiúsculas e minúsculas. Os limites de data são inclusivos, no formato ISO `YYYY-MM-DD`; objetos sem data são excluídos quando um limite está definido. `date-sort` usa `desc` por padrão, ou `asc`, com desempate por ID.
+
+`adr-table` também aceita `columns`, `caption` e `id`; as colunas padrão são `id;title;status;date;decision-makers;tags`. Outras colunas leem atributos declarados. `adr-count` retorna apenas a contagem selecionada. As opções compartilhadas `types`, `priority`, `ids` e `sort` não se aplicam. Veja [Decisões arquiteturais](architecture-decisions.qmd) para ciclo de vida e orientações de autoria.
+
+## C4 e layout da página
+
+`need-c4` exige `root` e `level` e aceita `backend` nos níveis de diagrama. Veja [Arquitetura C4](c4-architecture.qmd) para o mapeamento completo de raiz/tipo, comportamento de Mermaid/PlantUML/Structurizr/D2, tabela do nível Code e pré-requisitos dos renderizadores.
+
+Para um controle opcional do índice à direita:
+
+```yaml
+quarto-needs:
+  margin-sidebar-toggle: true
+```
+
+O padrão é desabilitado. O controle aparece em páginas HTML com a barra lateral direita do Quarto e um índice da página. Ele lembra a preferência de recolhimento no armazenamento do navegador, libera largura para o conteúdo ao recolher e restaura o layout ao expandir. Seus rótulos seguem o idioma do documento. Abaixo de 992 pixels CSS, o controle fica oculto e prevalece o layout responsivo do Quarto. PDF e DOCX não são afetados.
+
+Essa opção controla o índice na margem direita. Configure a navegação esquerda do Book separadamente com `book.sidebar.collapse-level` do Quarto. Declare blocos `.need` normalmente: a ativação da extensão também fornece o filtro de cartões, estilos e integração de pre-render; não é necessário registrar shortcodes separadamente.

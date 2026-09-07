@@ -28,17 +28,29 @@ A projeção JSON-LD utiliza IRIs determinísticos, vocabulários de schema e ma
 
 O Quarto-Needs oferece um adaptador somente-leitura com limites estritos para **OSLC Requirements Management (RM)**:
 
-1. **Descoberta de Serviços**: Descobre provedores de serviço RM, catálogos e Resource Shapes:
+```bash
+pip install 'quarto-needs[oslc]'
+```
+
+As dependências opcionais fornecem normalização de JSON-LD, Turtle e RDF/XML. O CLI público expõe três operações:
+
+1. **Inspeção de Catálogo**: Lista URIs de Service Providers e de catálogos aninhados sem seguir esses catálogos:
+   ```bash
+   quarto-needs oslc catalog https://provider.example/oslc/catalog --format json
+   ```
+2. **Descoberta de Serviços**: Inspeciona um Service Provider RM, suas capacidades de consulta e os Resource Shapes anunciados:
    ```bash
    quarto-needs oslc discover https://provider.example/oslc/sp/requirements --format json
    ```
-2. **Capacidade de Consulta**: Executa uma consulta HTTP GET delimitada no contexto de um Service Provider explícito (ou de um perfil configurado), sem realizar crawling recursivo de membros:
+3. **Capacidade de Consulta**: Executa uma consulta HTTP GET delimitada no contexto de um Service Provider explícito (ou de um perfil configurado), sem realizar crawling recursivo de membros:
    ```bash
    quarto-needs oslc query https://provider.example/oslc/query/requirements \
      --service-provider-uri https://provider.example/oslc/sp/requirements
    ```
-3. **Observação e Proveniência**: Materializa membros de consulta como observações externas com digest SHA-256 e data de recuperação independentes.
-4. **Reconciliação**: Reconcilia recursos remotos observados com objetos canônicos locais via mapeamento explícito URI-para-ID — evitando que títulos idênticos causem fusões acidentais.
+
+O resultado da consulta relata URIs de membros, nós já incluídos na resposta e o digest e timestamp de recuperação da resposta. O CLI não materializa observações independentes de requisitos nem as reconcilia com objetos locais.
+
+Essas operações adicionais são APIs da biblioteca Python: `quarto_needs.oslc_observe.materialize_query_observations()` produz observações externas com proveniência individual, e `quarto_needs.oslc_reconcile.reconcile_external_requirements()` compara observações com objetos canônicos usando vínculos explícitos URI-para-ID. Elas exigem entradas fornecidas pelo chamador e não executam implicitamente após `oslc query`.
 
 Credenciais são passadas com segurança via variáveis de ambiente:
 
@@ -47,9 +59,11 @@ export OSLC_TOKEN="..."
 quarto-needs oslc discover https://provider.example/oslc/sp/requirements --bearer-token-env OSLC_TOKEN
 ```
 
+A [referência da linha de comando](cli-reference.qmd) documenta perfis nomeados, comportamento do cache, limites de recuperação, busca opcional de shapes e todos os comandos públicos de OSLC. Também cobre as exportações JSON, CSV, SARIF, JUnit e Markdown usadas na automação.
+
 ## Rastreadores Externos: GitHub Issues
 
-O engine Python contém um adaptador somente-leitura para GitHub Issues com recuperação delimitada, proveniência, cache condicional, reconciliação e primitivas revisáveis de importação/aplicação. Na **versão 0.1.0 esse adaptador é uma superfície de biblioteca/engine; ainda não existe um comando público `quarto-needs github ...`**.
+O engine Python contém um adaptador somente-leitura para GitHub Issues com recuperação delimitada, proveniência, cache condicional, reconciliação e primitivas revisáveis de importação/aplicação. **Esse adaptador é uma superfície de biblioteca/engine; ainda não existe um comando público `quarto-needs github ...`**. O comando separado `github-report --git BASE..HEAD` exibe uma projeção de mudanças locais no Git; não recupera issues.
 
 O adaptador:
 

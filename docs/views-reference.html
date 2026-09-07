@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<link rel="alternate" hreflang="en" href="/views-reference.html" />
+<link rel="alternate" hreflang="pt-BR" href="/pt-BR/views-reference.html" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.26">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>5  Views and shortcodes – Quarto-Needs — Manual</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+<script src="site_libs/quarto-nav/quarto-nav.js"></script><script src="site_libs/quarto-nav/headroom.min.js"></script><script src="site_libs/clipboard/clipboard.min.js"></script><script src="site_libs/quarto-search/autocomplete.umd.js"></script><script src="site_libs/quarto-search/fuse.min.js"></script><script src="site_libs/quarto-search/quarto-search.js"></script><meta name="quarto:offset" content="./">
+<link href="./architecture-decisions.html" rel="next">
+<link href="./authoring.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script><script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script><script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script><script src="site_libs/quarto-html/popper.min.js"></script><script src="site_libs/quarto-html/tippy.umd.min.js"></script><script src="site_libs/quarto-html/anchor.min.js"></script><link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script><link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-ef4d8e9faa04af36b84e1866e7343808.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script><script async="" src="https://www.googletagmanager.com/gtag/js?id=G-84LW77BJNG"></script><script type="text/javascript">
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
+</script><link rel="stylesheet" href="language-switch.css">
+</head>
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Quarto-Needs — Manual</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav><nav class="quarto-secondary-nav"><div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./views-reference.html"><span class="chapter-number">5</span>  <span class="chapter-title">Views and shortcodes</span></a></li></ol></nav><a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto"><div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>  <span class="chapter-title">Quarto-Needs</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./getting-started.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>  <span class="chapter-title">Getting started</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./engineering-model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>  <span class="chapter-title">Engineering model</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./authoring.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>  <span class="chapter-title">Authoring in Quarto</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./views-reference.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">5</span>  <span class="chapter-title">Views and shortcodes</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./architecture-decisions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>  <span class="chapter-title">Architecture Decision Management</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./c4-architecture.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>  <span class="chapter-title">C4 Architecture Projections</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./executable-evidence.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>  <span class="chapter-title">Executable verification and machine evidence</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./evidence-providers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>  <span class="chapter-title">Machine evidence providers</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./governance.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>  <span class="chapter-title">Governance and quality</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./declarative-policies.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>  <span class="chapter-title">Declarative engineering policies</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./type-schemas.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>  <span class="chapter-title">Per-type attribute schemas</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./graph-constraints.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>  <span class="chapter-title">Declarative graph constraints</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./derived-variants.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>  <span class="chapter-title">Derived fields and build variants</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./interoperability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>  <span class="chapter-title">Interoperability and Federation</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./migrations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">16</span>  <span class="chapter-title">Migrating from Other Tools</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./language-server.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">17</span>  <span class="chapter-title">Language server and editor authoring</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cli-reference.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">18</span>  <span class="chapter-title">Command-line reference</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./reference.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">19</span>  <span class="chapter-title">Practical reference</span></span></a>
+  </div>
+</li>
+    </ul>
+</div>
+</nav><div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+<li><a href="#shortcode-inventory" id="toc-shortcode-inventory" class="nav-link active" data-scroll-target="#shortcode-inventory"><span class="header-section-number">5.1</span> Shortcode inventory</a></li>
+  <li><a href="#shared-object-selection" id="toc-shared-object-selection" class="nav-link" data-scroll-target="#shared-object-selection"><span class="header-section-number">5.2</span> Shared object selection</a></li>
+  <li>
+<a href="#references-tables-and-lists" id="toc-references-tables-and-lists" class="nav-link" data-scroll-target="#references-tables-and-lists"><span class="header-section-number">5.3</span> References, tables, and lists</a>
+  <ul class="collapse">
+<li><a href="#need" id="toc-need" class="nav-link" data-scroll-target="#need"><span class="header-section-number">5.3.1</span> <code>need</code></a></li>
+  <li><a href="#need-table" id="toc-need-table" class="nav-link" data-scroll-target="#need-table"><span class="header-section-number">5.3.2</span> <code>need-table</code></a></li>
+  <li><a href="#need-list-and-need-count" id="toc-need-list-and-need-count" class="nav-link" data-scroll-target="#need-list-and-need-count"><span class="header-section-number">5.3.3</span> <code>need-list</code> and <code>need-count</code></a></li>
+  <li><a href="#need-matrix" id="toc-need-matrix" class="nav-link" data-scroll-target="#need-matrix"><span class="header-section-number">5.3.4</span> <code>need-matrix</code></a></li>
+  </ul>
+</li>
+  <li><a href="#inspecting-one-object" id="toc-inspecting-one-object" class="nav-link" data-scroll-target="#inspecting-one-object"><span class="header-section-number">5.4</span> Inspecting one object</a></li>
+  <li><a href="#need-flow" id="toc-need-flow" class="nav-link" data-scroll-target="#need-flow"><span class="header-section-number">5.5</span> <code>need-flow</code></a></li>
+  <li><a href="#need-dashboard" id="toc-need-dashboard" class="nav-link" data-scroll-target="#need-dashboard"><span class="header-section-number">5.6</span> <code>need-dashboard</code></a></li>
+  <li>
+<a href="#need-graph" id="toc-need-graph" class="nav-link" data-scroll-target="#need-graph"><span class="header-section-number">5.7</span> <code>need-graph</code></a>
+  <ul class="collapse">
+<li><a href="#projection-configuration" id="toc-projection-configuration" class="nav-link" data-scroll-target="#projection-configuration"><span class="header-section-number">5.7.1</span> Projection configuration</a></li>
+  <li><a href="#html-exploration" id="toc-html-exploration" class="nav-link" data-scroll-target="#html-exploration"><span class="header-section-number">5.7.2</span> HTML exploration</a></li>
+  </ul>
+</li>
+  <li>
+<a href="#tags-and-adrs" id="toc-tags-and-adrs" class="nav-link" data-scroll-target="#tags-and-adrs"><span class="header-section-number">5.8</span> Tags and ADRs</a>
+  <ul class="collapse">
+<li><a href="#need-tags" id="toc-need-tags" class="nav-link" data-scroll-target="#need-tags"><span class="header-section-number">5.8.1</span> <code>need-tags</code></a></li>
+  <li><a href="#adr-table-and-adr-count" id="toc-adr-table-and-adr-count" class="nav-link" data-scroll-target="#adr-table-and-adr-count"><span class="header-section-number">5.8.2</span> <code>adr-table</code> and <code>adr-count</code></a></li>
+  </ul>
+</li>
+  <li><a href="#c4-and-page-layout" id="toc-c4-and-page-layout" class="nav-link" data-scroll-target="#c4-and-page-layout"><span class="header-section-number">5.9</span> C4 and page layout</a></li>
+  </ul></nav>
+</div>
+<!-- main -->
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><div class="quarto-title">
+<h1 class="title">
+<span class="chapter-number">5</span>  <span class="chapter-title">Views and shortcodes</span>
+</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header><p>Activate <code>filters: [quarto-needs]</code> as described in <a href="./getting-started.html">Getting started</a>. The extension analyzes the project before rendering; views consume the generated graph and projections. Use <code>.need</code> blocks to declare objects and shortcodes to reference or present them.</p>
+<p>Examples below assume the referenced IDs exist. A <code>query</code> names a query declared in <code>.quarto-needs.toml</code>, rather than an expression written inside the shortcode. See <a href="./engineering-model.html">Engineering model</a> for a complete query declaration.</p>
+<section id="shortcode-inventory" class="level2" data-number="5.1"><h2 data-number="5.1" class="anchored" data-anchor-id="shortcode-inventory">
+<span class="header-section-number">5.1</span> Shortcode inventory</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead><tr class="header">
+<th>Shortcode</th>
+<th>Result</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>need</code></td>
+<td>Inline link to one object, optionally including its title.</td>
+</tr>
+<tr class="even">
+<td><code>need-table</code></td>
+<td>Object table with configurable columns.</td>
+</tr>
+<tr class="odd">
+<td><code>need-list</code></td>
+<td>Bulleted object links and titles, with optional badges.</td>
+</tr>
+<tr class="even">
+<td><code>need-count</code></td>
+<td>Inline count of selected objects.</td>
+</tr>
+<tr class="odd">
+<td><code>need-matrix</code></td>
+<td>Relation matrix between two sets of object types.</td>
+</tr>
+<tr class="even">
+<td><code>need-backlinks</code></td>
+<td>Incoming relations for one object.</td>
+</tr>
+<tr class="odd">
+<td><code>need-inspector</code></td>
+<td>One object’s metadata, relations, provenance, and findings.</td>
+</tr>
+<tr class="even">
+<td><code>need-flow</code></td>
+<td>Bounded static Mermaid traceability diagram.</td>
+</tr>
+<tr class="odd">
+<td><code>need-dashboard</code></td>
+<td>Coverage, distributions, gaps, and finding counts.</td>
+</tr>
+<tr class="even">
+<td><code>need-graph</code></td>
+<td>Static graph and tables, enhanced with HTML exploration.</td>
+</tr>
+<tr class="odd">
+<td><code>need-c4</code></td>
+<td>Architecture diagram or Code-level table.</td>
+</tr>
+<tr class="even">
+<td><code>need-tags</code></td>
+<td>Tag catalog and object table.</td>
+</tr>
+<tr class="odd">
+<td><code>adr-table</code></td>
+<td>Architecture decision table with date-aware selection.</td>
+</tr>
+<tr class="even">
+<td><code>adr-count</code></td>
+<td>Inline count of selected architecture decisions.</td>
+</tr>
+</tbody>
+</table></section><section id="shared-object-selection" class="level2" data-number="5.2"><h2 data-number="5.2" class="anchored" data-anchor-id="shared-object-selection">
+<span class="header-section-number">5.2</span> Shared object selection</h2>
+<p><code>need-table</code>, <code>need-list</code>, <code>need-count</code>, and <code>need-tags</code> accept these options:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead><tr class="header">
+<th>Option</th>
+<th>Meaning</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>query</code></td>
+<td>Select from a materialized named query before applying the other filters.</td>
+</tr>
+<tr class="even">
+<td><code>ids</code></td>
+<td>Object IDs.</td>
+</tr>
+<tr class="odd">
+<td>
+<code>types</code> or <code>type</code>
+</td>
+<td>Object types; the two spellings are aliases.</td>
+</tr>
+<tr class="even">
+<td><code>status</code></td>
+<td>Lifecycle states.</td>
+</tr>
+<tr class="odd">
+<td><code>priority</code></td>
+<td>Priority values.</td>
+</tr>
+<tr class="even">
+<td><code>tags</code></td>
+<td>Objects having at least one listed tag.</td>
+</tr>
+<tr class="odd">
+<td><code>sort</code></td>
+<td>Fields in ascending order, such as <code>priority;title</code>; ID breaks ties.</td>
+</tr>
+</tbody>
+</table>
+<p>Filter values accept comma or semicolon separators and match case-insensitively. Values within one filter are alternatives; different filters must all match. With no filters, these views select all objects. With no <code>sort</code>, ordering is by ID. Priority sorting uses <code>critical</code>, <code>high</code>, <code>medium</code>, <code>low</code>, then unspecified values. Other sort fields use text order. Shortcode sorting does not accept the query grammar’s <code>id:asc</code> syntax or a descending suffix.</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb1"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>{{&lt; need-table types="functional-requirement;non-functional-requirement" status="approved" tags="security;audit" sort="priority;id" &gt;}}</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>{{&lt; need-list query="accepted-decisions" show="status;date" &gt;}}</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>Approved: {{&lt; need-count status="approved" &gt;}}</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>An unknown query produces an unavailable/unknown-query message. A successful empty selection produces an empty-state message, or <code>0</code> for <code>need-count</code>. For named-query selection and dashboards, the pre-render publishes the necessary report metadata when a <code>.quarto-needs.toml</code> configuration exists.</p>
+</section><section id="references-tables-and-lists" class="level2" data-number="5.3"><h2 data-number="5.3" class="anchored" data-anchor-id="references-tables-and-lists">
+<span class="header-section-number">5.3</span> References, tables, and lists</h2>
+<section id="need" class="level3" data-number="5.3.1"><h3 data-number="5.3.1" class="anchored" data-anchor-id="need">
+<span class="header-section-number">5.3.1</span> <code>need</code>
+</h3>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb2"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>See {{&lt; need REQ-001 &gt;}} or {{&lt; need REQ-001 title=true &gt;}}.</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>The first positional argument is the ID. <code>title=true</code> appends the object title to the link label. Missing IDs or unavailable objects do not create a valid cross-reference; unresolved object IDs remain visibly marked in HTML. Links are resolved relative to the current chapter.</p>
+</section><section id="need-table" class="level3" data-number="5.3.2"><h3 data-number="5.3.2" class="anchored" data-anchor-id="need-table">
+<span class="header-section-number">5.3.2</span> <code>need-table</code>
+</h3>
+<p>In addition to shared selection, <code>columns</code> sets the column list, <code>caption</code> adds a caption, and <code>id</code> names the table anchor. Default columns are <code>id;title;type;status;priority</code>. Columns may also name authored attributes or outgoing relations; relation columns link to their targets.</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb3"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>{{&lt; need-table types="functional-requirement" columns="id;title;status;verified-by" caption="Verification links" id="verification-table" &gt;}}</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>In HTML, tables have text search and clickable sortable headers. PDF and DOCX retain the static table. For tables, matrices, inspectors, dashboards, tag catalogs, and ADR tables, omitted IDs are generated; requested IDs are normalized and duplicates receive a numeric suffix.</p>
+</section><section id="need-list-and-need-count" class="level3" data-number="5.3.3"><h3 data-number="5.3.3" class="anchored" data-anchor-id="need-list-and-need-count">
+<span class="header-section-number">5.3.3</span> <code>need-list</code> and <code>need-count</code>
+</h3>
+<p><code>need-list</code> presents each object’s linked ID and title. Its optional <code>show</code> list adds badges for <code>status</code> or authored attributes such as <code>priority</code> and <code>date</code>. <code>need-count</code> returns the size of the same selected set and has no presentation-specific options.</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb4"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>{{&lt; need-list types="system-requirement" show="status;priority" &gt;}}</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>System requirements: {{&lt; need-count types="system-requirement" &gt;}}</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+</section><section id="need-matrix" class="level3" data-number="5.3.4"><h3 data-number="5.3.4" class="anchored" data-anchor-id="need-matrix">
+<span class="header-section-number">5.3.4</span> <code>need-matrix</code>
+</h3>
+<p><code>rows</code> and <code>columns</code> select object types, accepting comma or semicolon lists. <code>relation</code> is the directed relation to check, defaulting to <code>verified-by</code>; <code>query</code> restricts the pool for both axes; <code>id</code> names the table. A check mark links to the column object when that row-to-column relation exists. A dash means that link is absent.</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb5"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>{{&lt; need-matrix rows="functional-requirement;non-functional-requirement" columns="test-case" relation="verified-by" id="verification-matrix" &gt;}}</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>Axes are sorted by ID. The matrix does not apply the shared <code>status</code>, <code>priority</code>, <code>tags</code>, or <code>sort</code> arguments; use a named query to constrain its pool.</p>
+</section></section><section id="inspecting-one-object" class="level2" data-number="5.4"><h2 data-number="5.4" class="anchored" data-anchor-id="inspecting-one-object">
+<span class="header-section-number">5.4</span> Inspecting one object</h2>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb6"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>{{&lt; need-backlinks REQ-001 &gt;}}</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>{{&lt; need-inspector REQ-001 id="requirement-details" &gt;}}</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>Both shortcodes require one positional ID. <code>need-backlinks</code> lists incoming relations with catalog labels and source links. <code>need-inspector</code> adds the title, type/status/priority badges, source location, authored attributes, outgoing and incoming relations, and findings associated with the object. The inspector accepts an optional <code>id</code> for its region. Neither shortcode accepts the shared selection filters.</p>
+</section><section id="need-flow" class="level2" data-number="5.5"><h2 data-number="5.5" class="anchored" data-anchor-id="need-flow">
+<span class="header-section-number">5.5</span> <code>need-flow</code>
+</h2>
+<p>Use a rooted flow to explore a neighborhood, or an unrooted flow to diagram a selection:</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb7"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>{{&lt; need-flow root="REQ-001" depth="2" relations="implemented-by;verified-by" direction="LR" &gt;}}</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>{{&lt; need-flow types="functional-requirement;test-case" direction="TD" &gt;}}</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead><tr class="header">
+<th>Option</th>
+<th>Meaning</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>root</code></td>
+<td>Start from an existing ID and include reachable neighbors in either edge direction.</td>
+</tr>
+<tr class="even">
+<td><code>depth</code></td>
+<td>Rooted traversal depth; default <code>3</code>, minimum <code>0</code>, maximum <code>10</code>.</td>
+</tr>
+<tr class="odd">
+<td><code>relations</code></td>
+<td>Allowed relation names, comma/semicolon separated; omitted means all.</td>
+</tr>
+<tr class="even">
+<td><code>direction</code></td>
+<td>Diagram layout: <code>TD</code> (default), <code>TB</code>, <code>BT</code>, <code>LR</code>, or <code>RL</code>.</td>
+</tr>
+<tr class="odd">
+<td>
+<code>query</code>, <code>ids</code>, <code>types</code>/<code>type</code>, <code>status</code>, <code>priority</code>, <code>tags</code>
+</td>
+<td>Object selection only when <code>root</code> is omitted.</td>
+</tr>
+</tbody>
+</table>
+<p><code>direction</code> controls diagram orientation, not graph traversal. With <code>root</code>, object filters and <code>query</code> do not restrict the traversal; <code>relations</code> and <code>depth</code> do. Flows have fixed limits of 100 nodes, 300 edges, and depth 10, with warnings when a requested result is truncated. Objects are selected deterministically by ID; <code>sort</code> is not supported.</p>
+<p>HTML uses a static SVG where available. Other formats use a rendered image. A rendering failure produces a visible diagram warning; it does not establish that a valid figure was produced.</p>
+</section><section id="need-dashboard" class="level2" data-number="5.6"><h2 data-number="5.6" class="anchored" data-anchor-id="need-dashboard">
+<span class="header-section-number">5.6</span> <code>need-dashboard</code>
+</h2>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb8"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>{{&lt; need-dashboard &gt;}}</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>{{&lt; need-dashboard query="accepted-decisions" id="decision-dashboard" &gt;}}</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>The dashboard shows the catalog scope and, when available, approved requirements. A <code>query</code> adds its report scope to those defaults; it does not replace them. Each scope reports coverage measures, breakdowns, and traceability gaps, followed by finding counts by severity. <code>id</code> names the dashboard region. Shared object filters do not apply.</p>
+<p>The dashboard requires the report embedded in the generated graph. If it says the report is unavailable, create the project’s <code>.quarto-needs.toml</code> configuration and render again. Selecting a named scope also requires that query to exist in the configuration.</p>
+</section><section id="need-graph" class="level2" data-number="5.7"><h2 data-number="5.7" class="anchored" data-anchor-id="need-graph">
+<span class="header-section-number">5.7</span> <code>need-graph</code>
+</h2>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb9"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>{{&lt; need-graph &gt;}}</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>{{&lt; need-graph query="accepted-decisions" id="decision-graph" &gt;}}</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>{{&lt; need-graph projection="need-graph-1" root="REQ-001" depth="2" id="requirement-graph" &gt;}}</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead><tr class="header">
+<th>Option</th>
+<th>Meaning</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>
+<code>query</code> or <code>view</code>
+</td>
+<td>Named-query projection; equivalent spellings. If both are given, they must agree.</td>
+</tr>
+<tr class="even">
+<td><code>id</code></td>
+<td>Unique HTML instance ID; default <code>need-graph-1</code>. Use a distinct ID for every graph on a page.</td>
+</tr>
+<tr class="odd">
+<td><code>projection</code></td>
+<td>Generated projection filename without <code>.json</code>; defaults to <code>id</code> when no query/view is specified.</td>
+</tr>
+<tr class="even">
+<td><code>filter</code></td>
+<td>Comma-separated exact node-field comparisons, e.g. <code>type=functional-requirement,status=approved</code>.</td>
+</tr>
+<tr class="odd">
+<td><code>root</code></td>
+<td>Restrict the loaded projection to the root and its semantic descendants.</td>
+</tr>
+<tr class="even">
+<td><code>depth</code></td>
+<td>Rooted traversal depth; default <code>3</code>, clamped to <code>0</code>–<code>10</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>For a second instance of the default graph, set both a new <code>id</code> and <code>projection="need-graph-1"</code>. A named <code>query</code>/<code>view</code> resolves its own projection automatically. <code>filter</code> is a small, case-sensitive presentation selector for simple scalar values such as ID, type, status, or priority; it is not the shared selector syntax or a general expression language. Filtering happens before rooting, so the root must survive the filter. Neither operation can add objects omitted from the materialized projection.</p>
+<p>The default projection starts from the built-in <code>approved-requirements</code> query and expands according to <code>[graph]</code>. It is not necessarily the entire catalog. To select another population, declare a named query and use <code>query</code> or <code>view</code>.</p>
+<section id="projection-configuration" class="level3" data-number="5.7.1"><h3 data-number="5.7.1" class="anchored" data-anchor-id="projection-configuration">
+<span class="header-section-number">5.7.1</span> Projection configuration</h3>
+<p>These options belong in <code>.quarto-needs.toml</code>:</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb10"><pre class="sourceCode toml code-with-copy"><code class="sourceCode toml"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[graph]</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="dt">max-nodes</span> <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="dt">max-edges</span> <span class="op">=</span> <span class="dv">300</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="dt">depth</span> <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="dt">mode</span> <span class="op">=</span> <span class="st">"catalog"</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="dt">layout</span> <span class="op">=</span> <span class="st">"hierarchical"</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="dt">seed</span> <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="co"># relations = ["implemented-by", "verified-by"]</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="co"># baseline = ".quarto-needs/baseline.json"</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="co"># overlay-queries = ["accepted-decisions"]</span></span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>The displayed values are defaults. <code>max-nodes</code> and <code>max-edges</code> are positive integer budgets. <code>depth</code> is an integer from 1 to 10 for expansion during materialization, separate from shortcode <code>depth</code>. Omit <code>relations</code> to include all relation kinds; an explicit empty list is invalid. <code>layout</code> is a nonempty layout name and <code>seed</code> a nonnegative integer published with the projection; browser controls can adjust presentation independently.</p>
+<p><code>mode</code> accepts <code>catalog</code>, <code>diff</code>, or <code>impact</code>. Comparison modes use <code>baseline</code>, whose default location is <code>.quarto-needs/baseline.json</code>; without a usable baseline the default projection falls back to catalog. A baseline also enables optional comparison overlays for the default graph. <code>overlay-queries</code> opts named queries into their own comparison overlays. Unknown names or over-budget overlays are skipped.</p>
+<p>When a named-query graph exceeds its budget, its manifest records an unavailable view instead of silently truncating it. The default graph’s budget remains a build constraint. Narrow the query or adjust the graph budget when the requested projection cannot be produced.</p>
+</section><section id="html-exploration" class="level3" data-number="5.7.2"><h3 data-number="5.7.2" class="anchored" data-anchor-id="html-exploration">
+<span class="header-section-number">5.7.2</span> HTML exploration</h3>
+<p>The same projection supplies the static figure, summary, node/edge tables, and interactive canvas. Static content remains useful in PDF/DOCX and when interactive enhancement is unavailable.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead><tr class="header">
+<th>Control</th>
+<th>Action</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Search; Type; Status; Family</td>
+<td>Compose text, node, and relation-family filters.</td>
+</tr>
+<tr class="even">
+<td>Color nodes by</td>
+<td>Choose type, status, or priority coloring.</td>
+</tr>
+<tr class="odd">
+<td>Parents / Children</td>
+<td>Show semantic ancestors and descendants of the selected node.</td>
+</tr>
+<tr class="even">
+<td>Fixed spacing</td>
+<td>Adjust the distance between nodes.</td>
+</tr>
+<tr class="odd">
+<td>Node details</td>
+<td>Open the linked object, inspect its metadata, or copy its ID.</td>
+</tr>
+<tr class="even">
+<td>Edge details</td>
+<td>Inspect relation semantics and safe declaration provenance.</td>
+</tr>
+<tr class="odd">
+<td>Traversal</td>
+<td>Choose <code>traceability</code>, <code>derivation</code>, <code>architecture</code>, <code>decision</code>, <code>implementation</code>, <code>verification</code>, or <code>risk</code>.</td>
+</tr>
+<tr class="even">
+<td>Path to root</td>
+<td>Highlight the nearest semantic-root path from the selected node.</td>
+</tr>
+<tr class="odd">
+<td>Path between…</td>
+<td>Select the first node, activate the control, then select the second endpoint.</td>
+</tr>
+<tr class="even">
+<td>Path trail</td>
+<td>Click a path entry to refocus that node.</td>
+</tr>
+<tr class="odd">
+<td>Fit; Fullscreen; Export PNG</td>
+<td>Fit the view, enlarge the canvas, or export an image.</td>
+</tr>
+<tr class="even">
+<td>Reset</td>
+<td>Clear exploration state and return to the default view.</td>
+</tr>
+</tbody>
+</table>
+<p>Double-click/tap a node to collapse or expand its descendants. Explicit path highlights remain visible even when ordinary filters would hide path nodes. When comparison overlays are available, <strong>Mode</strong> offers <strong>Catalog</strong>, <strong>Changes</strong>, and <strong>Impact</strong>; <strong>Affected only</strong> applies in Impact mode when impacted objects exist. These controls are absent without a usable overlay.</p>
+<p>Filters, search, mode, focus, and selected paths are saved in the URL fragment and browser storage. Share the resulting URL to reopen that exploration; URL state takes precedence over locally saved state. Reset clears saved exploration. Give graphs stable, distinct IDs because saved state is keyed by the instance ID.</p>
+</section></section><section id="tags-and-adrs" class="level2" data-number="5.8"><h2 data-number="5.8" class="anchored" data-anchor-id="tags-and-adrs">
+<span class="header-section-number">5.8</span> Tags and ADRs</h2>
+<section id="need-tags" class="level3" data-number="5.8.1"><h3 data-number="5.8.1" class="anchored" data-anchor-id="need-tags">
+<span class="header-section-number">5.8.1</span> <code>need-tags</code>
+</h3>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb11"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>{{&lt; need-tags types="functional-requirement;architecture-decision" sort="title" id="tag-catalog" &gt;}}</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>Shared selection determines the table’s objects, including objects without tags. HTML adds one chip per tag, an <strong>All</strong> control, and filtering from <code>?tag=&lt;slug&gt;</code>. PDF/DOCX retain the table. <code>id</code> names the table; columns are fixed to ID, title, type, status, and tags.</p>
+<p>To link badges into a catalog chapter, set Quarto metadata:</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb12"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">quarto-needs</span><span class="kw">:</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">tags-page</span><span class="kw">:</span><span class="at"> tags</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">tags-page-pt-br</span><span class="kw">:</span><span class="at"> tags.pt-BR</span></span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>Use the source chapter stem, optionally ending in <code>.qmd</code>, rather than an <code>.html</code> filename. Locale-specific keys use lowercase locale names and take precedence over <code>tags-page</code>. Set their values to the actual chapter names in your project; omit the override when both languages use the same chapter stem. Links resolve relative to the current chapter and preserve the tag filter.</p>
+</section><section id="adr-table-and-adr-count" class="level3" data-number="5.8.2"><h3 data-number="5.8.2" class="anchored" data-anchor-id="adr-table-and-adr-count">
+<span class="header-section-number">5.8.2</span> <code>adr-table</code> and <code>adr-count</code>
+</h3>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb13"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>{{&lt; adr-table status="accepted" decision-makers="Architecture Team" date-from="2026-01-01" date-to="2026-12-31" date-sort="desc" columns="id;title;date;status" caption="Current decisions" id="current-decisions" &gt;}}</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>Accepted decisions: {{&lt; adr-count status="accepted" &gt;}}</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>Both select only <code>architecture-decision</code> objects and accept <code>status</code>, <code>tags</code>, <code>decision-makers</code>, <code>date-from</code>, <code>date-to</code>, and <code>query</code>. Status/tag/maker lists use comma or semicolon alternatives and case-insensitive matching. Date bounds are inclusive ISO <code>YYYY-MM-DD</code> strings; an object without a date is excluded when a date bound is set. <code>date-sort</code> is <code>desc</code> by default, or <code>asc</code>, with ID as a tie-breaker.</p>
+<p><code>adr-table</code> additionally accepts <code>columns</code>, <code>caption</code>, and <code>id</code>; default columns are <code>id;title;status;date;decision-makers;tags</code>. Other columns read authored attributes. <code>adr-count</code> returns only the selected count. The shared <code>types</code>, <code>priority</code>, <code>ids</code>, and <code>sort</code> options do not apply. See <a href="./architecture-decisions.html">Architecture decisions</a> for lifecycle and authoring guidance.</p>
+</section></section><section id="c4-and-page-layout" class="level2" data-number="5.9"><h2 data-number="5.9" class="anchored" data-anchor-id="c4-and-page-layout">
+<span class="header-section-number">5.9</span> C4 and page layout</h2>
+<p><code>need-c4</code> requires <code>root</code> and <code>level</code>, and accepts <code>backend</code> for diagram levels. See <a href="./c4-architecture.html">C4 architecture</a> for the complete root/type mapping, Mermaid/PlantUML/Structurizr/D2 behavior, Code-level table, and renderer prerequisites.</p>
+<p>For an optional right-hand table-of-contents control:</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb14"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">quarto-needs</span><span class="kw">:</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">margin-sidebar-toggle</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>The default is disabled. The control appears on HTML pages that have Quarto’s right margin sidebar and a page TOC. It remembers the reader’s collapse preference in browser storage, frees content width while collapsed, and restores the layout when expanded. Its labels follow the document language. Below 992 CSS pixels, the control is hidden and Quarto’s responsive layout applies. PDF and DOCX are unaffected.</p>
+<p>This option controls the right margin TOC. Configure the left Book navigation separately using Quarto’s <code>book.sidebar.collapse-level</code>. Author <code>.need</code> blocks as usual: activating the extension also supplies the card filter, associated styles, and the pre-render integration; no separate shortcode registration is needed.</p>
+
+
+</section></main><!-- /main --><script>
+(() => {
+  const locale = document.documentElement.lang || "en";
+  const isPt = locale.toLowerCase().startsWith("pt");
+
+  const asDir = (url) => new URL("./", url);
+
+  const relativeHref = (from, to) => {
+    const fromParts = asDir(from).pathname.split("/").filter(Boolean);
+    const toParts = to.pathname.split("/").filter(Boolean);
+    let common = 0;
+    while (common < fromParts.length && common < toParts.length && fromParts[common] === toParts[common]) common += 1;
+    const up = Array(fromParts.length - common).fill("..");
+    const down = toParts.slice(common);
+    return `${[...up, ...down].join("/") || "./"}${to.search}${to.hash}`;
+  };
+
+  const homeLink = document.querySelector(
+    ".sidebar-title a, a.sidebar-title, .navbar-brand, .quarto-secondary-nav a[href]"
+  );
+  const fallbackHome = "index.html";
+  const localizedHome = new URL(homeLink?.getAttribute("href") || fallbackHome, window.location.href);
+
+  let bookRoot;
+  if (isPt && /\/pt-BR\//i.test(localizedHome.pathname)) {
+    bookRoot = new URL("../", asDir(localizedHome));
+  } else {
+    bookRoot = asDir(localizedHome);
+  }
+
+  const current = new URL(window.location.href);
+  let logicalPath;
+  if (isPt) {
+    const marker = "/pt-BR/";
+    const index = current.pathname.toLowerCase().indexOf(marker.toLowerCase());
+    logicalPath = index >= 0 ? current.pathname.slice(index + marker.length) : current.pathname.split("/").pop();
+    logicalPath = logicalPath || "index.html";
+  } else {
+    const rootPath = bookRoot.pathname.endsWith("/") ? bookRoot.pathname : `${bookRoot.pathname}/`;
+    logicalPath = current.pathname.startsWith(rootPath)
+      ? current.pathname.slice(rootPath.length)
+      : current.pathname.split("/").pop();
+    logicalPath = logicalPath || "index.html";
+  }
+
+  const target = isPt
+    ? new URL(logicalPath, bookRoot)
+    : new URL(`pt-BR/${logicalPath}`, bookRoot);
+  target.search = current.search;
+  target.hash = current.hash;
+
+  const targetLabel = isPt ? "English" : "Português (Brasil)";
+  const currentLabel = isPt ? "PT-BR" : "EN";
+
+  document.querySelectorAll("#languages-links-parent, .babelquarto-languages-button").forEach((node) => {
+    const oldWrapper = node.closest("#languages-links-parent, .nav-item.dropdown, .dropdown") || node;
+    if (!oldWrapper.classList.contains("quarto-needs-language-switch")) oldWrapper.remove();
+  });
+
+  const wrapper = document.createElement("div");
+  wrapper.id = "quarto-needs-language-switch";
+  wrapper.className = "dropdown quarto-needs-language-switch";
+  wrapper.innerHTML = `
+    <a id="languages-button"
+       class="nav-link dropdown-toggle"
+       href="#"
+       role="button"
+       data-bs-toggle="dropdown"
+       aria-expanded="false"
+       aria-label="${isPt ? "Idioma" : "Language"}">
+      <span class="quarto-needs-language-globe" aria-hidden="true">🌐</span>
+      <span class="quarto-needs-current-language">${currentLabel}</span>
+    </a>
+    <ul id="languages-links"
+        class="dropdown-menu dropdown-menu-end"
+        aria-labelledby="languages-button">
+      <li><a class="dropdown-item" href="${relativeHref(current, target)}">${targetLabel}</a></li>
+    </ul>`;
+
+  // Colors are intentionally not set here: language-switch.css resolves
+  // them through live Bootstrap theme variables, which stay correct across
+  // dark themes and runtime theme toggles. A snapshot taken at load time
+  // went stale on dark sites and left the switcher with light chrome.
+
+  const place = () => {
+    const secondarySearch = document.querySelector(
+      "#quarto-header .quarto-secondary-nav .quarto-search-button"
+    );
+    if (secondarySearch && secondarySearch.parentElement) {
+      const host = secondarySearch.parentElement;
+      if (wrapper.parentElement !== host || secondarySearch.nextElementSibling !== wrapper) {
+        host.insertBefore(wrapper, secondarySearch.nextSibling);
+      }
+      return true;
+    }
+
+    const primarySearch = document.querySelector("#quarto-header .navbar #quarto-search");
+    if (primarySearch && primarySearch.parentElement) {
+      const host = primarySearch.parentElement;
+      if (wrapper.parentElement !== host || primarySearch.nextElementSibling !== wrapper) {
+        host.insertBefore(wrapper, primarySearch.nextSibling);
+      }
+      return true;
+    }
+
+    const tools = document.querySelector("#quarto-header .quarto-navbar-tools");
+    if (tools) {
+      tools.appendChild(wrapper);
+      return true;
+    }
+    return false;
+  };
+
+  place();
+  requestAnimationFrame(place);
+  setTimeout(place, 100);
+  setTimeout(place, 500);
+  setTimeout(place, 1200);
+})();
+</script><script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script><nav class="page-navigation"><div class="nav-page nav-page-previous">
+      <a href="./authoring.html" class="pagination-link" aria-label="Authoring in Quarto">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">4</span>  <span class="chapter-title">Authoring in Quarto</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./architecture-decisions.html" class="pagination-link" aria-label="Architecture Decision Management">
+        <span class="nav-page-text"><span class="chapter-number">6</span>  <span class="chapter-title">Architecture Decision Management</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body>
+</html>
