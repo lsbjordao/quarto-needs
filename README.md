@@ -6,11 +6,20 @@
   <strong>Requirements as Code · Architecture Decisions · Verification · Evidence · Change Intelligence · Interoperability</strong>
 </p>
 
+<p align="center">
+  <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT">
+  <img src="https://img.shields.io/badge/python-3.10%2B-blue.svg" alt="Python 3.10+">
+  <img src="https://img.shields.io/badge/quarto-1.6%2B-75AADB.svg" alt="Quarto 1.6+">
+  <img src="https://img.shields.io/badge/status-pre--1.0-orange.svg" alt="Status: pre-1.0">
+</p>
+
 # Quarto-Needs
 
 Quarto-Needs is a **requirements-as-code and engineering-traceability engine for Quarto**. Engineering objects authored in `.qmd` files become a deterministic typed property graph that drives validation, governance, coverage, change impact, CI artifacts, editor tooling, interchange formats, and Quarto documentation.
 
 > **Status:** pre-1.0 and under active development. The Python core is the semantic authority; Quarto is the executable documentation interface. Rendering, editor, CI, and interoperability layers consume projections of the same canonical model rather than redefining engineering semantics.
+
+📖 **[Manual](https://lsbjordao.github.io/quarto-needs/)** · 🧪 **[Live case study](https://lsbjordao.github.io/quarto-needs/examples/quarto-needs/)** · 🚀 **[Quickstart](notes/quickstart.md)** · 📋 **[Changelog](CHANGELOG.md)** · 🤝 **[Contributing](CONTRIBUTING.md)**
 
 ## North star
 
@@ -96,6 +105,8 @@ The manual is authored in `docs/src/` and rendered into `docs/`; the docs site i
 
 ## Quick start
 
+**Prerequisites:** Quarto 1.6 or later, and Python 3.10 or later with `pip` on `PATH`. The extension provisions its own Python engine; you do not install it yourself.
+
 Add the extension to a Quarto project:
 
 ```bash
@@ -123,13 +134,27 @@ quarto use template lsbjordao/quarto-needs/templates/starter
 
 See [`notes/quickstart.md`](notes/quickstart.md) for the complete first-project walkthrough.
 
-## Contributor setup
+> <a name="before-the-first-release"></a>
+> **Before the first release.** The `quarto-needs` Python package is not published to the package index yet, so neither the extension bootstrap nor `pip install quarto-needs` can resolve it. Work from a checkout meanwhile:
+>
+> ```bash
+> git clone https://github.com/lsbjordao/quarto-needs
+> cd quarto-needs && make setup          # standalone CLI, editable
+>
+> QUARTO_NEEDS_ENGINE_SOURCE=/path/to/quarto-needs quarto render
+> ```
+>
+> `QUARTO_NEEDS_ENGINE_SOURCE` must be a local filesystem path to a checkout or a wheel; remote URLs are refused. Without it, `quarto render` stops with an actionable provisioning error rather than rendering a partial book.
+
+## Command-line workflows
+
+Rendering needs no separate install. Install the standalone CLI only for engineering workflows outside a render — CI gates, change reports, interchange, migration, and editor tooling:
 
 ```bash
-make setup
-source .venv/bin/activate
-make test
+pip install quarto-needs
 ```
+
+(Not published yet — see [Before the first release](#before-the-first-release).)
 
 Analyze a project:
 
@@ -140,6 +165,27 @@ quarto-needs quality
 quarto-needs coverage
 quarto-needs trace SYS-REQ-042
 ```
+
+`check` reports structural and governance findings; `quality` adds scoped coverage and the configured gates. Run against the self-hosted model in this repository:
+
+```console
+$ quarto-needs --root examples/quarto-needs check
+Checked 183 objects: 0 errors, 0 warnings
+
+$ quarto-needs --root examples/quarto-needs quality
+Quarto-Needs quality report (profile=strict, reference date=2026-09-07)
+Scope approved-requirements: 37 requirements
+  implementation-trace: 100.0% (37/37)
+  implementation-effective: 100.0% (37/37)
+  verification-trace: 100.0% (37/37)
+  verification-successful: 100.0% (37/37)
+  evidence: 100.0% (37/37)
+Findings: 0 errors, 0 warnings, 0 infos
+[PASS] max-errors (actual 0, threshold 0)
+[PASS] min-implementation-trace (actual 100.0, threshold 100.0, denominator 37, scope approved-requirements)
+```
+
+The paired `-trace` and `-effective`/`-successful` measures are the difference between a link existing and that link meaning something: `verification-trace` accepts a requirement that names a test case, while `verification-successful` also requires that test to be passing.
 
 Compare engineering states:
 
@@ -171,6 +217,8 @@ quarto-needs migrate sphinx-needs docs/needs.json \
 After reviewing mappings, build an apply plan with explicit `--destination SOURCE_ID=path.qmd`; only `--apply-plan --write` mutates authored files. The same workflow supports Doorstop, StrictDoc, and OpenFastTrace. See [`docs/src/migrations.qmd`](docs/src/migrations.qmd).
 
 Discover a configured OSLC RM Service Provider through the bounded read-only adapter:
+
+The OSLC path needs the optional RDF dependencies:
 
 ```bash
 pip install 'quarto-needs[oslc]'
@@ -243,6 +291,21 @@ Generated views are projections of the canonical graph:
 
 For a clickable tag index, author a chapter (say `tags.qmd`) containing `{{< need-tags >}}`: it renders a chip for every tag plus one table of all objects. Configure `quarto-needs: tags-page: tags` (locale-suffixed keys like `tags-page-pt-br` for translations) and every tag badge anywhere in the site becomes a link into that chapter with the filter already applied via `?tag=<slug>`.
 
+Fourteen shortcodes are registered in total; the [views reference](https://lsbjordao.github.io/quarto-needs/views-reference.html) documents every one with its options, and the [self-hosted case study](examples/quarto-needs/) exercises all of them.
+
+Selection is never written inside a shortcode. A `query` names a query declared once in `.quarto-needs.toml` and evaluated only by the Python core:
+
+```toml
+[queries.security-critical]
+all = [
+  { field = "tags", op = "contains", value = "security" },
+  { field = "priority", op = "in", values = ["critical", "high"] },
+]
+sort = ["priority:asc", "id:asc"]
+```
+
+That one name then drives presentation and governance alike — `{{< need-table query="security-critical" >}}`, a `[gates]` scope, a `[policies.*]` scope — so the population a dashboard shows and the population a gate enforces cannot drift apart. See [named queries](https://lsbjordao.github.io/quarto-needs/named-queries.html).
+
 ## Executable evidence
 
 Verification intent, machine execution output, and provenance-bearing evidence remain distinct. A modeled test case can bind to a real pytest node while the executable test carries reciprocal requirement/test-case markers:
@@ -273,6 +336,29 @@ The OSLC path uses GET-only bounded HTTP, same-origin redirects, conditional ret
 The rendered case study is published at **https://lsbjordao.github.io/quarto-needs/examples/quarto-needs/**. Its local `_book/` directory is a generated build artifact and is intentionally not versioned in the source tree.
 
 This keeps major features traceable as engineering changes rather than leaving architecture and validation implicit in implementation code.
+
+## Contributor setup
+
+```bash
+make setup
+source .venv/bin/activate
+make test
+```
+
+`make setup` installs this checkout in editable mode with the test extras. Useful targets while working on the engine:
+
+| Target | Purpose |
+|---|---|
+| `make test` | Full regression and integration suite. |
+| `make check-self-example` | Validate the self-hosted engineering model. |
+| `make evidence-self-example` | Run the bound pytest tests, write the evidence artifact, and validate it against the graph. |
+| `make render-self-example` | Render the bilingual case study (depends on the evidence target). |
+| `make preview-self-example` | Serve the rendered case study locally. |
+| `make render-manual-multilingual` | Render the manual from `docs/src/` into `docs/`. |
+
+The Makefile exports `QUARTO_NEEDS_ENGINE_SOURCE=$(CURDIR)`, so example and manual renders resolve the engine from this checkout instead of the package index.
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the contribution workflow and [`ARCHITECTURE.md`](ARCHITECTURE.md) for the internal module map.
 
 ## Inspirations and related work
 
