@@ -103,10 +103,14 @@ jobs:
       - name: Install babelquarto
         run: make setup-babelquarto
       - name: Set up Quarto
+        # No TinyTeX here on purpose: this job renders the manual and the
+        # self-hosted example, and both declare `format: html` only. Installing
+        # a LaTeX distribution to render no PDF only adds a failure point.
         uses: quarto-dev/quarto-actions/setup@v2
         with:
           version: "1.10.18"
-          tinytex: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Test responsive margin-sidebar behavior
         run: |
           command -v google-chrome
@@ -141,10 +145,16 @@ jobs:
         with:
           python-version: "3.14"
       - name: Set up Quarto
+        # TinyTeX is required here: check_extension_first_path.sh renders a PDF
+        # and asserts its text. Quarto fetches the TinyTeX release from GitHub,
+        # so the step runs authenticated to stay clear of the anonymous rate
+        # limit shared across runners.
         uses: quarto-dev/quarto-actions/setup@v2
         with:
           version: "1.10.18"
           tinytex: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Install poppler-utils
         # check_extension_first_path.sh asserts PDF content with pdftotext,
         # which ubuntu-latest does not ship by default.
@@ -176,6 +186,8 @@ jobs:
         with:
           version: "1.6.0"
           tinytex: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Install poppler-utils
         run: sudo apt-get update && sudo apt-get install -y poppler-utils
       - name: Verify the extension-first path on the declared minimum Quarto
