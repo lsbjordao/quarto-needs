@@ -304,3 +304,57 @@ def test_rationale_heading_is_not_mistaken_for_the_title_when_no_title_heading_e
 
     assert declaration.title == "REQ-R"
     assert declaration.rationale == "Protect privileged operations."
+
+
+def test_repeated_preamble_key_reports_the_dropped_value(tmp_path: Path) -> None:
+    """A repeated key keeps only its last value, so the loss must be visible.
+
+    The preamble is a mapping. Without QND003 an author who writes two
+    `verified-by:` lines loses the first target with no diagnostic, and the
+    project still validates as fully traced.
+    """
+    source = tmp_path / "duplicate.qmd"
+    source.write_text(
+        "::: {.need #REQ-DUP}\n"
+        "verified-by: TC-001\n"
+        "verified-by: TC-002\n\n"
+        "## Duplicate relation key\n"
+        ":::\n",
+        encoding="utf-8",
+    )
+
+    batch = parse_qmd_declarations(source, tmp_path)
+
+    assert [
+        (item.code, item.severity, item.object_id, item.location.line)
+        for item in batch.findings
+    ] == [("QND003", "error", "REQ-DUP", 3)]
+    # The surviving value is still the last one; the finding reports the loss
+    # rather than changing the merge semantics.
+    assert [item.target for item in batch.declarations[0].relations] == ["TC-002"]
+
+
+def test_distinct_preamble_keys_are_not_reported_as_duplicates(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "clean.qmd"
+    source.write_text(
+        "::: {.need #REQ-CLEAN}\n"
+        "verified-by: TC-001, TC-002\n"
+        "implemented-by:\n"
+        "  - COMP-001\n"
+        "  - COMP-002\n\n"
+        "## Multiple targets without repeating a key\n"
+        ":::\n",
+        encoding="utf-8",
+    )
+
+    batch = parse_qmd_declarations(source, tmp_path)
+
+    assert batch.findings == ()
+    assert [item.target for item in batch.declarations[0].relations] == [
+        "TC-001",
+        "TC-002",
+        "COMP-001",
+        "COMP-002",
+    ]

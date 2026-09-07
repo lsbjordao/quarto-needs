@@ -43,10 +43,17 @@ def _parse_attrs(raw: str) -> dict[str, str]:
 
 def _collect_metadata(
     lines: list[str],
-) -> tuple[dict[str, object], dict[str, int], int]:
-    """Parse the simple YAML-like preamble used inside a .need block."""
+) -> tuple[dict[str, object], dict[str, int], int, list[tuple[str, int]]]:
+    """Parse the simple YAML-like preamble used inside a .need block.
+
+    The preamble is a mapping, so a repeated key keeps only its last value.
+    Silently discarding the earlier one would drop authored relations without
+    a trace, so every repeat is reported back to the caller as ``(key, line
+    offset)`` and surfaces as QND003 rather than disappearing.
+    """
     meta: dict[str, object] = {}
     offsets: dict[str, int] = {}
+    duplicates: list[tuple[str, int]] = []
     i = 0
     while i < len(lines):
         line = lines[i]
@@ -59,6 +66,8 @@ def _collect_metadata(
         if not match:
             break
         key, value = match.group("key"), match.group("value").strip()
+        if key in meta:
+            duplicates.append((key, i))
         offsets[key] = i
         if value:
             meta[key] = value
@@ -74,7 +83,7 @@ def _collect_metadata(
             j += 1
         meta[key] = values
         i = j
-    return meta, offsets, i
+    return meta, offsets, i, duplicates
 
 
 def _source_file(path: Path, root: Path | None) -> str:
@@ -148,7 +157,21 @@ def parse_qmd_text_declarations(text: str, source_file: str) -> DeclarationBatch
             ))
             break
 
-        meta, meta_offsets, body_start = _collect_metadata(block)
+        meta, meta_offsets, body_start, duplicate_keys = _collect_metadata(block)
+        for duplicate_key, duplicate_offset in duplicate_keys:
+            findings.append(Finding(
+                "QND003",
+                "error",
+                f"Duplicate preamble key {duplicate_key} on {need_id}: "
+                "only the last value is kept. Combine the values on one line "
+                "or use a '-' list.",
+                need_id,
+                LocationRecord(
+                    source_file,
+                    start_line + 1 + duplicate_offset,
+                    need_id,
+                ),
+            ))
         merged: dict[str, object] = {**attrs, **meta}
 
         title = str(merged.pop("title", "")).strip()
