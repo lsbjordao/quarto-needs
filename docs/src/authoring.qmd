@@ -61,6 +61,17 @@ quarto-needs:
 
 When configured, clicking any tag badge anywhere in the project navigates to `tags.html?tag=<slug>` with that tag pre-filtered.
 
+## Localized titles
+
+Object titles can be localized without duplicating the engineering model. Place a translated sibling next to its canonical source file, adding the locale to the stem — for example, declare objects in `requirements.qmd` and provide `requirements.pt-BR.qmd`:
+
+- Both files must declare the same object IDs with the same types, statuses, attributes, and relations. Only the title, body, and rationale may differ; a sibling that changes engineering metadata fails the render with an error.
+- Localized siblings are presentation sources. The canonical graph is built from the unsuffixed files; localized files never add, remove, or hide objects.
+- `quarto-needs scan` validates every localized sibling and writes the approved titles to `.quarto-needs/i18n/<locale>.json`.
+- The page filename suffix selects the locale (for example, `chapter.pt-BR.qmd` renders as pt-BR). Views, tables, dashboards, and the `need-graph` canvas render the localized titles for that locale, falling back to the canonical title when a locale has no entry for an object. Spell the locale identically in sibling filenames and page filenames — the mapping is exact, not case-normalized.
+
+English pages keep the canonical titles; no default title map is required. The [language server](language-server.qmd) keeps localized siblings consistent across ID renames.
+
 ## Prefix configuration
 
 Prefixes are declared per type:

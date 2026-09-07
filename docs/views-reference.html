@@ -293,7 +293,7 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 
 
 </header><p>Activate <code>filters: [quarto-needs]</code> as described in <a href="./getting-started.html">Getting started</a>. The extension analyzes the project before rendering; views consume the generated graph and projections. Use <code>.need</code> blocks to declare objects and shortcodes to reference or present them.</p>
-<p>Examples below assume the referenced IDs exist. A <code>query</code> names a query declared in <code>.quarto-needs.toml</code>, rather than an expression written inside the shortcode. See <a href="./engineering-model.html">Engineering model</a> for a complete query declaration.</p>
+<p>Examples below assume the referenced IDs exist. A <code>query</code> names a query declared in <code>.quarto-needs.toml</code>, rather than an expression written inside the shortcode. See <a href="./engineering-model.html">Engineering model</a> for a complete query declaration. Views render object titles in the page’s language when localized title siblings exist; see <a href="./authoring.html#localized-titles">Localized titles</a>.</p>
 <section id="shortcode-inventory" class="level2" data-number="5.1"><h2 data-number="5.1" class="anchored" data-anchor-id="shortcode-inventory">
 <span class="header-section-number">5.1</span> Shortcode inventory</h2>
 <table class="caption-top table">
@@ -603,7 +603,7 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 </tr>
 <tr class="even">
 <td>Color nodes by</td>
-<td>Choose type, status, or priority coloring.</td>
+<td>Choose change (default), type, status, or priority coloring, or no coloring. Change coloring distinguishes overlay change states when comparisons are available.</td>
 </tr>
 <tr class="odd">
 <td>Parents / Children</td>
@@ -642,12 +642,20 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 <td>Fit the view, enlarge the canvas, or export an image.</td>
 </tr>
 <tr class="even">
+<td>Minimap</td>
+<td>A compact overview inside the canvas tracks the visible region while zoomed or filtered.</td>
+</tr>
+<tr class="odd">
+<td>Keyboard</td>
+<td>Focus the canvas, then cycle nodes with the arrow keys in ID order; Enter or Space opens the focused node, Escape closes a popup.</td>
+</tr>
+<tr class="even">
 <td>Reset</td>
 <td>Clear exploration state and return to the default view.</td>
 </tr>
 </tbody>
 </table>
-<p>Double-click/tap a node to collapse or expand its descendants. Explicit path highlights remain visible even when ordinary filters would hide path nodes. When comparison overlays are available, <strong>Mode</strong> offers <strong>Catalog</strong>, <strong>Changes</strong>, and <strong>Impact</strong>; <strong>Affected only</strong> applies in Impact mode when impacted objects exist. These controls are absent without a usable overlay.</p>
+<p>Double-click/tap a node to collapse or expand its descendants. Explicit path highlights remain visible even when ordinary filters would hide path nodes. When comparison overlays are available, <strong>Mode</strong> offers <strong>Catalog</strong>, <strong>Changes</strong>, and <strong>Impact</strong>; <strong>Affected only</strong> applies in Impact mode when impacted objects exist. These controls are absent without a usable overlay. Graph colors follow Quarto’s light and dark themes and switch when the reader changes theme.</p>
 <p>Filters, search, mode, focus, and selected paths are saved in the URL fragment and browser storage. Share the resulting URL to reopen that exploration; URL state takes precedence over locally saved state. Reset clears saved exploration. Give graphs stable, distinct IDs because saved state is keyed by the instance ID.</p>
 </section></section><section id="tags-and-adrs" class="level2" data-number="5.8"><h2 data-number="5.8" class="anchored" data-anchor-id="tags-and-adrs">
 <span class="header-section-number">5.8</span> Tags and ADRs</h2>

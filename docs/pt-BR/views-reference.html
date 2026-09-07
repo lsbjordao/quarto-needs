@@ -446,7 +446,7 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 
 
 <p>Ative <code>filters: [quarto-needs]</code> conforme <a href="./getting-started.html">Primeiros passos</a>. A extensão analisa o projeto antes da renderização; as visões consomem o grafo e as projeções geradas. Use blocos <code>.need</code> para declarar objetos e shortcodes para referenciá-los ou apresentá-los.</p>
-<p>Os exemplos abaixo pressupõem que os IDs referenciados existem. <code>query</code> nomeia uma consulta declarada em <code>.quarto-needs.toml</code>, em vez de uma expressão escrita dentro do shortcode. Veja uma declaração completa de consulta em <a href="./engineering-model.html">Modelo de engenharia</a>.</p>
+<p>Os exemplos abaixo pressupõem que os IDs referenciados existem. <code>query</code> nomeia uma consulta declarada em <code>.quarto-needs.toml</code>, em vez de uma expressão escrita dentro do shortcode. Veja uma declaração completa de consulta em <a href="./engineering-model.html">Modelo de engenharia</a>. As visões renderizam os títulos no idioma da página quando existem irmãos de títulos localizados; veja <a href="./authoring.html#títulos-localizados">Títulos localizados</a>.</p>
 <section id="inventário-de-shortcodes" class="level2" data-number="24.1">
 <h2 data-number="24.1" class="anchored" data-anchor-id="inventário-de-shortcodes"><span class="header-section-number">24.1</span> Inventário de shortcodes</h2>
 <table class="caption-top table">
@@ -735,7 +735,7 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 </tr>
 <tr class="even">
 <td>Colorir nós por</td>
-<td>Escolhe cores por tipo, status ou prioridade.</td>
+<td>Escolhe coloração por mudança (padrão), tipo, status ou prioridade, ou sem cor. A coloração por mudança distingue os estados de overlay quando comparações estão disponíveis.</td>
 </tr>
 <tr class="odd">
 <td>Pais / Filhos</td>
@@ -774,12 +774,20 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 <td>Ajusta a visão, amplia o canvas ou exporta uma imagem.</td>
 </tr>
 <tr class="even">
+<td>Minimapa</td>
+<td>Uma visão geral compacta dentro do canvas acompanha a região visível durante zoom ou filtros.</td>
+</tr>
+<tr class="odd">
+<td>Teclado</td>
+<td>Foque o canvas e alterne nós com as setas em ordem de ID; Enter ou Espaço abre o nó focado, Escape fecha um popup.</td>
+</tr>
+<tr class="even">
 <td>Redefinir</td>
 <td>Limpa o estado da exploração e retorna à visão padrão.</td>
 </tr>
 </tbody>
 </table>
-<p>Um clique/toque duplo em um nó recolhe ou expande seus descendentes. Caminhos explicitamente destacados permanecem visíveis mesmo quando filtros comuns ocultariam seus nós. Quando há overlays de comparação, <strong>Modo</strong> oferece <strong>Catálogo</strong>, <strong>Mudanças</strong> e <strong>Impact</strong>; <strong>Somente afetados</strong> aplica-se ao modo Impact quando existem objetos afetados. Esses controles não aparecem sem um overlay utilizável.</p>
+<p>Um clique/toque duplo em um nó recolhe ou expande seus descendentes. Caminhos explicitamente destacados permanecem visíveis mesmo quando filtros comuns ocultariam seus nós. Quando há overlays de comparação, <strong>Modo</strong> oferece <strong>Catálogo</strong>, <strong>Mudanças</strong> e <strong>Impact</strong>; <strong>Somente afetados</strong> aplica-se ao modo Impact quando existem objetos afetados. Esses controles não aparecem sem um overlay utilizável. As cores do grafo seguem os temas claro e escuro do Quarto e alternam quando o leitor muda de tema.</p>
 <p>Filtros, busca, modo, foco e caminhos selecionados são salvos no fragmento da URL e no armazenamento do navegador. Compartilhe a URL resultante para reabrir a exploração; o estado da URL prevalece sobre o estado local. Redefinir limpa a exploração salva. Use IDs estáveis e distintos, pois o estado é associado ao ID da instância.</p>
 </section>
 </section>

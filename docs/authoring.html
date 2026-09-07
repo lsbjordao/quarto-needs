@@ -246,7 +246,8 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 <li><a href="#need-blocks" id="toc-need-blocks" class="nav-link active" data-scroll-target="#need-blocks"><span class="header-section-number">4.1</span> <code>.need</code> blocks</a></li>
   <li><a href="#references-and-views" id="toc-references-and-views" class="nav-link" data-scroll-target="#references-and-views"><span class="header-section-number">4.2</span> References and views</a></li>
   <li><a href="#tag-index-and-deep-linking" id="toc-tag-index-and-deep-linking" class="nav-link" data-scroll-target="#tag-index-and-deep-linking"><span class="header-section-number">4.3</span> Tag index and deep linking</a></li>
-  <li><a href="#prefix-configuration" id="toc-prefix-configuration" class="nav-link" data-scroll-target="#prefix-configuration"><span class="header-section-number">4.4</span> Prefix configuration</a></li>
+  <li><a href="#localized-titles" id="toc-localized-titles" class="nav-link" data-scroll-target="#localized-titles"><span class="header-section-number">4.4</span> Localized titles</a></li>
+  <li><a href="#prefix-configuration" id="toc-prefix-configuration" class="nav-link" data-scroll-target="#prefix-configuration"><span class="header-section-number">4.5</span> Prefix configuration</a></li>
   </ul></nav>
 </div>
 <!-- main -->
@@ -318,8 +319,19 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p>When configured, clicking any tag badge anywhere in the project navigates to <code>tags.html?tag=&lt;slug&gt;</code> with that tag pre-filtered.</p>
-</section><section id="prefix-configuration" class="level2" data-number="4.4"><h2 data-number="4.4" class="anchored" data-anchor-id="prefix-configuration">
-<span class="header-section-number">4.4</span> Prefix configuration</h2>
+</section><section id="localized-titles" class="level2" data-number="4.4"><h2 data-number="4.4" class="anchored" data-anchor-id="localized-titles">
+<span class="header-section-number">4.4</span> Localized titles</h2>
+<p>Object titles can be localized without duplicating the engineering model. Place a translated sibling next to its canonical source file, adding the locale to the stem — for example, declare objects in <code>requirements.qmd</code> and provide <code>requirements.pt-BR.qmd</code>:</p>
+<ul>
+<li>Both files must declare the same object IDs with the same types, statuses, attributes, and relations. Only the title, body, and rationale may differ; a sibling that changes engineering metadata fails the render with an error.</li>
+<li>Localized siblings are presentation sources. The canonical graph is built from the unsuffixed files; localized files never add, remove, or hide objects.</li>
+<li>
+<code>quarto-needs scan</code> validates every localized sibling and writes the approved titles to <code>.quarto-needs/i18n/&lt;locale&gt;.json</code>.</li>
+<li>The page filename suffix selects the locale (for example, <code>chapter.pt-BR.qmd</code> renders as pt-BR). Views, tables, dashboards, and the <code>need-graph</code> canvas render the localized titles for that locale, falling back to the canonical title when a locale has no entry for an object. Spell the locale identically in sibling filenames and page filenames — the mapping is exact, not case-normalized.</li>
+</ul>
+<p>English pages keep the canonical titles; no default title map is required. The <a href="./language-server.html">language server</a> keeps localized siblings consistent across ID renames.</p>
+</section><section id="prefix-configuration" class="level2" data-number="4.5"><h2 data-number="4.5" class="anchored" data-anchor-id="prefix-configuration">
+<span class="header-section-number">4.5</span> Prefix configuration</h2>
 <p>Prefixes are declared per type:</p>
 <div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb5"><pre class="sourceCode toml code-with-copy"><code class="sourceCode toml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[types.system-requirement]</span></span>

@@ -2,7 +2,7 @@
 
 Activate `filters: [quarto-needs]` as described in [Getting started](getting-started.qmd). The extension analyzes the project before rendering; views consume the generated graph and projections. Use `.need` blocks to declare objects and shortcodes to reference or present them.
 
-Examples below assume the referenced IDs exist. A `query` names a query declared in `.quarto-needs.toml`, rather than an expression written inside the shortcode. See [Engineering model](engineering-model.qmd) for a complete query declaration.
+Examples below assume the referenced IDs exist. A `query` names a query declared in `.quarto-needs.toml`, rather than an expression written inside the shortcode. See [Engineering model](engineering-model.qmd) for a complete query declaration. Views render object titles in the page's language when localized title siblings exist; see [Localized titles](authoring.qmd#localized-titles).
 
 ## Shortcode inventory
 
@@ -178,7 +178,7 @@ The same projection supplies the static figure, summary, node/edge tables, and i
 | Control | Action |
 |---|---|
 | Search; Type; Status; Family | Compose text, node, and relation-family filters. |
-| Color nodes by | Choose type, status, or priority coloring. |
+| Color nodes by | Choose change (default), type, status, or priority coloring, or no coloring. Change coloring distinguishes overlay change states when comparisons are available. |
 | Parents / Children | Show semantic ancestors and descendants of the selected node. |
 | Fixed spacing | Adjust the distance between nodes. |
 | Node details | Open the linked object, inspect its metadata, or copy its ID. |
@@ -188,9 +188,11 @@ The same projection supplies the static figure, summary, node/edge tables, and i
 | Path between… | Select the first node, activate the control, then select the second endpoint. |
 | Path trail | Click a path entry to refocus that node. |
 | Fit; Fullscreen; Export PNG | Fit the view, enlarge the canvas, or export an image. |
+| Minimap | A compact overview inside the canvas tracks the visible region while zoomed or filtered. |
+| Keyboard | Focus the canvas, then cycle nodes with the arrow keys in ID order; Enter or Space opens the focused node, Escape closes a popup. |
 | Reset | Clear exploration state and return to the default view. |
 
-Double-click/tap a node to collapse or expand its descendants. Explicit path highlights remain visible even when ordinary filters would hide path nodes. When comparison overlays are available, **Mode** offers **Catalog**, **Changes**, and **Impact**; **Affected only** applies in Impact mode when impacted objects exist. These controls are absent without a usable overlay.
+Double-click/tap a node to collapse or expand its descendants. Explicit path highlights remain visible even when ordinary filters would hide path nodes. When comparison overlays are available, **Mode** offers **Catalog**, **Changes**, and **Impact**; **Affected only** applies in Impact mode when impacted objects exist. These controls are absent without a usable overlay. Graph colors follow Quarto's light and dark themes and switch when the reader changes theme.
 
 Filters, search, mode, focus, and selected paths are saved in the URL fragment and browser storage. Share the resulting URL to reopen that exploration; URL state takes precedence over locally saved state. Reset clears saved exploration. Give graphs stable, distinct IDs because saved state is keyed by the instance ID.
 

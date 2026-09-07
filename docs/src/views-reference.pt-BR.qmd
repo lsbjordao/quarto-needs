@@ -2,7 +2,7 @@
 
 Ative `filters: [quarto-needs]` conforme [Primeiros passos](getting-started.qmd). A extensão analisa o projeto antes da renderização; as visões consomem o grafo e as projeções geradas. Use blocos `.need` para declarar objetos e shortcodes para referenciá-los ou apresentá-los.
 
-Os exemplos abaixo pressupõem que os IDs referenciados existem. `query` nomeia uma consulta declarada em `.quarto-needs.toml`, em vez de uma expressão escrita dentro do shortcode. Veja uma declaração completa de consulta em [Modelo de engenharia](engineering-model.qmd).
+Os exemplos abaixo pressupõem que os IDs referenciados existem. `query` nomeia uma consulta declarada em `.quarto-needs.toml`, em vez de uma expressão escrita dentro do shortcode. Veja uma declaração completa de consulta em [Modelo de engenharia](engineering-model.qmd). As visões renderizam os títulos no idioma da página quando existem irmãos de títulos localizados; veja [Títulos localizados](authoring.qmd#títulos-localizados).
 
 ## Inventário de shortcodes
 
@@ -178,7 +178,7 @@ A mesma projeção fornece figura estática, resumo, tabelas de nós/arestas e c
 | Controle | Ação |
 |---|---|
 | Busca; Tipo; Status; Família | Combina filtros textuais, de nós e de famílias de relações. |
-| Colorir nós por | Escolhe cores por tipo, status ou prioridade. |
+| Colorir nós por | Escolhe coloração por mudança (padrão), tipo, status ou prioridade, ou sem cor. A coloração por mudança distingue os estados de overlay quando comparações estão disponíveis. |
 | Pais / Filhos | Mostra ancestrais e descendentes semânticos do nó selecionado. |
 | Distância fixa | Ajusta a distância entre os nós. |
 | Detalhes do nó | Abre o objeto vinculado, inspeciona metadados ou copia seu ID. |
@@ -188,9 +188,11 @@ A mesma projeção fornece figura estática, resumo, tabelas de nós/arestas e c
 | Caminho entre… | Selecione o primeiro nó, ative o controle e selecione o segundo endpoint. |
 | Trilha do caminho | Clique em uma entrada para focar novamente aquele nó. |
 | Ajustar; Tela cheia; Exportar PNG | Ajusta a visão, amplia o canvas ou exporta uma imagem. |
+| Minimapa | Uma visão geral compacta dentro do canvas acompanha a região visível durante zoom ou filtros. |
+| Teclado | Foque o canvas e alterne nós com as setas em ordem de ID; Enter ou Espaço abre o nó focado, Escape fecha um popup. |
 | Redefinir | Limpa o estado da exploração e retorna à visão padrão. |
 
-Um clique/toque duplo em um nó recolhe ou expande seus descendentes. Caminhos explicitamente destacados permanecem visíveis mesmo quando filtros comuns ocultariam seus nós. Quando há overlays de comparação, **Modo** oferece **Catálogo**, **Mudanças** e **Impact**; **Somente afetados** aplica-se ao modo Impact quando existem objetos afetados. Esses controles não aparecem sem um overlay utilizável.
+Um clique/toque duplo em um nó recolhe ou expande seus descendentes. Caminhos explicitamente destacados permanecem visíveis mesmo quando filtros comuns ocultariam seus nós. Quando há overlays de comparação, **Modo** oferece **Catálogo**, **Mudanças** e **Impact**; **Somente afetados** aplica-se ao modo Impact quando existem objetos afetados. Esses controles não aparecem sem um overlay utilizável. As cores do grafo seguem os temas claro e escuro do Quarto e alternam quando o leitor muda de tema.
 
 Filtros, busca, modo, foco e caminhos selecionados são salvos no fragmento da URL e no armazenamento do navegador. Compartilhe a URL resultante para reabrir a exploração; o estado da URL prevalece sobre o estado local. Redefinir limpa a exploração salva. Use IDs estáveis e distintos, pois o estado é associado ao ID da instância.
 

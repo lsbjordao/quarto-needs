@@ -62,6 +62,17 @@ quarto-needs:
 
 Com isso configurado, clicar em qualquer badge de tag em qualquer página navega diretamente para `tags.html?tag=<slug>` com o filtro já aplicado.
 
+## Títulos localizados
+
+Os títulos dos objetos podem ser localizados sem duplicar o modelo de engenharia. Coloque o irmão traduzido ao lado do arquivo-fonte canônico, acrescentando o locale ao stem — por exemplo, declare objetos em `requirements.qmd` e forneça `requirements.pt-BR.qmd`:
+
+- Ambos os arquivos devem declarar os mesmos IDs de objetos, com os mesmos tipos, estados, atributos e relações. Apenas título, corpo e rationale podem diferir; um irmão que altere metadados de engenharia falha o render com um erro.
+- Irmãos localizados são fontes de apresentação. O grafo canônico é construído a partir dos arquivos sem sufixo; arquivos localizados nunca adicionam, removem ou ocultam objetos.
+- `quarto-needs scan` valida cada irmão localizado e grava os títulos aprovados em `.quarto-needs/i18n/<locale>.json`.
+- O sufixo do nome do arquivo da página seleciona o locale (por exemplo, `capitulo.pt-BR.qmd` renderiza como pt-BR). Views, tabelas, dashboards e o canvas do `need-graph` renderizam os títulos localizados desse locale, recorrendo ao título canônico quando o locale não tem entrada para um objeto. Escreva o locale de forma idêntica nos nomes dos arquivos irmãos e das páginas — o mapeamento é exato, sem normalização de maiúsculas.
+
+Páginas em inglês mantêm os títulos canônicos; nenhum mapa de títulos padrão é necessário. O [language server](language-server.qmd) mantém os irmãos localizados consistentes em renomeações de ID.
+
 ## Configuração de prefixos
 
 Prefixos são declarados por tipo:
