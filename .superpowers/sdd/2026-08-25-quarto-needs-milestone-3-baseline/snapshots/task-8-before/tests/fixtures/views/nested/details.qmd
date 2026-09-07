@@ -1,9 +1,0 @@
----
-title: "Verification details"
----
-
-::: {.need #TC-LOGIN type="test-case" status="passed" priority="high" verifies="REQ-APPROVED"}
-## Administrator login test
-
-The suite signs an administrator in and asserts that the session is established.
-:::
