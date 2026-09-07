@@ -9,7 +9,6 @@ The canonical visual identity lives in `notes/assets/branding/`. The project dis
 | `quarto-needs-logo.svg` | Canonical horizontal project mark for repository and documentation surfaces |
 | `quarto-needs-symbol.svg` | Canonical compact symbol |
 | `quarto-needs-app-icon.svg` | Canonical square application / extension icon artwork |
-| `quarto-needs-roadmap-infographic.svg` | Editable presentation snapshot of the capability roadmap |
 
 SVG is the source of truth for reusable artwork. These files are resolution-independent, transparent where appropriate, and use the shared palette directly rather than baking the identity into low-resolution presentation files.
 
@@ -63,19 +62,12 @@ The compact symbol deliberately keeps these ideas recognizable without relying o
 1. Prefer `quarto-needs-logo.svg` for README, website, Quarto, and scalable documentation surfaces.
 2. Prefer `quarto-needs-symbol.svg` where the full wordmark is too wide.
 3. Use `quarto-needs-app-icon.svg` as the source for application/editor-extension artwork; use committed PNG derivatives only where raster input is required.
-4. Use `quarto-needs-roadmap-infographic.svg` as the roadmap artwork.
-5. Do not stretch artwork non-proportionally or recolor individual elements ad hoc.
-6. Keep sufficient clear space around the mark; do not place body text over the symbol or orbital path.
-7. Do not treat generated raster variants as new source artwork.
-8. Preserve the canonical palette unless a deliberately documented monochrome/accessibility variant is introduced.
+4. Do not stretch artwork non-proportionally or recolor individual elements ad hoc.
+5. Keep sufficient clear space around the mark; do not place body text over the symbol or orbital path.
+6. Do not treat generated raster variants as new source artwork.
+7. Preserve the canonical palette unless a deliberately documented monochrome/accessibility variant is introduced.
 
-## Roadmap artwork
-
-![Quarto-Needs roadmap infographic](assets/branding/quarto-needs-roadmap-infographic.svg)
-
-The infographic is a **branding and presentation snapshot**, not the authoritative source of implementation status. [`ROADMAP.md`](ROADMAP.md) is the capability roadmap and takes precedence whenever text and artwork diverge.
-
-The vector artwork intentionally follows the current capability structure—implemented evidence/Git/policy phases, authoring and interoperability in progress, and later architecture/workbench/scale/self-hosting phases planned—while avoiding a second machine-readable source of truth for roadmap status.
+The roadmap infographic was retired; [`ROADMAP.md`](ROADMAP.md) is the single source of roadmap status.
 
 ## Semantic boundary
 

@@ -21,7 +21,6 @@ def test_branding_svg_masters_exist_and_are_parseable() -> None:
         "quarto-needs-logo.svg",
         "quarto-needs-symbol.svg",
         "quarto-needs-app-icon.svg",
-        "quarto-needs-roadmap-infographic.svg",
     ):
         path = BRANDING / name
         assert path.is_file(), name
@@ -40,13 +39,14 @@ def test_packaged_application_icons_are_synchronized() -> None:
     assert vscode_icon.read_bytes() == icon_256.read_bytes()
 
 
-def test_documentation_does_not_depend_on_retired_branding_rasters() -> None:
+def test_documentation_does_not_depend_on_retired_branding_assets() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     branding_doc = (ROOT / "notes" / "branding.md").read_text(encoding="utf-8")
     retired = (
         "quarto-needs-logo.webp",
         "quarto-needs-symbol.webp",
         "quarto-needs-roadmap-infographic.webp",
+        "quarto-needs-roadmap-infographic.svg",
     )
     for name in retired:
         assert name not in readme
