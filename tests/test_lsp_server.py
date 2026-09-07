@@ -324,3 +324,46 @@ def test_shutdown_marks_session_for_clean_exit(tmp_path: Path) -> None:
     assert session.shutdown_requested is False
     assert session.handle("shutdown", {}) is None
     assert session.shutdown_requested is True
+
+
+def test_broken_configuration_becomes_a_located_finding(tmp_path: Path) -> None:
+    """A config that stops loading must not silence the server.
+
+    `reload()` used to let the error escape to the dispatch loop's
+    `except ValueError: continue`, which skipped the whole
+    publishDiagnostics reply: the editor kept stale diagnostics and the
+    author got no hint that the configuration had broken.
+    """
+    session = _project(tmp_path)
+    uri = (tmp_path / "requirements.qmd").resolve().as_uri()
+    session.open_document(uri, (tmp_path / "requirements.qmd").read_text(encoding="utf-8"))
+
+    (tmp_path / ".quarto-needs.toml").write_text(
+        "[gates]\nrequire-risk-mitigation = true\n", encoding="utf-8"
+    )
+    assert session.change_document(uri, "::: {.need #FUN-001}\n## Changed\n:::\n") is False
+
+    codes = [finding.code for finding in session.transient_findings]
+    assert codes == ["CFG001"]
+    assert "REQ013" in session.transient_findings[0].message
+
+    config_uri = (tmp_path / ".quarto-needs.toml").resolve().as_uri()
+    published = session.diagnostics_for_uri(config_uri)["diagnostics"]
+    assert [item["code"] for item in published] == ["CFG001"]
+    assert published[0]["severity"] == 1
+
+
+def test_recovering_the_configuration_clears_the_finding(tmp_path: Path) -> None:
+    session = _project(tmp_path)
+    uri = (tmp_path / "requirements.qmd").resolve().as_uri()
+    (tmp_path / ".quarto-needs.toml").write_text(
+        "[gates]\nrequire-risk-mitigation = true\n", encoding="utf-8"
+    )
+    assert session.change_document(uri, "::: {.need #FUN-001}\n## Changed\n:::\n") is False
+
+    (tmp_path / ".quarto-needs.toml").write_text(
+        "[gates]\nrequire-risk-mitigation = true\n\n[rules.REQ013]\nenabled = true\n",
+        encoding="utf-8",
+    )
+    assert session.change_document(uri, "::: {.need #FUN-001}\n## Changed\n:::\n") is True
+    assert session.transient_findings == ()

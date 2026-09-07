@@ -18,7 +18,7 @@ from urllib.parse import unquote, urlparse
 import quarto_needs
 
 from .analysis import analyze_project
-from .config import load_config
+from .config import CONFIG_FILENAME, load_config
 from .diagnostics import Finding
 from .language_service import LanguageService, LanguageServiceError
 from .parser import ATTR_RE, RELATION_KEYS
@@ -164,7 +164,26 @@ class LspSession:
         return build_source_index(self.root, overlays=self._overlays())
 
     def reload(self) -> bool:
-        config = load_config(self.root)
+        try:
+            config = load_config(self.root)
+        except ValueError as error:
+            # Without this the exception escaped to the dispatch loop's
+            # `except ValueError: continue`, which skipped the whole
+            # publishDiagnostics reply: the editor kept the previous
+            # diagnostics and the author got no hint that the project's
+            # configuration had stopped loading. Reporting it as a located
+            # finding keeps the session on its last good snapshot and puts
+            # the message on the file that actually broke.
+            self.transient_findings = (
+                Finding(
+                    "CFG001",
+                    "error",
+                    str(error),
+                    None,
+                    LocationRecord(CONFIG_FILENAME, 1, None),
+                ),
+            )
+            return False
         result = analyze_project(
             self.root,
             config=config,
