@@ -44,12 +44,23 @@ function serveSite(request, response) {
   fs.createReadStream(requestedPath).pipe(response);
 }
 
-async function waitForFile(file) {
-  for (let attempt = 0; attempt < 200; attempt += 1) {
+async function waitForFile(file, chrome, diagnostics) {
+  // Chrome's own stderr is the only thing that explains a failed start, and a
+  // CI runner is exactly where that happens. Report it, and stop as soon as
+  // the process is gone instead of polling out the full timeout.
+  for (let attempt = 0; attempt < 600; attempt += 1) {
     if (fs.existsSync(file)) return;
+    if (chrome.exitCode !== null || chrome.signalCode !== null) {
+      throw new Error(
+        `Chrome exited (code=${chrome.exitCode}, signal=${chrome.signalCode}) ` +
+          `before creating ${file}.\nChrome output:\n${diagnostics() || "(none)"}`,
+      );
+    }
     await delay(50);
   }
-  throw new Error(`Chrome did not create ${file}`);
+  throw new Error(
+    `Chrome did not create ${file} within 30s.\nChrome output:\n${diagnostics() || "(none)"}`,
+  );
 }
 
 function connect(socket) {
@@ -94,6 +105,9 @@ async function runProbe() {
     [
       "--headless",
       "--no-sandbox",
+      // Containerised CI mounts a small /dev/shm; without this Chrome can die
+      // during startup before it ever writes DevToolsActivePort.
+      "--disable-dev-shm-usage",
       "--disable-extensions",
       "--disable-gpu",
       "--no-default-browser-check",
@@ -103,14 +117,23 @@ async function runProbe() {
       `--user-data-dir=${profile}`,
       "about:blank",
     ],
-    { stdio: "ignore" },
+    { stdio: ["ignore", "pipe", "pipe"] },
   );
+
+  const chromeOutput = [];
+  const captureOutput = (chunk) => {
+    chromeOutput.push(chunk.toString());
+    if (chromeOutput.length > 200) chromeOutput.shift();
+  };
+  chrome.stdout.on("data", captureOutput);
+  chrome.stderr.on("data", captureOutput);
+  const diagnostics = () => chromeOutput.join("").trim();
 
   let socket;
   let send;
   try {
     const activePort = path.join(profile, "DevToolsActivePort");
-    await waitForFile(activePort);
+    await waitForFile(activePort, chrome, diagnostics);
     const [debuggingPort] = fs.readFileSync(activePort, "utf8").trim().split("\n");
     const targets = await fetch(`http://127.0.0.1:${debuggingPort}/json/list`).then((response) =>
       response.json(),
