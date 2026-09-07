@@ -107,6 +107,7 @@ async function runProbe() {
   );
 
   let socket;
+  let send;
   try {
     const activePort = path.join(profile, "DevToolsActivePort");
     await waitForFile(activePort);
@@ -119,7 +120,7 @@ async function runProbe() {
 
     socket = new WebSocket(page.webSocketDebuggerUrl);
     await connect(socket);
-    const send = protocol(socket);
+    send = protocol(socket);
     await send("Runtime.enable");
     await send("Page.enable");
 
@@ -188,11 +189,27 @@ async function runProbe() {
 
     return { expanded, collapsed, responsive };
   } finally {
+    if (chrome.exitCode === null && chrome.signalCode === null) {
+      const exited = once(chrome, "exit");
+      const shutdownTimeout = setTimeout(() => chrome.kill("SIGKILL"), 5000);
+      try {
+        if (send && socket.readyState === WebSocket.OPEN) {
+          // Let Chrome flush its profile before deleting it. Wait for process
+          // exit: the DevTools socket may close before Browser.close replies.
+          void send("Browser.close").catch(() => chrome.kill("SIGTERM"));
+        } else {
+          chrome.kill("SIGTERM");
+        }
+        await exited;
+      } finally {
+        clearTimeout(shutdownTimeout);
+      }
+    }
     if (socket) socket.close();
-    chrome.kill("SIGTERM");
-    await Promise.race([once(chrome, "exit"), delay(1000)]);
     await new Promise((resolve) => server.close(resolve));
-    fs.rmSync(profile, { force: true, recursive: true });
+    // Chrome's child processes can finish writing the profile after the main
+    // process exits. Retry transient cleanup races without hiding failures.
+    fs.rmSync(profile, { force: true, recursive: true, maxRetries: 5, retryDelay: 100 });
   }
 }
 

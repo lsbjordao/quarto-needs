@@ -142,10 +142,13 @@ def rendered_responsive_sidebar_probe(tmp_path: Path) -> dict[str, object]:
             str(project / "_book"),
             chrome,
         ],
-        check=True,
         text=True,
         capture_output=True,
         timeout=30,
+    )
+    assert result.returncode == 0, (
+        f"Responsive sidebar probe exited with status {result.returncode}\n"
+        f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
     )
     return json.loads(result.stdout)
 
