@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<link rel="alternate" hreflang="en" href="/migrations.html" />
-<link rel="alternate" hreflang="pt-BR" href="/pt-BR/migrations.html" />
+<link rel="alternate" hreflang="en" href="/named-queries.html" />
+<link rel="alternate" hreflang="pt-BR" href="/pt-BR/named-queries.html" />
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.8.26">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>17  Migrating from Other Tools – Quarto-Needs — Manual</title>
+<title>4  Named queries – Quarto-Needs — Manual</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -57,8 +57,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 }
 </style>
 <script src="site_libs/quarto-nav/quarto-nav.js"></script><script src="site_libs/quarto-nav/headroom.min.js"></script><script src="site_libs/clipboard/clipboard.min.js"></script><script src="site_libs/quarto-search/autocomplete.umd.js"></script><script src="site_libs/quarto-search/fuse.min.js"></script><script src="site_libs/quarto-search/quarto-search.js"></script><meta name="quarto:offset" content="./">
-<link href="./language-server.html" rel="next">
-<link href="./interoperability.html" rel="prev">
+<link href="./authoring.html" rel="next">
+<link href="./engineering-model.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script><script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script><script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script><script src="site_libs/quarto-html/popper.min.js"></script><script src="site_libs/quarto-html/tippy.umd.min.js"></script><script src="site_libs/quarto-html/anchor.min.js"></script><link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-b758ccaa5987ceb1b75504551e579abf.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
@@ -280,7 +280,7 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./migrations.html"><span class="chapter-number">17</span>  <span class="chapter-title">Migrating from Other Tools</span></a></li></ol></nav><a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./named-queries.html"><span class="chapter-number">4</span>  <span class="chapter-title">Named queries</span></a></li></ol></nav><a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
   </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
@@ -307,7 +307,7 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./named-queries.html" class="sidebar-item-text sidebar-link">
+  <a href="./named-queries.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text"><span class="chapter-number">4</span>  <span class="chapter-title">Named queries</span></span></a>
   </div>
 </li>
@@ -385,7 +385,7 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./migrations.html" class="sidebar-item-text sidebar-link active">
+  <a href="./migrations.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">17</span>  <span class="chapter-title">Migrating from Other Tools</span></span></a>
   </div>
 </li>
@@ -415,15 +415,26 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
         <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">Table of contents</h2>
    
   <ul>
-<li><a href="#supported-tools" id="toc-supported-tools" class="nav-link active" data-scroll-target="#supported-tools"><span class="header-section-number">17.1</span> Supported Tools</a></li>
-  <li><a href="#migration-workflow" id="toc-migration-workflow" class="nav-link" data-scroll-target="#migration-workflow"><span class="header-section-number">17.2</span> Migration Workflow</a></li>
-  <li><a href="#mapping-principles" id="toc-mapping-principles" class="nav-link" data-scroll-target="#mapping-principles"><span class="header-section-number">17.3</span> Mapping Principles</a></li>
+<li><a href="#declaring-a-query" id="toc-declaring-a-query" class="nav-link active" data-scroll-target="#declaring-a-query"><span class="header-section-number">4.1</span> Declaring a query</a></li>
+  <li><a href="#combinators" id="toc-combinators" class="nav-link" data-scroll-target="#combinators"><span class="header-section-number">4.2</span> Combinators</a></li>
+  <li>
+<a href="#field-clauses" id="toc-field-clauses" class="nav-link" data-scroll-target="#field-clauses"><span class="header-section-number">4.3</span> Field clauses</a>
+  <ul class="collapse">
+<li><a href="#field-operators" id="toc-field-operators" class="nav-link" data-scroll-target="#field-operators"><span class="header-section-number">4.3.1</span> Field operators</a></li>
+  </ul>
+</li>
+  <li><a href="#relation-clauses" id="toc-relation-clauses" class="nav-link" data-scroll-target="#relation-clauses"><span class="header-section-number">4.4</span> Relation clauses</a></li>
+  <li><a href="#sorting" id="toc-sorting" class="nav-link" data-scroll-target="#sorting"><span class="header-section-number">4.5</span> Sorting</a></li>
+  <li><a href="#the-built-in-query" id="toc-the-built-in-query" class="nav-link" data-scroll-target="#the-built-in-query"><span class="header-section-number">4.6</span> The built-in query</a></li>
+  <li><a href="#limits-and-failure-behavior" id="toc-limits-and-failure-behavior" class="nav-link" data-scroll-target="#limits-and-failure-behavior"><span class="header-section-number">4.7</span> Limits and failure behavior</a></li>
+  <li><a href="#verifying-a-query" id="toc-verifying-a-query" class="nav-link" data-scroll-target="#verifying-a-query"><span class="header-section-number">4.8</span> Verifying a query</a></li>
+  <li><a href="#using-the-query-name" id="toc-using-the-query-name" class="nav-link" data-scroll-target="#using-the-query-name"><span class="header-section-number">4.9</span> Using the query name</a></li>
   </ul></nav>
 </div>
 <!-- main -->
 <main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><div class="quarto-title">
 <h1 class="title">
-<span class="chapter-number">17</span>  <span class="chapter-title">Migrating from Other Tools</span>
+<span class="chapter-number">4</span>  <span class="chapter-title">Named queries</span>
 </h1>
 </div>
 
@@ -438,9 +449,56 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
   
 
 
-</header><p>Quarto-Needs provides conservative migration adapters for bringing requirements from other docs-as-code and requirements-management ecosystems into Quarto Markdown declarations. Migration is deliberately review-first: generating a plan never rewrites authored files.</p>
-<section id="supported-tools" class="level2" data-number="17.1"><h2 data-number="17.1" class="anchored" data-anchor-id="supported-tools">
-<span class="header-section-number">17.1</span> Supported Tools</h2>
+</header><p>A named query is the single selection mechanism of Quarto-Needs. It is declared once in <code>.quarto-needs.toml</code>, evaluated only by the Python core, and then reused by views, governance, and the CLI. There is no second query language: shortcodes and browser controls filter an already materialized selection, they never interpret query text.</p>
+<p>One declaration therefore serves every consumer:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead><tr class="header">
+<th>Consumer</th>
+<th>How the query name is used</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Views</td>
+<td>
+<code>query=</code> / <code>view=</code> on <code>need-table</code>, <code>need-list</code>, <code>need-count</code>, <code>need-tags</code>, <code>need-dashboard</code>, <code>need-graph</code>, <code>adr-table</code>, <code>adr-count</code>.</td>
+</tr>
+<tr class="even">
+<td>Governance</td>
+<td>
+<code>scope</code> in <code>[gates]</code>, <code>[policies.*]</code>, <code>[constraints.*]</code>, <code>[derived.*]</code>, and <code>[variants.*]</code>.</td>
+</tr>
+<tr class="odd">
+<td>Graph projections</td>
+<td>
+<code>[graph]</code> <code>overlay-queries</code>, and the projection published for every <code>query</code>-backed graph.</td>
+</tr>
+<tr class="even">
+<td>CLI</td>
+<td>
+<code>quarto-needs query &lt;name&gt;</code>.</td>
+</tr>
+</tbody>
+</table>
+<section id="declaring-a-query" class="level2" data-number="4.1"><h2 data-number="4.1" class="anchored" data-anchor-id="declaring-a-query">
+<span class="header-section-number">4.1</span> Declaring a query</h2>
+<p>Every query is a <code>[queries.&lt;name&gt;]</code> table. The name is the identifier used everywhere else.</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb1"><pre class="sourceCode toml code-with-copy"><code class="sourceCode toml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[queries.accepted-decisions]</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="dt">all</span> <span class="op">=</span> <span class="op">[</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="op">{ </span><span class="dt">field</span><span class="op"> =</span> <span class="st">"type"</span><span class="op">, </span><span class="dt">op</span><span class="op"> =</span> <span class="st">"eq"</span><span class="op">, </span><span class="dt">value</span><span class="op"> =</span> <span class="st">"architecture-decision"</span><span class="op"> },</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="op">{ </span><span class="dt">field</span><span class="op"> =</span> <span class="st">"status"</span><span class="op">, </span><span class="dt">op</span><span class="op"> =</span> <span class="st">"eq"</span><span class="op">, </span><span class="dt">value</span><span class="op"> =</span> <span class="st">"accepted"</span><span class="op"> },</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="op">]</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="dt">sort</span> <span class="op">=</span> <span class="op">[</span><span class="st">"id:asc"</span><span class="op">]</span></span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>A query table accepts exactly two keys: one top-level combinator (<code>all</code>, <code>any</code>, or <code>not</code>) and an optional <code>sort</code>. A query without a combinator, or with more than one, is a configuration error — this keeps the predicate explicit instead of implying an operator.</p>
+</section><section id="combinators" class="level2" data-number="4.2"><h2 data-number="4.2" class="anchored" data-anchor-id="combinators">
+<span class="header-section-number">4.2</span> Combinators</h2>
+<p>Combinators group clauses and may nest.</p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 33%">
@@ -448,89 +506,270 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 <col style="width: 33%">
 </colgroup>
 <thead><tr class="header">
-<th>Source Tool</th>
-<th>Input Format</th>
-<th>Plan command</th>
+<th>Combinator</th>
+<th>Value</th>
+<th>Meaning</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><strong>Sphinx-Needs</strong></td>
-<td><code>needs.json</code></td>
-<td><code>quarto-needs migrate sphinx-needs &lt;path&gt; --output &lt;plan.json&gt;</code></td>
+<td><code>all</code></td>
+<td>Non-empty array of clauses</td>
+<td>Every clause must match (logical AND).</td>
 </tr>
 <tr class="even">
-<td><strong>Doorstop</strong></td>
-<td>Directory of YAML/JSON documents</td>
-<td><code>quarto-needs migrate doorstop &lt;dir&gt; --output &lt;plan.json&gt;</code></td>
+<td><code>any</code></td>
+<td>Non-empty array of clauses</td>
+<td>At least one clause must match (logical OR).</td>
 </tr>
 <tr class="odd">
-<td><strong>StrictDoc</strong></td>
-<td>
-<code>.sdoc</code> files / folder</td>
-<td><code>quarto-needs migrate strictdoc &lt;path&gt; --output &lt;plan.json&gt;</code></td>
-</tr>
-<tr class="even">
-<td><strong>OpenFastTrace</strong></td>
-<td>XML trace exchange</td>
-<td><code>quarto-needs migrate openfasttrace &lt;path&gt; --output &lt;plan.json&gt;</code></td>
+<td><code>not</code></td>
+<td>A single clause</td>
+<td>The clause must not match (logical NOT).</td>
 </tr>
 </tbody>
 </table>
-<p><code>--output</code> is the <strong>migration-plan JSON</strong>, not a destination <code>.qmd</code> file.</p>
-</section><section id="migration-workflow" class="level2" data-number="17.2"><h2 data-number="17.2" class="anchored" data-anchor-id="migration-workflow">
-<span class="header-section-number">17.2</span> Migration Workflow</h2>
-<ol type="1">
-<li>
-<p><strong>Generate and review the migration plan</strong>. This does not modify destination files:</p>
+<p>A combinator cannot share its table with another key, so nesting uses an inner table:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> migrate sphinx-needs docs/needs.json <span class="dt">\</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--output</span> .quarto-needs/migrations/sphinx-needs-plan.json</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode toml code-with-copy"><code class="sourceCode toml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[queries.unverified-approved-requirements]</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="dt">all</span> <span class="op">=</span> <span class="op">[</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="op">{ </span><span class="dt">field</span><span class="op"> =</span> <span class="st">"type"</span><span class="op">, </span><span class="dt">op</span><span class="op"> =</span> <span class="st">"contains"</span><span class="op">, </span><span class="dt">value</span><span class="op"> =</span> <span class="st">"requirement"</span><span class="op"> },</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="op">{ </span><span class="dt">field</span><span class="op"> =</span> <span class="st">"status"</span><span class="op">, </span><span class="dt">op</span><span class="op"> =</span> <span class="st">"eq"</span><span class="op">, </span><span class="dt">value</span><span class="op"> =</span> <span class="st">"approved"</span><span class="op"> },</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="op">{ </span><span class="dt">not</span><span class="op"> =</span> <span class="op">{ </span><span class="dt">relation</span><span class="op"> =</span> <span class="st">"verified-by"</span><span class="op">, </span><span class="dt">direction</span><span class="op"> =</span> <span class="st">"out"</span><span class="op">, </span><span class="dt">op</span><span class="op"> =</span> <span class="st">"exists"</span><span class="op"> } },</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="op">]</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="dt">sort</span> <span class="op">=</span> <span class="op">[</span><span class="st">"priority:asc"</span><span class="op">,</span> <span class="st">"id:asc"</span><span class="op">]</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-</li>
-<li>
-<p><strong>Build a reviewed apply plan</strong> by assigning each source ID an explicit project-relative destination. Add any required type/relation mappings for the source model:</p>
+</section><section id="field-clauses" class="level2" data-number="4.3"><h2 data-number="4.3" class="anchored" data-anchor-id="field-clauses">
+<span class="header-section-number">4.3</span> Field clauses</h2>
+<p>A field clause selects on one property of the object.</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> migrate sphinx-needs docs/needs.json <span class="dt">\</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--type-map</span> req=functional-requirement <span class="dt">\</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--destination</span> REQ_001=requirements.qmd <span class="dt">\</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--apply-plan</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode toml code-with-copy"><code class="sourceCode toml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="dt">all</span> <span class="op">=</span> <span class="op">[{ </span><span class="dt">field</span><span class="op"> =</span> <span class="st">"status"</span><span class="op">, </span><span class="dt">op</span><span class="op"> =</span> <span class="st">"eq"</span><span class="op">, </span><span class="dt">value</span><span class="op"> =</span> <span class="st">"approved"</span><span class="op"> }]</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p>Without <code>--write</code>, this still does not change authored files; the apply plan is written to <code>.quarto-needs/migrations/sphinx-needs-apply-plan.json</code> by default.</p>
-</li>
-<li>
-<p><strong>Write only a ready, reviewed plan</strong> by repeating the reviewed mappings with <code>--write</code>:</p>
+<p>Only these fields can be addressed:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead><tr class="header">
+<th>Field</th>
+<th>Source</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>id</code></td>
+<td>Object identifier.</td>
+</tr>
+<tr class="even">
+<td><code>title</code></td>
+<td>Object title.</td>
+</tr>
+<tr class="odd">
+<td><code>type</code></td>
+<td>Engineering type.</td>
+</tr>
+<tr class="even">
+<td><code>status</code></td>
+<td>Lifecycle status.</td>
+</tr>
+<tr class="odd">
+<td><code>priority</code></td>
+<td>The <code>priority</code> attribute; absent when never authored.</td>
+</tr>
+<tr class="even">
+<td><code>tags</code></td>
+<td>The object’s tag list.</td>
+</tr>
+<tr class="odd">
+<td><code>attributes.&lt;name&gt;</code></td>
+<td>Any authored attribute, for example <code>attributes.decision-makers</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Any other field name is rejected at load time rather than silently matching nothing.</p>
+<section id="field-operators" class="level3" data-number="4.3.1"><h3 data-number="4.3.1" class="anchored" data-anchor-id="field-operators">
+<span class="header-section-number">4.3.1</span> Field operators</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead><tr class="header">
+<th>Operator</th>
+<th>Required value key</th>
+<th>Meaning</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>eq</code></td>
+<td><code>value</code></td>
+<td>Equality. Strings compare case-insensitively; numbers compare numerically; booleans compare only with booleans.</td>
+</tr>
+<tr class="even">
+<td><code>in</code></td>
+<td>
+<code>values</code> (non-empty array)</td>
+<td>Equality against any member of the list, using the same comparison as <code>eq</code>.</td>
+</tr>
+<tr class="odd">
+<td><code>contains</code></td>
+<td>
+<code>value</code> (scalar)</td>
+<td>Membership for list values such as <code>tags</code>; case-insensitive substring for string values.</td>
+</tr>
+<tr class="even">
+<td><code>exists</code></td>
+<td>—</td>
+<td>The field is present on the object.</td>
+</tr>
+<tr class="odd">
+<td><code>missing</code></td>
+<td>—</td>
+<td>The field is absent from the object.</td>
+</tr>
+</tbody>
+</table>
+<p><code>exists</code> and <code>missing</code> take no comparison value; supplying one is an error. <code>eq</code> and <code>contains</code> require a scalar <code>value</code>, and <code>in</code> requires a non-empty <code>values</code> array.</p>
+<p><code>exists</code>/<code>missing</code> are only meaningful for fields that can be absent — <code>priority</code> and <code>attributes.&lt;name&gt;</code>. <code>id</code>, <code>title</code>, <code>type</code>, <code>status</code>, and <code>tags</code> are always present, so <code>missing</code> never matches them.</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> migrate sphinx-needs docs/needs.json <span class="dt">\</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--type-map</span> req=functional-requirement <span class="dt">\</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--destination</span> REQ_001=requirements.qmd <span class="dt">\</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--apply-plan</span> <span class="at">--write</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode toml code-with-copy"><code class="sourceCode toml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[queries.unprioritized-objects]</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="dt">all</span> <span class="op">=</span> <span class="op">[</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="op">{ </span><span class="dt">field</span><span class="op"> =</span> <span class="st">"priority"</span><span class="op">, </span><span class="dt">op</span><span class="op"> =</span> <span class="st">"missing"</span><span class="op"> },</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="op">]</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="kw">[queries.expiring-evidence]</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="dt">all</span> <span class="op">=</span> <span class="op">[</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="op">{ </span><span class="dt">field</span><span class="op"> =</span> <span class="st">"type"</span><span class="op">, </span><span class="dt">op</span><span class="op"> =</span> <span class="st">"eq"</span><span class="op">, </span><span class="dt">value</span><span class="op"> =</span> <span class="st">"evidence"</span><span class="op"> },</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="op">{ </span><span class="dt">field</span><span class="op"> =</span> <span class="st">"attributes.expires"</span><span class="op">, </span><span class="dt">op</span><span class="op"> =</span> <span class="st">"exists"</span><span class="op"> },</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="op">]</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="kw">[queries.security-critical]</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="dt">all</span> <span class="op">=</span> <span class="op">[</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  <span class="op">{ </span><span class="dt">field</span><span class="op"> =</span> <span class="st">"tags"</span><span class="op">, </span><span class="dt">op</span><span class="op"> =</span> <span class="st">"contains"</span><span class="op">, </span><span class="dt">value</span><span class="op"> =</span> <span class="st">"security"</span><span class="op"> },</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  <span class="op">{ </span><span class="dt">field</span><span class="op"> =</span> <span class="st">"priority"</span><span class="op">, </span><span class="dt">op</span><span class="op"> =</span> <span class="st">"in"</span><span class="op">, </span><span class="dt">values</span><span class="op"> =</span> <span class="op">[</span><span class="st">"critical"</span><span class="op">,</span> <span class="st">"high"</span><span class="op">] },</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="op">]</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-</li>
-<li>
-<p><strong>Validate the converted project</strong>:</p>
+</section></section><section id="relation-clauses" class="level2" data-number="4.4"><h2 data-number="4.4" class="anchored" data-anchor-id="relation-clauses">
+<span class="header-section-number">4.4</span> Relation clauses</h2>
+<p>A relation clause selects on the presence of a typed edge rather than on a stored value.</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> scan</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> check</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode toml code-with-copy"><code class="sourceCode toml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dt">all</span> <span class="op">=</span> <span class="op">[{ </span><span class="dt">relation</span><span class="op"> =</span> <span class="st">"verified-by"</span><span class="op">, </span><span class="dt">direction</span><span class="op"> =</span> <span class="st">"out"</span><span class="op">, </span><span class="dt">op</span><span class="op"> =</span> <span class="st">"exists"</span><span class="op"> }]</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-</li>
-</ol>
-<p>For more than one source object, repeat <code>--destination SOURCE_ID=path.qmd</code>. <code>--id-map SOURCE_ID=CANONICAL_ID</code> is available when preserving the source ID is not appropriate. Writes are create-only and reject unresolved mappings, collisions, or unsafe destination paths rather than inferring identity.</p>
-</section><section id="mapping-principles" class="level2" data-number="17.3"><h2 data-number="17.3" class="anchored" data-anchor-id="mapping-principles">
-<span class="header-section-number">17.3</span> Mapping Principles</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead><tr class="header">
+<th>Key</th>
+<th>Values</th>
+<th>Meaning</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>relation</code></td>
+<td>A relation name from the catalog</td>
+<td>Rejected at load time when the name is unknown.</td>
+</tr>
+<tr class="even">
+<td><code>direction</code></td>
+<td>
+<code>out</code>, <code>in</code>, <code>either</code>
+</td>
+<td>Which side of the object the edge must be on.</td>
+</tr>
+<tr class="odd">
+<td><code>op</code></td>
+<td>
+<code>exists</code>, <code>missing</code>
+</td>
+<td>Whether that edge must be present or absent.</td>
+</tr>
+</tbody>
+</table>
+<p>Direction is evaluated against the catalog’s inverse pairing, not against raw edge orientation. <code>implemented-by</code>/<code>implements</code>, <code>verified-by</code>/<code>verifies</code>, and <code>supersedes</code>/<code>superseded-by</code> are paired, so a requirement declaring <code>implemented-by</code> and a source module declaring <code>implements</code> produce the same match. Which side authored the relation therefore does not change query results.</p>
+<p>Relation clauses support only <code>exists</code> and <code>missing</code>; they cannot compare endpoint values. To constrain the other endpoint as well, model it with a <code>[constraints.*]</code> required path instead — see <a href="./graph-constraints.html">Graph constraints</a>.</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb6"><pre class="sourceCode toml code-with-copy"><code class="sourceCode toml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[queries.orphan-requirements]</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="dt">all</span> <span class="op">=</span> <span class="op">[</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="op">{ </span><span class="dt">field</span><span class="op"> =</span> <span class="st">"type"</span><span class="op">, </span><span class="dt">op</span><span class="op"> =</span> <span class="st">"contains"</span><span class="op">, </span><span class="dt">value</span><span class="op"> =</span> <span class="st">"requirement"</span><span class="op"> },</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="op">{ </span><span class="dt">relation</span><span class="op"> =</span> <span class="st">"derives-from"</span><span class="op">, </span><span class="dt">direction</span><span class="op"> =</span> <span class="st">"either"</span><span class="op">, </span><span class="dt">op</span><span class="op"> =</span> <span class="st">"missing"</span><span class="op"> },</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="op">]</span></span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+</section><section id="sorting" class="level2" data-number="4.5"><h2 data-number="4.5" class="anchored" data-anchor-id="sorting">
+<span class="header-section-number">4.5</span> Sorting</h2>
+<p><code>sort</code> is an array of tokens. Each token is a field name with an optional <code>:asc</code> (default) or <code>:desc</code> suffix.</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb7"><pre class="sourceCode toml code-with-copy"><code class="sourceCode toml"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="dt">sort</span> <span class="op">=</span> <span class="op">[</span><span class="st">"priority:asc"</span><span class="op">,</span> <span class="st">"status:desc"</span><span class="op">,</span> <span class="st">"id:asc"</span><span class="op">]</span></span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>Sort tokens accept the same fields as field clauses, including <code>attributes.&lt;name&gt;</code>. Two rules are specific to sorting:</p>
 <ul>
 <li>
-<strong>Stable Identity</strong>: Existing IDs (e.g. <code>REQ_001</code> or <code>SYS-042</code>) are preserved by default; remapping is explicit.</li>
-<li>
-<strong>Relation Translation</strong>: Source links are mapped into the Quarto-Needs canonical relation catalog through explicit relation mappings where needed.</li>
-<li>
-<strong>Review Before Mutation</strong>: Planning and apply-planning are non-mutating; <code>--write</code> is a separate, explicit step.</li>
-<li>
-<strong>Quarto-Native Output</strong>: Ready candidates are rendered as standard Pandoc Div declarations (<code>::: {.need ...} ... :::</code>).</li>
-</ul></section></main><!-- /main --><script>
+<code>priority</code> sorts by rank — <code>critical</code>, <code>high</code>, <code>medium</code>, <code>low</code>, then objects with no priority — rather than alphabetically.</li>
+<li>Every other field sorts as case-insensitive text; list values such as <code>tags</code> are joined before comparison, and absent values sort as empty.</li>
+</ul>
+<p>The object ID always breaks remaining ties, so a query result is fully deterministic. Omitting <code>sort</code> orders the result by ID alone.</p>
+<p>Note the difference from shortcode sorting: the <code>sort=</code> argument on a view accepts only ascending field names (<code>sort="priority;id"</code>). The <code>field:desc</code> form belongs to the query grammar in <code>.quarto-needs.toml</code>.</p>
+</section><section id="the-built-in-query" class="level2" data-number="4.6"><h2 data-number="4.6" class="anchored" data-anchor-id="the-built-in-query">
+<span class="header-section-number">4.6</span> The built-in query</h2>
+<p><code>approved-requirements</code> always exists without being declared. It is the default scope for gates and the starting population of the default graph projection, and it is defined as:</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb8"><pre class="sourceCode toml code-with-copy"><code class="sourceCode toml"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[queries.approved-requirements]</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="dt">all</span> <span class="op">=</span> <span class="op">[</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="op">{ </span><span class="dt">field</span><span class="op"> =</span> <span class="st">"type"</span><span class="op">, </span><span class="dt">op</span><span class="op"> =</span> <span class="st">"contains"</span><span class="op">, </span><span class="dt">value</span><span class="op"> =</span> <span class="st">"requirement"</span><span class="op"> },</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="op">{ </span><span class="dt">field</span><span class="op"> =</span> <span class="st">"status"</span><span class="op">, </span><span class="dt">op</span><span class="op"> =</span> <span class="st">"eq"</span><span class="op">, </span><span class="dt">value</span><span class="op"> =</span> <span class="st">"approved"</span><span class="op"> },</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="op">]</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="dt">sort</span> <span class="op">=</span> <span class="op">[</span><span class="st">"priority:asc"</span><span class="op">,</span> <span class="st">"id:asc"</span><span class="op">]</span></span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>Because it matches on <code>type</code> containing <code>requirement</code>, it covers <code>system-requirement</code>, <code>functional-requirement</code>, and <code>non-functional-requirement</code> without listing them. Declaring <code>[queries.approved-requirements]</code> yourself overrides the built-in definition for every consumer.</p>
+</section><section id="limits-and-failure-behavior" class="level2" data-number="4.7"><h2 data-number="4.7" class="anchored" data-anchor-id="limits-and-failure-behavior">
+<span class="header-section-number">4.7</span> Limits and failure behavior</h2>
+<p>A query may contain at most 100 clauses and nest at most 10 levels. Both limits keep materialization bounded and predictable.</p>
+<p>Query problems are configuration errors, reported when the project is analyzed rather than when a page happens to render: an unknown field or relation name, an unsupported operator, a missing or malformed value, a combinator sharing its table with another key, or an invalid sort direction. <code>quarto-needs query &lt;name&gt;</code> exits with code <code>2</code> for a query that does not exist and lists the names that do.</p>
+<p>A valid query that matches nothing is not an error. Views render their empty state, <code>need-count</code> renders <code>0</code>, and scoped metrics report a zero denominator.</p>
+</section><section id="verifying-a-query" class="level2" data-number="4.8"><h2 data-number="4.8" class="anchored" data-anchor-id="verifying-a-query">
+<span class="header-section-number">4.8</span> Verifying a query</h2>
+<p>Evaluate a query from the command line before wiring it into a view or a gate:</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> query security-critical</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto-needs</span> query security-critical <span class="at">--format</span> json</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>The text form prints the ordered IDs, one per line. The JSON form returns the query name and the same ordered <code>ids</code> array, which is exactly what views and scopes consume. See the <a href="./cli-reference.html">command-line reference</a>.</p>
+</section><section id="using-the-query-name" class="level2" data-number="4.9"><h2 data-number="4.9" class="anchored" data-anchor-id="using-the-query-name">
+<span class="header-section-number">4.9</span> Using the query name</h2>
+<p>Once declared, the same name drives presentation and governance:</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb10"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>{{&lt; need-table query="security-critical" columns="id;title;status;priority" &gt;}}</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>{{&lt; need-count query="security-critical" &gt;}}</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>{{&lt; need-graph view="security-critical" &gt;}}</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb11"><pre class="sourceCode toml code-with-copy"><code class="sourceCode toml"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[gates]</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="dt">scope</span> <span class="op">=</span> <span class="st">"security-critical"</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="dt">min-verification-trace</span> <span class="op">=</span> <span class="fl">100.0</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="kw">[policies.SECURITY_NEEDS_TEST]</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="dt">scope</span> <span class="op">=</span> <span class="st">"security-critical"</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="dt">assert-relation</span> <span class="op">=</span> <span class="st">"verified-by"</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="dt">target-role</span> <span class="op">=</span> <span class="st">"verification"</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="dt">minimum</span> <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="dt">severity</span> <span class="op">=</span> <span class="st">"error"</span></span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>That is the practical value of naming a selection: the population a dashboard shows and the population a gate enforces cannot drift apart, because they are the same declaration. Graph projections add one constraint — a query-backed graph that exceeds the <code>[graph]</code> budget is published as unavailable rather than truncated; see <a href="./views-reference.html">Views and shortcodes</a>.</p>
+
+
+</section></main><!-- /main --><script>
 (() => {
   const locale = document.documentElement.lang || "en";
   const isPt = locale.toLowerCase().startsWith("pt");
@@ -1062,13 +1301,13 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
     }
   });
   </script><nav class="page-navigation"><div class="nav-page nav-page-previous">
-      <a href="./interoperability.html" class="pagination-link" aria-label="Interoperability and Federation">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">16</span>  <span class="chapter-title">Interoperability and Federation</span></span>
+      <a href="./engineering-model.html" class="pagination-link" aria-label="Engineering model">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">3</span>  <span class="chapter-title">Engineering model</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./language-server.html" class="pagination-link" aria-label="Language server and editor authoring">
-        <span class="nav-page-text"><span class="chapter-number">18</span>  <span class="chapter-title">Language server and editor authoring</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./authoring.html" class="pagination-link" aria-label="Authoring in Quarto">
+        <span class="nav-page-text"><span class="chapter-number">5</span>  <span class="chapter-title">Authoring in Quarto</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

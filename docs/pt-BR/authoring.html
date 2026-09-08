@@ -10,7 +10,7 @@
 
 <meta name="description" content="Requisitos, decisões e rastreabilidade de engenharia como código">
 
-<title>23&nbsp; Autoria em Quarto – Quarto-Needs — Manual</title>
+<title>25&nbsp; Autoria em Quarto – Quarto-Needs — Manual</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -69,7 +69,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
 <link href="./views-reference.html" rel="next">
-<link href="./engineering-model.html" rel="prev">
+<link href="./named-queries.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
@@ -310,7 +310,7 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./authoring.html"><span class="chapter-number">23</span>&nbsp; <span class="chapter-title">Autoria em Quarto</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./authoring.html"><span class="chapter-number">25</span>&nbsp; <span class="chapter-title">Autoria em Quarto</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -342,212 +342,224 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./named-queries.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Named queries</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./authoring.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Authoring in Quarto</span></span></a>
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Authoring in Quarto</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./views-reference.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Views and shortcodes</span></span></a>
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Views and shortcodes</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./architecture-decisions.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Architecture Decision Management</span></span></a>
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Architecture Decision Management</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./c4-architecture.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">C4 Architecture Projections</span></span></a>
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">C4 Architecture Projections</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./executable-evidence.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Executable verification and machine evidence</span></span></a>
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Executable verification and machine evidence</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./evidence-providers.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Machine evidence providers</span></span></a>
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Machine evidence providers</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./governance.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Governance and quality</span></span></a>
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Governance and quality</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./declarative-policies.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Declarative engineering policies</span></span></a>
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Declarative engineering policies</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./type-schemas.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Per-type attribute schemas</span></span></a>
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Per-type attribute schemas</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./graph-constraints.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Declarative graph constraints</span></span></a>
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Declarative graph constraints</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./derived-variants.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Derived fields and build variants</span></span></a>
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Derived fields and build variants</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./interoperability.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Interoperability and Federation</span></span></a>
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Interoperability and Federation</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./migrations.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Migrating from Other Tools</span></span></a>
+ <span class="menu-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Migrating from Other Tools</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./language-server.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Language server and editor authoring</span></span></a>
+ <span class="menu-text"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">Language server and editor authoring</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./cli-reference.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">Command-line reference</span></span></a>
+ <span class="menu-text"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Command-line reference</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./reference.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Practical reference</span></span></a>
+ <span class="menu-text"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Practical reference</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./index.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Quarto-Needs</span></span></a>
+ <span class="menu-text"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">Quarto-Needs</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./getting-started.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">Primeiros passos</span></span></a>
+ <span class="menu-text"><span class="chapter-number">22</span>&nbsp; <span class="chapter-title">Primeiros passos</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./engineering-model.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">22</span>&nbsp; <span class="chapter-title">Modelo de engenharia</span></span></a>
+ <span class="menu-text"><span class="chapter-number">23</span>&nbsp; <span class="chapter-title">Modelo de engenharia</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./named-queries.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">24</span>&nbsp; <span class="chapter-title">Consultas nomeadas</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./authoring.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">23</span>&nbsp; <span class="chapter-title">Autoria em Quarto</span></span></a>
+ <span class="menu-text"><span class="chapter-number">25</span>&nbsp; <span class="chapter-title">Autoria em Quarto</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./views-reference.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">24</span>&nbsp; <span class="chapter-title">Visões e shortcodes</span></span></a>
+ <span class="menu-text"><span class="chapter-number">26</span>&nbsp; <span class="chapter-title">Visões e shortcodes</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./architecture-decisions.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">25</span>&nbsp; <span class="chapter-title">Architecture Decision Management</span></span></a>
+ <span class="menu-text"><span class="chapter-number">27</span>&nbsp; <span class="chapter-title">Architecture Decision Management</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./c4-architecture.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">26</span>&nbsp; <span class="chapter-title">Projeções de Arquitetura C4</span></span></a>
+ <span class="menu-text"><span class="chapter-number">28</span>&nbsp; <span class="chapter-title">Projeções de Arquitetura C4</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./executable-evidence.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">27</span>&nbsp; <span class="chapter-title">Verificação executável e evidência de máquina</span></span></a>
+ <span class="menu-text"><span class="chapter-number">29</span>&nbsp; <span class="chapter-title">Verificação executável e evidência de máquina</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./evidence-providers.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">28</span>&nbsp; <span class="chapter-title">Providers de evidência de máquina</span></span></a>
+ <span class="menu-text"><span class="chapter-number">30</span>&nbsp; <span class="chapter-title">Providers de evidência de máquina</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./governance.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">29</span>&nbsp; <span class="chapter-title">Governança e qualidade</span></span></a>
+ <span class="menu-text"><span class="chapter-number">31</span>&nbsp; <span class="chapter-title">Governança e qualidade</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./declarative-policies.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">30</span>&nbsp; <span class="chapter-title">Políticas declarativas de engenharia</span></span></a>
+ <span class="menu-text"><span class="chapter-number">32</span>&nbsp; <span class="chapter-title">Políticas declarativas de engenharia</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./type-schemas.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">31</span>&nbsp; <span class="chapter-title">Schemas de atributos por tipo</span></span></a>
+ <span class="menu-text"><span class="chapter-number">33</span>&nbsp; <span class="chapter-title">Schemas de atributos por tipo</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./graph-constraints.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">32</span>&nbsp; <span class="chapter-title">Restrições declarativas do grafo</span></span></a>
+ <span class="menu-text"><span class="chapter-number">34</span>&nbsp; <span class="chapter-title">Restrições declarativas do grafo</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./derived-variants.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">33</span>&nbsp; <span class="chapter-title">Campos derivados e variantes de build</span></span></a>
+ <span class="menu-text"><span class="chapter-number">35</span>&nbsp; <span class="chapter-title">Campos derivados e variantes de build</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./interoperability.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">34</span>&nbsp; <span class="chapter-title">Interoperabilidade e Federação</span></span></a>
+ <span class="menu-text"><span class="chapter-number">36</span>&nbsp; <span class="chapter-title">Interoperabilidade e Federação</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./migrations.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">35</span>&nbsp; <span class="chapter-title">Migração de Outras Ferramentas</span></span></a>
+ <span class="menu-text"><span class="chapter-number">37</span>&nbsp; <span class="chapter-title">Migração de Outras Ferramentas</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./language-server.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">36</span>&nbsp; <span class="chapter-title">Servidor de linguagem e autoria no editor</span></span></a>
+ <span class="menu-text"><span class="chapter-number">38</span>&nbsp; <span class="chapter-title">Servidor de linguagem e autoria no editor</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./cli-reference.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">37</span>&nbsp; <span class="chapter-title">Referência da linha de comando</span></span></a>
+ <span class="menu-text"><span class="chapter-number">39</span>&nbsp; <span class="chapter-title">Referência da linha de comando</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./reference.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">38</span>&nbsp; <span class="chapter-title">Referência prática</span></span></a>
+ <span class="menu-text"><span class="chapter-number">40</span>&nbsp; <span class="chapter-title">Referência prática</span></span></a>
   </div>
 </li>
         <li class="sidebar-item sidebar-item-section">
@@ -564,11 +576,16 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
     <h2 id="toc-title">Índice</h2>
    
   <ul>
-  <li><a href="#blocos-.need" id="toc-blocos-.need" class="nav-link active" data-scroll-target="#blocos-.need"><span class="header-section-number">23.1</span> Blocos <code>.need</code></a></li>
-  <li><a href="#referências-e-visualizações" id="toc-referências-e-visualizações" class="nav-link" data-scroll-target="#referências-e-visualizações"><span class="header-section-number">23.2</span> Referências e visualizações</a></li>
-  <li><a href="#índice-de-tags-e-navegação-direta" id="toc-índice-de-tags-e-navegação-direta" class="nav-link" data-scroll-target="#índice-de-tags-e-navegação-direta"><span class="header-section-number">23.3</span> Índice de tags e navegação direta</a></li>
-  <li><a href="#títulos-localizados" id="toc-títulos-localizados" class="nav-link" data-scroll-target="#títulos-localizados"><span class="header-section-number">23.4</span> Títulos localizados</a></li>
-  <li><a href="#configuração-de-prefixos" id="toc-configuração-de-prefixos" class="nav-link" data-scroll-target="#configuração-de-prefixos"><span class="header-section-number">23.5</span> Configuração de prefixos</a></li>
+  <li><a href="#blocos-.need" id="toc-blocos-.need" class="nav-link active" data-scroll-target="#blocos-.need"><span class="header-section-number">25.1</span> Blocos <code>.need</code></a>
+  <ul class="collapse">
+  <li><a href="#anatomia-de-um-bloco" id="toc-anatomia-de-um-bloco" class="nav-link" data-scroll-target="#anatomia-de-um-bloco"><span class="header-section-number">25.1.1</span> Anatomia de um bloco</a></li>
+  <li><a href="#chaves-reservadas" id="toc-chaves-reservadas" class="nav-link" data-scroll-target="#chaves-reservadas"><span class="header-section-number">25.1.2</span> Chaves reservadas</a></li>
+  <li><a href="#relações-e-atributos" id="toc-relações-e-atributos" class="nav-link" data-scroll-target="#relações-e-atributos"><span class="header-section-number">25.1.3</span> Relações e atributos</a></li>
+  </ul></li>
+  <li><a href="#referências-e-visualizações" id="toc-referências-e-visualizações" class="nav-link" data-scroll-target="#referências-e-visualizações"><span class="header-section-number">25.2</span> Referências e visualizações</a></li>
+  <li><a href="#índice-de-tags-e-navegação-direta" id="toc-índice-de-tags-e-navegação-direta" class="nav-link" data-scroll-target="#índice-de-tags-e-navegação-direta"><span class="header-section-number">25.3</span> Índice de tags e navegação direta</a></li>
+  <li><a href="#títulos-localizados" id="toc-títulos-localizados" class="nav-link" data-scroll-target="#títulos-localizados"><span class="header-section-number">25.4</span> Títulos localizados</a></li>
+  <li><a href="#configuração-de-prefixos" id="toc-configuração-de-prefixos" class="nav-link" data-scroll-target="#configuração-de-prefixos"><span class="header-section-number">25.5</span> Configuração de prefixos</a></li>
   </ul>
 </nav>
     </div>
@@ -578,7 +595,7 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title"><span class="chapter-number">23</span>&nbsp; <span class="chapter-title">Autoria em Quarto</span></h1>
+<h1 class="title"><span class="chapter-number">25</span>&nbsp; <span class="chapter-title">Autoria em Quarto</span></h1>
 </div>
 
 
@@ -595,8 +612,8 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 </header>
 
 
-<section id="blocos-.need" class="level2" data-number="23.1">
-<h2 data-number="23.1" class="anchored" data-anchor-id="blocos-.need"><span class="header-section-number">23.1</span> Blocos <code>.need</code></h2>
+<section id="blocos-.need" class="level2" data-number="25.1">
+<h2 data-number="25.1" class="anchored" data-anchor-id="blocos-.need"><span class="header-section-number">25.1</span> Blocos <code>.need</code></h2>
 <p>A superfície de autoria permanece simples: objetos são declarados em blocos Div do Pandoc com a classe <code>.need</code>.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>::: {.need #NFR-001 type="non-functional-requirement" status="approved" priority="high" tags="performance"}</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>verified-by: TC-006</span>
@@ -612,33 +629,108 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 <span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>:::</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Metadados computáveis ficam no preâmbulo do bloco; explicações humanas permanecem em Markdown. Essa distinção evita transformar documentação em um formulário excessivamente estruturado.</p>
 <p>Uma seção <code>### Rationale</code> dentro do bloco é indexada no campo rationale computável do objeto — assim diffs por campo, baselines e exportações a enxergam — enquanto o corpo é preservado verbatim. Uma chave <code>rationale:</code> no preâmbulo, quando presente, tem precedência.</p>
+<section id="anatomia-de-um-bloco" class="level3" data-number="25.1.1">
+<h3 data-number="25.1.1" class="anchored" data-anchor-id="anatomia-de-um-bloco"><span class="header-section-number">25.1.1</span> Anatomia de um bloco</h3>
+<p>Um bloco <code>.need</code> tem três partes, nesta ordem:</p>
+<ol type="1">
+<li><strong>A cerca de abertura</strong>, que carrega o <code>#ID</code> obrigatório e atributos inline opcionais.</li>
+<li><strong>O preâmbulo</strong>, uma região <code>chave: valor</code> no estilo YAML. Ele termina no primeiro cabeçalho, ou na primeira linha que não seja <code>chave: valor</code> nem um item de lista <code>-</code>. Linhas em branco dentro dele são ignoradas, não o encerram.</li>
+<li><strong>O corpo</strong>, Markdown comum. Seu primeiro cabeçalho vira o título do objeto; sem cabeçalho, o título recai para o ID.</li>
+</ol>
+<p>Como uma linha de prosa encerra o preâmbulo, mantenha toda linha <code>chave: valor</code> acima do corpo. Uma linha de metadado escrita <em>depois</em> de uma frase é lida como texto do corpo: não é atributo, não é relação e não gera diagnóstico.</p>
+<p>Tanto os atributos da cerca quanto o preâmbulo escrevem no mesmo conjunto de chaves, então <code>status</code> pode ser declarado em qualquer um dos dois. Quando a mesma chave aparece nos dois, <strong>o preâmbulo vence</strong>. Use a cerca para escalares curtos e o preâmbulo para o que se beneficia de ficar em linha própria.</p>
 </section>
-<section id="referências-e-visualizações" class="level2" data-number="23.2">
-<h2 data-number="23.2" class="anchored" data-anchor-id="referências-e-visualizações"><span class="header-section-number">23.2</span> Referências e visualizações</h2>
+<section id="chaves-reservadas" class="level3" data-number="25.1.2">
+<h3 data-number="25.1.2" class="anchored" data-anchor-id="chaves-reservadas"><span class="header-section-number">25.1.2</span> Chaves reservadas</h3>
+<p>Estas chaves têm significado definido; todo o resto vira um atributo consultável.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Chave</th>
+<th>Padrão</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>#ID</code></td>
+<td>—</td>
+<td>Obrigatório. A identidade do objeto, dada na cerca como identificador Pandoc.</td>
+</tr>
+<tr class="even">
+<td><code>type</code></td>
+<td><code>need</code></td>
+<td>Tipo de engenharia. Conduz papéis, atributos obrigatórios, prefixos e cor do selo.</td>
+</tr>
+<tr class="odd">
+<td><code>status</code></td>
+<td><code>draft</code></td>
+<td>Status do ciclo de vida. Validado contra <code>allowed-statuses</code> quando configurado.</td>
+</tr>
+<tr class="even">
+<td><code>title</code></td>
+<td>primeiro cabeçalho do corpo</td>
+<td>Título do objeto. Recai para o ID quando nenhum dos dois existe.</td>
+</tr>
+<tr class="odd">
+<td><code>rationale</code></td>
+<td>seção <code>### Rationale</code></td>
+<td>Rationale computável. A chave tem precedência sobre a seção.</td>
+</tr>
+</tbody>
+</table>
+<p><code>priority</code>, <code>tags</code> e <code>date</code> são atributos comuns, não chaves reservadas, mas recebem apresentação dedicada: <code>priority</code> ganha selo e ordenação por posto, <code>tags</code> renderiza como chips e alimenta o catálogo de tags, e <code>date</code> aparece nos cards de decisão arquitetural.</p>
+</section>
+<section id="relações-e-atributos" class="level3" data-number="25.1.3">
+<h3 data-number="25.1.3" class="anchored" data-anchor-id="relações-e-atributos"><span class="header-section-number">25.1.3</span> Relações e atributos</h3>
+<p>Toda chave de preâmbulo que nomeia uma relação do catálogo declara relações; qualquer outra chave vira um atributo legível como <code>attributes.&lt;nome&gt;</code> nas <a href="./named-queries.html">consultas nomeadas</a>.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>::: {.need #FUN-014 type="functional-requirement" status="approved" priority="high"}</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>derives-from: SYS-003</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>verified-by: TC-020, TC-021</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>implemented-by:</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>COMP-PARSER</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>COMP-ANALYSIS</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>owner: Platform team</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>expires: 2027-01-31</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="fu">## Rejeitar declarações malformadas</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>:::</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Múltiplos alvos são escritos como um valor separado por vírgulas ou ponto e vírgula, ou como lista <code>-</code> nas linhas seguintes. As duas formas são equivalentes.</p>
+<p>Declare cada chave <strong>uma única vez</strong> por bloco. O preâmbulo é um mapeamento, então repetir uma chave preserva apenas a última ocorrência; escreva <code>verified-by: TC-020, TC-021</code> ou a forma de lista em vez de duas linhas <code>verified-by:</code>. Uma chave repetida é reportada como <code>QND003</code>, de modo que o valor descartado não passe despercebido.</p>
+<p>Alvos de relação não são resolvidos durante o parsing. Um alvo que não nomeia nenhum objeto declarado é reportado como <code>REQ005</code> na validação, e é assim que erros de digitação aparecem em vez de virarem becos sem saída silenciosos.</p>
+</section>
+</section>
+<section id="referências-e-visualizações" class="level2" data-number="25.2">
+<h2 data-number="25.2" class="anchored" data-anchor-id="referências-e-visualizações"><span class="header-section-number">25.2</span> Referências e visualizações</h2>
 <p>O livro pode projetar o grafo com shortcodes como:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>{{&lt; need NFR-001 title=true &gt;}}</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>{{&lt; need-table types="architecture-decision" columns="id;title;status" &gt;}}</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>{{&lt; need-matrix rows="functional-requirement" columns="test-case" relation="verified-by" &gt;}}</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>{{&lt; need-flow root="NFR-001" depth="4" direction="LR" &gt;}}</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>{{&lt; need-inspector ADR-002 &gt;}}</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>{{&lt; need-graph view="graph-exploration" &gt;}}</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>{{&lt; need-c4 root="SYS-001" level="context" &gt;}}</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>{{&lt; adr-table status="accepted" &gt;}}</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>{{&lt; adr-count status="accepted" &gt;}}</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>{{&lt; need NFR-001 title=true &gt;}}</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>{{&lt; need-table types="architecture-decision" columns="id;title;status" &gt;}}</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>{{&lt; need-matrix rows="functional-requirement" columns="test-case" relation="verified-by" &gt;}}</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>{{&lt; need-flow root="NFR-001" depth="4" direction="LR" &gt;}}</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>{{&lt; need-inspector ADR-002 &gt;}}</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>{{&lt; need-graph view="graph-exploration" &gt;}}</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>{{&lt; need-c4 root="SYS-001" level="context" &gt;}}</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>{{&lt; adr-table status="accepted" &gt;}}</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>{{&lt; adr-count status="accepted" &gt;}}</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
 <p>As visualizações são leituras do artefato canônico; não reimplementam as regras de semântica no renderer.</p>
 <p>A <a href="./views-reference.html">referência de visualizações</a> documenta todos os shortcodes registrados, seus seletores e opções, os controles interativos e a configuração do índice lateral da página.</p>
 </section>
-<section id="índice-de-tags-e-navegação-direta" class="level2" data-number="23.3">
-<h2 data-number="23.3" class="anchored" data-anchor-id="índice-de-tags-e-navegação-direta"><span class="header-section-number">23.3</span> Índice de tags e navegação direta</h2>
+<section id="índice-de-tags-e-navegação-direta" class="level2" data-number="25.3">
+<h2 data-number="25.3" class="anchored" data-anchor-id="índice-de-tags-e-navegação-direta"><span class="header-section-number">25.3</span> Índice de tags e navegação direta</h2>
 <p>Para um catálogo interativo de tags, crie um capítulo (ex.: <code>tags.qmd</code>) contendo:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>{{&lt; need-tags &gt;}}</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>{{&lt; need-tags &gt;}}</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Esse shortcode renderiza chips clicáveis de tags e uma tabela consolidada de todos os objetos com tags. Para transformar cada tag badge em um link direto para essa página em todo o site, configure no <code>_quarto.yml</code>:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">quarto-needs</span><span class="kw">:</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">tags-page</span><span class="kw">:</span><span class="at"> tags</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">quarto-needs</span><span class="kw">:</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">tags-page</span><span class="kw">:</span><span class="at"> tags</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Com isso configurado, clicar em qualquer badge de tag em qualquer página navega diretamente para <code>tags.html?tag=&lt;slug&gt;</code> com o filtro já aplicado.</p>
 </section>
-<section id="títulos-localizados" class="level2" data-number="23.4">
-<h2 data-number="23.4" class="anchored" data-anchor-id="títulos-localizados"><span class="header-section-number">23.4</span> Títulos localizados</h2>
+<section id="títulos-localizados" class="level2" data-number="25.4">
+<h2 data-number="25.4" class="anchored" data-anchor-id="títulos-localizados"><span class="header-section-number">25.4</span> Títulos localizados</h2>
 <p>Os títulos dos objetos podem ser localizados sem duplicar o modelo de engenharia. Coloque o irmão traduzido ao lado do arquivo-fonte canônico, acrescentando o locale ao stem — por exemplo, declare objetos em <code>requirements.qmd</code> e forneça <code>requirements.pt-BR.qmd</code>:</p>
 <ul>
 <li>Ambos os arquivos devem declarar os mesmos IDs de objetos, com os mesmos tipos, estados, atributos e relações. Apenas título, corpo e rationale podem diferir; um irmão que altere metadados de engenharia falha o render com um erro.</li>
@@ -648,17 +740,17 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 </ul>
 <p>Páginas em inglês mantêm os títulos canônicos; nenhum mapa de títulos padrão é necessário. O <a href="./language-server.html">language server</a> mantém os irmãos localizados consistentes em renomeações de ID.</p>
 </section>
-<section id="configuração-de-prefixos" class="level2" data-number="23.5">
-<h2 data-number="23.5" class="anchored" data-anchor-id="configuração-de-prefixos"><span class="header-section-number">23.5</span> Configuração de prefixos</h2>
+<section id="configuração-de-prefixos" class="level2" data-number="25.5">
+<h2 data-number="25.5" class="anchored" data-anchor-id="configuração-de-prefixos"><span class="header-section-number">25.5</span> Configuração de prefixos</h2>
 <p>Prefixos são declarados por tipo:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode toml code-with-copy"><code class="sourceCode toml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[types.system-requirement]</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="dt">id-prefix</span> <span class="op">=</span> <span class="st">"SYS-"</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="kw">[types.architecture-decision]</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="dt">id-prefix</span> <span class="op">=</span> <span class="st">"ADR-"</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode toml code-with-copy"><code class="sourceCode toml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[types.system-requirement]</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="dt">id-prefix</span> <span class="op">=</span> <span class="st">"SYS-"</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="kw">[types.architecture-decision]</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="dt">id-prefix</span> <span class="op">=</span> <span class="st">"ADR-"</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Quando configurado, um ID incompatível gera <code>ID001</code>. Para um projeto que precise de namespace composto:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode toml code-with-copy"><code class="sourceCode toml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[types.architecture-decision]</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="dt">id-prefix</span> <span class="op">=</span> <span class="st">"PAY-ADR-"</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode toml code-with-copy"><code class="sourceCode toml"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[types.architecture-decision]</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="dt">id-prefix</span> <span class="op">=</span> <span class="st">"PAY-ADR-"</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Quando o contexto do projeto já delimita o domínio, use prefixos menores. O objetivo é identidade legível, não repetição ritual de namespace.</p>
 
 
@@ -1200,13 +1292,13 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./engineering-model.html" class="pagination-link" aria-label="Modelo de engenharia">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">22</span>&nbsp; <span class="chapter-title">Modelo de engenharia</span></span>
+      <a href="./named-queries.html" class="pagination-link" aria-label="Consultas nomeadas">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">24</span>&nbsp; <span class="chapter-title">Consultas nomeadas</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
       <a href="./views-reference.html" class="pagination-link" aria-label="Visões e shortcodes">
-        <span class="nav-page-text"><span class="chapter-number">24</span>&nbsp; <span class="chapter-title">Visões e shortcodes</span></span> <i class="bi bi-arrow-right-short"></i>
+        <span class="nav-page-text"><span class="chapter-number">26</span>&nbsp; <span class="chapter-title">Visões e shortcodes</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

@@ -7,7 +7,7 @@
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.8.26">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>4  Authoring in Quarto – Quarto-Needs — Manual</title>
+<title>5  Authoring in Quarto – Quarto-Needs — Manual</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -58,7 +58,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </style>
 <script src="site_libs/quarto-nav/quarto-nav.js"></script><script src="site_libs/quarto-nav/headroom.min.js"></script><script src="site_libs/clipboard/clipboard.min.js"></script><script src="site_libs/quarto-search/autocomplete.umd.js"></script><script src="site_libs/quarto-search/fuse.min.js"></script><script src="site_libs/quarto-search/quarto-search.js"></script><meta name="quarto:offset" content="./">
 <link href="./views-reference.html" rel="next">
-<link href="./engineering-model.html" rel="prev">
+<link href="./named-queries.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script><script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script><script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script><script src="site_libs/quarto-html/popper.min.js"></script><script src="site_libs/quarto-html/tippy.umd.min.js"></script><script src="site_libs/quarto-html/anchor.min.js"></script><link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-b758ccaa5987ceb1b75504551e579abf.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
@@ -280,7 +280,7 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./authoring.html"><span class="chapter-number">4</span>  <span class="chapter-title">Authoring in Quarto</span></a></li></ol></nav><a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./authoring.html"><span class="chapter-number">5</span>  <span class="chapter-title">Authoring in Quarto</span></a></li></ol></nav><a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
   </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
@@ -307,98 +307,104 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./named-queries.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>  <span class="chapter-title">Named queries</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./authoring.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">4</span>  <span class="chapter-title">Authoring in Quarto</span></span></a>
+ <span class="menu-text"><span class="chapter-number">5</span>  <span class="chapter-title">Authoring in Quarto</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./views-reference.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">5</span>  <span class="chapter-title">Views and shortcodes</span></span></a>
+ <span class="menu-text"><span class="chapter-number">6</span>  <span class="chapter-title">Views and shortcodes</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./architecture-decisions.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">6</span>  <span class="chapter-title">Architecture Decision Management</span></span></a>
+ <span class="menu-text"><span class="chapter-number">7</span>  <span class="chapter-title">Architecture Decision Management</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./c4-architecture.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">7</span>  <span class="chapter-title">C4 Architecture Projections</span></span></a>
+ <span class="menu-text"><span class="chapter-number">8</span>  <span class="chapter-title">C4 Architecture Projections</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./executable-evidence.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">8</span>  <span class="chapter-title">Executable verification and machine evidence</span></span></a>
+ <span class="menu-text"><span class="chapter-number">9</span>  <span class="chapter-title">Executable verification and machine evidence</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./evidence-providers.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">9</span>  <span class="chapter-title">Machine evidence providers</span></span></a>
+ <span class="menu-text"><span class="chapter-number">10</span>  <span class="chapter-title">Machine evidence providers</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./governance.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">10</span>  <span class="chapter-title">Governance and quality</span></span></a>
+ <span class="menu-text"><span class="chapter-number">11</span>  <span class="chapter-title">Governance and quality</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./declarative-policies.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">11</span>  <span class="chapter-title">Declarative engineering policies</span></span></a>
+ <span class="menu-text"><span class="chapter-number">12</span>  <span class="chapter-title">Declarative engineering policies</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./type-schemas.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">12</span>  <span class="chapter-title">Per-type attribute schemas</span></span></a>
+ <span class="menu-text"><span class="chapter-number">13</span>  <span class="chapter-title">Per-type attribute schemas</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./graph-constraints.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">13</span>  <span class="chapter-title">Declarative graph constraints</span></span></a>
+ <span class="menu-text"><span class="chapter-number">14</span>  <span class="chapter-title">Declarative graph constraints</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./derived-variants.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">14</span>  <span class="chapter-title">Derived fields and build variants</span></span></a>
+ <span class="menu-text"><span class="chapter-number">15</span>  <span class="chapter-title">Derived fields and build variants</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./interoperability.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">15</span>  <span class="chapter-title">Interoperability and Federation</span></span></a>
+ <span class="menu-text"><span class="chapter-number">16</span>  <span class="chapter-title">Interoperability and Federation</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./migrations.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">16</span>  <span class="chapter-title">Migrating from Other Tools</span></span></a>
+ <span class="menu-text"><span class="chapter-number">17</span>  <span class="chapter-title">Migrating from Other Tools</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./language-server.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">17</span>  <span class="chapter-title">Language server and editor authoring</span></span></a>
+ <span class="menu-text"><span class="chapter-number">18</span>  <span class="chapter-title">Language server and editor authoring</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./cli-reference.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">18</span>  <span class="chapter-title">Command-line reference</span></span></a>
+ <span class="menu-text"><span class="chapter-number">19</span>  <span class="chapter-title">Command-line reference</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./reference.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">19</span>  <span class="chapter-title">Practical reference</span></span></a>
+ <span class="menu-text"><span class="chapter-number">20</span>  <span class="chapter-title">Practical reference</span></span></a>
   </div>
 </li>
     </ul>
@@ -409,17 +415,24 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
         <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">Table of contents</h2>
    
   <ul>
-<li><a href="#need-blocks" id="toc-need-blocks" class="nav-link active" data-scroll-target="#need-blocks"><span class="header-section-number">4.1</span> <code>.need</code> blocks</a></li>
-  <li><a href="#references-and-views" id="toc-references-and-views" class="nav-link" data-scroll-target="#references-and-views"><span class="header-section-number">4.2</span> References and views</a></li>
-  <li><a href="#tag-index-and-deep-linking" id="toc-tag-index-and-deep-linking" class="nav-link" data-scroll-target="#tag-index-and-deep-linking"><span class="header-section-number">4.3</span> Tag index and deep linking</a></li>
-  <li><a href="#localized-titles" id="toc-localized-titles" class="nav-link" data-scroll-target="#localized-titles"><span class="header-section-number">4.4</span> Localized titles</a></li>
-  <li><a href="#prefix-configuration" id="toc-prefix-configuration" class="nav-link" data-scroll-target="#prefix-configuration"><span class="header-section-number">4.5</span> Prefix configuration</a></li>
+<li>
+<a href="#need-blocks" id="toc-need-blocks" class="nav-link active" data-scroll-target="#need-blocks"><span class="header-section-number">5.1</span> <code>.need</code> blocks</a>
+  <ul class="collapse">
+<li><a href="#anatomy-of-a-block" id="toc-anatomy-of-a-block" class="nav-link" data-scroll-target="#anatomy-of-a-block"><span class="header-section-number">5.1.1</span> Anatomy of a block</a></li>
+  <li><a href="#reserved-keys" id="toc-reserved-keys" class="nav-link" data-scroll-target="#reserved-keys"><span class="header-section-number">5.1.2</span> Reserved keys</a></li>
+  <li><a href="#relations-and-attributes" id="toc-relations-and-attributes" class="nav-link" data-scroll-target="#relations-and-attributes"><span class="header-section-number">5.1.3</span> Relations and attributes</a></li>
+  </ul>
+</li>
+  <li><a href="#references-and-views" id="toc-references-and-views" class="nav-link" data-scroll-target="#references-and-views"><span class="header-section-number">5.2</span> References and views</a></li>
+  <li><a href="#tag-index-and-deep-linking" id="toc-tag-index-and-deep-linking" class="nav-link" data-scroll-target="#tag-index-and-deep-linking"><span class="header-section-number">5.3</span> Tag index and deep linking</a></li>
+  <li><a href="#localized-titles" id="toc-localized-titles" class="nav-link" data-scroll-target="#localized-titles"><span class="header-section-number">5.4</span> Localized titles</a></li>
+  <li><a href="#prefix-configuration" id="toc-prefix-configuration" class="nav-link" data-scroll-target="#prefix-configuration"><span class="header-section-number">5.5</span> Prefix configuration</a></li>
   </ul></nav>
 </div>
 <!-- main -->
 <main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><div class="quarto-title">
 <h1 class="title">
-<span class="chapter-number">4</span>  <span class="chapter-title">Authoring in Quarto</span>
+<span class="chapter-number">5</span>  <span class="chapter-title">Authoring in Quarto</span>
 </h1>
 </div>
 
@@ -434,8 +447,8 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
   
 
 
-</header><section id="need-blocks" class="level2" data-number="4.1"><h2 data-number="4.1" class="anchored" data-anchor-id="need-blocks">
-<span class="header-section-number">4.1</span> <code>.need</code> blocks</h2>
+</header><section id="need-blocks" class="level2" data-number="5.1"><h2 data-number="5.1" class="anchored" data-anchor-id="need-blocks">
+<span class="header-section-number">5.1</span> <code>.need</code> blocks</h2>
 <p>The authoring surface remains simple: objects are declared as Pandoc Div blocks with the <code>.need</code> class.</p>
 <div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb1"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>::: {.need #NFR-001 type="non-functional-requirement" status="approved" priority="high" tags="performance"}</span>
@@ -454,39 +467,116 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 </div>
 <p>Machine-queryable metadata stays in the block preamble; human explanations remain in Markdown. This distinction prevents documentation from becoming an excessively structured form.</p>
 <p>A <code>### Rationale</code> section inside the block is indexed into the object’s machine-readable rationale field — so per-field diffs, baselines, and exports see it — while the body itself is preserved verbatim. A <code>rationale:</code> preamble key, when present, takes precedence.</p>
-</section><section id="references-and-views" class="level2" data-number="4.2"><h2 data-number="4.2" class="anchored" data-anchor-id="references-and-views">
-<span class="header-section-number">4.2</span> References and views</h2>
+<section id="anatomy-of-a-block" class="level3" data-number="5.1.1"><h3 data-number="5.1.1" class="anchored" data-anchor-id="anatomy-of-a-block">
+<span class="header-section-number">5.1.1</span> Anatomy of a block</h3>
+<p>A <code>.need</code> block has three parts, in this order:</p>
+<ol type="1">
+<li>
+<strong>The opening fence</strong>, which carries the required <code>#ID</code> and optional inline attributes.</li>
+<li>
+<strong>The preamble</strong>, a YAML-like <code>key: value</code> region. It ends at the first heading, or at the first line that is neither <code>key: value</code> nor a <code>-</code> list item. Blank lines inside it are ignored, not terminators.</li>
+<li>
+<strong>The body</strong>, ordinary Markdown. Its first heading becomes the object title; without a heading, the title falls back to the ID.</li>
+</ol>
+<p>Because a prose line closes the preamble, keep every <code>key: value</code> line above the body. A metadata line written <em>after</em> a sentence is read as body text: it is not an attribute, not a relation, and produces no diagnostic.</p>
+<p>Both the fence attributes and the preamble write to the same set of keys, so <code>status</code> can be declared in either place. When the same key appears in both, <strong>the preamble wins</strong>. Use the fence for short scalars and the preamble for anything that benefits from being on its own line.</p>
+</section><section id="reserved-keys" class="level3" data-number="5.1.2"><h3 data-number="5.1.2" class="anchored" data-anchor-id="reserved-keys">
+<span class="header-section-number">5.1.2</span> Reserved keys</h3>
+<p>These keys have defined meaning; everything else becomes a queryable attribute.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead><tr class="header">
+<th>Key</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>#ID</code></td>
+<td>—</td>
+<td>Required. The object’s identity, given on the fence as a Pandoc identifier.</td>
+</tr>
+<tr class="even">
+<td><code>type</code></td>
+<td><code>need</code></td>
+<td>Engineering type. Drives roles, required attributes, prefixes, and badge color.</td>
+</tr>
+<tr class="odd">
+<td><code>status</code></td>
+<td><code>draft</code></td>
+<td>Lifecycle status. Validated against <code>allowed-statuses</code> when configured.</td>
+</tr>
+<tr class="even">
+<td><code>title</code></td>
+<td>first body heading</td>
+<td>Object title. Falls back to the ID when neither is present.</td>
+</tr>
+<tr class="odd">
+<td><code>rationale</code></td>
+<td>
+<code>### Rationale</code> section</td>
+<td>Machine-readable rationale. The key takes precedence over the section.</td>
+</tr>
+</tbody>
+</table>
+<p><code>priority</code>, <code>tags</code>, and <code>date</code> are ordinary attributes rather than reserved keys, but they receive dedicated presentation: <code>priority</code> gets a badge and rank-aware sorting, <code>tags</code> renders as tag chips and feeds the tag catalog, and <code>date</code> appears on architecture-decision cards.</p>
+</section><section id="relations-and-attributes" class="level3" data-number="5.1.3"><h3 data-number="5.1.3" class="anchored" data-anchor-id="relations-and-attributes">
+<span class="header-section-number">5.1.3</span> Relations and attributes</h3>
+<p>Any preamble key that names a relation in the catalog declares relations; every other key becomes an attribute readable as <code>attributes.&lt;name&gt;</code> in <a href="./named-queries.html">named queries</a>.</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb2"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>::: {.need #FUN-014 type="functional-requirement" status="approved" priority="high"}</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>derives-from: SYS-003</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>verified-by: TC-020, TC-021</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>implemented-by:</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>COMP-PARSER</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>COMP-ANALYSIS</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>owner: Platform team</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>expires: 2027-01-31</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="fu">## Reject malformed declarations</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>:::</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>Multiple targets are written either as one value separated by commas or semicolons, or as a <code>-</code> list on the following lines. The two forms are equivalent.</p>
+<p>Declare each key <strong>once</strong> per block. The preamble is a mapping, so repeating a key keeps only its last occurrence; write <code>verified-by: TC-020, TC-021</code> or the list form instead of two <code>verified-by:</code> lines. A repeated key is reported as <code>QND003</code> so the discarded value cannot pass unnoticed.</p>
+<p>Relation targets are not resolved while parsing. A target that names no declared object is reported as <code>REQ005</code> during validation, which is how typos surface instead of becoming silent dead ends.</p>
+</section></section><section id="references-and-views" class="level2" data-number="5.2"><h2 data-number="5.2" class="anchored" data-anchor-id="references-and-views">
+<span class="header-section-number">5.2</span> References and views</h2>
 <p>The book can project the graph with shortcodes such as:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb2"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>{{&lt; need NFR-001 title=true &gt;}}</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>{{&lt; need-table types="architecture-decision" columns="id;title;status" &gt;}}</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>{{&lt; need-matrix rows="functional-requirement" columns="test-case" relation="verified-by" &gt;}}</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>{{&lt; need-flow root="NFR-001" depth="4" direction="LR" &gt;}}</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>{{&lt; need-inspector ADR-002 &gt;}}</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>{{&lt; need-graph view="graph-exploration" &gt;}}</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>{{&lt; need-c4 root="SYS-001" level="context" &gt;}}</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>{{&lt; adr-table status="accepted" &gt;}}</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>{{&lt; adr-count status="accepted" &gt;}}</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>{{&lt; need NFR-001 title=true &gt;}}</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>{{&lt; need-table types="architecture-decision" columns="id;title;status" &gt;}}</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>{{&lt; need-matrix rows="functional-requirement" columns="test-case" relation="verified-by" &gt;}}</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>{{&lt; need-flow root="NFR-001" depth="4" direction="LR" &gt;}}</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>{{&lt; need-inspector ADR-002 &gt;}}</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>{{&lt; need-graph view="graph-exploration" &gt;}}</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>{{&lt; need-c4 root="SYS-001" level="context" &gt;}}</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>{{&lt; adr-table status="accepted" &gt;}}</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>{{&lt; adr-count status="accepted" &gt;}}</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p>Views read the canonical artifact; they do not reimplement semantic rules in the renderer.</p>
 <p>The <a href="./views-reference.html">views reference</a> documents every registered shortcode, its selectors and options, interactive controls, and page-sidebar configuration.</p>
-</section><section id="tag-index-and-deep-linking" class="level2" data-number="4.3"><h2 data-number="4.3" class="anchored" data-anchor-id="tag-index-and-deep-linking">
-<span class="header-section-number">4.3</span> Tag index and deep linking</h2>
+</section><section id="tag-index-and-deep-linking" class="level2" data-number="5.3"><h2 data-number="5.3" class="anchored" data-anchor-id="tag-index-and-deep-linking">
+<span class="header-section-number">5.3</span> Tag index and deep linking</h2>
 <p>For a clickable tag catalog, create a chapter (e.g. <code>tags.qmd</code>) containing:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb3"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>{{&lt; need-tags &gt;}}</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>{{&lt; need-tags &gt;}}</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p>This shortcode renders interactive tag chips and a consolidated table of all tagged objects. To link every tag badge across the site into this page, configure <code>_quarto.yml</code>:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb4"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">quarto-needs</span><span class="kw">:</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">tags-page</span><span class="kw">:</span><span class="at"> tags</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">quarto-needs</span><span class="kw">:</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">tags-page</span><span class="kw">:</span><span class="at"> tags</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p>When configured, clicking any tag badge anywhere in the project navigates to <code>tags.html?tag=&lt;slug&gt;</code> with that tag pre-filtered.</p>
-</section><section id="localized-titles" class="level2" data-number="4.4"><h2 data-number="4.4" class="anchored" data-anchor-id="localized-titles">
-<span class="header-section-number">4.4</span> Localized titles</h2>
+</section><section id="localized-titles" class="level2" data-number="5.4"><h2 data-number="5.4" class="anchored" data-anchor-id="localized-titles">
+<span class="header-section-number">5.4</span> Localized titles</h2>
 <p>Object titles can be localized without duplicating the engineering model. Place a translated sibling next to its canonical source file, adding the locale to the stem — for example, declare objects in <code>requirements.qmd</code> and provide <code>requirements.pt-BR.qmd</code>:</p>
 <ul>
 <li>Both files must declare the same object IDs with the same types, statuses, attributes, and relations. Only the title, body, and rationale may differ; a sibling that changes engineering metadata fails the render with an error.</li>
@@ -496,21 +586,21 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
 <li>The page filename suffix selects the locale (for example, <code>chapter.pt-BR.qmd</code> renders as pt-BR). Views, tables, dashboards, and the <code>need-graph</code> canvas render the localized titles for that locale, falling back to the canonical title when a locale has no entry for an object. Spell the locale identically in sibling filenames and page filenames — the mapping is exact, not case-normalized.</li>
 </ul>
 <p>English pages keep the canonical titles; no default title map is required. The <a href="./language-server.html">language server</a> keeps localized siblings consistent across ID renames.</p>
-</section><section id="prefix-configuration" class="level2" data-number="4.5"><h2 data-number="4.5" class="anchored" data-anchor-id="prefix-configuration">
-<span class="header-section-number">4.5</span> Prefix configuration</h2>
+</section><section id="prefix-configuration" class="level2" data-number="5.5"><h2 data-number="5.5" class="anchored" data-anchor-id="prefix-configuration">
+<span class="header-section-number">5.5</span> Prefix configuration</h2>
 <p>Prefixes are declared per type:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb5"><pre class="sourceCode toml code-with-copy"><code class="sourceCode toml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[types.system-requirement]</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="dt">id-prefix</span> <span class="op">=</span> <span class="st">"SYS-"</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="kw">[types.architecture-decision]</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="dt">id-prefix</span> <span class="op">=</span> <span class="st">"ADR-"</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode toml code-with-copy"><code class="sourceCode toml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[types.system-requirement]</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="dt">id-prefix</span> <span class="op">=</span> <span class="st">"SYS-"</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="kw">[types.architecture-decision]</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="dt">id-prefix</span> <span class="op">=</span> <span class="st">"ADR-"</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p>When configured, an incompatible ID produces <code>ID001</code>. For a project that needs a compound namespace:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb6"><pre class="sourceCode toml code-with-copy"><code class="sourceCode toml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[types.architecture-decision]</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="dt">id-prefix</span> <span class="op">=</span> <span class="st">"PAY-ADR-"</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode toml code-with-copy"><code class="sourceCode toml"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[types.architecture-decision]</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="dt">id-prefix</span> <span class="op">=</span> <span class="st">"PAY-ADR-"</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p>When the project context already defines the domain, use shorter prefixes. The goal is readable identity, not ritual namespace repetition.</p>
@@ -1048,13 +1138,13 @@ gtag('config', 'G-84LW77BJNG', { 'anonymize_ip': true});
     }
   });
   </script><nav class="page-navigation"><div class="nav-page nav-page-previous">
-      <a href="./engineering-model.html" class="pagination-link" aria-label="Engineering model">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">3</span>  <span class="chapter-title">Engineering model</span></span>
+      <a href="./named-queries.html" class="pagination-link" aria-label="Named queries">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">4</span>  <span class="chapter-title">Named queries</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
       <a href="./views-reference.html" class="pagination-link" aria-label="Views and shortcodes">
-        <span class="nav-page-text"><span class="chapter-number">5</span>  <span class="chapter-title">Views and shortcodes</span></span> <i class="bi bi-arrow-right-short"></i>
+        <span class="nav-page-text"><span class="chapter-number">6</span>  <span class="chapter-title">Views and shortcodes</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

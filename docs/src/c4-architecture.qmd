@@ -76,6 +76,8 @@ Quarto-Needs supports multiple diagramming backends via the `backend` argument:
 - **`mermaid`** (default): Embedded directly in HTML as responsive inline SVG.
 - **`plantuml`**, **`structurizr`**, **`d2`**: If the respective tool is installed locally, pre-renders SVG/PNG assets; otherwise falls back gracefully to syntax-highlighted diagram source code.
 
+Because that fallback is silent, a publishing pipeline can ship source code where diagrams belong. Run `tools/install_diagram_backends.sh` to provision all three on Linux; CI runs the same script and then fails the build if any diagram rendered as source.
+
 ## Architecture Governance (C4 Rules)
 
 The C4 rule engine validates diagram structural integrity:

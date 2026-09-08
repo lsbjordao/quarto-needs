@@ -76,6 +76,8 @@ O Quarto-Needs suporta múltiplos backends através do argumento `backend`:
 - **`mermaid`** (padrão): Embutido diretamente no HTML como SVG inline responsivo.
 - **`plantuml`**, **`structurizr`**, **`d2`**: Se a respectiva ferramenta estiver instalada localmente, pré-renderiza imagens SVG/PNG; caso contrário, faz fallback gracioso para o código-fonte do diagrama com realce de sintaxe.
 
+Como esse fallback é silencioso, um pipeline de publicação pode acabar publicando código-fonte onde deveriam estar os diagramas. Execute `tools/install_diagram_backends.sh` para provisionar os três no Linux; o CI executa o mesmo script e depois falha a build se algum diagrama tiver sido renderizado como código.
+
 ## Governança de Arquitetura (Regras C4)
 
 O motor de regras valida a integridade estrutural dos diagramas:
