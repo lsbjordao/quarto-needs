@@ -108,6 +108,50 @@ function Pandoc(doc)
 end
 '''
 
+# PlantUML and D2 lead their SVG with an XML prolog; Structurizr and Mermaid
+# do not. An inline HTML fragment has no place for that prolog -- an HTML
+# parser turns `<?xml ...?>` into a bogus comment -- so the figure attributes
+# must land on the <svg> root element, never on whatever comes before it.
+LUA_DIAGRAM_SVG_ASSERTIONS = r"""
+local views = dofile(__VIEWS_PATH__)
+
+local sources = {
+  {backend = "d2", source = 'a: "A"\nb: "B"\na -> b: "uses"\n'},
+  {backend = "plantuml", source = "@startuml\nAlice -> Bob: hello\n@enduml\n"},
+  {backend = "structurizr", source = table.concat({
+    "workspace {",
+    "  model {",
+    '    u = person "User"',
+    '    s = softwareSystem "System"',
+    '    u -> s "Uses"',
+    "  }",
+    "  views {",
+    "    systemContext s {",
+    "      include *",
+    "      autoLayout",
+    "    }",
+    "  }",
+    "}",
+  }, "\n")},
+}
+
+function Pandoc(doc)
+  for _, case in ipairs(sources) do
+    local backend = case.backend
+    local svg = views.diagram_inline_svg(backend, case.source, "Architecture diagram", "need-c4-figure")
+    assert(svg, backend .. ": renderer produced no SVG")
+    assert(svg:sub(1, 4) == "<svg", backend .. ": inline SVG must start at the root element, got " .. svg:sub(1, 60))
+    assert(not svg:find("<?xml", 1, true), backend .. ": XML prolog must not reach inline HTML")
+    local open_tag = svg:sub(1, svg:find(">", 1, true))
+    assert(open_tag:find('class="need%-c4%-figure"'), backend .. ": class must land on <svg>, got " .. open_tag)
+    assert(open_tag:find('role="img"'), backend .. ": role must land on <svg>, got " .. open_tag)
+    assert(open_tag:find('aria%-label="Architecture diagram"'), backend .. ": aria-label must land on <svg>, got " .. open_tag)
+    assert(open_tag:find('width="100%%"'), backend .. ": responsive width must land on <svg>, got " .. open_tag)
+  end
+  return doc
+end
+"""
+
 
 def run_lua_assertions(
     tmp_path: Path, assertions: str, graph: Path | None = None
@@ -145,3 +189,16 @@ def test_views_delegate_to_the_cached_graph_and_format_links(
 ):
     """The facade keeps its legacy API while every link flows through the resolver."""
     run_lua_assertions(tmp_path, LUA_FACADE_ASSERTIONS, graph=views_fixture_graph)
+
+
+@pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
+@pytest.mark.skipif(shutil.which("d2") is None, reason="d2 is not installed")
+@pytest.mark.skipif(shutil.which("plantuml") is None, reason="PlantUML is not installed")
+@pytest.mark.skipif(shutil.which("structurizr") is None, reason="Structurizr is not installed")
+def test_optional_backend_svgs_carry_their_figure_attributes(tmp_path: Path):
+    """Every optional backend must hand back one properly attributed inline SVG.
+
+    PlantUML and D2 lead their output with an XML prolog, which used to absorb
+    the figure attributes; Structurizr does not, and guards the CI wrapper.
+    """
+    run_lua_assertions(tmp_path, LUA_DIAGRAM_SVG_ASSERTIONS)

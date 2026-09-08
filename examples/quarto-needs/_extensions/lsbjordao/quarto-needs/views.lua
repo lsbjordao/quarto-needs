@@ -260,7 +260,21 @@ end
 
 local inline_svg_cache = {}
 
+-- PlantUML and D2 lead their SVG with an XML prolog (`<?xml ...?>`); Mermaid
+-- and Structurizr do not. An inline HTML fragment has no place for one: an
+-- HTML parser reads `<?` as a bogus comment, so splitting on the first `>`
+-- would inject the figure's class, role, aria-label and responsive width into
+-- that comment instead of the root element -- leaving the diagram unlabeled
+-- and stuck at its intrinsic pixel size. Start the fragment at `<svg`.
+local function svg_root_element(svg)
+  local start = svg:find("<svg", 1, true)
+  if not start then return nil end
+  return svg:sub(start)
+end
+
 local function finalize_inline_svg(svg, description, class_name, responsive)
+  svg = svg_root_element(svg)
+  if not svg then return nil end
   svg = namespace_svg_ids(svg, M.reserve_view_id("need-svg") .. "-")
   local open_end = svg:find(">", 1, true)
   if not open_end then return nil end
