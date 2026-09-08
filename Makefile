@@ -1,4 +1,4 @@
-.PHONY: setup setup-branding setup-babelquarto test branding-assets branding-check scan check coverage render-manual-multilingual preview-self-example sync-self-example check-self-example evidence-self-example render-self-example check-install check-extension-first check-cli-install check-release-build
+.PHONY: setup setup-branding setup-babelquarto test branding-assets branding-check scan check coverage render-manual-multilingual preview-self-example sync-self-example check-self-example check-rendered-diagrams evidence-self-example render-self-example install-diagram-backends check-install check-extension-first check-cli-install check-release-build
 .DEFAULT_GOAL := test
 
 VENV_PYTHON := .venv/bin/python
@@ -56,6 +56,18 @@ sync-self-example:
 
 check-self-example:
 	PYTHONPATH=src $(VENV_PYTHON) -m quarto_needs.cli --root examples/quarto-needs check
+
+# The optional C4 backends fall back to a code block when their CLI is absent,
+# which is right for an author and wrong for a publishing pipeline: it is how
+# the published example came to show DSL source instead of diagrams.
+install-diagram-backends:
+	./tools/install_diagram_backends.sh
+
+# Turns that silent fallback into a failure. It reads a rendered book, so it
+# stays out of check-self-example and runs only after a render.
+check-rendered-diagrams:
+	$(VENV_PYTHON) tools/check_rendered_diagrams.py examples/quarto-needs/_book \
+		--source examples/quarto-needs
 
 evidence-self-example:
 	PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=src $(VENV_PYTHON) -m pytest -q \

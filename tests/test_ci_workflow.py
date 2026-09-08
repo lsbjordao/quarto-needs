@@ -175,3 +175,25 @@ def test_pdf_verifying_jobs_install_poppler_utils() -> None:
     for name in ("install", "quarto-minimum"):
         run_steps = "\n".join(str(step.get("run", "")) for step in jobs[name]["steps"])
         assert "poppler-utils" in run_steps, f"{name} must install poppler-utils"
+
+
+def test_quarto_job_provisions_the_optional_c4_backends_before_publishing() -> None:
+    """Found 2026-09-07: section 5.9 of the published example showed DSL source
+    instead of diagrams. `need-c4`'s PlantUML/D2/Structurizr backends fall back
+    to a code block when their CLI is missing, and this job -- whose artifact
+    `publish-self-example` commits to docs/ -- installed none of them. The
+    provisioning must precede the render, and the gate that catches a repeat
+    must run after it and before the artifact is uploaded.
+    """
+    steps = parsed()["jobs"]["quarto"]["steps"]
+    names = [step.get("name") for step in steps]
+
+    install = names.index("Install optional C4 diagram backends")
+    render = names.index("Render multilingual self-hosted HTML")
+    gate = names.index("Enforce that every C4 diagram actually rendered")
+    upload = names.index("Upload rendered self-hosted example")
+
+    assert install < render < gate < upload
+    assert "make install-diagram-backends" in steps[install]["run"]
+    assert 'echo "$HOME/.local/bin" >> "$GITHUB_PATH"' in steps[install]["run"]
+    assert "make check-rendered-diagrams" in steps[gate]["run"]

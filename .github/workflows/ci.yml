@@ -115,6 +115,14 @@ jobs:
         run: |
           command -v google-chrome
           .venv/bin/python -m pytest -q tests/test_margin_sidebar.py::test_collapsed_margin_sidebar_stays_hidden_across_left_sidebar_breakpoint
+      - name: Install optional C4 diagram backends
+        # need-c4's PlantUML, D2 and Structurizr backends degrade to a code
+        # block when their CLI is missing, and this job's artifact is what gets
+        # published to docs/examples. Without these tools the published site
+        # shows DSL source where diagrams belong, and nothing fails.
+        run: |
+          make install-diagram-backends
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - name: Synchronize extension and graph
         run: make sync-self-example
       - name: Render multilingual self-hosted HTML
@@ -123,6 +131,8 @@ jobs:
         run: make render-manual-multilingual
       - name: Enforce example gates
         run: make check-self-example
+      - name: Enforce that every C4 diagram actually rendered
+        run: make check-rendered-diagrams
       - name: Upload rendered self-hosted example
         uses: actions/upload-artifact@v4
         with:
