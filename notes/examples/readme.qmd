@@ -1,0 +1,16 @@
+::: {.need #REQ-1 type=functional-requirement status=approved priority=high verified-by=TC-1}
+## Authenticate before granting access
+The system shall authenticate users before granting access.
+
+### Rationale
+Protect private data.
+:::
+
+::: {.need #TC-1 type=test-case status=passed}
+## Login test
+A valid login establishes an authenticated session.
+:::
+
+See {{< need REQ-1 >}}.
+
+{{< need-matrix rows="functional-requirement" columns="test-case" relation="verified-by" >}}
