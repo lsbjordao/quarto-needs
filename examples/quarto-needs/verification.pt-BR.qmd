@@ -182,6 +182,8 @@ O `TC-014` modelado está ligado à regressão que protege o comportamento persi
 ## Renderização limpa extension-first
 
 Renderiza um projeto consumidor real sem pacote instalado, sem CLI no PATH e sem pre-render escrito à mão, e verifica que o runtime gerenciado é provisionado, o grafo é produzido e cards e shortcodes resolvem.
+O starter também delega a este bootstrap depois que o Quarto instala a extensão incluída com ou sem o namespace do proprietário no GitHub. `tests/test_extension_first_distribution.py::test_the_starter_template_needs_no_manual_activation_edit` renderiza ambos os layouts.
+
 :::
 
 ::: {.need #EVD-025 type="evidence" status="verified" tags="pytest;extension;distribution;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
@@ -279,3 +281,15 @@ O painel é calculado a partir do mesmo snapshot das tabelas acima. Ele relata a
 {{< need-dashboard id="verification-dashboard" >}}
 
 Um percentual aqui não afirma que a verificação teve sucesso. `verification-trace` conta requisitos que nomeiam um caso de teste; `verification-successful` exige adicionalmente que esse teste esteja passando, e `evidence` exige que a cadeia alcance evidência não expirada. A distância entre essas três colunas é a medida honesta de garantia.
+
+::: {.need #TC-032 type="test-case" status="passed" tags="pytest;distribution;cli" pytest-nodeid="tests/test_cli_version.py::test_version_works_outside_a_project" evidenced-by="EVD-032"}
+## Diagnóstico da versão instalada
+
+Executar o CLI real em um diretório com configuração de projeto inválida e verificar a saída de versão com sucesso e stderr vazio.
+:::
+
+::: {.need #EVD-032 type="evidence" status="verified" tags="pytest;distribution;cli"}
+## Diagnóstico da versão instalada
+
+A regressão executável é `tests/test_cli_version.py::test_version_works_outside_a_project`. Instalações limpas do wheel e do sdist também são verificadas por `tools/check_release_artifacts.py`.
+:::

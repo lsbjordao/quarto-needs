@@ -70,6 +70,9 @@ jobs:
       - name: Check distribution metadata
         run: twine check dist/*
 
+      - name: Verify wheel and sdist in clean environments
+        run: python tools/check_release_artifacts.py
+
       - name: Upload distributions
         uses: actions/upload-artifact@v4
         with:
@@ -145,6 +148,7 @@ jobs:
             exit 1
           fi
 
+          /tmp/rehearsal/bin/quarto-needs --version
           /tmp/rehearsal/bin/quarto-needs --help >/dev/null
 
           /tmp/rehearsal/bin/python - "$VERSION" <<'PY'
@@ -300,6 +304,12 @@ jobs:
           )
           PY
 
+      - name: Verify public extension and starter from TestPyPI
+        env:
+          PIP_INDEX_URL: https://test.pypi.org/simple/
+          PIP_EXTRA_INDEX_URL: https://pypi.org/simple/
+        run: python tools/check_published_release.py "${GITHUB_REF_NAME#v}"
+
   publish:
     name: Publish to PyPI
     needs: rehearse
@@ -330,6 +340,11 @@ jobs:
     needs: publish
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+
     permissions:
       contents: read
 
@@ -340,12 +355,30 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: "3.14"
+          python-version: ${{ matrix.python-version }}
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
         with:
           version: "1.10.18"
+
+      - name: Verify public extension and starter from PyPI
+        run: |
+          set -euo pipefail
+          installed=false
+          for attempt in 1 2 3 4 5; do
+            if python -m pip install "quarto-needs==${GITHUB_REF_NAME#v}"; then
+              installed=true
+              break
+            fi
+            if [[ "$attempt" -lt 5 ]]; then sleep 30; fi
+          done
+          if [[ "$installed" != "true" ]]; then
+            echo "::error::the production package is not installable after five attempts"
+            exit 1
+          fi
+          quarto-needs --version
+          python tools/check_published_release.py "${GITHUB_REF_NAME#v}"
 
       # There is deliberately no TestPyPI index and no local engine-source
       # override here. This proves that the real production package can be
@@ -478,3 +511,20 @@ jobs:
               "renders through the extension",
           )
           PY
+
+  github-release:
+    name: Attach verified distributions to the GitHub release
+    needs: verify-production
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: Create release with distributions
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --generate-notes --title "$GITHUB_REF_NAME"

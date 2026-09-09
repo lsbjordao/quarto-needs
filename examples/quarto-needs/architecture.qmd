@@ -544,3 +544,23 @@ Each `need-c4` view also supports three additional backends, selected with the `
 ### D2
 
 {{< need-c4 root="SYS-QUARTO-NEEDS" level="context" backend="d2" >}}
+
+::: {.need #ADR-020 type="architecture-decision" status="accepted" date="2026-09-09" revisit-after="2027-09-09" decision-makers="Quarto-Needs maintainers" tags="distribution;release;support" addresses="SYS-009;RISK-013" applies-to="COMP-EXTENSION" confirmed-by="TC-025;TC-032"}
+## Publish a narrow first supported release
+
+### Context and Problem Statement
+
+A single maintainer cannot promise the same release stability for the core engineering workflow and every external integration. The existing v0.1.0 tag reached TestPyPI but failed its installation rehearsal; the current candidate is 0.1.1.
+
+### Decision Outcome
+
+Release 0.1.1 supports the documented core analysis, change reports, evidence, LSP, exports and Quarto views. OSLC, GitHub Issues, migration adapters, the VS Code client and C4 projections remain experimental. Preserve v0.1.0; publish a new immutable version only after clean distribution checks and a TestPyPI rehearsal. Detailed stability tiers are a subsequent policy change.
+
+### Consequences
+
+Release validation covers the supported surface; experimental functionality does not expand that promise. Package schemas and canonical extension assets accompany both distributions, while the extension remains independently installable through Quarto.
+
+### Confirmation
+
+`TC-025`, `TC-032`.
+:::

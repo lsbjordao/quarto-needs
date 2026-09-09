@@ -143,6 +143,7 @@ def _self_hosted_records() -> list[dict[str, object]]:
         {"nodeid": "tests/test_extension_bootstrap.py::test_two_concurrent_bootstrap_processes_produce_one_installation", "outcome": "passed", "requirements": ["NFR-008"], "testCases": ["TC-029"]},
         {"nodeid": "tests/test_extension_first_distribution.py::test_the_project_path_may_contain_spaces", "outcome": "passed", "requirements": ["FUN-018"], "testCases": ["TC-030"]},
         {"nodeid": "tests/test_extension_distribution_contract.py::test_manifest_declares_the_quarto_floor", "outcome": "passed", "requirements": ["SYS-009"], "testCases": ["TC-031"]},
+        {"nodeid": "tests/test_cli_version.py::test_version_works_outside_a_project", "outcome": "passed", "requirements": ["FUN-020"], "testCases": ["TC-032"]},
     ]
 
 
@@ -197,4 +198,4 @@ def test_evidence_check_cli_validates_against_current_graph(tmp_path: Path, caps
     assert exit_code == 0
     assert report["valid"] is True
     assert report["issues"] == []
-    assert report["tests"] == 23
+    assert report["tests"] == 24

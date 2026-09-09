@@ -193,3 +193,13 @@ O índice de pacotes é dependência apenas da primeira renderização; o uso co
 A consulta focada em grafo é reutilizável em todo o livro e é avaliada pelo núcleo antes de chegar ao renderer.
 
 {{< need-graph view="graph-exploration" id="graph-requirements-view" >}}
+
+::: {.need #FUN-020 type="functional-requirement" status="approved" priority="high" tags="distribution;cli;version" derives-from="SYS-009" implemented-by="COMP-EXTENSION" verified-by="TC-032"}
+## Informar a versão instalada do motor independentemente de um projeto
+
+O CLI independente deve informar a versão instalada do motor por `quarto-needs --version` sem carregar a configuração do projeto.
+
+### Rationale
+
+O diagnóstico da instalação deve funcionar mesmo quando o projeto atual for inválido.
+:::

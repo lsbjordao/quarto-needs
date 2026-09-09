@@ -252,8 +252,9 @@ STARTER_TEMPLATE = ROOT / "templates" / "starter"
 
 
 @pytest.mark.slow
-def test_the_starter_template_needs_no_manual_activation_edit(tmp_path) -> None:
-    """The starter stays unscoped until Quarto fixes scoped template copies."""
+@pytest.mark.parametrize("github_namespace", [False, True])
+def test_the_starter_template_needs_no_manual_activation_edit(tmp_path, github_namespace) -> None:
+    """Both local and GitHub-namespaced template installations render."""
     consumer = tmp_path / "consumer"
     consumer.mkdir()
     completed = subprocess.run(
@@ -269,6 +270,12 @@ def test_the_starter_template_needs_no_manual_activation_edit(tmp_path) -> None:
     assert (
         consumer / "_extensions" / "quarto-needs" / "_extension.yml"
     ).is_file()
+
+    if github_namespace:
+        # Quarto adds the GitHub owner when installing a remote template.
+        owner = consumer / "_extensions" / "lsbjordao"
+        owner.mkdir()
+        shutil.move(str(consumer / "_extensions" / "quarto-needs"), owner)
 
     rendered = render(consumer)
     assert rendered.returncode == 0, rendered.stderr

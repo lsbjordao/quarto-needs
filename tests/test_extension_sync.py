@@ -46,10 +46,8 @@ STARTER_TEMPLATE = ROOT / "templates" / "starter"
 def test_the_starter_template_bundles_the_canonical_extension_assets():
     """The starter keeps canonical assets with one deliberate manifest variant.
 
-    Direct GitHub installs are owner-namespaced. Current Quarto releases still
-    have an open bug copying owner-scoped extension directories from templates,
-    so the starter vendors `_extensions/quarto-needs` and therefore needs a
-    manifest whose relative pre-render path matches that unscoped copy.
+    GitHub template installs are owner-namespaced while local installs are not.
+    The starter's entry point delegates to the installed extension in either case.
     Everything else must stay byte-for-byte canonical.
     """
     extension = STARTER_TEMPLATE / "_extensions" / "quarto-needs"
@@ -59,7 +57,7 @@ def test_the_starter_template_bundles_the_canonical_extension_assets():
     source_assets.pop(Path("_extension.yml"))
 
     assert starter_assets == source_assets
-    assert b"_extensions/quarto-needs/bootstrap-entry.py" in starter_manifest
+    assert b"quarto run quarto-needs-bootstrap.py" in starter_manifest
 
 
 def test_the_starter_template_declares_itself_a_quarto_template():

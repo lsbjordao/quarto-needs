@@ -9,11 +9,9 @@ contributes:
   shortcodes:
     - shortcodes.lua
     - adr-shortcodes.lua
-  # The starter template deliberately vendors the extension without an owner
-  # namespace. Current Quarto releases still have an open bug copying scoped
-  # extension directories from `quarto use template`; the direct `quarto add`
-  # path is namespaced and uses the canonical manifest instead.
+  # GitHub template installation adds the owner namespace; local installation
+  # does not. The starter's project-local entry delegates to either layout.
   metadata:
     project:
       pre-render:
-        - quarto run _extensions/quarto-needs/bootstrap-entry.py
+        - quarto run quarto-needs-bootstrap.py
