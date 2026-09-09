@@ -193,3 +193,13 @@ The package index is a first-render dependency only; everyday rendering must wor
 The graph-focused query is reusable across the book and is evaluated by the core before the renderer sees it.
 
 {{< need-graph view="graph-exploration" id="graph-requirements-view" root="SYS-001" depth="3" >}}
+
+::: {.need #FUN-020 type="functional-requirement" status="approved" priority="high" tags="distribution;cli;version" derives-from="SYS-009" implemented-by="COMP-EXTENSION" verified-by="TC-032"}
+## Report the installed engine version independently of a project
+
+The standalone CLI shall report the installed engine version through `quarto-needs --version` without loading project configuration.
+
+### Rationale
+
+Installation diagnostics must work even when the current project is invalid.
+:::

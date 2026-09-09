@@ -7,6 +7,8 @@ import sys
 from collections import deque
 from pathlib import Path
 
+from . import __version__
+
 from . import diff as diff_module
 from . import evidence as evidence_module
 from . import impact as impact_module
@@ -492,6 +494,7 @@ def main(argv: list[str] | None = None) -> int:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--root", help="Project root (default: current directory)")
+    parser.add_argument("--version", action="version", version=f"quarto-needs {__version__}")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("scan", help="Parse project and write .quarto-needs/needs.json")
     sub.add_parser("check", help="Validate the requirements graph")

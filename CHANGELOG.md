@@ -4,9 +4,22 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.1] — unreleased
+## [0.1.1] — 2026-09-09
 
-Initial release at alpha maturity (classifier `Development Status :: 3 - Alpha`). The release-validation gates tied to GitHub Actions are still open; see [the roadmap](notes/ROADMAP.md) for the exact status.
+Initial production release at alpha maturity (classifier `Development Status :: 3 - Alpha`). Publication is gated by clean distribution checks and a TestPyPI installation rehearsal.
+
+### Supported release surface
+
+- Supported: `scan`, `check`, `quality`, `coverage`, `trace`, `query`, `baseline create|inspect`, `diff`, `impact`, Git-range `suspect`/`pr-report`/`github-report`, `evidence check|attest`, `lsp`, and `export --format json|csv|sarif|junit|markdown|reqif|jsonld`; Quarto rendering and documented non-C4 shortcodes.
+- Experimental, outside the stability contract: OSLC, the GitHub Issues adapter, all four migration adapters, `variant`, C4 projections and the VS Code client. A subsequent workstream will define detailed stability tiers.
+- The existing `v0.1.0` tag and TestPyPI artifact are preserved; `0.1.1` is the first production release.
+
+### Release validation
+
+- The starter delegates to the installed extension in both local and GitHub-owner layouts, preventing a missing bootstrap entry on public template installation.
+- Added `quarto-needs --version`, independent of project configuration, and `make quality` for the strict self-hosted gates.
+- Wheel and sdist include schemas, canonical Quarto/Lua assets and translations; clean installations verify asset bytes and core operation without RDF/OSLC dependencies.
+- Release verification exercises public extension and starter installation without a source override, tests the production package on Python 3.10–3.14 and attaches verified distributions to a GitHub release.
 
 ### Added
 

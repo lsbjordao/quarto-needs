@@ -182,6 +182,8 @@ The modeled `TC-014` is bound to the regression that protects persistent collaps
 ## Extension-first clean render
 
 Render a real consumer project that has no installed package, no CLI on PATH, and no hand-authored pre-render, and verify the managed runtime is provisioned, the graph is produced, and cards and shortcodes resolve.
+The starter also delegates to this bootstrap after Quarto installs its bundled extension with or without the GitHub owner namespace. `tests/test_extension_first_distribution.py::test_the_starter_template_needs_no_manual_activation_edit` renders both layouts.
+
 :::
 
 ::: {.need #EVD-025 type="evidence" status="verified" tags="pytest;extension;distribution;machine-evidence" provider="pytest" artifact=".quarto-needs/evidence/pytest.json"}
@@ -279,3 +281,15 @@ The dashboard is computed from the same snapshot as the tables above. It reports
 {{< need-dashboard id="verification-dashboard" >}}
 
 A percentage here is not a claim that verification succeeded. `verification-trace` counts requirements that name a test case; `verification-successful` additionally requires that test to be passing, and `evidence` requires the chain to reach unexpired evidence. The distance between those three columns is the honest measure of assurance.
+
+::: {.need #TC-032 type="test-case" status="passed" tags="pytest;distribution;cli" pytest-nodeid="tests/test_cli_version.py::test_version_works_outside_a_project" evidenced-by="EVD-032"}
+## Installed version diagnostics
+
+Run the actual CLI in a directory containing invalid project configuration and verify successful version output with empty stderr.
+:::
+
+::: {.need #EVD-032 type="evidence" status="verified" tags="pytest;distribution;cli"}
+## Installed version diagnostics
+
+The executable regression is `tests/test_cli_version.py::test_version_works_outside_a_project`. Clean wheel and sdist installations are additionally checked by `tools/check_release_artifacts.py`.
+:::

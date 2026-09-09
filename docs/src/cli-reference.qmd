@@ -14,6 +14,15 @@ quarto-needs --root examples/quarto-needs quality --format json
 
 The root defaults to the current directory. Output paths are relative to the selected project unless absolute. Existing-baseline arguments to `baseline inspect`, `diff`, `impact`, and `export --baseline` are instead resolved from the shell's current directory; use an absolute path when combining them with another `--root`.
 
+Use `quarto-needs --version` to diagnose the installed engine without loading a project.
+
+## Release 0.1.1 support
+
+Core analysis, baselines, change reports, evidence, LSP, exports and documented non-C4 Quarto shortcodes are supported. OSLC, the GitHub Issues adapter, migration adapters, `variant`, C4 projections and the VS Code client are experimental and outside this release's stability contract. Detailed stability tiers will be defined separately.
+
+The Python distributions include schemas and canonical extension assets under `sys.prefix/share/quarto-needs/`. Normal Quarto installation still uses `quarto add lsbjordao/quarto-needs`.
+
+
 ## Analyze, validate, and select
 
 | Command | Result |

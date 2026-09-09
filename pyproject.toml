@@ -29,6 +29,11 @@ keywords = [
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Operating System :: OS Independent",
 ]
 dependencies = [
@@ -38,6 +43,8 @@ dependencies = [
 ]
 
 [project.urls]
+Homepage = "https://lsbjordao.github.io/quarto-needs/"
+Changelog = "https://github.com/lsbjordao/quarto-needs/blob/main/CHANGELOG.md"
 Repository = "https://github.com/lsbjordao/quarto-needs"
 Issues = "https://github.com/lsbjordao/quarto-needs/issues"
 
@@ -73,6 +80,15 @@ release = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+# Companion contracts and the canonical Quarto distribution, installed below
+# sys.prefix/share. The Python engine does not depend on a repository checkout.
+[tool.setuptools.data-files]
+"share/quarto-needs/schemas" = ["schemas/*.json"]
+"share/quarto-needs/schemas/vendor/sarif-2.1.0" = ["schemas/vendor/sarif-2.1.0/*"]
+"share/quarto-needs/_extensions/quarto-needs" = ["_extensions/quarto-needs/*.lua", "_extensions/quarto-needs/*.py", "_extensions/quarto-needs/*.js", "_extensions/quarto-needs/*.css", "_extensions/quarto-needs/_extension.yml"]
+"share/quarto-needs/_extensions/quarto-needs/vendor/cytoscape" = ["_extensions/quarto-needs/vendor/cytoscape/*"]
+"share/quarto-needs/_extensions/quarto-needs/vendor/cytoscape-navigator" = ["_extensions/quarto-needs/vendor/cytoscape-navigator/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

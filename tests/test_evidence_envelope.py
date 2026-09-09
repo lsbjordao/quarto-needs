@@ -190,6 +190,12 @@ def _complete_provider_payload() -> dict[str, object]:
                 "requirements": ["SYS-009"],
                 "testCases": ["TC-031"],
             },
+            {
+                "nodeid": "tests/test_cli_version.py::test_version_works_outside_a_project",
+                "outcome": "passed",
+                "requirements": ["FUN-020"],
+                "testCases": ["TC-032"],
+            },
         ],
         provider_version="8.0",
     )

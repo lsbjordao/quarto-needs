@@ -134,17 +134,11 @@ quarto use template lsbjordao/quarto-needs/templates/starter
 
 See [`notes/quickstart.md`](notes/quickstart.md) for the complete first-project walkthrough.
 
-> <a name="before-the-first-release"></a>
-> **Before the first release.** The `quarto-needs` Python package is not published to the package index yet, so neither the extension bootstrap nor `pip install quarto-needs` can resolve it. Work from a checkout meanwhile:
->
-> ```bash
-> git clone https://github.com/lsbjordao/quarto-needs
-> cd quarto-needs && make setup          # standalone CLI, editable
->
-> QUARTO_NEEDS_ENGINE_SOURCE=/path/to/quarto-needs quarto render
-> ```
->
-> `QUARTO_NEEDS_ENGINE_SOURCE` must be a local filesystem path to a checkout or a wheel; remote URLs are refused. Without it, `quarto render` stops with an actionable provisioning error rather than rendering a partial book.
+## Release 0.1.1 support contract
+
+The supported surface is core analysis (`scan`, `check`, `quality`, `coverage`, `trace`, `query`), baselines and change reports (`baseline create|inspect`, `diff`, `impact`, Git-range `suspect`, `pr-report`, `github-report`), evidence (`check|attest`), LSP, all documented export formats, and Quarto rendering with the documented non-C4 shortcodes.
+
+OSLC, the GitHub Issues adapter, all four migration adapters, `variant`, C4 projections and the VS Code client are **experimental** and outside the stability contract. See the [changelog](CHANGELOG.md) and [CLI reference](https://lsbjordao.github.io/quarto-needs/cli-reference.html). Detailed stability tiers follow in a separate workstream.
 
 ## Command-line workflows
 
@@ -153,8 +147,6 @@ Rendering needs no separate install. Install the standalone CLI only for enginee
 ```bash
 pip install quarto-needs
 ```
-
-(Not published yet — see [Before the first release](#before-the-first-release).)
 
 Analyze a project:
 
@@ -170,7 +162,7 @@ quarto-needs trace SYS-REQ-042
 
 ```console
 $ quarto-needs --root examples/quarto-needs check
-Checked 183 objects: 0 errors, 0 warnings
+Checked 187 objects: 0 errors, 0 warnings
 
 $ quarto-needs --root examples/quarto-needs quality
 Quarto-Needs quality report (profile=strict, reference date=2026-09-07)
@@ -356,7 +348,7 @@ make test
 | `make preview-self-example` | Serve the rendered case study locally. |
 | `make render-manual-multilingual` | Render the manual from `docs/src/` into `docs/`. |
 
-The Makefile exports `QUARTO_NEEDS_ENGINE_SOURCE=$(CURDIR)`, so example and manual renders resolve the engine from this checkout instead of the package index.
+Contributors can set `QUARTO_NEEDS_ENGINE_SOURCE` to a local checkout or wheel when testing an unpublished engine; remote URLs are refused. The Makefile exports `QUARTO_NEEDS_ENGINE_SOURCE=$(CURDIR)`, so example and manual renders resolve the engine from this checkout instead of the package index.
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the contribution workflow and [`ARCHITECTURE.md`](ARCHITECTURE.md) for the internal module map.
 

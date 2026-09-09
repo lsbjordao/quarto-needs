@@ -57,6 +57,10 @@ sync-self-example:
 check-self-example:
 	PYTHONPATH=src $(VENV_PYTHON) -m quarto_needs.cli --root examples/quarto-needs check
 
+.PHONY: quality
+quality:
+	PYTHONPATH=src $(VENV_PYTHON) -m quarto_needs.cli --root examples/quarto-needs quality
+
 # The optional C4 backends fall back to a code block when their CLI is absent,
 # which is right for an author and wrong for a publishing pipeline: it is how
 # the published example came to show DSL source instead of diagrams.
@@ -95,7 +99,8 @@ evidence-self-example:
 		tests/test_extension_bootstrap.py::test_a_wrong_global_engine_never_wins_over_the_managed_runtime \
 		tests/test_extension_bootstrap.py::test_a_corrupted_runtime_is_reprovisioned \
 		tests/test_extension_bootstrap.py::test_two_concurrent_bootstrap_processes_produce_one_installation \
-		tests/test_extension_distribution_contract.py::test_manifest_declares_the_quarto_floor
+		tests/test_extension_distribution_contract.py::test_manifest_declares_the_quarto_floor \
+		tests/test_cli_version.py::test_version_works_outside_a_project
 	PYTHONPATH=src $(VENV_PYTHON) -m quarto_needs.cli_entry --root examples/quarto-needs evidence attest \
 		.quarto-needs/evidence/pytest-provider.json \
 		--output .quarto-needs/evidence/pytest.json --expires-hours 24
@@ -129,3 +134,4 @@ check-release-build:
 	rm -rf dist
 	$(VENV_PYTHON) -m build
 	$(VENV_PYTHON) -m twine check dist/*
+	$(VENV_PYTHON) tools/check_release_artifacts.py
