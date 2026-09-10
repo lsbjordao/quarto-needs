@@ -27,6 +27,39 @@ FINGERPRINT_KEYS = (
     'configurationFingerprint', 'semanticGraphFingerprint', 'representationFingerprint',
 )
 REFERENCE_EPOCH = '1788912000'  # 2026-09-09 00:00:00 UTC, before model evidence expiry.
+COLLATION_SAMPLE = ('z', 'á')
+LOCALE_CANDIDATES = (
+    ('Portuguese_Brazil.1252', 'English_United States.1252', 'German_Germany.1252')
+    if sys.platform == 'win32' else
+    ('pt_BR.UTF-8', 'pt_BR.utf8', 'en_US.UTF-8', 'en_US.utf8', 'de_DE.UTF-8', 'de_DE.utf8')
+)
+
+
+def collating_locale() -> str:
+    """An installed locale that really collates differently from C.
+
+    Never falls back to C silently: a run that cannot vary collation is not a
+    run that proved collation independence, so an exhausted candidate list is
+    a loud failure naming what was tried.
+    """
+    previous = locale.setlocale(locale.LC_ALL)
+    try:
+        locale.setlocale(locale.LC_ALL, 'C')
+        baseline = sorted(COLLATION_SAMPLE, key=locale.strxfrm)
+        for name in LOCALE_CANDIDATES:
+            try:
+                locale.setlocale(locale.LC_ALL, name)
+            except locale.Error:
+                continue
+            if sorted(COLLATION_SAMPLE, key=locale.strxfrm) != baseline:
+                return name
+        raise AssertionError(
+            'no installed locale collates differently from C (tried '
+            f"{', '.join(LOCALE_CANDIDATES)}). Generate one, for example "
+            'locale-gen pt_BR.UTF-8, so the collation axis is actually exercised.'
+        )
+    finally:
+        locale.setlocale(locale.LC_ALL, previous)
 
 
 def _write_json(path: Path, value) -> None:
@@ -74,7 +107,7 @@ def _copy_project(source: Path, target: Path) -> None:
 def run_matrix(source: Path, output: Path, *, inject_leak: str | None = None) -> list[Path]:
     """Run each independent variation in a newly initialized interpreter."""
     source, output = source.resolve(), output.resolve()
-    language = 'Portuguese_Brazil.1252' if sys.platform == 'win32' else 'pt_BR.UTF-8'
+    language = collating_locale()
     variants = (
         ('reference', {}, 'outside-absolute', 'sorted'),
         ('hash', {'hashseed': '12345'}, 'outside-absolute', 'sorted'),
@@ -97,7 +130,8 @@ def run_matrix(source: Path, output: Path, *, inject_leak: str | None = None) ->
         else:
             cwd, root_arg = run, str(project)
         command = [sys.executable, str(Path(__file__).resolve()), 'worker',
-                   '--root', root_arg, '--output', str(artifacts), '--order', order]
+                   '--root', root_arg, '--output', str(artifacts), '--order', order,
+                   '--locale', overrides.get('language', 'C')]
         if inject_leak:
             command.extend(['--inject-leak', inject_leak])
         completed = subprocess.run(command, cwd=cwd, env=_environment(**overrides),
@@ -120,8 +154,10 @@ def run_matrix(source: Path, output: Path, *, inject_leak: str | None = None) ->
 
 
 def _worker(args) -> None:
-    # A failed locale activation is an error, never a fallback or skip.
-    selected_locale = locale.setlocale(locale.LC_ALL, '')
+    # A failed locale activation is an error, never a fallback or skip. The name is
+    # passed explicitly because Windows' setlocale(LC_ALL, '') consults the system
+    # locale rather than LC_ALL, which would make this axis silently inert there.
+    selected_locale = locale.setlocale(locale.LC_ALL, args.locale)
     if hasattr(time, 'tzset'):
         time.tzset()
     elif sys.platform == 'win32':
@@ -192,7 +228,7 @@ def _worker(args) -> None:
             for key, spans in build_source_index(project).items()
         })
         probe = dict(hash=hash('quarto-needs-reproducibility'), locale=selected_locale,
-                     collation=sorted(['z', 'á'], key=locale.strxfrm),
+                     collation=sorted(COLLATION_SAMPLE, key=locale.strxfrm),
                      localHour=time.localtime(int(REFERENCE_EPOCH)).tm_hour,
                      cwd=str(Path.cwd()), rootArgument=args.root,
                      reordered=any(changed for changed, _ in discovery),
@@ -219,6 +255,7 @@ def main(argv=None) -> int:
     worker.add_argument('--root', required=True)
     worker.add_argument('--output', required=True)
     worker.add_argument('--order', choices=('sorted', 'shuffled'), required=True)
+    worker.add_argument('--locale', required=True)
     worker.add_argument('--inject-leak', choices=('hash', 'timezone', 'locale', 'cwd', 'discovery'))
     compare = sub.add_parser('compare')
     compare.add_argument('directories', type=Path, nargs='+')
@@ -227,7 +264,11 @@ def main(argv=None) -> int:
         _worker(args)
     elif args.command == 'matrix':
         runs = run_matrix(args.root, args.output)
+        probes = json.loads((args.output / 'probes.json').read_bytes())
         print(f'{len(runs)} subprocess variations: identical artifacts and fingerprints')
+        # Name the locale that was actually activated, so a run's evidence shows
+        # which collation rule the comparison was made under.
+        print(f"collation locale exercised: {probes['locale']['locale']}")
     else:
         if len(args.directories) < 2:
             parser.error('compare requires at least two artifact directories')

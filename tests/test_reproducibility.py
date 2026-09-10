@@ -26,6 +26,8 @@ def project(tmp_path):
     return root
 
 
+@pytest.mark.requirement("NFR-010")
+@pytest.mark.quarto_need_test_case("TC-034")
 def test_subprocess_perturbations_preserve_artifacts(project, tmp_path):
     runs = harness.run_matrix(project, tmp_path / 'runs')
     assert len(runs) >= 7
@@ -67,3 +69,24 @@ def test_source_discovery_is_ordered_before_consumption(project, monkeypatch):
     # also be deterministic for future consumers of this mapping.
     assert build_source_index(project) == before
     assert list(_sources(project, None)) == ['a.qmd', 'z.qmd', 'á.qmd']
+
+
+def test_collating_locale_is_verified_rather_than_assumed(monkeypatch):
+    import locale as locale_module
+
+    # The chosen locale must actually reorder text relative to C.
+    chosen = harness.collating_locale()
+    assert chosen in harness.LOCALE_CANDIDATES
+    previous = locale_module.setlocale(locale_module.LC_ALL)
+    try:
+        locale_module.setlocale(locale_module.LC_ALL, 'C')
+        under_c = sorted(harness.COLLATION_SAMPLE, key=locale_module.strxfrm)
+        locale_module.setlocale(locale_module.LC_ALL, chosen)
+        assert sorted(harness.COLLATION_SAMPLE, key=locale_module.strxfrm) != under_c
+    finally:
+        locale_module.setlocale(locale_module.LC_ALL, previous)
+
+    # With no candidate installed the harness fails loudly instead of using C.
+    monkeypatch.setattr(harness, 'LOCALE_CANDIDATES', ('xx_XX.INVALID',))
+    with pytest.raises(AssertionError, match='collates differently from C'):
+        harness.collating_locale()
