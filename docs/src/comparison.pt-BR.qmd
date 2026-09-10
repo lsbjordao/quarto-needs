@@ -1,0 +1,158 @@
+# Comparação com ferramentas relacionadas
+
+O Quarto-Needs é novo. Esta página existe para que quem avalia a ferramenta
+consiga decidir contra ela rapidamente e pelas razões certas.
+
+## Como esta página foi verificada {#verification}
+
+Toda afirmação sobre outra ferramenta foi lida da documentação ou do código
+do próprio projeto, na versão indicada abaixo, em **10 de setembro de 2026**.
+Nada aqui foi escrito de memória ou inferido do nome de uma funcionalidade.
+Onde uma afirmação não pôde ser confirmada em fonte primária, está escrito
+*não verificado* em vez de um palpite — uma célula vazia vale mais que uma
+plausível.
+
+Versões verificadas:
+
+| Ferramenta | Versão | Lançada | Fonte |
+|---|---|---|---|
+| Sphinx-Needs | 8.5.0 | 2026-09-03 | [PyPI](https://pypi.org/project/sphinx-needs/), [documentação](https://sphinx-needs.readthedocs.io/en/latest/) |
+| StrictDoc | 0.29.0 | 2026-08-30 | [PyPI](https://pypi.org/project/strictdoc/), [documentação](https://strictdoc.readthedocs.io/en/stable/), [código na tag 0.29.0](https://github.com/strictdoc-project/strictdoc/tree/0.29.0) |
+| Doorstop | 3.2 | 2026-07-10 | [PyPI](https://pypi.org/project/Doorstop/), [documentação](https://doorstop.readthedocs.io/) |
+| OpenFastTrace | 4.9.0 | 2026-08-07 | [release no GitHub](https://github.com/itsallcode/openfasttrace/releases), [guia do usuário](https://github.com/itsallcode/openfasttrace/blob/main/doc/user_guide/user_guide.md) |
+| Quarto-Needs | 0.1.1 | 2026-09-09 | este repositório |
+
+Ferramentas de requisitos mudam. Qualquer linha aqui é uma afirmação sobre
+uma versão em uma data, e reconferir antes de depender dela é razoável.
+
+## Fora da comparação: DOORS, Polarion, Codebeamer {#commercial}
+
+São outra categoria, não concorrentes mais fortes na mesma. São vendidas com
+contrato de suporte, pacotes de qualificação de ferramenta para
+IEC 61508 / ISO 26262 / DO-178C, treinamento e licenciamento por assento, e
+costumam ser escolhidas por processo de compra, não pelos engenheiros que vão
+usá-las. Uma organização que precisa de ferramenta qualificada, com um
+fornecedor responsável por ela, não está escolhendo entre DOORS e um projeto
+open-source de mantenedor único, e uma tabela linha a linha fingindo o
+contrário desmoralizaria o resto desta página. Se qualificação de ferramenta
+é requisito, nenhuma das cinco ferramentas comparadas abaixo atende.
+
+## A comparação {#table}
+
+As entradas do Quarto-Needs carregam seu tier de estabilidade, tirado do
+[registro de estabilidade](stability.qmd). Sem marcação significa stable.
+
+| | Quarto-Needs 0.1.1 | Sphinx-Needs 8.5.0 | StrictDoc 0.29.0 | Doorstop 3.2 | OpenFastTrace 4.9.0 |
+|---|---|---|---|---|---|
+| **Autoria** | blocos `.need` dentro da prosa `.qmd` do Quarto | diretivas `need` em reStructuredText dentro de um projeto Sphinx[^sn-docs] | arquivos `.sdoc` em gramática própria, também editáveis por uma GUI web[^sd-map] | um arquivo YAML por item, agrupados em diretórios de documento[^ds-index] | tags em comentários de código-fonte e markup, mais itens de especificação em Markdown/RST[^oft-formats] |
+| **Onde vive a semântica** | núcleo Python independente do renderizador; a extensão Quarto é adaptador e o CLI roda sem renderizar | dentro do build do Sphinx — o Sphinx-Needs é "uma extensão para o framework de documentação Sphinx"[^sn-docs] | ferramenta independente, com exportadores e servidor web próprios[^sd-map] | ferramenta independente; publicar é um comando à parte[^ds-publish] | ferramenta Java independente, exige Java 17+[^oft-readme] |
+| **Gates de cobertura** | gates percentuais com limiares, distinguindo o vínculo existir (`-trace`) de o vínculo significar algo (`-effective`, `-successful`) | condições booleanas via `needs_warnings`, falhando o build com `-W` do Sphinx; `needreport usage` reporta contagens, e nenhum limiar percentual está documentado[^sn-config][^sn-report] | *não verificado* — existem um motor de consulta e uma tela de estatísticas, ambos marcados como experimentais pelo projeto[^sd-features]; nenhum gate de limiar de cobertura encontrado | a validação reporta erros e avisos, incluindo itens sem vínculos vindos de documento filho; nenhum limiar percentual documentado[^ds-validate] | distingue cobertura **shallow** de **deep** e reporta defeitos transitivos, com código de saída não-zero em defeito[^oft-guide] |
+| **Evidência de execução** | `evidence check` / `evidence attest` (preview) validam um artefato pytest contra o grafo | por extensão separada, sphinx-test-reports 1.4.0, que importa resultados XML como needs[^sn-testreports] | lê relatórios JUnit XML e Robot XML e cobertura GCov como parte da descoberta da árvore[^sd-junit] | *não verificado* | testes cobrem requisitos pelas mesmas tags de qualquer outro tipo de artefato[^oft-guide] |
+| **Análise de mudança** | `diff` / `impact` sobre baseline; `diff`, `impact`, `suspect`, `pr-report` sobre intervalo Git (preview) | não no próprio Sphinx-Needs; o ubCode, produto separado da useblocks, documenta diff e análise de impacto[^ubcode] | diff e changelog entre versões do documento, marcado como experimental pelo projeto[^sd-features] | detecção de vínculo suspeito: cada item guarda uma fingerprint `reviewed` sobre texto, ref e UIDs dos vínculos, e mudanças não revisadas são reportadas[^ds-item] | encontra itens órfãos e reporta defeitos transitivos; diff entre versões *não verificado*[^oft-readme] |
+| **Intercâmbio** | JSON, CSV, Markdown; SARIF, JUnit, ReqIF 1.2, JSON-LD (preview); OSLC RM somente leitura (experimental) | `needs.json` e JSON por need; nenhuma exportação ReqIF ou JSON-LD documentada na referência de builders[^sn-builders] | HTML, RST, JSON, Markdown, Excel, SPDX, Doxygen, ReqIF e HTML-para-PDF; ReqIF é marcado experimental[^sd-formats][^sd-features] | publica texto puro, HTML, LaTeX e Markdown; exporta e reimporta YAML, CSV, TSV e XLSX[^ds-publish][^ds-interchange] | relatórios em texto puro, HTML e XML `aspec`; converte para XML `specobject`[^oft-guide] |
+| **Suporte a editor** | servidor de linguagem sobre stdio (preview); cliente VS Code (experimental) | a extensão sphinx-needs-vscode está descontinuada e sem manutenção[^sn-vscode]; sua substituta, ubCode, é gratuita para projetos públicos e exige licença comercial fora disso[^ubcode-licence] | *nenhum* — LSP aparece no documento de backlog do próprio projeto, não entre suas funcionalidades[^sd-backlog] | *não verificado* | plugin oficial para JetBrains; sem LSP[^oft-guide] |
+| **Ecossistema** | primeira release em 2026-09-09, repositório criado em 2026-08-26, 0 estrelas, 2 contribuidores, MIT[^stats] | desde 2016, 301 estrelas, 58 contribuidores, MIT[^stats] | desde 2020, 381 estrelas, 44 contribuidores, Apache-2.0[^stats] | desde 2013, 660 estrelas, 52 contribuidores, LGPL-3.0[^stats] | desde 2015, 167 estrelas, 22 contribuidores, GPL-3.0[^stats] |
+
+### O que a tabela não mostra a favor do Quarto-Needs
+
+Três coisas merecem ser ditas abertamente, porque uma tabela convida a ler
+diferenças como vantagens.
+
+**A distinção trace/effective não é nova.** O OpenFastTrace separa cobertura
+shallow de deep há anos, e reporta defeitos transitivos quando um item que
+cobre não está ele próprio coberto.[^oft-guide] O Quarto-Needs expressa a
+mesma ideia como gate percentual configurável em vez de veredito; é diferença
+de forma, não capacidade que falta às outras.
+
+**Detecção de vínculo suspeito também não é nova.** O Doorstop calcula
+fingerprint do texto, das referências e dos vínculos de cada item, e reporta
+mudanças não revisadas contra a fingerprint registrada.[^ds-item] É o mesmo
+trabalho que o `suspect` faz.
+
+**O ecossistema do Sphinx-Needs é maior que a extensão Sphinx-Needs.** Diff,
+análise de impacto, rastreamento até o código e integração com editor existem
+para ele através do ubCode e do sphinx-codelinks. O ubCode é gratuito para
+projetos públicos, mas exige licença comercial para os não públicos,[^ubcode-licence]
+o que é diferença real para um time de código fechado — mas "o Sphinx-Needs
+não faz análise de impacto" seria falso.
+
+## A superfície do próprio Quarto-Needs, por tier {#surface}
+
+Gerada a partir do registro de estabilidade, para não divergir do que a
+ferramenta de fato promete:
+
+- **Stable**: `scan`, `check`, `coverage`, `trace`, `export`, `quality`, `query`, `baseline`, `baseline create`, `baseline inspect`, `diff`, `impact`, `export --format json|csv|markdown`, Quarto pre-render, Documented non-C4 shortcodes.
+
+- **Preview**: `evidence`, `evidence check`, `suspect --git BASE..HEAD`, `pr-report --git BASE..HEAD`, `github-report --git BASE..HEAD`, `diff --git BASE..HEAD`, `impact --git BASE..HEAD`, `evidence attest`, `lsp`, `export --format sarif|junit|reqif|jsonld`.
+
+- **Experimental**: `variant list|show NAME`, `migrate SOURCE`, `oslc discover|catalog|query`, C4 projections, GitHub Issues adapter, VS Code client.
+
+## Quando não usar o Quarto-Needs {#when-not}
+
+**Se você precisa de ferramenta qualificada, ou de alguém responsável por
+ela.** O Quarto-Needs é pré-1.0, tem mantenedor único, não carrega evidência
+de qualificação de ferramenta e não vem com contrato de suporte. Parte do
+conjunto de funcionalidades — evidência com procedência, gates de mitigação
+de risco, intercâmbio ReqIF — parece mirar desenvolvimento regulado. Para a
+parte desse público que precisa de ferramenta qualificada, este projeto está
+desqualificado, e nenhuma quantidade de cobertura de testes muda isso. DOORS,
+Polarion e Codebeamer existem para isso, assim como os pacotes de
+qualificação vendidos com eles.
+
+**Se você já vive no ecossistema Sphinx, use o Sphinx-Needs.** O Quarto-Needs
+não oferece compatibilidade com Sphinx-Needs: nem as diretivas, nem o
+`needs.json`, nem a configuração. Migrar significa reescrever sua camada de
+autoria por benefício incremental, contra uma ferramenta mantida desde 2016
+por 58 contribuidores. O Sphinx-Needs também é mais bem servido nas bordas —
+validação de schema em campos, restrições, e um grande conjunto de projetos
+existentes de onde copiar padrões. Os adaptadores de migração deste
+repositório leem o formato de exportação do Sphinx-Needs; isso não é razão
+para migrar, é uma saída se você já decidiu.
+
+**Se você quer rastreabilidade mínima num repositório pequeno, use o
+Doorstop.** É mais simples, mais antigo, mais usado, e seu modelo — um
+arquivo YAML por item, uma árvore de documentos, um comando de validação — é
+quase tudo que um projeto pequeno precisa. O Quarto-Needs pede que você adote
+o Quarto e um modelo de grafo tipado; se você já não quer o documento, isso é
+custo extra por um resultado que o Doorstop entrega com menos.
+
+**Se seus requisitos vivem junto do código em muitas linguagens, use o
+OpenFastTrace.** Seu importador de tags reconhece tags de especificação em
+uma longa lista de linguagens,[^oft-formats] e seu modelo shallow/deep é
+maduro. O Quarto-Needs rastreia até componentes que você declara no
+documento, não até tags espalhadas por uma árvore poliglota.
+
+**Se você quer uma GUI para pessoas que não programam, use o StrictDoc.** Ele
+entrega uma interface web editável que escreve de volta nos arquivos de
+texto.[^sd-map] O Quarto-Needs não tem interface de edição e não planeja uma;
+autores editam arquivos `.qmd` em um editor.
+
+**A distância de ecossistema não se fecha por mérito.** Zero estrelas e dois
+contribuidores contra 167–660 estrelas e 22–58 contribuidores é a diferença
+no número de pessoas que já esbarraram no seu bug antes de você, já
+responderam a pergunta que você vai fazer, ou já consertaram algo de que você
+depende. Argumento técnico não substitui isso, e escolher uma ferramenta que
+mais ninguém usa é custo real, que deve ser contado.
+
+[^sn-docs]: Sphinx-Needs 8.5.0 introduction, <https://sphinx-needs.readthedocs.io/en/latest/>, consulted 2026-09-10.
+[^sn-builders]: Sphinx-Needs 8.5.0 builders reference (needs, needumls, needs_id), <https://sphinx-needs.readthedocs.io/en/latest/builders.html>, consulted 2026-09-10.
+[^sn-config]: Sphinx-Needs 8.5.0 configuration: `needs_warnings`, `needs_constraints`, `needs_schema_definitions`, <https://sphinx-needs.readthedocs.io/en/latest/configuration.html>, consulted 2026-09-10.
+[^sn-report]: Sphinx-Needs 8.5.0 `needreport` directive (`types`, `links`, `options`, `usage`), <https://sphinx-needs.readthedocs.io/en/latest/directives/needreport.html>, consulted 2026-09-10.
+[^sn-testreports]: sphinx-test-reports 1.4.0, released 2026-06-16, <https://pypi.org/project/sphinx-test-reports/>, consulted 2026-09-10.
+[^sn-vscode]: "THIS EXTENSION IS DEPRECATED AND UNMAINTAINED. PLEASE UPDATE TO THE NEW ubCode EXTENSION." — <https://sphinx-needs-vscode.useblocks.com/>, consulted 2026-09-10.
+[^ubcode]: ubCode 0.34.0 documented features include diff and impact analysis, Codelinks source tracing, and an MCP server, <https://ubcode.useblocks.com/>, consulted 2026-09-10.
+[^ubcode-licence]: "For open source projects, that is projects that are publicly available, we grant you a free open source license. For usage in non-public projects, a commercial license is required." — ubCode licence configuration, <https://ubcode.useblocks.com/usage/ublicense.html>, consulted 2026-09-10.
+[^sd-map]: StrictDoc Feature Map, HTML export, web-based GUI and code traceability entries, <https://strictdoc.readthedocs.io/en/stable/stable/docs/strictdoc_02_feature_map.html>, consulted 2026-09-10.
+[^sd-features]: `ProjectFeature` at tag 0.29.0 groups SEARCH, HTML2PDF, REQIF, DIFF, PROJECT_STATISTICS_SCREEN, TRACEABILITY_MATRIX_SCREEN and REQUIREMENT_TO_SOURCE_TRACEABILITY under "Experimental features", <https://github.com/strictdoc-project/strictdoc/blob/0.29.0/strictdoc/core/project_config.py>, consulted 2026-09-10.
+[^sd-formats]: `ProjectConfig.default_formats()` at tag 0.29.0 registers Excel, GCov JSON, JSON, Markdown, ReqIF, RST, SDoc, JUnit XML, Robot XML, SPDX, HTML, Doxygen and HTML2PDF, <https://github.com/strictdoc-project/strictdoc/blob/0.29.0/strictdoc/core/project_config.py>, consulted 2026-09-10.
+[^sd-junit]: `JUnitXMLFormat` at tag 0.29.0: "Read-only Format for JUnit XML test reports... only used by DocumentFinder's native tree-building discovery", <https://github.com/strictdoc-project/strictdoc/blob/0.29.0/strictdoc/backend/sdoc_source_code/test_reports/junit_xml_format.py>, consulted 2026-09-10.
+[^sd-backlog]: "Language Server Protocol (LSP)" appears in `docs/strictdoc_28_Backlog.sdoc`, <https://github.com/strictdoc-project/strictdoc/blob/main/docs/strictdoc_28_Backlog.sdoc>, consulted 2026-09-10.
+[^ds-index]: Doorstop 3.2 documentation index: items are "stored as a YAML file in a designated directory", <https://doorstop.readthedocs.io/en/latest/>, consulted 2026-09-10.
+[^ds-publish]: Doorstop 3.2 publishing guide: plain text, HTML, LaTeX and Markdown, <https://github.com/doorstop-dev/doorstop/blob/develop/docs/cli/publishing.md>, consulted 2026-09-10.
+[^ds-interchange]: Doorstop 3.2 interchange guide: export and import via `.yml`, `.csv`, `.tsv`, `.xlsx`, <https://github.com/doorstop-dev/doorstop/blob/develop/docs/cli/interchange.md>, consulted 2026-09-10.
+[^ds-validate]: Doorstop 3.2 validation guide, warning and error conditions, <https://github.com/doorstop-dev/doorstop/blob/develop/docs/cli/validation.md>, consulted 2026-09-10.
+[^ds-item]: Doorstop 3.2 item reference, `reviewed` fingerprint over UID, text, ref and link UIDs, <https://github.com/doorstop-dev/doorstop/blob/develop/docs/reference/item.md>, consulted 2026-09-10.
+[^oft-readme]: OpenFastTrace 4.9.0 project README: Java 17+, HTML tracing reports, finds obsolete parts, <https://github.com/itsallcode/openfasttrace>, consulted 2026-09-10.
+[^oft-guide]: OpenFastTrace 4.9.0 user guide: `trace` and `convert` commands, `plain`/`html`/`aspec` output formats, `specobject` conversion, shallow versus deep coverage, transitive defects, and the JetBrains plugin, <https://github.com/itsallcode/openfasttrace/blob/main/doc/user_guide/user_guide.md>, consulted 2026-09-10.
+[^oft-formats]: OpenFastTrace 4.9.0 user guide, "Input Format Support" and "Supported File Extensions", <https://github.com/itsallcode/openfasttrace/blob/main/doc/user_guide/user_guide.md>, consulted 2026-09-10.
+[^stats]: Repository statistics read from the GitHub REST API on 2026-09-10 for <https://github.com/useblocks/sphinx-needs>, <https://github.com/strictdoc-project/strictdoc>, <https://github.com/doorstop-dev/doorstop>, <https://github.com/itsallcode/openfasttrace> and <https://github.com/lsbjordao/quarto-needs>, consulted 2026-09-10. Contributor counts are non-anonymous contributors.
