@@ -30,6 +30,8 @@ def test_missing_percentage_measurement_never_passes(attribute, strength):
         assert gate.to_dict()['measurementStatus'] == 'unavailable'
 
 
+@pytest.mark.requirement("FUN-021")
+@pytest.mark.quarto_need_test_case("TC-033")
 def test_unknown_scope_names_valid_scopes(tmp_path):
     (tmp_path / '.quarto-needs.toml').write_text(
         '[gates]\nscope = "aproved-requirements"\nmin-evidence = 100\n'
