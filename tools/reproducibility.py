@@ -35,6 +35,16 @@ LOCALE_CANDIDATES = (
 )
 
 
+class CollationLocaleUnavailable(AssertionError):
+    """No installed locale collates differently from C.
+
+    A dedicated type so callers can tell "this machine cannot exercise the
+    collation axis" from "the collation axis found a defect". It stays an
+    AssertionError so the matrix entry point keeps failing exactly as before;
+    only tests that are allowed to skip look for the narrower type.
+    """
+
+
 def collating_locale() -> str:
     """An installed locale that really collates differently from C.
 
@@ -53,7 +63,7 @@ def collating_locale() -> str:
                 continue
             if sorted(COLLATION_SAMPLE, key=locale.strxfrm) != baseline:
                 return name
-        raise AssertionError(
+        raise CollationLocaleUnavailable(
             'no installed locale collates differently from C (tried '
             f"{', '.join(LOCALE_CANDIDATES)}). Generate one, for example "
             'locale-gen pt_BR.UTF-8, so the collation axis is actually exercised.'
