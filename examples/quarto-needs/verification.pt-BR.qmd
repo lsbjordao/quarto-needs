@@ -293,3 +293,15 @@ Executar o CLI real em um diretório com configuração de projeto inválida e v
 
 A regressão executável é `tests/test_cli_version.py::test_version_works_outside_a_project`. Instalações limpas do wheel e do sdist também são verificadas por `tools/check_release_artifacts.py`.
 :::
+
+::: {.need #TC-034 type="test-case" status="passed" tags="pytest;determinism;reproducibility" pytest-nodeid="tests/test_reproducibility.py::test_subprocess_perturbations_preserve_artifacts" evidenced-by="EVD-034"}
+## Comparar artefatos entre execuções perturbadas em subprocesso
+
+Executar a mesma análise em interpretadores independentes com ambientes montados explicitamente e comparar os bytes crus dos artefatos e os valores dos fingerprints.
+:::
+
+::: {.need #EVD-034 type="evidence" status="verified" tags="pytest;determinism;reproducibility"}
+## Evidência do harness de perturbação
+
+O harness executável é `tools/reproducibility.py` e sua suíte é `tests/test_reproducibility.py`. As sondas do worker provam que cada perturbação foi de fato aplicada, e `test_harness_detects_injected_leak` prova que o comparador detecta um vazamento injetado de propósito em cada eixo de perturbação. O workflow `reproducibility` repete a matriz em Ubuntu, macOS e Windows para Python 3.10 a 3.14.
+:::

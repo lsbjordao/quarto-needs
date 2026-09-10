@@ -203,3 +203,18 @@ O CLI independente deve informar a versão instalada do motor por `quarto-needs 
 
 O diagnóstico da instalação deve funcionar mesmo quando o projeto atual for inválido.
 :::
+
+::: {.need #NFR-010 type="non-functional-requirement" status="approved" priority="critical" tags="determinism;reproducibility;ci" derives-from="SYS-003" implemented-by="COMP-ANALYSIS;COMP-CLI" verified-by="TC-034"}
+## Verificar o determinismo sob perturbação de ambiente
+
+Os artefatos de análise e os fingerprints devem ser idênticos byte a byte entre
+sementes de hash, fusos horários, locales, diretórios de trabalho, formas do
+argumento de raiz, ordem de descoberta de fontes, versões suportadas do Python e
+sistemas operacionais suportados.
+
+### Rationale
+
+Determinismo alegado sem verificação falha em silêncio: uma garantia quebrada
+continua relatando verde. Cada perturbação precisa rodar em um interpretador
+novo, porque `PYTHONHASHSEED` é fixado na inicialização do interpretador.
+:::

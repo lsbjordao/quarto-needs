@@ -43,7 +43,7 @@ class SourceSpan:
 def _sources(root: Path, overlays: Mapping[str, str] | None) -> dict[str, str]:
     resolved = root.resolve()
     sources: dict[str, str] = {}
-    for path in resolved.rglob("*.qmd"):
+    for path in sorted(resolved.rglob("*.qmd")):
         relative = path.relative_to(resolved)
         if any(part.startswith(".") or part.startswith("_") for part in relative.parts[:-1]):
             continue

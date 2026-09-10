@@ -196,6 +196,12 @@ def _complete_provider_payload() -> dict[str, object]:
                 "requirements": ["FUN-020"],
                 "testCases": ["TC-032"],
             },
+            {
+                "nodeid": "tests/test_reproducibility.py::test_subprocess_perturbations_preserve_artifacts",
+                "outcome": "passed",
+                "requirements": ["NFR-010"],
+                "testCases": ["TC-034"],
+            },
         ],
         provider_version="8.0",
     )

@@ -293,3 +293,15 @@ Run the actual CLI in a directory containing invalid project configuration and v
 
 The executable regression is `tests/test_cli_version.py::test_version_works_outside_a_project`. Clean wheel and sdist installations are additionally checked by `tools/check_release_artifacts.py`.
 :::
+
+::: {.need #TC-034 type="test-case" status="passed" tags="pytest;determinism;reproducibility" pytest-nodeid="tests/test_reproducibility.py::test_subprocess_perturbations_preserve_artifacts" evidenced-by="EVD-034"}
+## Compare artifacts across perturbed subprocess runs
+
+Run the same analysis in independent interpreters with explicitly built environments and compare raw artifact bytes and fingerprint values.
+:::
+
+::: {.need #EVD-034 type="evidence" status="verified" tags="pytest;determinism;reproducibility"}
+## Perturbation harness evidence
+
+The executable harness is `tools/reproducibility.py` and its suite is `tests/test_reproducibility.py`. Worker probes prove each perturbation was actually applied, and `test_harness_detects_injected_leak` proves the comparator detects a deliberately injected leak for every perturbation axis. The `reproducibility` workflow repeats the matrix on Ubuntu, macOS and Windows for Python 3.10 through 3.14.
+:::
