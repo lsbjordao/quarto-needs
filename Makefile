@@ -100,7 +100,8 @@ evidence-self-example:
 		tests/test_extension_bootstrap.py::test_a_corrupted_runtime_is_reprovisioned \
 		tests/test_extension_bootstrap.py::test_two_concurrent_bootstrap_processes_produce_one_installation \
 		tests/test_extension_distribution_contract.py::test_manifest_declares_the_quarto_floor \
-		tests/test_cli_version.py::test_version_works_outside_a_project
+		tests/test_cli_version.py::test_version_works_outside_a_project \
+		tests/test_vacuous_gates.py::test_unknown_scope_names_valid_scopes
 	PYTHONPATH=src $(VENV_PYTHON) -m quarto_needs.cli_entry --root examples/quarto-needs evidence attest \
 		.quarto-needs/evidence/pytest-provider.json \
 		--output .quarto-needs/evidence/pytest.json --expires-hours 24

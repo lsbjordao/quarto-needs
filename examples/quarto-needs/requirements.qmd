@@ -203,3 +203,15 @@ The standalone CLI shall report the installed engine version through `quarto-nee
 
 Installation diagnostics must work even when the current project is invalid.
 :::
+
+::: {.need #FUN-021 type="functional-requirement" status="approved" priority="critical" tags="governance;gates;measurement" derives-from="SYS-003" implemented-by="COMP-RULES;COMP-CLI" verified-by="TC-033"}
+## Reject unmeasured quality assurance
+
+Quarto-Needs shall reject unknown gate scopes and distinguish measured results
+from empty or unavailable measurements. Empty populations fail unless the
+author explicitly waives them; unavailable measurements never pass.
+
+### Rationale
+
+A passing gate must establish measured assurance or identify an explicit waiver.
+:::

@@ -185,6 +185,12 @@ def _complete_pytest_payload() -> dict[str, object]:
                 "requirements": ["FUN-020"],
                 "testCases": ["TC-032"],
             },
+            {
+                "nodeid": "tests/test_vacuous_gates.py::test_unknown_scope_names_valid_scopes",
+                "outcome": "passed",
+                "requirements": ["FUN-021"],
+                "testCases": ["TC-033"],
+            },
         ],
         provider_version="8.0",
     )
@@ -262,7 +268,7 @@ def test_dispatch_delegates_raw_pytest_evidence_to_legacy_cli(tmp_path: Path, ca
     report = json.loads(capsys.readouterr().out)
     assert exit_code == 0
     assert report["provider"] == "pytest"
-    assert report["tests"] == 24
+    assert report["tests"] == 25
     assert report["valid"] is True
 
 
@@ -308,7 +314,7 @@ def test_attest_wraps_pytest_payload_and_result_is_checkable(
     assert exit_code == 0
     assert checked["valid"] is True
     assert checked["attested"] is True
-    assert checked["tests"] == 24
+    assert checked["tests"] == 25
 
 
 def test_attest_wraps_generic_check_payload(tmp_path: Path, capsys) -> None:

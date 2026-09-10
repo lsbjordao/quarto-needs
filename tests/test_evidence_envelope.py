@@ -196,6 +196,12 @@ def _complete_provider_payload() -> dict[str, object]:
                 "requirements": ["FUN-020"],
                 "testCases": ["TC-032"],
             },
+            {
+                "nodeid": "tests/test_vacuous_gates.py::test_unknown_scope_names_valid_scopes",
+                "outcome": "passed",
+                "requirements": ["FUN-021"],
+                "testCases": ["TC-033"],
+            },
         ],
         provider_version="8.0",
     )

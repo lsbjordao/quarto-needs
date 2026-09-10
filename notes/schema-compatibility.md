@@ -18,6 +18,7 @@ produced them. Breaking change ⇒ schema version bump (see §3).
 | Artifact | Producer | Version identifier | JSON Schema |
 | --- | --- | --- | --- |
 | Canonical exported needs/snapshot (needs envelope + objects) | `export.py` (`render_v1_json`) | `schemaVersion: "1"` | `schemas/needs-envelope-v1.schema.json`, `schemas/needs.schema.json` |
+| Quality report | `quality.py` | `schemaVersion: "1"` | `schemas/quality-v1.schema.json` |
 | Baseline document | `baseline.py` | `schemaVersion: "1"` | `schemas/baseline-v1.schema.json` |
 | Diff report | `diff.py` | `schemaVersion: "1"` | `schemas/diff-v1.schema.json` |
 | Impact report | `impact.py` | `schemaVersion: "1"` | `schemas/impact-v1.schema.json` |
@@ -107,3 +108,13 @@ and timestamps where the format deliberately carries them, e.g. baselines'
 `referenceDate` — which itself is pinned by `QUARTO_NEEDS_REFERENCE_DATE`
 for reproducibility). Golden tests pin this for the needs envelope, graph
 projection, ReqIF, JSON-LD, and SARIF exports.
+
+## Quality measurement provenance
+
+Quality v1 adds optional `measurementStatus` (`measured`, `empty`, or
+`unavailable`). Older reports omit measurement provenance; consumers must
+continue honoring `passed`. A waived empty measurement has `passed: true`
+but is displayed as WAIVED, never PASS. No schema bump is needed: existing
+fields retain their types and verdict meaning, and new consumers accept
+reports without the optional field. Fixing a vacuous verdict corrects a bug,
+not the definition of a passing gate. The schema accepts unknown fields.
