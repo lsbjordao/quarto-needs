@@ -28,6 +28,7 @@ book:
     - migrations.qmd
     - language-server.qmd
     - cli-reference.qmd
+    - stability.qmd
     - reference.qmd
 
 format:

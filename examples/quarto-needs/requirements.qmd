@@ -204,6 +204,16 @@ The standalone CLI shall report the installed engine version through `quarto-nee
 Installation diagnostics must work even when the current project is invalid.
 :::
 
+::: {.need #FUN-022 type="functional-requirement" status="approved" priority="high" tags="distribution;cli;stability;surface" derives-from="SYS-009" implemented-by="COMP-CLI" verified-by="TC-035"}
+## Declare a stability tier for every published surface item
+
+Every command, export format and integration the project publishes shall carry a stability tier declared in one registry, from which the command-line help, the runtime warning, the manual and the public support contract are rendered or verified.
+
+### Rationale
+
+A tier maintained beside the surface it describes drifts from it. Declaring it once and deriving every consumer makes the classification checkable rather than aspirational.
+:::
+
 ::: {.need #FUN-021 type="functional-requirement" status="approved" priority="critical" tags="governance;gates;measurement" derives-from="SYS-003" implemented-by="COMP-RULES;COMP-CLI" verified-by="TC-033"}
 ## Reject unmeasured quality assurance
 

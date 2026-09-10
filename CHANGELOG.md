@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Stability tiers. Every command, export format and integration is now classified as stable, preview or experimental in a single registry (`src/quarto_needs/surface.py`), from which `--help`, the runtime warning, the manual's Stability chapter, the README's contract list and the CHANGELOG's release-surface section are all rendered or verified. The command surface was previously declared in six places kept in sync by hand; tests now fail when any of them diverges. Experimental commands (`variant`, `migrate`, `oslc`) print one line to stderr when invoked, suppressible with `QUARTO_NEEDS_SUPPRESS_EXPERIMENTAL_WARNING=1`; stdout is unchanged. No command's behaviour changed.
+
 - A subprocess perturbation harness (`tools/reproducibility.py`) and a required `reproducibility` workflow verify that analysis artifacts and the three fingerprints are byte-identical across hash seeds, time zones, collation locales, working directories, `--root` argument forms, source discovery order, Python 3.10 through 3.14, and Ubuntu, macOS and Windows. Determinism was previously asserted by design principle and exercised only indirectly.
 
 ### Fixed
@@ -21,8 +23,13 @@ Initial production release at alpha maturity (classifier `Development Status :: 
 
 ### Supported release surface
 
-- Supported: `scan`, `check`, `quality`, `coverage`, `trace`, `query`, `baseline create|inspect`, `diff`, `impact`, Git-range `suspect`/`pr-report`/`github-report`, `evidence check|attest`, `lsp`, and `export --format json|csv|sarif|junit|markdown|reqif|jsonld`; Quarto rendering and documented non-C4 shortcodes.
-- Experimental, outside the stability contract: OSLC, the GitHub Issues adapter, all four migration adapters, `variant`, C4 projections and the VS Code client. A subsequent workstream will define detailed stability tiers.
+Classified into stability tiers in a later release; the list below is generated from `src/quarto_needs/surface.py`.
+
+- **Stable**: `scan`, `check`, `coverage`, `trace`, `export`, `quality`, `query`, `baseline`, `baseline create`, `baseline inspect`, `diff`, `impact`, `export --format json|csv|markdown`, Quarto pre-render, Documented non-C4 shortcodes.
+
+- **Preview**: `evidence`, `evidence check`, `suspect --git BASE..HEAD`, `pr-report --git BASE..HEAD`, `github-report --git BASE..HEAD`, `diff --git BASE..HEAD`, `impact --git BASE..HEAD`, `evidence attest`, `lsp`, `export --format sarif|junit|reqif|jsonld`.
+
+- **Experimental**: `variant list|show NAME`, `migrate SOURCE`, `oslc discover|catalog|query`, C4 projections, GitHub Issues adapter, VS Code client.
 - The existing `v0.1.0` tag and TestPyPI artifact are preserved; `0.1.1` is the first production release.
 
 ### Release validation

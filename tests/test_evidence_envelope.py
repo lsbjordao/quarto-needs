@@ -208,6 +208,12 @@ def _complete_provider_payload() -> dict[str, object]:
                 "requirements": ["NFR-010"],
                 "testCases": ["TC-034"],
             },
+            {
+                "nodeid": "tests/test_surface.py::test_argparse_subparsers_and_the_registry_are_the_same_set",
+                "outcome": "passed",
+                "requirements": ["FUN-022"],
+                "testCases": ["TC-035"],
+            },
         ],
         provider_version="8.0",
     )

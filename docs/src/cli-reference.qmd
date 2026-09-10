@@ -16,9 +16,9 @@ The root defaults to the current directory. Output paths are relative to the sel
 
 Use `quarto-needs --version` to diagnose the installed engine without loading a project.
 
-## Release 0.1.1 support
+## Stability tiers
 
-Core analysis, baselines, change reports, evidence, LSP, exports and documented non-C4 Quarto shortcodes are supported. OSLC, the GitHub Issues adapter, migration adapters, `variant`, C4 projections and the VS Code client are experimental and outside this release's stability contract. Detailed stability tiers will be defined separately.
+Every command below carries a stability tier: stable, preview or experimental. Experimental commands print one line to stderr when invoked. See [Stability tiers](stability.qmd) for what each tier promises, the complete table, and the promotion policy.
 
 The Python distributions include schemas and canonical extension assets under `sys.prefix/share/quarto-needs/`. Normal Quarto installation still uses `quarto add lsbjordao/quarto-needs`.
 

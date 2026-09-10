@@ -317,3 +317,15 @@ Run the same analysis in independent interpreters with explicitly built environm
 
 The executable harness is `tools/reproducibility.py` and its suite is `tests/test_reproducibility.py`. Worker probes prove each perturbation was actually applied, and `test_harness_detects_injected_leak` proves the comparator detects a deliberately injected leak for every perturbation axis. The `reproducibility` workflow repeats the matrix on Ubuntu, macOS and Windows for Python 3.10 through 3.14.
 :::
+
+::: {.need #TC-035 type="test-case" status="passed" tags="pytest;stability;surface;cli" pytest-nodeid="tests/test_surface.py::test_argparse_subparsers_and_the_registry_are_the_same_set" evidenced-by="EVD-035"}
+## Compare the declared surface against the real parser and routing
+
+Build the argparse parser and walk its registered subparsers, then compare that set against the stability registry. The expected value is derived from the parser itself, so a command added without a tier fails.
+:::
+
+::: {.need #EVD-035 type="evidence" status="verified" tags="pytest;stability;surface;cli"}
+## Surface non-divergence evidence
+
+`tests/test_surface.py` binds the registry to every consumer: the argparse subparser set, the dispatch-layer routing predicates and the constants they match on, the rendered `--help` epilog, the README and CHANGELOG contract blocks, the manual's generated table, and the runtime warning's presence on stderr, absence on stdout and absence under `--help`. It also asserts that a bare core run imports neither `rdflib` nor `pyld`, with both blocked at the import hook rather than merely uninstalled.
+:::
