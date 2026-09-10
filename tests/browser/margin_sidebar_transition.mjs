@@ -5,7 +5,15 @@ import http from "node:http";
 import os from "node:os";
 import path from "node:path";
 
-const [siteArgument, chromeExecutable] = process.argv.slice(2);
+const [siteArgument, chromeExecutable, startupBudgetArgument] = process.argv.slice(2);
+// The caller decides how long a browser start may take, because the caller is
+// the one holding the outer timeout. A budget hardcoded here once matched that
+// outer timeout exactly, so this script was killed mid-report every time and
+// the failure below never reached anyone.
+const startupBudgetMs = Number(startupBudgetArgument ?? 30_000);
+if (!Number.isFinite(startupBudgetMs) || startupBudgetMs <= 0) {
+  throw new Error(`startup budget must be a positive number of milliseconds, got ${startupBudgetArgument}`);
+}
 if (!siteArgument || !chromeExecutable) {
   throw new Error("usage: margin_sidebar_transition.mjs SITE_DIR CHROME_EXECUTABLE");
 }
@@ -47,8 +55,10 @@ function serveSite(request, response) {
 async function waitForFile(file, chrome, diagnostics) {
   // Chrome's own stderr is the only thing that explains a failed start, and a
   // CI runner is exactly where that happens. Report it, and stop as soon as
-  // the process is gone instead of polling out the full timeout.
-  for (let attempt = 0; attempt < 600; attempt += 1) {
+  // the process is gone instead of polling out the full budget.
+  const pollMs = 50;
+  const attempts = Math.max(1, Math.ceil(startupBudgetMs / pollMs));
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
     if (fs.existsSync(file)) return;
     if (chrome.exitCode !== null || chrome.signalCode !== null) {
       throw new Error(
@@ -56,10 +66,12 @@ async function waitForFile(file, chrome, diagnostics) {
           `before creating ${file}.\nChrome output:\n${diagnostics() || "(none)"}`,
       );
     }
-    await delay(50);
+    await delay(pollMs);
   }
   throw new Error(
-    `Chrome did not create ${file} within 30s.\nChrome output:\n${diagnostics() || "(none)"}`,
+    `Chrome did not create ${file} within ${startupBudgetMs}ms. It was still ` +
+      `running, so it started but never opened its debugging port.\n` +
+      `Chrome output:\n${diagnostics() || "(none)"}`,
   );
 }
 
