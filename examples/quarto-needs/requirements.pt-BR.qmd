@@ -204,6 +204,18 @@ O CLI independente deve informar a versão instalada do motor por `quarto-needs 
 O diagnóstico da instalação deve funcionar mesmo quando o projeto atual for inválido.
 :::
 
+::: {.need #FUN-021 type="functional-requirement" status="approved" priority="critical" tags="governance;gates;measurement" derives-from="SYS-003" implemented-by="COMP-RULES;COMP-CLI" verified-by="TC-033"}
+## Rejeitar garantia de qualidade não medida
+
+Quarto-Needs deve rejeitar escopos desconhecidos e distinguir resultados medidos
+de medições vazias ou indisponíveis. Populações vazias falham, salvo dispensa
+explícita do autor; medições indisponíveis nunca passam.
+
+### Rationale
+
+Um gate aprovado deve estabelecer garantia medida ou identificar uma dispensa explícita.
+:::
+
 ::: {.need #NFR-010 type="non-functional-requirement" status="approved" priority="critical" tags="determinism;reproducibility;ci" derives-from="SYS-003" implemented-by="COMP-ANALYSIS;COMP-CLI" verified-by="TC-034"}
 ## Verificar o determinismo sob perturbação de ambiente
 

@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://quarto-needs.dev/schema/quality-v1.schema.json",
+  "title": "Quarto-Needs quality report v1",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "generator",
+    "profile",
+    "referenceDate",
+    "configurationPresent",
+    "scopes",
+    "findings",
+    "gates",
+    "summary"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1"
+    },
+    "generator": {
+      "type": "object",
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "profile": {
+      "enum": [
+        "default",
+        "advisory",
+        "strict"
+      ]
+    },
+    "referenceDate": {
+      "type": "string"
+    },
+    "configurationPresent": {
+      "type": "boolean"
+    },
+    "scopes": {
+      "type": "object"
+    },
+    "findings": {
+      "type": "object"
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "structuralErrors",
+        "gateFailures",
+        "exitCode"
+      ],
+      "properties": {
+        "structuralErrors": {
+          "type": "boolean"
+        },
+        "gateFailures": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "exitCode": {
+          "type": "integer"
+        }
+      }
+    },
+    "gates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "scope",
+          "threshold",
+          "actual",
+          "denominator",
+          "passed"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          },
+          "threshold": {
+            "type": [
+              "number",
+              "string",
+              "null"
+            ]
+          },
+          "actual": {
+            "type": [
+              "number",
+              "string",
+              "null"
+            ]
+          },
+          "denominator": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "passed": {
+            "type": "boolean"
+          },
+          "measurementStatus": {
+            "enum": [
+              "measured",
+              "empty",
+              "unavailable"
+            ],
+            "description": "Optional measurement provenance. Omission supplies no provenance claim; consumers must still honor passed. Empty measurements may be explicitly waived; unavailable measurements cannot pass."
+          }
+        }
+      }
+    }
+  }
+}

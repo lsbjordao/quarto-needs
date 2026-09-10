@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Percentage gates passed when their scope was misspelled or matched no requirements because missing scopes passed outright and 0/0 coverage is 100.0. Unknown scopes now fail configuration loading; empty measurements fail unless explicitly waived with `allow-empty-scopes`, and reports distinguish them from measured passes. Risk mitigation also checks that its high/critical-risk population was measured; missing measurements cannot be waived.
 - `source_index._sources` built its mapping from an unordered `rglob` walk, so its insertion order followed the filesystem. The public index sorted at its own boundary, so no published artifact varied, but the mapping itself is now ordered at discovery for any future consumer.
 
 ## [0.1.1] — 2026-09-09

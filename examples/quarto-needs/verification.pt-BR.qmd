@@ -294,6 +294,18 @@ Executar o CLI real em um diretório com configuração de projeto inválida e v
 A regressão executável é `tests/test_cli_version.py::test_version_works_outside_a_project`. Instalações limpas do wheel e do sdist também são verificadas por `tools/check_release_artifacts.py`.
 :::
 
+::: {.need #TC-033 type="test-case" status="passed" tags="pytest;governance;gates" pytest-nodeid="tests/test_vacuous_gates.py::test_unknown_scope_names_valid_scopes" evidenced-by="EVD-033"}
+## Rejeitar resultados de gates por vacuidade
+
+Exercitar cada cobertura percentual, dados ausentes, dispensas explícitas, dependências da regra de risco e falhas estruturais em `tests/test_vacuous_gates.py`.
+:::
+
+::: {.need #EVD-033 type="evidence" status="verified" tags="pytest;governance;gates"}
+## Evidência de regressão de gates por vacuidade
+
+A suíte executável é `tests/test_vacuous_gates.py`; `test_unknown_scope_names_valid_scopes` verifica erros de configuração acionáveis.
+:::
+
 ::: {.need #TC-034 type="test-case" status="passed" tags="pytest;determinism;reproducibility" pytest-nodeid="tests/test_reproducibility.py::test_subprocess_perturbations_preserve_artifacts" evidenced-by="EVD-034"}
 ## Comparar artefatos entre execuções perturbadas em subprocesso
 
