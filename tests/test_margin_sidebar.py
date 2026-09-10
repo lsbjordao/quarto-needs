@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import time
 import shutil
 import subprocess
 
@@ -13,6 +14,14 @@ ROOT = Path(__file__).resolve().parents[1]
 EXTENSION = ROOT / "_extensions" / "quarto-needs"
 SELF_EXAMPLE = ROOT / "examples" / "quarto-needs"
 RESPONSIVE_PROBE = ROOT / "tests" / "browser" / "margin_sidebar_transition.mjs"
+
+# The probe's own startup wait has to end strictly before this one, or its
+# diagnostic is killed mid-sentence and the caller is left with a bare
+# TimeoutExpired carrying no output. The budget is derived from this number
+# and passed to the script rather than restated there, so the two cannot
+# drift into being equal again.
+PROBE_TIMEOUT_SECONDS = 90
+PROBE_STARTUP_BUDGET_MS = 30_000
 
 
 def render_margin_sidebar_fixture(tmp_path: Path, *, toggle: bool | None) -> str:
@@ -135,22 +144,92 @@ def rendered_responsive_sidebar_probe(tmp_path: Path) -> dict[str, object]:
     node = shutil.which("node")
     chrome = shutil.which("google-chrome")
     assert node is not None and chrome is not None
-    result = subprocess.run(
-        [
-            node,
-            str(RESPONSIVE_PROBE),
-            str(project / "_book"),
-            chrome,
-        ],
-        text=True,
-        capture_output=True,
-        timeout=30,
-    )
+    try:
+        result = subprocess.run(
+            [
+                node,
+                str(RESPONSIVE_PROBE),
+                str(project / "_book"),
+                chrome,
+                str(PROBE_STARTUP_BUDGET_MS),
+            ],
+            text=True,
+            capture_output=True,
+            timeout=PROBE_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired as expired:
+        # The probe should always outrun this timeout and explain itself. If it
+        # ever does not, keep whatever it managed to say rather than raising a
+        # bare TimeoutExpired, which is what made the original failure
+        # impossible to diagnose.
+        raise AssertionError(
+            f"Responsive sidebar probe did not finish within {PROBE_TIMEOUT_SECONDS}s, "
+            f"which should be unreachable given its {PROBE_STARTUP_BUDGET_MS}ms startup "
+            f"budget.\nstdout:\n{expired.stdout}\nstderr:\n{expired.stderr}"
+        ) from expired
     assert result.returncode == 0, (
         f"Responsive sidebar probe exited with status {result.returncode}\n"
         f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
     )
     return json.loads(result.stdout)
+
+
+def test_a_browser_that_never_starts_reports_why_instead_of_timing_out(tmp_path):
+    """The probe's own diagnostic has to outrun the caller's timeout.
+
+    Found 2026-09-10: every `Quarto multilingual render smoke` job failed with
+    `subprocess.TimeoutExpired` after 30s and no output at all, because the
+    script's startup wait was 600 attempts x 50ms -- exactly the 30s the
+    caller allowed. Both clocks expired together, the caller killed the
+    script mid-report, and captured stdout/stderr came back as None. The
+    branch that explains a failed Chrome start had therefore never run once.
+
+    A stub browser that starts and then does nothing reproduces the CI
+    signature exactly, so this test fails against the old budgets.
+    """
+    stub = tmp_path / "chrome-that-never-listens"
+    stub.write_text(
+        "#!/bin/sh\n"
+        "echo 'stub browser: started, will never write DevToolsActivePort' >&2\n"
+        "sleep 600\n",
+        encoding="utf-8",
+    )
+    stub.chmod(0o755)
+    site = tmp_path / "_book"
+    site.mkdir()
+    (site / "index.html").write_text("<html></html>", encoding="utf-8")
+
+    node = shutil.which("node")
+    if node is None:
+        pytest.skip("Node.js is required")
+
+    # A budget the caller chooses, far below the script's old hardcoded 30s.
+    # The script has to honour it, because that is what keeps the inner clock
+    # strictly ahead of the outer one no matter what either is set to.
+    started = time.monotonic()
+    completed = subprocess.run(
+        [node, str(RESPONSIVE_PROBE), str(site), str(stub), "5000"],
+        text=True,
+        capture_output=True,
+        timeout=PROBE_TIMEOUT_SECONDS,
+    )
+    elapsed = time.monotonic() - started
+
+    assert completed.returncode != 0
+    assert elapsed < 20, (
+        f"probe ignored the {5000}ms budget it was given and took {elapsed:.1f}s; "
+        "an inner wait the caller cannot shorten will eventually match the "
+        "outer timeout again"
+    )
+    assert "DevToolsActivePort" in completed.stderr
+    # Chrome's own output is the only thing that explains a failed start, so
+    # it has to survive into the report.
+    assert "stub browser: started" in completed.stderr
+
+
+def test_the_probe_budget_ends_before_the_caller_stops_waiting():
+    """Equal timeouts are the defect; keep them ordered, with margin."""
+    assert PROBE_STARTUP_BUDGET_MS < PROBE_TIMEOUT_SECONDS * 1000 / 2
 
 
 def test_margin_sidebar_filter_is_registered_and_assets_exist() -> None:
