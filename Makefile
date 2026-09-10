@@ -101,7 +101,7 @@ evidence-self-example:
 		tests/test_extension_bootstrap.py::test_two_concurrent_bootstrap_processes_produce_one_installation \
 		tests/test_extension_distribution_contract.py::test_manifest_declares_the_quarto_floor \
 		tests/test_cli_version.py::test_version_works_outside_a_project \
-		tests/test_vacuous_gates.py::test_unknown_scope_names_valid_scopes
+		tests/test_vacuous_gates.py::test_unknown_scope_names_valid_scopes \
 		tests/test_reproducibility.py::test_subprocess_perturbations_preserve_artifacts
 	PYTHONPATH=src $(VENV_PYTHON) -m quarto_needs.cli_entry --root examples/quarto-needs evidence attest \
 		.quarto-needs/evidence/pytest-provider.json \

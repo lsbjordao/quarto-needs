@@ -190,6 +190,8 @@ def _complete_pytest_payload() -> dict[str, object]:
                 "outcome": "passed",
                 "requirements": ["FUN-021"],
                 "testCases": ["TC-033"],
+            },
+            {
                 "nodeid": "tests/test_reproducibility.py::test_subprocess_perturbations_preserve_artifacts",
                 "outcome": "passed",
                 "requirements": ["NFR-010"],
