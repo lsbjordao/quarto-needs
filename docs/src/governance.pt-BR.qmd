@@ -172,3 +172,13 @@ Um baseline captura o estado analisado e a fingerprint da configuração. O diff
 A análise de impacto usa a direção semântica declarada no catálogo. Relações ADR participam desse mecanismo exatamente como as relações de implementação, verificação e evidência.
 
 Veja a [referência da linha de comando](cli-reference.qmd) para criação/inspeção de baselines, comparação com fontes atuais, `--recompute-with current`, intervalos Git versionados, afirmações suspeitas e geração de relatórios de PR/GitHub.
+
+## Determinismo verificado
+
+Determinismo é uma propriedade verificada, não uma alegação. O `tools/reproducibility.py` executa a mesma análise sobre as mesmas fontes várias vezes e compara os artefatos resultantes como bytes crus: `needs.json`, o índice Lua gerado, o payload de baseline, todos os exports determinísticos (`json`, `csv`, `markdown`, `reqif`, `jsonld`), um índice de fontes materializado e os três fingerprints comparados como valores, além dos bytes.
+
+Cada execução usa um interpretador novo. Isso não é escolha estilística: `PYTHONHASHSEED` é lido uma única vez na inicialização do interpretador, então um teste que o define por `os.environ` no processo atual não mede nada. Toda variação, portanto, roda como subprocesso com um ambiente montado explicitamente, e não herdado.
+
+A matriz varia a semente de hash, o fuso horário, o locale de colação, o diretório de trabalho, a forma do argumento `--root` (absoluto, relativo de dentro da árvore, relativo de fora dela) e a ordem de descoberta das fontes. Cada worker grava uma sonda registrando o que de fato observou, e o harness exige que essas sondas difiram onde a perturbação deveria ter efeito — um locale que caiu silenciosamente para `C` reprova a execução em vez de aprovar um teste que nunca exercitou colação. O `SOURCE_DATE_EPOCH` congela a data de referência, de modo que nenhum campo precisa ser excluído da comparação; a allowlist de campos voláteis vive em um único módulo, está atualmente vazia e é travada por um digest revisado, para que não possa crescer sem uma mudança deliberada.
+
+O workflow `reproducibility` repete toda a matriz em Ubuntu, macOS e Windows para Python 3.10 a 3.14 e então compara os artefatos dos quinze runtimes entre si. Seu job agregado é obrigatório para merge.

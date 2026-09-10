@@ -215,3 +215,17 @@ author explicitly waives them; unavailable measurements never pass.
 
 A passing gate must establish measured assurance or identify an explicit waiver.
 :::
+
+::: {.need #NFR-010 type="non-functional-requirement" status="approved" priority="critical" tags="determinism;reproducibility;ci" derives-from="SYS-003" implemented-by="COMP-ANALYSIS;COMP-CLI" verified-by="TC-034"}
+## Verify determinism under environment perturbation
+
+Analysis artifacts and fingerprints shall be byte-identical across hash seeds,
+time zones, locales, working directories, root argument forms, source discovery
+order, supported Python versions and supported operating systems.
+
+### Rationale
+
+Determinism claimed but unverified fails silently: a broken guarantee still
+reports green. Each perturbation must run in a fresh interpreter, because
+`PYTHONHASHSEED` is fixed at interpreter start-up.
+:::

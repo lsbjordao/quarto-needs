@@ -173,3 +173,13 @@ A baseline captures the analyzed state and configuration fingerprint. Diff disti
 Impact analysis uses semantic direction declared in the catalog. ADR relations participate in this mechanism exactly like implementation, verification, and evidence relations.
 
 See the [command-line reference](cli-reference.qmd) for baseline creation/inspection, comparisons with current sources, `--recompute-with current`, committed Git ranges, suspect claims, and PR/GitHub report generation.
+
+## Verified determinism
+
+Determinism is a checked property, not a claim. `tools/reproducibility.py` runs the same analysis over the same sources several times and compares the resulting artifacts as raw bytes: `needs.json`, the generated Lua index, the baseline payload, every deterministic export (`json`, `csv`, `markdown`, `reqif`, `jsonld`), a materialized source index, and the three fingerprints compared as values in addition to bytes.
+
+Each run is a fresh interpreter. This is not a stylistic choice: `PYTHONHASHSEED` is read once at interpreter start-up, so a test that sets it through `os.environ` in the current process measures nothing. Every variation therefore executes as a subprocess with an explicitly constructed environment rather than an inherited one.
+
+The matrix varies the hash seed, the time zone, the collation locale, the working directory, the form of the `--root` argument (absolute, relative from inside the tree, relative from outside it), and the order in which sources are discovered. Each worker writes a probe recording what it actually observed, and the harness asserts those probes differ where the perturbation was supposed to bite — a locale that silently fell back to `C` fails the run instead of passing a test that never exercised collation. `SOURCE_DATE_EPOCH` freezes the reference date, so no field needs to be excluded from comparison; the allowlist of volatile fields lives in one module, is currently empty, and is locked by a reviewed digest so it cannot grow without a deliberate change.
+
+The `reproducibility` workflow repeats the whole matrix on Ubuntu, macOS, and Windows for Python 3.10 through 3.14, then compares the artifacts of all fifteen runtimes against each other. Its aggregate job is required for merge.
