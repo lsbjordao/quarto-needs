@@ -187,10 +187,17 @@ def _test_evidence(ctx: RuleContext) -> Iterable[Finding]:
             )
 
 
+def risk_mitigation_population(snapshot: AnalysisSnapshot, config: NeedsConfig):
+    """The exact population evaluated by REQ013 and its dependent gate."""
+    return tuple(
+        obj for obj in snapshot.objects
+        if obj.type in config.risk_types
+        and str(obj.attributes.get("priority", "")).casefold() in {"high", "critical"}
+    )
+
+
 def _risk_mitigation(ctx: RuleContext) -> Iterable[Finding]:
-    for obj in ctx.snapshot.objects:
-        if obj.type not in ctx.config.risk_types or str(obj.attributes.get("priority", "")).casefold() not in {"high", "critical"}:
-            continue
+    for obj in risk_mitigation_population(ctx.snapshot, ctx.config):
         if not any(edge.semantic_family == "mitigation" for edge in ctx.snapshot.incoming.get(obj.id, ())):
             yield Finding(
                 "REQ013", RULES["REQ013"].default_severity,
@@ -488,14 +495,19 @@ def validate_gate_rule_dependencies(config: NeedsConfig) -> None:
     false assurance rather than a missing check. The two declarations have to
     agree, so an incoherent pair is a configuration error like any other.
     """
-    if not config.gates.require_risk_mitigation:
-        return
-    if _resolved_severity(RULES["REQ013"], config) is None:
-        raise ConfigurationError(
-            "[gates] require-risk-mitigation counts REQ013 findings, but rule "
-            "REQ013 is not enabled, so the gate could only ever pass. Add "
-            '[rules.REQ013] enabled = true, or remove the gate.'
-        )
+    for attribute, codes in GATE_RULE_DEPENDENCIES.items():
+        if not getattr(config.gates, attribute):
+            continue
+        for code in codes:
+            if _resolved_severity(RULES[code], config) is None:
+                raise ConfigurationError(
+                    f"[gates] {attribute.replace('_', '-')} counts {code} findings, "
+                    f"but rule {code} is not enabled, so the gate could only ever pass. "
+                    f"Add [rules.{code}] enabled = true, or remove the gate."
+                )
+
+
+GATE_RULE_DEPENDENCIES = {"require_risk_mitigation": ("REQ013",)}
 
 
 def run_rules(snapshot: AnalysisSnapshot, config: NeedsConfig) -> tuple[Finding, ...]:

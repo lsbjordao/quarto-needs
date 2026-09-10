@@ -46,7 +46,7 @@ def test_self_hosted_example_is_a_valid_engineering_graph() -> None:
 
     assert result.snapshot is not None
     assert result.findings == ()
-    assert len(result.snapshot.objects) == 187
+    assert len(result.snapshot.objects) == 190
 
     ids = {item.id for item in result.snapshot.objects}
     assert {
@@ -220,7 +220,7 @@ def test_self_hosted_pytest_bindings_point_to_real_test_functions() -> None:
         "TC-014", "TC-015", "TC-016", "TC-017", "TC-018", "TC-019",
         "TC-020", "TC-021", "TC-022", "TC-023", "TC-024",
         "TC-025", "TC-026", "TC-027", "TC-028", "TC-029",
-        "TC-030", "TC-031", "TC-032",
+        "TC-030", "TC-031", "TC-032", "TC-033",
     }
 
     for item in bound:

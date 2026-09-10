@@ -293,3 +293,15 @@ Run the actual CLI in a directory containing invalid project configuration and v
 
 The executable regression is `tests/test_cli_version.py::test_version_works_outside_a_project`. Clean wheel and sdist installations are additionally checked by `tools/check_release_artifacts.py`.
 :::
+
+::: {.need #TC-033 type="test-case" status="passed" tags="pytest;governance;gates" pytest-nodeid="tests/test_vacuous_gates.py::test_unknown_scope_names_valid_scopes" evidenced-by="EVD-033"}
+## Reject vacuous gate verdicts
+
+Exercise every percentage strength, missing data, explicit empty-scope waivers, risk-rule dependencies and structural failures in `tests/test_vacuous_gates.py`.
+:::
+
+::: {.need #EVD-033 type="evidence" status="verified" tags="pytest;governance;gates"}
+## Vacuous gate regression evidence
+
+The executable regression suite is `tests/test_vacuous_gates.py`; `test_unknown_scope_names_valid_scopes` verifies actionable configuration errors.
+:::

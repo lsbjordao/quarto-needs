@@ -95,9 +95,9 @@ def _print_quality_text(report: QualityReport) -> None:
         f"{counts.get('warning', 0)} warnings, {counts.get('info', 0)} infos"
     )
     for gate in report.gates:
-        mark = "PASS" if gate.passed else "FAIL"
+        mark = gate.label
         line = f"[{mark}] {gate.name}"
-        details = []
+        details = [gate.measurement_message] if gate.measurement_message else []
         if gate.actual is not None:
             details.append(f"actual {gate.actual}")
         if gate.threshold is not None:

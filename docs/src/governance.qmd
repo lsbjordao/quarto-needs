@@ -136,7 +136,25 @@ Gates are appropriate for measurable properties of a set, while rules describe l
 
 The paired `-trace` and `-effective`/`-successful` gates are the difference between a link existing and that link meaning something. `min-verification-trace` accepts a requirement that names a test case; `min-verification-successful` additionally demands that the test carries a successful status. Which statuses count is `[governance]` policy — see [Practical reference](reference.qmd).
 
-An unset percentage gate is not evaluated. A gate whose `scope` query selects nothing passes with an empty denominator, because an absent population cannot be under-covered; `quality` reports the denominator alongside every percentage so a vacuous pass is visible rather than implied.
+An unset percentage gate is not evaluated. The gate scope must be `catalog`,
+`approved-requirements`, or a declared named query; a misspelling is a
+configuration error listing valid scopes. Queries are declared at load time,
+even when their results depend on the graph.
+
+A percentage gate with zero eligible requirements is unmeasured and fails by
+default, including a zero-percent threshold. A risk gate with no high/critical
+risks is likewise unmeasured. Projects intentionally starting empty may set
+`[gates] allow-empty-scopes = true`: the verdict is allowed, but the CLI says
+`[WAIVED]`, JUnit records a skipped check, and Markdown identifies the waiver.
+Without that opt-in the CLI says `[UNMEASURED]`. Both explain that the scope
+matched no eligible objects. Missing measurements and disabled dependencies
+cannot be waived.
+
+Quality JSON v1 exposes optional `measurementStatus`: `measured`, `empty`, or
+`unavailable`. Unmeasured gates have `actual: null`; the coverage metric itself
+still reports 100.0 for 0/0 for compatibility. `max-errors` measures findings
+from a completed analysis: zero findings is a valid zero count. Structural
+analysis failure blocks every profile before population gates are evaluated.
 
 `require-risk-mitigation` counts findings from rule `REQ013`, which is opt-in. Enabling the gate alone could only ever pass, so that pair is rejected as a configuration error rather than reporting a vacuous success. Enable both:
 

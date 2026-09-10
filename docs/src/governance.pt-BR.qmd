@@ -136,7 +136,24 @@ Gates são apropriados para propriedades mensuráveis do conjunto, enquanto regr
 
 Os pares `-trace` e `-effective`/`-successful` são a diferença entre um vínculo existir e esse vínculo significar algo. `min-verification-trace` aceita um requisito que nomeia um caso de teste; `min-verification-successful` exige adicionalmente que o teste carregue um status bem-sucedido. Quais status contam é política de `[governance]` — veja a [referência prática](reference.qmd).
 
-Um gate percentual não definido não é avaliado. Um gate cuja consulta de `scope` não seleciona nada passa com denominador vazio, porque uma população ausente não pode estar sub-coberta; `quality` relata o denominador junto de cada percentual, de modo que uma aprovação vazia fique visível em vez de implícita.
+Um gate percentual não definido não é avaliado. O escopo deve ser `catalog`,
+`approved-requirements` ou uma consulta nomeada declarada; erros de digitação
+são rejeitados na carga, com a lista dos escopos válidos.
+
+Um gate percentual sem requisitos elegíveis não foi medido e falha por padrão,
+mesmo com limiar zero. O gate de mitigação também não foi medido quando não há
+riscos altos/críticos. Projetos intencionalmente vazios podem declarar
+`[gates] allow-empty-scopes = true`: o resultado é permitido, mas aparece como
+`[WAIVED]` na CLI, como teste ignorado em JUnit e como dispensa em Markdown.
+Sem esse opt-in, a CLI mostra `[UNMEASURED]`. Ambos explicam que o escopo não
+selecionou objetos elegíveis. Dados ausentes e dependências desabilitadas não
+podem ser dispensados.
+
+O JSON de qualidade v1 inclui `measurementStatus` opcional: `measured`, `empty`
+ou `unavailable`. Gates não medidos têm `actual: null`; a métrica de cobertura
+preserva 100.0 para 0/0. `max-errors` conta achados de uma análise executada:
+zero achados é uma contagem válida. Falhas estruturais bloqueiam todos os
+perfis antes da avaliação dos gates de população.
 
 `require-risk-mitigation` conta achados da regra `REQ013`, que é opcional. Habilitar apenas o gate só poderia resultar em aprovação, então esse par é rejeitado como erro de configuração em vez de relatar um sucesso vazio. Habilite os dois:
 
