@@ -74,3 +74,24 @@ def test_labels_are_escaped_against_d2_syntax() -> None:
     source = c4_d2_source(projection, focus_id="SYS-1", level="context")
     line = next(line for line in source.splitlines() if line.startswith("SYS_1:"))
     assert line.count('"') == 2
+
+
+def test_relationship_technology_is_folded_into_the_d2_edge_label() -> None:
+    snapshot = _snapshot(
+        _obj("SYS-1", type="system", title="Quarto-Needs"),
+        _obj(
+            "ACTOR-1", type="actor", title="Requirements Engineer",
+            relations=[
+                Relation(
+                    "depends-on", "ACTOR-1", "SYS-1",
+                    attributes={"label": "calls over HTTPS", "technology": "HTTPS/JSON"},
+                )
+            ],
+        ),
+    )
+    projection = build_c4_view(snapshot, focus_id="SYS-1", level="context")
+    source = c4_d2_source(projection, focus_id="SYS-1", level="context")
+    relationship = next(
+        line for line in source.splitlines() if " -> " in line and "calls over HTTPS" in line
+    )
+    assert "HTTPS/JSON" in relationship

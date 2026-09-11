@@ -100,7 +100,11 @@ def c4_structurizr_source(projection: GraphProjection, *, focus_id: str, level: 
     for edge in depends_on_edges:
         source_variable = _sanitize(edge.source)
         target_variable = _sanitize(edge.target)
-        lines.append(f'    {source_variable} -> {target_variable} "{_escape(edge.label)}"')
+        technology = f' "{_escape(edge.technology)}"' if edge.technology else ""
+        lines.append(
+            f'    {source_variable} -> {target_variable} '
+            f'"{_escape(edge.label)}"{technology}'
+        )
 
     lines.extend([
         "  }",

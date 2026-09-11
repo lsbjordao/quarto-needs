@@ -69,6 +69,18 @@ expires: 2027-01-31
 
 Múltiplos alvos são escritos como um valor separado por vírgulas ou ponto e vírgula, ou como lista `-` nas linhas seguintes. As duas formas são equivalentes.
 
+Um valor de relação pode carregar atributos inline depois dos alvos: `nome=valor`, com o valor entre aspas quando contém espaços. Atributos em um valor se aplicam a todos os alvos daquele valor; use a forma de lista para alvos que precisam de atributos diferentes. As projeções C4 leem `label` como a descrição do relacionamento e `technology` como a tecnologia do relacionamento:
+
+```markdown
+depends-on: CONTAINER-API technology="HTTPS/JSON" label="chama via HTTPS"
+
+depends-on:
+  - CONTAINER-API technology="HTTPS/JSON"
+  - DATABASE technology="protocolo wire do PostgreSQL"
+```
+
+Uma atribuição malformada — valor entre aspas não terminado, ou `nome=` sem valor — é reportada como `QND004`, e a cauda malformada nunca é anexada silenciosamente a um alvo.
+
 Declare cada chave **uma única vez** por bloco. O preâmbulo é um mapeamento, então repetir uma chave preserva apenas a última ocorrência; escreva `verified-by: TC-020, TC-021` ou a forma de lista em vez de duas linhas `verified-by:`. Uma chave repetida é reportada como `QND003`, de modo que o valor descartado não passe despercebido.
 
 Alvos de relação não são resolvidos durante o parsing. Um alvo que não nomeia nenhum objeto declarado é reportado como `REQ005` na validação, e é assim que erros de digitação aparecem em vez de virarem becos sem saída silenciosos.

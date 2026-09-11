@@ -23,7 +23,7 @@ C4 diagrams derive structure from two primary relations:
    - `container` is `part-of` a `system`
    - `component` is `part-of` a `container`
    - `source-module` is `part-of` a `component`
-2. **`depends-on`**: defines interaction and dependencies between elements.
+2. **`depends-on`**: defines interaction and dependencies between elements. It may carry inline attributes: `label` overrides the relationship description in every diagram, and `technology` is rendered as the relationship technology where the backend supports it (`Rel(..., "label", "technology")` in Mermaid and PlantUML; folded into the edge label in D2).
 
 Example:
 

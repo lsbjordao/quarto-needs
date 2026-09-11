@@ -75,3 +75,25 @@ def test_labels_are_escaped_against_plantuml_syntax() -> None:
     source = c4_plantuml_source(projection, focus_id="SYS-1", level="context")
     call = source.split("System(", 1)[1].split(")", 1)[0]
     assert call.count('"') == 2
+
+
+def test_relationship_attributes_reach_the_plantuml_relationship() -> None:
+    snapshot = _snapshot(
+        _obj("SYS-1", type="system", title="Quarto-Needs"),
+        _obj(
+            "ACTOR-1", type="actor", title="Requirements Engineer",
+            relations=[
+                Relation(
+                    "depends-on", "ACTOR-1", "SYS-1",
+                    attributes={"label": "calls over HTTPS", "technology": "HTTPS/JSON"},
+                )
+            ],
+        ),
+    )
+    projection = build_c4_view(snapshot, focus_id="SYS-1", level="context")
+    source = c4_plantuml_source(projection, focus_id="SYS-1", level="context")
+    relationship = next(
+        line for line in source.splitlines() if line.startswith("Rel(")
+    )
+    assert '"calls over HTTPS"' in relationship
+    assert '"HTTPS/JSON"' in relationship

@@ -9,7 +9,8 @@ import pytest
 from jsonschema import Draft202012Validator
 
 from quarto_needs import graph_projection
-from quarto_needs.analysis import analyze_project
+from quarto_needs.analysis import analyze_objects, analyze_project
+from quarto_needs.model import EngineeringObject, Relation
 from quarto_needs.snapshot import AnalysisSnapshot, ObjectRecord
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -288,6 +289,44 @@ def test_projection_with_technology_validates_against_schema() -> None:
     schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
     Draft202012Validator.check_schema(schema)
     # This will raise an exception if the projection doesn't validate
+    Draft202012Validator(schema).validate(
+        json.loads(graph_projection.render_projection(projection))
+    )
+
+
+def test_public_edge_surfaces_relationship_attributes() -> None:
+    result = analyze_objects(
+        [
+            EngineeringObject("SYS-1", "system", "Quarto-Needs"),
+            EngineeringObject(
+                "ACTOR-1",
+                "actor",
+                "Requirements Engineer",
+                relations=[
+                    Relation(
+                        "depends-on",
+                        "ACTOR-1",
+                        "SYS-1",
+                        attributes={
+                            "label": "calls over HTTPS",
+                            "technology": "HTTPS/JSON",
+                        },
+                    )
+                ],
+            ),
+        ]
+    )
+    assert result.snapshot is not None
+    projection = graph_projection.build_projection(
+        result.snapshot, node_ids=("SYS-1", "ACTOR-1"), view_id="edge-attributes"
+    )
+    edge = next(
+        item for item in projection.edges if (item.source, item.target) == ("ACTOR-1", "SYS-1")
+    )
+    assert edge.label == "calls over HTTPS"
+    assert edge.technology == "HTTPS/JSON"
+    assert edge.to_dict()["technology"] == "HTTPS/JSON"
+    schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
     Draft202012Validator(schema).validate(
         json.loads(graph_projection.render_projection(projection))
     )

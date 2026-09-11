@@ -23,7 +23,7 @@ Diagramas C4 derivam sua estrutura de duas relações principais:
    - `container` é `part-of` um `system`
    - `component` é `part-of` um `container`
    - `source-module` é `part-of` um `component`
-2. **`depends-on`**: define interação e dependências entre elementos.
+2. **`depends-on`**: define interação e dependências entre elementos. Pode carregar atributos inline: `label` substitui a descrição do relacionamento em todos os diagramas, e `technology` é renderizada como a tecnologia do relacionamento onde o backend suporta (`Rel(..., "label", "technology")` em Mermaid e PlantUML; dobrada no rótulo da aresta no D2).
 
 Exemplo:
 
