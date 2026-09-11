@@ -80,10 +80,18 @@ def _child_id(relation: RelationRecord, *, parent_id: str) -> str | None:
 
 
 def _label_for(relation: RelationRecord) -> str:
+    authored = relation.attributes.get("label")
+    if isinstance(authored, str) and authored.strip():
+        return authored.strip()
     try:
         return DEFAULT_RELATION_CATALOG.resolve(relation.authored_name).direct_label
     except ValueError:
         return relation.authored_name
+
+
+def _technology_for(relation: RelationRecord) -> str | None:
+    value = relation.attributes.get("technology")
+    return value if isinstance(value, str) and value.strip() else None
 
 
 def _element(record: ObjectRecord, *, parent_id: str | None) -> C4Element:
@@ -189,6 +197,7 @@ def project_c4(
                     target_id=relation.target,
                     relation_type=relation.v1_name,
                     description=_label_for(relation),
+                    technology=_technology_for(relation),
                 )
                 for relation in snapshot.relations
                 if relation.v1_name == _INTERACTION_RELATION

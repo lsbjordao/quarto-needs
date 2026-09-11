@@ -129,7 +129,11 @@ def c4_mermaid_source(projection: GraphProjection, *, focus_id: str, level: str)
             lines.append(f"  {_macro_call(node)}")
 
     for edge in drawn_edges:
-        lines.append(f'  Rel({_ref(edge.source)}, {_ref(edge.target)}, "{_escape(edge.label)}")')
+        technology = f', "{_escape(edge.technology)}"' if edge.technology else ""
+        lines.append(
+            f'  Rel({_ref(edge.source)}, {_ref(edge.target)}, '
+            f'"{_escape(edge.label)}"{technology})'
+        )
 
     return "\n".join(lines) + "\n"
 

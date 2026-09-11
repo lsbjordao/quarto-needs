@@ -230,3 +230,22 @@ def test_available_scopes_enumerates_the_levels_scope_type() -> None:
     assert available_scopes(snapshot, "component") == ("CONTAINER-1",)
     assert available_scopes(snapshot, "code") == ("COMP-1",)
     assert available_scopes(snapshot, "deployment") == ()
+
+
+def test_relationship_attributes_reach_the_ir() -> None:
+    snapshot = _snapshot(
+        _obj("SYS-1", type="system"),
+        _obj(
+            "ACTOR-1", type="actor",
+            relations=[
+                Relation(
+                    "depends-on", "ACTOR-1", "SYS-1",
+                    attributes={"label": "calls over HTTPS", "technology": "HTTPS/JSON"},
+                )
+            ],
+        ),
+    )
+    view = project_c4(snapshot, level="system-context", scope_id="SYS-1")
+    relationship = view.relationships[0]
+    assert relationship.description == "calls over HTTPS"
+    assert relationship.technology == "HTTPS/JSON"

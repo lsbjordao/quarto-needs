@@ -89,6 +89,119 @@ Text.
     ]
 
 
+def test_relation_attributes_are_authored_inline(tmp_path: Path) -> None:
+    qmd = tmp_path / "arch.qmd"
+    qmd.write_text(
+        "::: {.need #COMP-A type=\"component\" "
+        "depends-on='CONTAINER-API technology=\"HTTPS/JSON\" label=\"calls over HTTPS\"'}\n"
+        "## A\nText.\n:::\n",
+        encoding="utf-8",
+    )
+
+    relations = parse_qmd(qmd, tmp_path)[0].relations
+
+    assert [(relation.target, relation.attributes) for relation in relations] == [
+        (
+            "CONTAINER-API",
+            {"technology": "HTTPS/JSON", "label": "calls over HTTPS"},
+        )
+    ]
+
+
+def test_relation_attributes_apply_to_every_target_without_splitting_quoted_commas(
+    tmp_path: Path,
+) -> None:
+    qmd = tmp_path / "arch.qmd"
+    qmd.write_text(
+        "::: {.need #COMP-A type=\"component\" "
+        "depends-on='SYS-A, SYS-B technology=\"HTTP, JSON\"'}\n"
+        "## A\nText.\n:::\n",
+        encoding="utf-8",
+    )
+
+    relations = parse_qmd(qmd, tmp_path)[0].relations
+
+    assert [(relation.target, relation.attributes) for relation in relations] == [
+        ("SYS-A", {"technology": "HTTP, JSON"}),
+        ("SYS-B", {"technology": "HTTP, JSON"}),
+    ]
+
+
+def test_relation_attribute_list_form_carries_attributes_per_item(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "arch.qmd"
+    source.write_text(
+        "::: {.need #COMP-A type=\"component\"}\n"
+        "depends-on:\n"
+        "  - CONTAINER-A technology=\"gRPC\"\n"
+        "  - CONTAINER-B\n"
+        "\n## A\nText.\n:::\n",
+        encoding="utf-8",
+    )
+
+    relations = parse_qmd_declarations(source, tmp_path).declarations[0].relations
+
+    assert [(relation.target, relation.attributes) for relation in relations] == [
+        ("CONTAINER-A", {"technology": "gRPC"}),
+        ("CONTAINER-B", {}),
+    ]
+
+
+def test_relation_attribute_bare_and_single_quoted_values(tmp_path: Path) -> None:
+    qmd = tmp_path / "arch.qmd"
+    qmd.write_text(
+        "::: {.need #COMP-A type=\"component\"}\n"
+        "depends-on: CONTAINER-A technology=gRPC label='calls'\n"
+        "\n## A\nText.\n:::\n",
+        encoding="utf-8",
+    )
+
+    relations = parse_qmd(qmd, tmp_path)[0].relations
+
+    assert [(relation.target, relation.attributes) for relation in relations] == [
+        ("CONTAINER-A", {"technology": "gRPC", "label": "calls"})
+    ]
+
+
+def test_relation_targets_without_attributes_keep_the_legacy_spelling(
+    tmp_path: Path,
+) -> None:
+    qmd = tmp_path / "arch.qmd"
+    qmd.write_text(
+        "::: {.need #COMP-A type=\"component\" depends-on='SYS-A SYS-B'}\n"
+        "## A\nText.\n:::\n",
+        encoding="utf-8",
+    )
+
+    relations = parse_qmd(qmd, tmp_path)[0].relations
+
+    assert [(relation.target, relation.attributes) for relation in relations] == [
+        ("SYS-A SYS-B", {})
+    ]
+
+
+def test_malformed_relation_attribute_is_a_located_finding_and_keeps_the_target(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "arch.qmd"
+    source.write_text(
+        "::: {.need #COMP-A type=\"component\" "
+        "depends-on='CONTAINER-A technology=\"unterminated'}\n"
+        "## A\nText.\n:::\n",
+        encoding="utf-8",
+    )
+
+    batch = parse_qmd_declarations(source, tmp_path)
+
+    assert [
+        (item.code, item.severity, item.object_id) for item in batch.findings
+    ] == [("QND004", "error", "COMP-A")]
+    relation = batch.declarations[0].relations[0]
+    assert relation.target == "CONTAINER-A"
+    assert relation.attributes == {}
+
+
 def test_project_declarations_sort_paths_and_keep_authored_relation(
     tmp_path: Path,
 ) -> None:

@@ -89,3 +89,24 @@ def test_source_is_byte_stable_across_calls() -> None:
     second = c4_structurizr_source(projection, focus_id="SYS-1", level="context")
     assert first == second
     assert 'tags "External"' in first
+
+
+def test_relationship_attributes_reach_the_structurizr_relationship() -> None:
+    snapshot = _snapshot(
+        _obj("SYS-1", type="system", title="Quarto-Needs"),
+        _obj(
+            "ACTOR-1", type="actor", title="Requirements Engineer",
+            relations=[
+                Relation(
+                    "depends-on", "ACTOR-1", "SYS-1",
+                    attributes={"label": "calls over HTTPS", "technology": "HTTPS/JSON"},
+                )
+            ],
+        ),
+    )
+    projection = build_c4_view(snapshot, focus_id="SYS-1", level="context")
+    source = c4_structurizr_source(projection, focus_id="SYS-1", level="context")
+    relationship = next(
+        line for line in source.splitlines() if " -> " in line and "calls over HTTPS" in line
+    )
+    assert '"calls over HTTPS" "HTTPS/JSON"' in relationship

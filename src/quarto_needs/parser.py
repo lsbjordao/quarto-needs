@@ -91,16 +91,170 @@ def _source_file(path: Path, root: Path | None) -> str:
     return relative.as_posix()
 
 
-def _relation_targets(value: object) -> list[str]:
-    """Normalize scalar/list relation syntax into individual graph endpoints."""
+_ATTRIBUTE_NAME_RE = re.compile(r"[a-z][a-z0-9_-]*")
+
+
+def _split_relation_segments(raw: str) -> list[str]:
+    """Split a relation value on commas/semicolons outside quoted values.
+
+    A technology such as ``"HTTP, JSON"`` is one value, not two targets:
+    splitting before quote handling would tear it in half.
+    """
+    segments: list[str] = []
+    current: list[str] = []
+    quote: str | None = None
+    index = 0
+    while index < len(raw):
+        character = raw[index]
+        if quote is not None:
+            current.append(character)
+            if character == "\\" and quote == '"' and index + 1 < len(raw):
+                current.append(raw[index + 1])
+                index += 2
+                continue
+            if character == quote:
+                quote = None
+            index += 1
+            continue
+        if character in "\"'":
+            quote = character
+            current.append(character)
+            index += 1
+            continue
+        if character in ",;":
+            segments.append("".join(current))
+            current = []
+            index += 1
+            continue
+        current.append(character)
+        index += 1
+    segments.append("".join(current))
+    return segments
+
+
+def _first_relation_attribute_index(segment: str) -> int | None:
+    """Index where the first ``name=`` attribute assignment starts, if any.
+
+    Attribute names start with a lowercase letter, so a legacy target that
+    merely contains an ``=`` cannot be mistaken for an assignment.
+    """
+    index = 0
+    quote: str | None = None
+    while index < len(segment):
+        character = segment[index]
+        if quote is not None:
+            if character == "\\" and quote == '"' and index + 1 < len(segment):
+                index += 2
+                continue
+            if character == quote:
+                quote = None
+            index += 1
+            continue
+        if character in "\"'":
+            quote = character
+            index += 1
+            continue
+        if character == "=":
+            start = index
+            while start > 0 and (segment[start - 1].isalnum() or segment[start - 1] in "_-"):
+                start -= 1
+            if (
+                start < index
+                and (start == 0 or segment[start - 1].isspace())
+                and _ATTRIBUTE_NAME_RE.fullmatch(segment[start:index])
+            ):
+                return start
+        index += 1
+    return None
+
+
+def _parse_attribute_tail(tail: str) -> tuple[dict[str, str], str | None]:
+    """Parse ``name=value`` pairs; return the parsed map and a malformed tail."""
+    attributes: dict[str, str] = {}
+    position = 0
+    while position < len(tail):
+        while position < len(tail) and tail[position].isspace():
+            position += 1
+        if position == len(tail):
+            break
+        assignment_start = position
+        name_match = _ATTRIBUTE_NAME_RE.match(tail, position)
+        if name_match is None:
+            return attributes, tail[assignment_start:]
+        name = name_match.group(0)
+        position = name_match.end()
+        while position < len(tail) and tail[position].isspace():
+            position += 1
+        if position == len(tail) or tail[position] != "=":
+            return attributes, tail[assignment_start:]
+        position += 1
+        while position < len(tail) and tail[position].isspace():
+            position += 1
+        if position == len(tail):
+            return attributes, tail[assignment_start:]
+        if tail[position] in "\"'":
+            quote = tail[position]
+            value_start = position
+            position += 1
+            characters: list[str] = []
+            closed = False
+            while position < len(tail):
+                character = tail[position]
+                if character == "\\" and quote == '"' and position + 1 < len(tail):
+                    characters.append(tail[position + 1])
+                    position += 2
+                    continue
+                if character == quote:
+                    closed = True
+                    position += 1
+                    break
+                characters.append(character)
+                position += 1
+            if not closed:
+                return attributes, tail[value_start:]
+            value = "".join(characters)
+        else:
+            value_start = position
+            while position < len(tail) and not tail[position].isspace():
+                position += 1
+            value = tail[value_start:position]
+        if not value:
+            return attributes, tail[assignment_start:]
+        attributes[name] = value
+    return attributes, None
+
+
+def _relation_specs(value: object) -> tuple[list[tuple[str, dict[str, str]]], list[str]]:
+    """Targets and inline attributes from one authored relation value.
+
+    ``depends-on: A, B technology="HTTP"`` yields two targets sharing the
+    attribute; attributes on a relation value apply to every target on that
+    value, and the list form separates targets that need different
+    attributes. A malformed assignment is returned separately so the caller
+    can report it without silently dropping authored data.
+    """
     values = value if isinstance(value, list) else [value]
-    targets: list[str] = []
+    specs: list[tuple[str, dict[str, str]]] = []
+    malformed: list[str] = []
     for item in values:
-        for target in re.split(r"[;,]", str(item)):
-            normalized = target.strip()
-            if normalized:
-                targets.append(normalized)
-    return targets
+        targets: list[str] = []
+        shared: dict[str, str] = {}
+        for segment in _split_relation_segments(str(item)):
+            attribute_index = _first_relation_attribute_index(segment)
+            if attribute_index is None:
+                target = segment.strip()
+                if target:
+                    targets.append(target)
+                continue
+            target = segment[:attribute_index].strip()
+            if target:
+                targets.append(target)
+            attributes, problem = _parse_attribute_tail(segment[attribute_index:])
+            shared.update(attributes)
+            if problem is not None:
+                malformed.append(problem)
+        specs.extend((target, dict(shared)) for target in targets)
+    return specs, malformed
 
 
 def _extract_rationale(body: str) -> str:
@@ -202,16 +356,7 @@ def parse_qmd_text_declarations(text: str, source_file: str) -> DeclarationBatch
             if key in {"type", "status"}:
                 continue
             if key in RELATION_KEYS:
-                targets = _relation_targets(value)
-                if not targets:
-                    findings.append(Finding(
-                        "QND002",
-                        "error",
-                        f"Relation {key} on {need_id} has no targets",
-                        need_id,
-                        location,
-                    ))
-                    continue
+                specs, malformed = _relation_specs(value)
                 relation_line = (
                     start_line + 1 + meta_offsets[key]
                     if key in meta_offsets
@@ -222,9 +367,28 @@ def parse_qmd_text_declarations(text: str, source_file: str) -> DeclarationBatch
                     relation_line,
                     need_id,
                 )
+                for problem in malformed:
+                    findings.append(Finding(
+                        "QND004",
+                        "error",
+                        f"Malformed attribute in relation {key} on {need_id}: "
+                        f"{problem!r}. Use name=value with a quoted value when "
+                        "it contains spaces.",
+                        need_id,
+                        relation_location,
+                    ))
+                if not specs:
+                    findings.append(Finding(
+                        "QND002",
+                        "error",
+                        f"Relation {key} on {need_id} has no targets",
+                        need_id,
+                        location,
+                    ))
+                    continue
                 relations.extend(
-                    RelationToken(key, target, {}, relation_location)
-                    for target in targets
+                    RelationToken(key, target, attributes, relation_location)
+                    for target, attributes in specs
                 )
             else:
                 attributes[key] = value

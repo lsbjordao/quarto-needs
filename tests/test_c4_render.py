@@ -264,3 +264,25 @@ def test_container_diagram_finds_children_authored_via_decomposes_too() -> None:
     # alongside it.
     boundary_block = source.split("System_Boundary(", 1)[1].split("}", 1)[0]
     assert "Container(" in boundary_block
+
+
+def test_relationship_attributes_reach_the_mermaid_relationship() -> None:
+    snapshot = _snapshot(
+        _obj("SYS-1", type="system", title="Quarto-Needs"),
+        _obj(
+            "ACTOR-1", type="actor", title="Requirements Engineer",
+            relations=[
+                Relation(
+                    "depends-on", "ACTOR-1", "SYS-1",
+                    attributes={"label": "calls over HTTPS", "technology": "HTTPS/JSON"},
+                )
+            ],
+        ),
+    )
+    projection = build_c4_view(snapshot, focus_id="SYS-1", level="context")
+    source = c4_mermaid_source(projection, focus_id="SYS-1", level="context")
+    relationship = next(
+        line for line in source.splitlines() if line.strip().startswith("Rel(")
+    )
+    assert "calls over HTTPS" in relationship
+    assert "HTTPS/JSON" in relationship

@@ -100,6 +100,11 @@ def c4_d2_source(projection: GraphProjection, *, focus_id: str, level: str) -> s
             source_variable = f"{focus_variable}.{source_variable}"
         if edge.target in child_ids:
             target_variable = f"{focus_variable}.{target_variable}"
-        lines.append(f'{source_variable} -> {target_variable}: "{_escape(edge.label)}"')
+        label = edge.label
+        if edge.technology:
+            # D2 has no separate relationship-technology field; the C4
+            # relationship technology rides in the edge label instead.
+            label = f"{label} ({edge.technology})"
+        lines.append(f'{source_variable} -> {target_variable}: "{_escape(label)}"')
 
     return "\n".join(lines) + "\n"

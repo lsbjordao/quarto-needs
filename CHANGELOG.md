@@ -27,6 +27,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - A release-gate matrix (`notes/release-gates.md`) names the evidence behind each gate, and `benchmarks/budgets.json` plus `make check-performance-budgets` turn the recorded performance evidence into an executable budget check. The budget document is verified in CI without asserting timings; the fresh measurement stays a release-rehearsal step.
 
+- Relation attributes. A relation value may carry inline `name=value` attributes after its targets (`depends-on: CONTAINER-API technology="HTTPS/JSON" label="calls over HTTPS"`); attributes on one value apply to every target on it, and the `-` list form gives targets different attributes. The C4 projections render `label` as the relationship description and `technology` as the relationship technology in Mermaid, PlantUML and Structurizr, with D2 folding it into the edge label, and the public graph projection exposes edge `technology`. A malformed assignment is reported as `QND004` instead of being silently dropped.
+
 ### Changed
 
 - README opens with real coverage and traceability screenshots, an executable authoring example, tested quickstart commands and dynamic CI/PyPI badges; capabilities are summarized after the demonstration.
