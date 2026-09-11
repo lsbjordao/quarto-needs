@@ -26,6 +26,7 @@ C4 diagrams derive structure from two primary relations:
    - `source-module` is `part-of` a `component`
 2. **`depends-on`**: defines interaction and dependencies between elements. It may carry inline attributes: `label` overrides the relationship description in every diagram, and `technology` is rendered as the relationship technology where the backend supports it (`Rel(..., "label", "technology")` in Mermaid and PlantUML; folded into the edge label in D2).
 3. **`deployed-on`**: places an artifact on a deployment node (`container` or `component` is `deployed-on` a `deployment-node`), and nested deployment nodes are `part-of` their parent node.
+4. **`interacts-with`**: an ordered runtime interaction between two elements for a dynamic view (`initiator` is `interacts-with` `participant`). The `order` attribute sequences the interactions; `label` and `technology` render like any other relationship.
 
 Example:
 
@@ -56,6 +57,7 @@ Use the `{{< need-c4 >}}` shortcode to render architecture views:
 {{< need-c4 root="CONTAINER-API" level="component" >}}
 {{< need-c4 root="COMP-AUTH" level="code" >}}
 {{< need-c4 root="DEPLOY-PROD" level="deployment" >}}
+{{< need-c4 root="SYS-APP" level="dynamic" >}}
 ```
 
 ### Supported Levels
@@ -65,6 +67,7 @@ Use the `{{< need-c4 >}}` shortcode to render architecture views:
 - **`component`**: Zooms into a `container` to reveal internal `component`s and dependencies.
 - **`code`**: Materializes the implementation surface as a structured Markdown table of `source-module` artifacts, file paths, languages, and requirements implemented.
 - **`deployment`**: Focuses on a `deployment-node`, showing nested nodes and the artifacts `deployed-on` it.
+- **`dynamic`**: Focuses on a `system` and draws its ordered runtime interactions as a numbered sequence (Mermaid `C4Dynamic`, a PlantUML sequence diagram, a Structurizr `dynamic` view, or a D2 sequence diagram).
 
 ### Multiple Diagramming Backends
 

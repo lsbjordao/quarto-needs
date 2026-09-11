@@ -69,7 +69,7 @@ expires: 2027-01-31
 
 Múltiplos alvos são escritos como um valor separado por vírgulas ou ponto e vírgula, ou como lista `-` nas linhas seguintes. As duas formas são equivalentes.
 
-Um valor de relação pode carregar atributos inline depois dos alvos: `nome=valor`, com o valor entre aspas quando contém espaços. Atributos em um valor se aplicam a todos os alvos daquele valor; use a forma de lista para alvos que precisam de atributos diferentes. As projeções C4 leem `label` como a descrição do relacionamento e `technology` como a tecnologia do relacionamento:
+Um valor de relação pode carregar atributos inline depois dos alvos: `nome=valor`, com o valor entre aspas quando contém espaços. Atributos em um valor se aplicam a todos os alvos daquele valor; use a forma de lista para alvos que precisam de atributos diferentes. As projeções C4 leem `label` como a descrição do relacionamento, `technology` como a tecnologia do relacionamento, e `order` como o número de sequência de uma interação `interacts-with` em uma visão dynamic:
 
 ```markdown
 depends-on: CONTAINER-API technology="HTTPS/JSON" label="chama via HTTPS"

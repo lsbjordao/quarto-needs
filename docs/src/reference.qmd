@@ -87,6 +87,10 @@ These prefixes are conventions, not reserved names. Configure them to fit the pr
 
 - `deployed-on` / `deploys`
 
+### Runtime interaction
+
+- `interacts-with` (ordered by its `order` attribute in C4 dynamic views)
+
 ## Traceability patterns
 
 ### Requirement to evidence

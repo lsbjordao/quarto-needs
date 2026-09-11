@@ -127,3 +127,28 @@ def test_deployment_view_uses_an_environment_and_deployment_nodes() -> None:
     assert 'deployment * "Production"' in source
     assert "deploymentNode" in source
     assert "Python 3.12" in source
+
+
+def test_dynamic_view_declares_ordered_interactions_in_a_view_block() -> None:
+    snapshot = _snapshot(
+        _obj("SYS-1", type="system", title="Quarto-Needs"),
+        _obj(
+            "CONTAINER-A", type="container", title="Python package",
+            relations=[Relation("part-of", "CONTAINER-A", "SYS-1")],
+        ),
+        _obj(
+            "ACTOR-1", type="actor", title="Engineer",
+            relations=[
+                Relation(
+                    "interacts-with", "ACTOR-1", "CONTAINER-A",
+                    attributes={"order": "1", "label": "runs quarto render"},
+                )
+            ],
+        ),
+    )
+    projection = build_c4_view(snapshot, focus_id="SYS-1", level="dynamic")
+    source = c4_structurizr_source(projection, focus_id="SYS-1", level="dynamic")
+
+    assert "dynamic sys_1 {" in source
+    # Structurizr requires the relationship in the model as well as the view.
+    assert source.count('actor_1 -> container_a "runs quarto render"') == 2

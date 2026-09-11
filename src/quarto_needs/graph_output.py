@@ -482,7 +482,7 @@ def write_graph_overlays(
 
 
 def write_c4_projections(root: Path, snapshot: AnalysisSnapshot) -> None:
-    """Pre-render every system's Context/Container view, every
+    """Pre-render every system's Context/Container/Dynamic view, every
     container's Component view, every deployment node's Deployment view and
     each component's Code-level table.
 
@@ -532,7 +532,7 @@ def write_c4_projections(root: Path, snapshot: AnalysisSnapshot) -> None:
 
     for record in snapshot.objects:
         if record.type == "system":
-            for level in ("context", "container"):
+            for level in ("context", "container", "dynamic"):
                 try:
                     projection = build_c4_view(snapshot, focus_id=record.id, level=level)
                 except (C4ViewError, GraphLimitExceeded):

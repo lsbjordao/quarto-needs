@@ -310,6 +310,7 @@ def test_public_edge_surfaces_relationship_attributes() -> None:
                         attributes={
                             "label": "calls over HTTPS",
                             "technology": "HTTPS/JSON",
+                            "order": "7",
                         },
                     )
                 ],
@@ -325,7 +326,9 @@ def test_public_edge_surfaces_relationship_attributes() -> None:
     )
     assert edge.label == "calls over HTTPS"
     assert edge.technology == "HTTPS/JSON"
+    assert edge.order == 7
     assert edge.to_dict()["technology"] == "HTTPS/JSON"
+    assert edge.to_dict()["order"] == 7
     schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
     Draft202012Validator(schema).validate(
         json.loads(graph_projection.render_projection(projection))

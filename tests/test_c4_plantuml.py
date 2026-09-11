@@ -113,3 +113,30 @@ def test_deployment_diagram_uses_the_plantuml_deployment_stdlib() -> None:
     assert "!include <C4/C4_Deployment>" in source
     boundary_block = source.split("Deployment_Node(", 1)[1].split("}", 1)[0]
     assert "Container(" in boundary_block
+
+
+def test_dynamic_diagram_is_an_ordered_sequence() -> None:
+    snapshot = _snapshot(
+        _obj("SYS-1", type="system", title="Quarto-Needs"),
+        _obj(
+            "CONTAINER-A", type="container", title="Python package",
+            relations=[Relation("part-of", "CONTAINER-A", "SYS-1")],
+        ),
+        _obj(
+            "ACTOR-1", type="actor", title="Engineer",
+            relations=[
+                Relation(
+                    "interacts-with", "ACTOR-1", "CONTAINER-A",
+                    attributes={"order": "1", "label": "runs quarto render"},
+                )
+            ],
+        ),
+    )
+    projection = build_c4_view(snapshot, focus_id="SYS-1", level="dynamic")
+    source = c4_plantuml_source(projection, focus_id="SYS-1", level="dynamic")
+
+    assert source.splitlines()[0] == "@startuml"
+    assert 'participant "Engineer" as ACTOR_1' in source
+    assert 'participant "Python package" as CONTAINER_A' in source
+    assert "ACTOR_1 -> CONTAINER_A: 1. runs quarto render" in source
+    assert source.rstrip("\n").endswith("@enduml")

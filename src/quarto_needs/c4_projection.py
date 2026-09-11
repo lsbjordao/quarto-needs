@@ -24,6 +24,7 @@ _LEVEL_FOCUS_TYPE: Mapping[str, str] = {
     "container": "system",
     "component": "container",
     "deployment": "deployment-node",
+    "dynamic": "system",
 }
 
 _LEVEL_RELATIONS: Mapping[str, tuple[str, ...]] = {
@@ -32,6 +33,60 @@ _LEVEL_RELATIONS: Mapping[str, tuple[str, ...]] = {
     "component": ("part-of", "decomposes", "depends-on"),
     "deployment": ("part-of", "decomposes", "deployed-on", "deploys", "depends-on"),
 }
+
+# Every object type the C4 model gives a role to. Interaction partners that
+# are not architecture elements (a requirement, say) are simply not drawn.
+_C4_TYPES = frozenset(
+    {
+        "actor",
+        "external-system",
+        "system",
+        "container",
+        "component",
+        "source-module",
+        "deployment-node",
+    }
+)
+
+_INTERACTION_RELATION = "interacts-with"
+
+
+def _dynamic_node_ids(snapshot: AnalysisSnapshot, focus_id: str) -> tuple[str, ...]:
+    """The participants of one dynamic view, in deterministic order.
+
+    The focus, its direct containment children, and every architecture
+    element connected to that set by an interaction are participants. The
+    interaction expansion runs after the containment expansion so an
+    interaction between two children (neither touching the focus) is still
+    drawn, which the generic depth-1 selection would miss.
+    """
+    selected = {focus_id}
+
+    def is_transformable(identifier: str) -> bool:
+        record = snapshot.objects_by_id.get(identifier)
+        return record is not None and record.type in _C4_TYPES
+
+    for relation in snapshot.relations:
+        if relation.v1_name == "part-of" and relation.target == focus_id:
+            candidate = relation.source
+        elif relation.v1_name == "decomposes" and relation.source == focus_id:
+            candidate = relation.target
+        else:
+            continue
+        if is_transformable(candidate):
+            selected.add(candidate)
+
+    for relation in snapshot.relations:
+        if relation.v1_name != _INTERACTION_RELATION:
+            continue
+        if relation.source in selected and is_transformable(relation.target):
+            selected.add(relation.target)
+        elif relation.target in selected and is_transformable(relation.source):
+            selected.add(relation.source)
+
+    return tuple(
+        sorted(selected, key=lambda identifier: (identifier.casefold(), identifier))
+    )
 
 
 def build_c4_view(
@@ -54,6 +109,15 @@ def build_c4_view(
         raise C4ViewError(
             f"level={level!r} requires a {expected_type!r} focus, "
             f"but {focus_id!r} is {focus.type!r}"
+        )
+    if level == "dynamic":
+        return build_projection(
+            snapshot,
+            node_ids=_dynamic_node_ids(snapshot, focus_id),
+            view_id=f"c4-{level}-{focus_id}",
+            mode="c4",
+            relations=("part-of", "decomposes", _INTERACTION_RELATION),
+            limits=limits,
         )
     relations = _LEVEL_RELATIONS[level]
     selection = select_graph(

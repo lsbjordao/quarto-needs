@@ -10,7 +10,7 @@ Requisitos descrevem obrigações; a arquitetura explica como o produto é organ
 A ferramenta de rastreabilidade de engenharia documentada por este estudo de caso: um grafo de requisitos/decisões/riscos/testes/evidências autorado em Quarto Markdown, analisado por um núcleo em Python, e apresentado por meio de uma extensão do Quarto.
 :::
 
-::: {.need #ACTOR-ENGINEER type="actor" status="approved" tags="architecture;c4" depends-on="SYS-QUARTO-NEEDS"}
+::: {.need #ACTOR-ENGINEER type="actor" status="approved" tags="architecture;c4" depends-on="SYS-QUARTO-NEEDS" interacts-with='CONTAINER-QUARTO-EXT order="1" label="runs quarto render"'}
 ## Engenheiro de requisitos
 
 Elabora, revisa e aprova objetos de engenharia; lê as visões geradas para entender rastreabilidade e cobertura.
@@ -30,13 +30,13 @@ Um provedor externo de OSLC Requirements Management do qual o Quarto-Needs feder
 
 ## Containers
 
-::: {.need #CONTAINER-PYTHON-PKG type="container" status="approved" tags="architecture;c4" technology="Python 3.12" part-of="SYS-QUARTO-NEEDS" deployed-on="DEPLOY-LOCAL"}
+::: {.need #CONTAINER-PYTHON-PKG type="container" status="approved" tags="architecture;c4" technology="Python 3.12" part-of="SYS-QUARTO-NEEDS" deployed-on="DEPLOY-LOCAL" interacts-with='CONTAINER-QUARTO-EXT order="3" label="writes the projected graph"'}
 ## Pacote Python
 
 A biblioteca e CLI instaláveis `quarto-needs`: parsing, análise, regras de governança, projeção de grafo, baselines e verificações de localização.
 :::
 
-::: {.need #CONTAINER-QUARTO-EXT type="container" status="approved" tags="architecture;c4" technology="Quarto/Pandoc Lua filters" part-of="SYS-QUARTO-NEEDS" deployed-on="DEPLOY-LOCAL"}
+::: {.need #CONTAINER-QUARTO-EXT type="container" status="approved" tags="architecture;c4" technology="Quarto/Pandoc Lua filters" part-of="SYS-QUARTO-NEEDS" deployed-on="DEPLOY-LOCAL" interacts-with='CONTAINER-PYTHON-PKG order="2" label="provisions and invokes the engine"'}
 ## Extensão de apresentação do Quarto
 
 O pacote `_extensions/quarto-needs/`: filtros Lua executados em tempo de build e o JavaScript de navegador que eles distribuem, juntos como uma única extensão Quarto instalada.
@@ -538,6 +538,8 @@ O `adr-table` é a visão consciente de decisões: seleciona apenas objetos `arc
 {{< need-c4 root="CONTAINER-PYTHON-PKG" level="component" >}}
 
 {{< need-c4 root="DEPLOY-LOCAL" level="deployment" >}}
+
+{{< need-c4 root="SYS-QUARTO-NEEDS" level="dynamic" >}}
 
 ## Backends adicionais de diagramas C4
 

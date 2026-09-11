@@ -6,11 +6,11 @@ title: "C4 fixture"
 ## Fixture system
 :::
 
-::: {.need #ACTOR-1 type="actor" status="draft" depends-on="SYS-1"}
+::: {.need #ACTOR-1 type="actor" status="draft" depends-on="SYS-1" interacts-with='CONTAINER-1 order="1" label="starts a render"'}
 ## Fixture actor
 :::
 
-::: {.need #CONTAINER-1 type="container" status="draft" technology="Python" part-of="SYS-1" deployed-on="DEPLOY-1"}
+::: {.need #CONTAINER-1 type="container" status="draft" technology="Python" part-of="SYS-1" deployed-on="DEPLOY-1" interacts-with='ACTOR-1 order="2" label="reports progress" technology="stdout"'}
 ## Fixture container
 :::
 
@@ -21,3 +21,5 @@ title: "C4 fixture"
 {{< need-c4 root="SYS-1" level="context" >}}
 
 {{< need-c4 root="DEPLOY-1" level="deployment" >}}
+
+{{< need-c4 root="SYS-1" level="dynamic" >}}

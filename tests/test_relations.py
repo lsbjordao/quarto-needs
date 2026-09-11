@@ -9,14 +9,26 @@ def test_default_catalog_covers_legacy_and_decision_authoring_names() -> None:
         "conflicts-with", "constrains", "decomposes", "depends-on",
         "deployed-on", "deploys",
         "derived-from", "derives-from", "evidenced-by", "evidences",
-        "implemented-by", "implements", "justified-by", "mitigates",
+        "implemented-by", "implements", "interacts-with", "justified-by",
+        "mitigates",
         "part-of",
         "references", "refines", "validated-by", "verified-by", "verifies",
         "addresses", "addressed-by", "applies-to", "confirmed-by", "confirms",
         "supersedes", "superseded-by",
     }
     assert set(DEFAULT_RELATION_CATALOG.names) == expected
-    assert DEFAULT_RELATION_CATALOG.version == "5"
+    assert DEFAULT_RELATION_CATALOG.version == "6"
+
+
+def test_interaction_relation_carries_the_dynamic_view_semantics() -> None:
+    interaction = DEFAULT_RELATION_CATALOG.resolve("interacts-with")
+
+    assert interaction.semantic_family == "interaction"
+    assert interaction.source_role == "initiator"
+    assert interaction.target_role == "participant"
+    assert interaction.direct_label == "Interacts with"
+    assert interaction.inverse_label == "Interacted with by"
+    assert DEFAULT_RELATION_CATALOG.inverse_v1_name("interacts-with") is None
 
 
 def test_deployment_relations_are_an_inverse_pair() -> None:

@@ -48,7 +48,7 @@ CONTAINMENT_ROLES = (
     C4ElementRole.CODE,
 )
 
-LEVELS = ("system-context", "container", "component", "code", "deployment")
+LEVELS = ("system-context", "container", "component", "code", "deployment", "dynamic")
 
 # `context` was this project's own spelling before the spec settled on
 # `system-context`; it stays accepted everywhere so existing documents and
@@ -112,6 +112,7 @@ class C4Relationship:
     relation_type: str
     description: str | None = None
     technology: str | None = None
+    order: int | None = None
     tags: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, object]:
@@ -122,6 +123,7 @@ class C4Relationship:
             "relationType": self.relation_type,
             "description": self.description,
             "technology": self.technology,
+            "order": self.order,
             "tags": list(self.tags),
         }
 

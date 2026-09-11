@@ -19,7 +19,7 @@ end
 
 local views = dofile(script_dir() .. "views.lua")
 
-local VALID_LEVELS = {context = true, container = true, component = true, code = true, deployment = true}
+local VALID_LEVELS = {context = true, container = true, component = true, code = true, deployment = true, dynamic = true}
 local MERMAID_BACKEND = "mermaid"
 
 -- Structurizr, PlantUML and D2 are optional local renderers. Pandoc represents
@@ -66,8 +66,8 @@ function M.render_shortcode(args, kwargs)
   end
   if not VALID_LEVELS[level] then
     return views.warning(views.tr(
-      "need-c4 level must be one of context, container, component, code, deployment.",
-      "need-c4 level deve ser context, container, component, code ou deployment."
+      "need-c4 level must be one of context, container, component, code, deployment, dynamic.",
+      "need-c4 level deve ser context, container, component, code, deployment ou dynamic."
     ))
   end
 

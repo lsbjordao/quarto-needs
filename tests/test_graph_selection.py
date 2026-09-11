@@ -337,6 +337,7 @@ def test_default_allowlist_is_the_catalogs_public_relations() -> None:
         "evidences",
         "implemented-by",
         "implements",
+        "interacts-with",
         "justified-by",
         "mitigates",
         "part-of",

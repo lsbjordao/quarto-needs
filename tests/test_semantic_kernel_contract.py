@@ -207,7 +207,7 @@ def test_public_projection_dataclasses_expose_exactly_the_allowlists() -> None:
     )
     edge = graph_projection.PublicEdge(
         source="A", target="B", relation="r", label="L", change="added", path_member=True,
-        technology="grpc",
+        technology="grpc", order=1,
     )
     assert set(node.to_dict()) == set(graph_projection.PUBLIC_NODE_FIELDS)
     assert set(edge.to_dict()) == set(graph_projection.PUBLIC_EDGE_FIELDS)

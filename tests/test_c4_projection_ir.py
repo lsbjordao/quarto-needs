@@ -270,3 +270,43 @@ def test_deployment_view_scopes_a_node_and_includes_deployed_artifacts() -> None
     assert container is not None
     assert container.parent_id == "DEPLOY-1"
     assert available_scopes(snapshot, "deployment") == ("DEPLOY-1",)
+
+
+def test_dynamic_view_orders_interactions_and_includes_their_participants() -> None:
+    snapshot = _snapshot(
+        _obj("SYS-1", type="system"),
+        _obj(
+            "CONTAINER-A", type="container",
+            relations=[
+                Relation("part-of", "CONTAINER-A", "SYS-1"),
+                Relation(
+                    "interacts-with", "CONTAINER-A", "CONTAINER-B",
+                    attributes={"order": "2", "label": "writes the graph"},
+                ),
+            ],
+        ),
+        _obj(
+            "CONTAINER-B", type="container",
+            relations=[Relation("part-of", "CONTAINER-B", "SYS-1")],
+        ),
+        _obj(
+            "ACTOR-1", type="actor",
+            relations=[
+                Relation(
+                    "interacts-with", "ACTOR-1", "CONTAINER-A",
+                    attributes={"order": "1", "label": "runs quarto render"},
+                )
+            ],
+        ),
+    )
+
+    view = project_c4(snapshot, level="dynamic", scope_id="SYS-1")
+
+    assert view.level == "dynamic"
+    assert _ids(view) == ["ACTOR-1", "CONTAINER-A", "CONTAINER-B", "SYS-1"]
+    assert [(item.source_id, item.order) for item in view.relationships] == [
+        ("ACTOR-1", 1),
+        ("CONTAINER-A", 2),
+    ]
+    assert view.relationships[0].description == "runs quarto render"
+    assert available_scopes(snapshot, "dynamic") == ("SYS-1",)
