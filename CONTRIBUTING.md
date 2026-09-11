@@ -68,6 +68,11 @@ make check-self-example  # validate the regenerated example graph
 make render-self-example # render the self-hosted example to HTML
 ```
 
+The reproducibility suite perturbs collation, which needs a locale that sorts
+differently from `C` (`sudo locale-gen pt_BR.UTF-8`). It is optional: without
+one those tests skip and name what to install. CI sets
+`QUARTO_NEEDS_REQUIRE_COLLATION=1`, which turns that skip back into a failure.
+
 The `quality` CI job generates JSON, CSV, SARIF, JUnit, Markdown, and quality
 report artifacts from the self-hosted example (`examples/quarto-needs`). Its
 artifact upload uses `if: always()`: a policy failure still leaves the diagnostic

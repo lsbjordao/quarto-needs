@@ -215,3 +215,27 @@ def test_reproducibility_matrix_has_a_blocking_aggregate():
     assert any('locale-gen pt_BR.UTF-8' in str(step.get('run', '')) for step in steps)
     assert any('tools/reproducibility.py matrix' in str(step.get('run', '')) for step in steps)
     assert any('tools/reproducibility.py compare' in str(step.get('run', '')) for step in aggregate['steps'])
+
+
+def test_ci_requires_the_collation_locale_the_suite_may_otherwise_skip():
+    """`pytest -q` skips the collation axis when no locale is installed.
+
+    That leniency is for contributors on slim images, not for CI. Without
+    this assertion someone drops the variable, the seven perturbation tests
+    turn green by skipping, and the axis goes silent -- a quieter version of
+    the vacuous pass this project keeps hunting, because a skip is even
+    easier to scroll past than a pass.
+    """
+    core = parsed()["jobs"]["core"]
+    assert core["env"]["QUARTO_NEEDS_REQUIRE_COLLATION"] == "1"
+    run_steps = "\n".join(str(step.get("run", "")) for step in core["steps"])
+    assert "locale-gen pt_BR.UTF-8" in run_steps, (
+        "core requires the locale, so it must provision one rather than "
+        "depend on what the runner image ships"
+    )
+
+    reproducibility = yaml.safe_load(
+        (WORKFLOW.parent / "reproducibility.yml").read_text(encoding="utf-8")
+    )
+    artifacts = reproducibility["jobs"]["artifacts"]
+    assert artifacts["env"]["QUARTO_NEEDS_REQUIRE_COLLATION"] == "1"

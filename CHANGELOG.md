@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Upgrade notes
+
+- **`require-risk-mitigation` now fails on a project with no high or critical risks.** Before, the gate counted zero `REQ013` findings and reported `[PASS]`. It now reports the population it measured: zero high/critical risks is a zero denominator, status `empty`, and an empty population fails unless waived. A project that enabled the gate and carries no high-priority risk therefore turns from green to red on upgrade with no change to its sources.
+
+  This is deliberate and is being kept. `require-risk-mitigation = true` asserts that risk is managed here; a project that has modelled no high-priority risk has not demonstrated that, and "nothing was measured" is not a pass. The asymmetry with coverage scopes is narrower than it looks: both now report *what population they measured*, and both fail on an empty one.
+
+  **If you are affected**, choose deliberately rather than reflexively:
+  - model the risks the project actually carries, and give the high/critical ones a mitigation relation — the outcome the gate exists to produce; or
+  - set `[gates] allow-empty-scopes = true` if the project is genuinely starting empty. Read the caveat below before you do; or
+  - remove `require-risk-mitigation` if the project does not manage risk in this model. An absent gate claims nothing, which is honest; a passing unmeasured gate claims something false.
+
+  Caveat on the waiver: `allow-empty-scopes` is project-wide, not per gate. Setting it to silence the risk gate also waives an empty coverage scope in the same project. `quality --format json` distinguishes the cases (`measurementStatus`) and the CLI prints `[WAIVED]` rather than `[PASS]`, so a waived gate stays visible — but the coarseness is real, and narrowing the waiver to a single gate is not yet possible.
+
 ### Added
 
 - Stability tiers. Every command, export format and integration is now classified as stable, preview or experimental in a single registry (`src/quarto_needs/surface.py`), from which `--help`, the runtime warning, the manual's Stability chapter, the README's contract list and the CHANGELOG's release-surface section are all rendered or verified. The command surface was previously declared in six places kept in sync by hand; tests now fail when any of them diverges. Experimental commands (`variant`, `migrate`, `oslc`) print one line to stderr when invoked, suppressible with `QUARTO_NEEDS_SUPPRESS_EXPERIMENTAL_WARNING=1`; stdout is unchanged. No command's behaviour changed.
