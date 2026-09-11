@@ -97,3 +97,19 @@ def test_relationship_attributes_reach_the_plantuml_relationship() -> None:
     )
     assert '"calls over HTTPS"' in relationship
     assert '"HTTPS/JSON"' in relationship
+
+
+def test_deployment_diagram_uses_the_plantuml_deployment_stdlib() -> None:
+    snapshot = _snapshot(
+        _obj("DEPLOY-1", type="deployment-node", title="Production"),
+        _obj(
+            "CONTAINER-1", type="container", title="Python package",
+            attributes={"technology": "Python 3.12"},
+            relations=[Relation("deployed-on", "CONTAINER-1", "DEPLOY-1")],
+        ),
+    )
+    projection = build_c4_view(snapshot, focus_id="DEPLOY-1", level="deployment")
+    source = c4_plantuml_source(projection, focus_id="DEPLOY-1", level="deployment")
+    assert "!include <C4/C4_Deployment>" in source
+    boundary_block = source.split("Deployment_Node(", 1)[1].split("}", 1)[0]
+    assert "Container(" in boundary_block

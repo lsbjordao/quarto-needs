@@ -95,3 +95,18 @@ def test_relationship_technology_is_folded_into_the_d2_edge_label() -> None:
         line for line in source.splitlines() if " -> " in line and "calls over HTTPS" in line
     )
     assert "HTTPS/JSON" in relationship
+
+
+def test_deployment_view_nests_deployed_members_under_the_focus_package() -> None:
+    snapshot = _snapshot(
+        _obj("DEPLOY-1", type="deployment-node", title="Production"),
+        _obj(
+            "CONTAINER-1", type="container", title="Python package",
+            attributes={"technology": "Python 3.12"},
+            relations=[Relation("deployed-on", "CONTAINER-1", "DEPLOY-1")],
+        ),
+    )
+    projection = build_c4_view(snapshot, focus_id="DEPLOY-1", level="deployment")
+    source = c4_d2_source(projection, focus_id="DEPLOY-1", level="deployment")
+    assert "shape: package" in source
+    assert "CONTAINER_1" in source

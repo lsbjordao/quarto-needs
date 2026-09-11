@@ -83,6 +83,10 @@ These prefixes are conventions, not reserved names. Configure them to fit the pr
 - `confirmed-by` / `confirms`
 - `supersedes` / `superseded-by`
 
+### Deployment
+
+- `deployed-on` / `deploys`
+
 ## Traceability patterns
 
 ### Requirement to evidence

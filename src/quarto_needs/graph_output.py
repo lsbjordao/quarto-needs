@@ -482,13 +482,15 @@ def write_graph_overlays(
 
 
 def write_c4_projections(root: Path, snapshot: AnalysisSnapshot) -> None:
-    """Pre-render every system's Context/Container view and every
-    container's Component view (plus each component's Code-level table).
+    """Pre-render every system's Context/Container view, every
+    container's Component view, every deployment node's Deployment view and
+    each component's Code-level table.
 
     Unlike named-query views, C4 views need no project configuration: the
     full set is derived directly from which objects exist as `system`/
-    `container`/`component` types, so there is nothing for a project to
-    declare and nothing that can drift out of sync with the graph.
+    `container`/`component`/`deployment-node` types, so there is nothing for
+    a project to declare and nothing that can drift out of sync with the
+    graph.
     """
     from .c4_d2 import c4_d2_source
     from .c4_plantuml import c4_plantuml_source
@@ -542,6 +544,14 @@ def write_c4_projections(root: Path, snapshot: AnalysisSnapshot) -> None:
             except (C4ViewError, GraphLimitExceeded):
                 continue
             _write_diagram_view(f"c4-component-{record.id}", "component", projection, record.id)
+        elif record.type == "deployment-node":
+            try:
+                projection = build_c4_view(snapshot, focus_id=record.id, level="deployment")
+            except (C4ViewError, GraphLimitExceeded):
+                continue
+            _write_diagram_view(
+                f"c4-deployment-{record.id}", "deployment", projection, record.id
+            )
         elif record.type == "component":
             table = c4_code_table_markdown(snapshot, focus_id=record.id)
             _write(f"c4-code-{record.id}", "table", table)

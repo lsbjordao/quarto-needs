@@ -10,4 +10,14 @@ title: "C4 fixture"
 ## Fixture actor
 :::
 
+::: {.need #CONTAINER-1 type="container" status="draft" technology="Python" part-of="SYS-1" deployed-on="DEPLOY-1"}
+## Fixture container
+:::
+
+::: {.need #DEPLOY-1 type="deployment-node" status="draft"}
+## Fixture workstation
+:::
+
 {{< need-c4 root="SYS-1" level="context" >}}
+
+{{< need-c4 root="DEPLOY-1" level="deployment" >}}

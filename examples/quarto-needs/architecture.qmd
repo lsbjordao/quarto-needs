@@ -30,16 +30,24 @@ An external OSLC Requirements Management provider Quarto-Needs federates from as
 
 ## Containers
 
-::: {.need #CONTAINER-PYTHON-PKG type="container" status="approved" tags="architecture;c4" technology="Python 3.12" part-of="SYS-QUARTO-NEEDS"}
+::: {.need #CONTAINER-PYTHON-PKG type="container" status="approved" tags="architecture;c4" technology="Python 3.12" part-of="SYS-QUARTO-NEEDS" deployed-on="DEPLOY-LOCAL"}
 ## Python package
 
 The installable `quarto-needs` library and CLI: parsing, analysis, governance rules, graph projection, baselines, and localization checks.
 :::
 
-::: {.need #CONTAINER-QUARTO-EXT type="container" status="approved" tags="architecture;c4" technology="Quarto/Pandoc Lua filters" part-of="SYS-QUARTO-NEEDS"}
+::: {.need #CONTAINER-QUARTO-EXT type="container" status="approved" tags="architecture;c4" technology="Quarto/Pandoc Lua filters" part-of="SYS-QUARTO-NEEDS" deployed-on="DEPLOY-LOCAL"}
 ## Quarto presentation extension
 
 The `_extensions/quarto-needs/` bundle: build-time Lua filters and the browser-side JavaScript they ship, together as one installed Quarto extension.
+:::
+
+## Deployment
+
+::: {.need #DEPLOY-LOCAL type="deployment-node" status="approved" tags="architecture;c4;deployment" environment="developer workstation"}
+## Developer workstation
+
+The machine that runs Quarto, provisions the managed Python runtime, and installs the extension while authoring and rendering. Both containers are deployed on this node.
 :::
 
 ## Components
@@ -528,6 +536,8 @@ The book records {{< need-count types="architecture-decision" >}} architecture d
 {{< need-c4 root="SYS-QUARTO-NEEDS" level="container" >}}
 
 {{< need-c4 root="CONTAINER-PYTHON-PKG" level="component" >}}
+
+{{< need-c4 root="DEPLOY-LOCAL" level="deployment" >}}
 
 ## Additional C4 diagram backends
 

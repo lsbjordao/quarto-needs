@@ -20,13 +20,19 @@ _MACRO_BY_TYPE = {
     "system": "System",
     "container": "Container",
     "component": "Component",
+    "deployment-node": "Deployment_Node",
 }
 _DIAGRAM_TYPE = {
     "context": "C4Context",
     "container": "C4Container",
     "component": "C4Component",
+    "deployment": "C4Deployment",
 }
-_BOUNDARY_MACRO = {"container": "System_Boundary", "component": "Container_Boundary"}
+_BOUNDARY_MACRO = {
+    "container": "System_Boundary",
+    "component": "Container_Boundary",
+    "deployment": "Deployment_Node",
+}
 
 
 def _ref(identifier: str) -> str:
@@ -59,6 +65,13 @@ def _is_child_edge(edge: PublicEdge, *, focus_id: str, child_id: str) -> bool:
     if edge.relation == "part-of":
         return edge.source == child_id and edge.target == focus_id
     if edge.relation == "decomposes":
+        return edge.source == focus_id and edge.target == child_id
+    # Deployment membership: an artifact deployed on the focus (deployed-on
+    # runs artifact -> node) or a node that deploys the focus (deploys runs
+    # node -> artifact) is a child of the focus boundary.
+    if edge.relation == "deployed-on":
+        return edge.source == child_id and edge.target == focus_id
+    if edge.relation == "deploys":
         return edge.source == focus_id and edge.target == child_id
     return False
 

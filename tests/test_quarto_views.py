@@ -731,6 +731,28 @@ def test_need_c4_renders_a_context_diagram(tmp_path: Path):
 
 
 @pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
+def test_need_c4_renders_a_deployment_diagram(tmp_path: Path):
+    """The deployment level renders a real C4Deployment boundary, not source."""
+    project = build_c4_fixture_project(tmp_path)
+    assert (
+        project / ".quarto-needs" / "graphs" / "c4-deployment-DEPLOY-1.json"
+    ).is_file()
+    subprocess.run(
+        ["quarto", "render", str(project)],
+        cwd=ROOT,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    html = (project / "_site" / "index.html").read_text(encoding="utf-8")
+
+    assert html.count("need-c4-figure") >= 2
+    assert "C4Deployment" not in html
+    assert "Fixture workstation" in html
+    assert "Fixture container" in html
+
+
+@pytest.mark.skipif(shutil.which("quarto") is None, reason="Quarto is not installed")
 def test_need_c4_renders_a_structurizr_diagram(tmp_path: Path):
     """The backend kwarg selects a sibling Structurizr source and renders it."""
     project = build_c4_fixture_project(tmp_path)

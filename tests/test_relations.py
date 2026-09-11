@@ -7,6 +7,7 @@ from quarto_needs.relations import DEFAULT_RELATION_CATALOG
 def test_default_catalog_covers_legacy_and_decision_authoring_names() -> None:
     expected = {
         "conflicts-with", "constrains", "decomposes", "depends-on",
+        "deployed-on", "deploys",
         "derived-from", "derives-from", "evidenced-by", "evidences",
         "implemented-by", "implements", "justified-by", "mitigates",
         "part-of",
@@ -15,7 +16,22 @@ def test_default_catalog_covers_legacy_and_decision_authoring_names() -> None:
         "supersedes", "superseded-by",
     }
     assert set(DEFAULT_RELATION_CATALOG.names) == expected
-    assert DEFAULT_RELATION_CATALOG.version == "4"
+    assert DEFAULT_RELATION_CATALOG.version == "5"
+
+
+def test_deployment_relations_are_an_inverse_pair() -> None:
+    deployed = DEFAULT_RELATION_CATALOG.resolve("deployed-on")
+    deploys = DEFAULT_RELATION_CATALOG.resolve("deploys")
+
+    assert deployed.semantic_family == deploys.semantic_family == "deployment"
+    assert deployed.source_role == "artifact"
+    assert deployed.target_role == "deployment-node"
+    assert deployed.direct_label == "Deployed on"
+    assert deployed.inverse_label == "Deploys"
+    assert deploys.source_role == "deployment-node"
+    assert deploys.target_role == "artifact"
+    assert DEFAULT_RELATION_CATALOG.inverse_v1_name("deployed-on") == "deploys"
+    assert DEFAULT_RELATION_CATALOG.inverse_v1_name("deploys") == "deployed-on"
 
 
 def test_inverse_authoring_forms_share_semantic_families_and_swap_roles() -> None:

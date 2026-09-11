@@ -23,12 +23,14 @@ _LEVEL_FOCUS_TYPE: Mapping[str, str] = {
     "context": "system",
     "container": "system",
     "component": "container",
+    "deployment": "deployment-node",
 }
 
 _LEVEL_RELATIONS: Mapping[str, tuple[str, ...]] = {
     "context": ("depends-on",),
     "container": ("part-of", "decomposes", "depends-on"),
     "component": ("part-of", "decomposes", "depends-on"),
+    "deployment": ("part-of", "decomposes", "deployed-on", "deploys", "depends-on"),
 }
 
 

@@ -23,6 +23,7 @@ _ELEMENT_KEYWORD = {
     "system": "softwareSystem",
     "container": "container",
     "component": "component",
+    "deployment-node": "deploymentNode",
 }
 _VIEW_KEYWORD = {"context": "systemContext", "container": "container", "component": "component"}
 _INVALID = re.compile(r"[^A-Za-z0-9_]")
@@ -50,6 +51,10 @@ def _is_child_edge(edge: PublicEdge, *, focus_id: str, child_id: str) -> bool:
         return edge.source == child_id and edge.target == focus_id
     if edge.relation == "decomposes":
         return edge.source == focus_id and edge.target == child_id
+    if edge.relation == "deployed-on":
+        return edge.source == child_id and edge.target == focus_id
+    if edge.relation == "deploys":
+        return edge.source == focus_id and edge.target == child_id
     return False
 
 
@@ -63,6 +68,64 @@ def _element_line(node: PublicNode, *, indent: str) -> str:
     return f'{indent}{variable} = {keyword} {" ".join(parts)}{tags}'
 
 
+def _deployment_element_line(node: PublicNode, *, indent: str) -> str:
+    """A deployed artifact as a deployment node.
+
+    Structurizr's `containerInstance` needs the referenced container defined
+    elsewhere in the same workspace, and a deployment view's projection does
+    not carry the container's owning system. The runtime a container occupies
+    is itself a deployment node in Structurizr's vocabulary, so the deployed
+    artifact is emitted that way, with its technology.
+    """
+    parts = [f'"{_escape(node.title)}"']
+    if node.technology:
+        parts.append(f'"{_escape(node.technology)}"')
+    return f'{indent}{_sanitize(node.id)} = deploymentNode {" ".join(parts)}'
+
+
+def _deployment_source(
+    *,
+    focus: PublicNode,
+    focus_variable: str,
+    children: list[PublicNode],
+    depends_on_edges: list[PublicEdge],
+) -> str:
+    environment = _escape(focus.title)
+    focus_parts = [f'"{environment}"']
+    if focus.technology:
+        focus_parts.append(f'"{_escape(focus.technology)}"')
+    child_ids = {node.id for node in children}
+    lines = [
+        "workspace {",
+        "  model {",
+        f'    deploymentEnvironment "{environment}" {{',
+        f'      {focus_variable} = deploymentNode {" ".join(focus_parts)} {{',
+    ]
+    for node in children:
+        lines.append(_deployment_element_line(node, indent="        "))
+    for edge in depends_on_edges:
+        if edge.source not in child_ids or edge.target not in child_ids:
+            continue
+        technology = f' "{_escape(edge.technology)}"' if edge.technology else ""
+        lines.append(
+            f'        {_sanitize(edge.source)} -> {_sanitize(edge.target)} '
+            f'"{_escape(edge.label)}"{technology}'
+        )
+    lines.extend([
+        "      }",
+        "    }",
+        "  }",
+        "  views {",
+        f'    deployment * "{environment}" {{',
+        "      include *",
+        "      autoLayout",
+        "    }",
+        "  }",
+        "}",
+    ])
+    return "\n".join(lines) + "\n"
+
+
 def c4_structurizr_source(projection: GraphProjection, *, focus_id: str, level: str) -> str:
     """Deterministic Structurizr DSL source for one focus node's view.
 
@@ -70,7 +133,6 @@ def c4_structurizr_source(projection: GraphProjection, *, focus_id: str, level: 
     renders of an equivalent projection are byte-identical (same guarantee
     c4_mermaid_source makes).
     """
-    view_keyword = _VIEW_KEYWORD[level]
     focus = next(node for node in projection.nodes if node.id == focus_id)
     children = [
         node
@@ -85,6 +147,14 @@ def c4_structurizr_source(projection: GraphProjection, *, focus_id: str, level: 
     depends_on_edges = [edge for edge in projection.edges if edge.relation == "depends-on"]
 
     focus_variable = _sanitize(focus.id)
+    if level == "deployment":
+        return _deployment_source(
+            focus=focus,
+            focus_variable=focus_variable,
+            children=children,
+            depends_on_edges=depends_on_edges,
+        )
+    view_keyword = _VIEW_KEYWORD[level]
     lines = ["workspace {", "  model {"]
     for node in others:
         lines.append(_element_line(node, indent="    "))

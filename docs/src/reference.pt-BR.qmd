@@ -84,6 +84,10 @@ Esses prefixos são convenções, não nomes reservados. Configure-os conforme o
 - `confirmed-by` / `confirms`
 - `supersedes` / `superseded-by`
 
+### Deployment
+
+- `deployed-on` / `deploys`
+
 ## Padrões de rastreabilidade
 
 ### Requirement to evidence

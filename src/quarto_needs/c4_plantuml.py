@@ -21,13 +21,19 @@ _MACRO_BY_TYPE = {
     "system": "System",
     "container": "Container",
     "component": "Component",
+    "deployment-node": "Deployment_Node",
 }
 _INCLUDE_BY_LEVEL = {
     "context": "C4_Context",
     "container": "C4_Container",
     "component": "C4_Component",
+    "deployment": "C4_Deployment",
 }
-_BOUNDARY_MACRO = {"container": "System_Boundary", "component": "Container_Boundary"}
+_BOUNDARY_MACRO = {
+    "container": "System_Boundary",
+    "component": "Container_Boundary",
+    "deployment": "Deployment_Node",
+}
 
 
 def _ref(identifier: str) -> str:
@@ -54,6 +60,10 @@ def _is_child_edge(edge: PublicEdge, *, focus_id: str, child_id: str) -> bool:
     if edge.relation == "part-of":
         return edge.source == child_id and edge.target == focus_id
     if edge.relation == "decomposes":
+        return edge.source == focus_id and edge.target == child_id
+    if edge.relation == "deployed-on":
+        return edge.source == child_id and edge.target == focus_id
+    if edge.relation == "deploys":
         return edge.source == focus_id and edge.target == child_id
     return False
 
