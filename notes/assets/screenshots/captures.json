@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "1",
+  "sourceGraphSha256": "fec54489ec2a6f6bf0eb0ee86e63e45d6f48e0779bd0686d8b2eccb8772eb7ba",
+  "captures": [
+    {
+      "image": "dashboard.png",
+      "page": "examples/quarto-needs/_book/verification.html",
+      "selector": "#verification-dashboard",
+      "cropHeight": 370,
+      "cropWidth": null
+    },
+    {
+      "image": "matrix.png",
+      "page": "examples/quarto-needs/_book/traceability.html",
+      "selector": "#verification-matrix",
+      "cropHeight": 400,
+      "cropWidth": 900
+    },
+    {
+      "image": "card.png",
+      "page": "examples/quarto-needs/_book/requirements.html",
+      "selector": "#FUN-005",
+      "cropHeight": null,
+      "cropWidth": null
+    },
+    {
+      "image": "minimal.png",
+      "page": "build/readme-demo/index.html",
+      "selector": "main",
+      "cropHeight": null,
+      "cropWidth": null
+    }
+  ]
+}

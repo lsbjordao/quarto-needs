@@ -1,25 +1,56 @@
 <p align="center">
-  <img src="notes/assets/branding/quarto-needs-logo.svg" alt="Quarto-Needs" width="900">
+  <img src="notes/assets/branding/quarto-needs-logo.svg" alt="Quarto-Needs" width="760">
 </p>
 
-<p align="center">
-  <strong>Requirements as Code · Architecture Decisions · Verification · Evidence · Change Intelligence · Interoperability</strong>
-</p>
+Write requirements, architecture decisions, tests and evidence in your Quarto documents. **Quarto-Needs helps engineering teams check coverage, explain change impact and fail CI gates**, using Quarto's native HTML, PDF and DOCX publishing.
 
 <p align="center">
+  <a href="https://github.com/lsbjordao/quarto-needs/actions/workflows/ci.yml"><img src="https://github.com/lsbjordao/quarto-needs/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
+  <a href="https://pypi.org/project/quarto-needs/"><img src="https://img.shields.io/pypi/v/quarto-needs" alt="PyPI version"></a>
+  <img src="https://img.shields.io/pypi/pyversions/quarto-needs" alt="Supported Python versions">
   <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT">
-  <img src="https://img.shields.io/badge/python-3.10%2B-blue.svg" alt="Python 3.10+">
-  <img src="https://img.shields.io/badge/quarto-1.6%2B-75AADB.svg" alt="Quarto 1.6+">
-  <img src="https://img.shields.io/badge/status-pre--1.0-orange.svg" alt="Status: pre-1.0">
 </p>
 
-# Quarto-Needs
+[![Coverage dashboard rendered from the self-hosted case study](notes/assets/screenshots/dashboard.png)](https://lsbjordao.github.io/quarto-needs/examples/quarto-needs/verification.html#verification-dashboard)
+[![Requirement-to-test matrix excerpt rendered from the same case study](notes/assets/screenshots/matrix.png)](https://lsbjordao.github.io/quarto-needs/examples/quarto-needs/traceability.html#verification-matrix)
 
-Quarto-Needs is a **requirements-as-code and engineering-traceability engine for Quarto**. Engineering objects authored in `.qmd` files become a deterministic typed property graph that drives validation, governance, coverage, change impact, CI artifacts, editor tooling, interchange formats, and Quarto documentation.
+**From source to a requirement card and a traceability row:**
 
-> **Status:** pre-1.0 and under active development. The Python core is the semantic authority; Quarto is the executable documentation interface. Rendering, editor, CI, and interoperability layers consume projections of the same canonical model rather than redefining engineering semantics.
+```markdown
+::: {.need #REQ-1 type=functional-requirement status=approved priority=high verified-by=TC-1}
+## Authenticate before granting access
+The system shall authenticate users before granting access.
 
-📖 **[Manual](https://lsbjordao.github.io/quarto-needs/)** · 🧪 **[Live case study](https://lsbjordao.github.io/quarto-needs/examples/quarto-needs/)** · 🚀 **[Quickstart](notes/quickstart.md)** · 📋 **[Changelog](CHANGELOG.md)** · 🤝 **[Contributing](CONTRIBUTING.md)**
+### Rationale
+Protect private data.
+:::
+
+::: {.need #TC-1 type=test-case status=passed}
+## Login test
+A valid login establishes an authenticated session.
+:::
+
+See {{< need REQ-1 >}}.
+
+{{< need-matrix rows="functional-requirement" columns="test-case" relation="verified-by" >}}
+```
+
+![The example above rendered as requirement and test cards, a reference, and a matrix row](notes/assets/screenshots/minimal.png)
+
+With [Quarto 1.6+](https://quarto.org/docs/get-started/) and an activated Python 3.10+ virtual environment, run these in an empty directory:
+
+```bash
+quarto use template lsbjordao/quarto-needs/templates/starter
+quarto render
+pip install quarto-needs
+```
+
+The self-hosted case study contains **187 objects**: `check` reports **0 errors, 0 warnings**, and `quality` in the **strict** profile passes **all seven gates**, with 100% implementation, verification and evidence coverage for its 38 approved requirements.
+
+[Manual](https://lsbjordao.github.io/quarto-needs/) · [Live case study](https://lsbjordao.github.io/quarto-needs/examples/quarto-needs/) · [Quickstart](notes/quickstart.md) · [Changelog](CHANGELOG.md)
+
+<details>
+<summary>Engineering questions and long-term direction</summary>
 
 ## North star
 
@@ -37,6 +68,8 @@ A mature project should be able to answer from one model:
 - which governance policies fail;
 - how the model can be safely navigated/refactored in an editor;
 - how requirements can be exchanged or federated without surrendering canonical identity and provenance.
+
+</details>
 
 ## Architecture
 
@@ -63,27 +96,15 @@ QMD / configuration / code / tests / evidence / editor buffers
 
 The defining constraint is simple: **one canonical engineering graph, many projections**.
 
-## Current capabilities
+## What you can do
 
-- configurable typed engineering objects, prefixes, roles, lifecycles, required attributes, and per-type JSON Schemas;
-- canonical direct/inverse relation catalog with semantic families, endpoint roles, impact direction, and traversal direction;
-- requirements, risks, tests, evidence, architecture elements, and first-class Architecture Decision Records;
-- deterministic snapshots and semantic/configuration/representation fingerprints;
-- built-in governance rules, bounded declarative policies, graph constraints, named queries, coverage metrics, and quality gates;
-- safe derived values and deterministic build variants without creating alternate semantic graphs;
-- baselines, semantic diff, relocation detection, explainable union-graph impact analysis, suspect state, and Git-native PR reports;
-- GitHub-compatible summaries/annotations, JSON, CSV, SARIF, JUnit, Markdown, ReqIF 1.2, and JSON-LD projections;
-- executable pytest bindings, provider-neutral machine checks, evidence attestations, digest/freshness/provenance validation, and reciprocal model↔test verification;
-- Quarto cards, cross-references, tables, matrices, dashboards, inspectors, Mermaid flows, C4 projections, and bounded graph views;
-- progressive Cytoscape exploration over the published semantic projection;
-- bilingual English / Brazilian Portuguese presentation with semantic-parity enforcement;
-- dependency-free LSP stdio server with diagnostics, completion, hover, definitions/references, symbols, unsaved-buffer overlays, and relation-aware rename;
-- thin multi-root VS Code client delegating language intelligence to the Python LSP;
-- ReqIF 1.2 interchange and deterministic JSON-LD 1.1 projection;
-- read-only OSLC RM federation with deterministic cache provenance, bounded HTTP GET, network-free RDF normalization, RM service discovery, Resource Shape orchestration, reconciliation, and import planning;
-- a read-only GitHub Issues adapter in the Python engine, with provenance, bounded retrieval, conditional caching, reconciliation, and reviewed apply primitives; the public CLI remains intentionally narrower than the internal adapter surface;
-- conservative migration adapters for Sphinx-Needs, Doorstop, StrictDoc, and OpenFastTrace;
-- a self-hosted engineering case study in `examples/quarto-needs/` that models Quarto-Needs with Quarto-Needs.
+- Author requirements, decisions, tests and evidence alongside engineering explanations.
+- Check typed links, required fields, approval policies and traceability coverage.
+- Enforce quality gates in CI and export JSON, CSV, SARIF, JUnit or Markdown reports.
+- Capture baselines, explain change impact and identify verification claims to review.
+- Validate test evidence with digests, provenance and freshness checks.
+- Publish cards, tables, matrices, dashboards and navigable graphs through Quarto.
+- Use LSP editor support and exchange ReqIF or JSON-LD; see the [release support contract](#release-011-support-contract) for experimental integrations.
 
 ## Repository layout
 

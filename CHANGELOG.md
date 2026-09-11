@@ -25,6 +25,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - A subprocess perturbation harness (`tools/reproducibility.py`) and a required `reproducibility` workflow verify that analysis artifacts and the three fingerprints are byte-identical across hash seeds, time zones, collation locales, working directories, `--root` argument forms, source discovery order, Python 3.10 through 3.14, and Ubuntu, macOS and Windows. Determinism was previously asserted by design principle and exercised only indirectly.
 
+### Changed
+
+- README opens with real coverage and traceability screenshots, an executable authoring example, tested quickstart commands and dynamic CI/PyPI badges; capabilities are summarized after the demonstration.
+- `tools/capture-screenshots.py` renders the self-hosted case study and the README example, serves them locally and captures their actual browser output with an isolated Playwright toolchain.
+
 ### Fixed
 
 - Percentage gates passed when their scope was misspelled or matched no requirements because missing scopes passed outright and 0/0 coverage is 100.0. Unknown scopes now fail configuration loading; empty measurements fail unless explicitly waived with `allow-empty-scopes`, and reports distinguish them from measured passes. Risk mitigation also checks that its high/critical-risk population was measured; missing measurements cannot be waived.
