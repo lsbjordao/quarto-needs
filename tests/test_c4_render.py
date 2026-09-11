@@ -286,3 +286,21 @@ def test_relationship_attributes_reach_the_mermaid_relationship() -> None:
     )
     assert "calls over HTTPS" in relationship
     assert "HTTPS/JSON" in relationship
+
+
+def test_deployment_diagram_wraps_deployed_members_in_a_deployment_node() -> None:
+    snapshot = _snapshot(
+        _obj("DEPLOY-1", type="deployment-node", title="Production"),
+        _obj(
+            "CONTAINER-1", type="container", title="Python package",
+            attributes={"technology": "Python 3.12"},
+            relations=[Relation("deployed-on", "CONTAINER-1", "DEPLOY-1")],
+        ),
+    )
+    projection = build_c4_view(snapshot, focus_id="DEPLOY-1", level="deployment")
+    source = c4_mermaid_source(projection, focus_id="DEPLOY-1", level="deployment")
+    assert source.splitlines()[0] == "C4Deployment"
+    assert "Deployment_Node(" in source
+    boundary_block = source.split("Deployment_Node(", 1)[1].split("}", 1)[0]
+    assert "Container(" in boundary_block
+    assert "Python 3.12" in boundary_block

@@ -62,6 +62,11 @@ role = "architecture-element"
 allowed-statuses = ["draft", "approved", "deprecated"]
 required-attributes = ["technology"]
 
+[types.deployment-node]
+id-prefix = "DEPLOY-"
+role = "architecture-element"
+allowed-statuses = ["draft", "approved", "deprecated"]
+
 [types.source-module]
 id-prefix = "SRC-"
 role = "implementation-artifact"

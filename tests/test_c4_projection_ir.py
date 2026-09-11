@@ -206,7 +206,7 @@ def test_the_legacy_context_level_name_is_accepted() -> None:
 def test_invalid_scope_and_level_raise_c4008() -> None:
     snapshot = _snapshot(_obj("SYS-1", type="system"), _obj("CONTAINER-1", type="container"))
     with pytest.raises(C4ProjectionError, match="unsupported C4 level") as unsupported:
-        project_c4(snapshot, level="deployment", scope_id="SYS-1")
+        project_c4(snapshot, level="codex", scope_id="SYS-1")
     assert unsupported.value.code == "C4008"
     with pytest.raises(C4ProjectionError, match="MISSING"):
         project_c4(snapshot, level="system-context", scope_id="MISSING")
@@ -216,6 +216,8 @@ def test_invalid_scope_and_level_raise_c4008() -> None:
         project_c4(snapshot, level="component", scope_id="SYS-1")
     with pytest.raises(C4ProjectionError, match="requires a 'component' scope"):
         project_c4(snapshot, level="code", scope_id="SYS-1")
+    with pytest.raises(C4ProjectionError, match="requires a 'deployment-node' scope"):
+        project_c4(snapshot, level="deployment", scope_id="SYS-1")
 
 
 def test_available_scopes_enumerates_the_levels_scope_type() -> None:
@@ -249,3 +251,22 @@ def test_relationship_attributes_reach_the_ir() -> None:
     relationship = view.relationships[0]
     assert relationship.description == "calls over HTTPS"
     assert relationship.technology == "HTTPS/JSON"
+
+
+def test_deployment_view_scopes_a_node_and_includes_deployed_artifacts() -> None:
+    snapshot = _snapshot(
+        _obj("DEPLOY-1", type="deployment-node"),
+        _obj(
+            "CONTAINER-1", type="container",
+            relations=[Relation("deployed-on", "CONTAINER-1", "DEPLOY-1")],
+        ),
+    )
+
+    view = project_c4(snapshot, level="deployment", scope_id="DEPLOY-1")
+
+    assert view.level == "deployment"
+    assert _ids(view) == ["CONTAINER-1", "DEPLOY-1"]
+    container = view.element("CONTAINER-1")
+    assert container is not None
+    assert container.parent_id == "DEPLOY-1"
+    assert available_scopes(snapshot, "deployment") == ("DEPLOY-1",)

@@ -77,7 +77,7 @@ class RelationCatalog:
 
 
 DEFAULT_RELATION_CATALOG = RelationCatalog.create(
-    "4",
+    "5",
     (
         RelationKind("derives-from", "derives-from", "derives-from", "derivation", "Derives from", "Source for", "derived", "source", "target_to_source", "target_to_source"),
         RelationKind("derived-from", "derives-from", "derives-from", "derivation", "Derives from", "Source for", "derived", "source", "target_to_source", "target_to_source"),
@@ -85,6 +85,11 @@ DEFAULT_RELATION_CATALOG = RelationCatalog.create(
         RelationKind("decomposes", "decomposes", "decomposes", "decomposition", "Decomposes", "Part of", "whole", "part", "none", "source_to_target"),
         RelationKind("part-of", "part-of", "part-of", "decomposition", "Part of", "Decomposes", "part", "whole", "source_to_target", "source_to_target"),
         RelationKind("depends-on", "depends-on", "depends-on", "dependency", "Depends on", "Depended on by", "dependent", "dependency", "target_to_source", "target_to_source"),
+        # Deployment: a container instance sits on a deployment node. The node
+        # is the dependency, so a change to it impacts everything deployed on
+        # it, exactly like depends-on's direction.
+        RelationKind("deployed-on", "deployed-on", "deployed-on", "deployment", "Deployed on", "Deploys", "artifact", "deployment-node", "target_to_source", "target_to_source"),
+        RelationKind("deploys", "deploys", "deploys", "deployment", "Deploys", "Deployed on", "deployment-node", "artifact", "source_to_target", "source_to_target"),
         RelationKind("conflicts-with", "conflicts-with", "conflicts-with", "conflict", "Conflicts with", "Conflicts with", "subject", "subject", "both", "none"),
         RelationKind("constrains", "constrains", "constrains", "constraint", "Constrains", "Constrained by", "constraint", "subject", "none", "source_to_target"),
         RelationKind("implements", "implements", "implements", "implementation", "Implements", "Implemented by", "implementation-artifact", "requirement", "target_to_source", "target_to_source"),
@@ -120,6 +125,7 @@ TRAVERSAL_PROFILES: Mapping[str, tuple[str, ...]] = MappingProxyType(
         "architecture": (
             "decision-addressing",
             "decision-scope",
+            "deployment",
             "implementation",
             "constraint",
             "dependency",

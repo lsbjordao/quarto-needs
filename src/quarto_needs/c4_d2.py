@@ -23,6 +23,7 @@ _SHAPE_BY_TYPE = {
     "system": "rectangle",
     "container": "rectangle",
     "component": "rectangle",
+    "deployment-node": "package",
 }
 _INVALID = re.compile(r"[^A-Za-z0-9_]")
 
@@ -48,6 +49,10 @@ def _is_child_edge(edge: PublicEdge, *, focus_id: str, child_id: str) -> bool:
     if edge.relation == "part-of":
         return edge.source == child_id and edge.target == focus_id
     if edge.relation == "decomposes":
+        return edge.source == focus_id and edge.target == child_id
+    if edge.relation == "deployed-on":
+        return edge.source == child_id and edge.target == focus_id
+    if edge.relation == "deploys":
         return edge.source == focus_id and edge.target == child_id
     return False
 

@@ -41,6 +41,7 @@ SCOPE_TYPE_BY_LEVEL: Mapping[str, str] = {
     "container": "system",
     "component": "container",
     "code": "component",
+    "deployment": "deployment-node",
 }
 
 # What a level draws *inside* its boundary. system-context draws nothing
@@ -49,6 +50,7 @@ _CHILD_TYPE_BY_LEVEL: Mapping[str, str] = {
     "container": "container",
     "component": "component",
     "code": "source-module",
+    "deployment": "deployment-node",
 }
 
 _INTERACTION_RELATION = "depends-on"
@@ -163,6 +165,20 @@ def project_c4(
             # incoherent diagram under an advisory profile.
             if child is not None and child.type == child_type:
                 parents[child_id] = scope_id
+
+    if canonical == "deployment":
+        # Deployed artifacts are members of the node's boundary through
+        # deployed-on (artifact -> node) or its inverse authoring, deploys.
+        for relation in snapshot.relations:
+            if relation.v1_name == "deployed-on" and relation.target == scope_id:
+                artifact_id = relation.source
+            elif relation.v1_name == "deploys" and relation.source == scope_id:
+                artifact_id = relation.target
+            else:
+                continue
+            artifact = snapshot.objects_by_id.get(artifact_id)
+            if artifact is not None and artifact.type in C4_ROLE_BY_TYPE:
+                parents.setdefault(artifact_id, scope_id)
 
     for relation in snapshot.relations:
         if relation.v1_name != _INTERACTION_RELATION:

@@ -23,8 +23,8 @@ def _element(identifier: str, role: C4ElementRole, **kwargs) -> C4Element:
 
 def test_every_architecture_object_type_maps_to_exactly_one_role() -> None:
     # The mapping is explicit and canonical -- never inferred from titles,
-    # tags or colours (Spec 45). These six types are the architecture types
-    # the graph already has; nothing else is a C4 element.
+    # tags or colours (Spec 45). These types are the architecture types the
+    # graph already has; nothing else is a C4 element.
     assert C4_ROLE_BY_TYPE == {
         "actor": C4ElementRole.PERSON,
         "external-system": C4ElementRole.EXTERNAL_SYSTEM,
@@ -32,6 +32,7 @@ def test_every_architecture_object_type_maps_to_exactly_one_role() -> None:
         "container": C4ElementRole.CONTAINER,
         "component": C4ElementRole.COMPONENT,
         "source-module": C4ElementRole.CODE,
+        "deployment-node": C4ElementRole.DEPLOYMENT_NODE,
     }
 
 
@@ -46,7 +47,7 @@ def test_containment_roles_are_the_layers_below_the_root() -> None:
 
 
 def test_levels_and_the_legacy_context_alias() -> None:
-    assert LEVELS == ("system-context", "container", "component", "code")
+    assert LEVELS == ("system-context", "container", "component", "code", "deployment")
     # Published, not private: the artifact manifest hands this table to Lua
     # so the shortcode resolves an alias by lookup instead of by a rule of
     # its own (Task 8's index.json, Task 10's reader).
@@ -55,8 +56,9 @@ def test_levels_and_the_legacy_context_alias() -> None:
     assert normalize_level("context") == "system-context"
     assert normalize_level("container") == "container"
     assert normalize_level("code") == "code"
-    assert normalize_level("deployment") is None
+    assert normalize_level("deployment") == "deployment"
     assert normalize_level("") is None
+    assert normalize_level("codex") is None
 
 
 def test_layout_direction_is_renderer_neutral() -> None:

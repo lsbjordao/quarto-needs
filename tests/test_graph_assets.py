@@ -782,3 +782,32 @@ def test_graph_lua_embeds_the_overlay_artifact_when_present() -> None:
     # The sibling file is validated as JSON before being embedded, never
     # interpolated unvalidated:
     assert "pandoc.json.decode" in lua
+
+
+def test_write_c4_projections_writes_one_deployment_view_per_node(tmp_path) -> None:
+    (tmp_path / "arch.qmd").write_text(
+        '::: {.need #DEPLOY-1 type="deployment-node" status="approved"}\n'
+        "## Production\n:::\n\n"
+        '::: {.need #CONTAINER-1 type="container" status="approved" '
+        'technology="Python 3.12" deployed-on="DEPLOY-1"}\n'
+        "## Container\n:::\n",
+        encoding="utf-8",
+    )
+    result = analyze_project(tmp_path)
+    assert result.snapshot is not None
+
+    graph_output.write_c4_projections(tmp_path, result.snapshot)
+
+    graph_dir = tmp_path / ".quarto-needs" / "graphs"
+    mermaid = json.loads((graph_dir / "c4-deployment-DEPLOY-1.json").read_text(encoding="utf-8"))
+    assert mermaid["kind"] == "mermaid"
+    assert mermaid["source"].splitlines()[0] == "C4Deployment"
+    assert "Deployment_Node(" in mermaid["source"]
+    assert "Container(" in mermaid["source"]
+    for backend in ("structurizr", "plantuml", "d2"):
+        payload = json.loads(
+            (graph_dir / f"c4-deployment-DEPLOY-1.{backend}.json").read_text(encoding="utf-8")
+        )
+        assert payload["kind"] == "source"
+        assert payload["language"] == backend
+        assert payload["source"].strip()

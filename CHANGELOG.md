@@ -29,6 +29,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Relation attributes. A relation value may carry inline `name=value` attributes after its targets (`depends-on: CONTAINER-API technology="HTTPS/JSON" label="calls over HTTPS"`); attributes on one value apply to every target on it, and the `-` list form gives targets different attributes. The C4 projections render `label` as the relationship description and `technology` as the relationship technology in Mermaid, PlantUML and Structurizr, with D2 folding it into the edge label, and the public graph projection exposes edge `technology`. A malformed assignment is reported as `QND004` instead of being silently dropped.
 
+- Deployment views. `deployment-node` objects and the `deployed-on`/`deploys` relation extend the C4 projections with a `deployment` level: `need-c4 root="DEPLOY-..." level="deployment"` draws the focus node's boundary with nested deployment nodes and the artifacts deployed on it, from the same bounded selection as every other level. The relation catalog moves to version 5, and the self-hosted case study models its developer workstation with both containers deployed on it.
+
 ### Changed
 
 - README opens with real coverage and traceability screenshots, an executable authoring example, tested quickstart commands and dynamic CI/PyPI badges; capabilities are summarized after the demonstration.

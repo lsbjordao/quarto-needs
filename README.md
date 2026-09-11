@@ -45,7 +45,7 @@ quarto render
 pip install quarto-needs
 ```
 
-The self-hosted case study contains **187 objects**: `check` reports **0 errors, 0 warnings**, and `quality` in the **strict** profile passes **all seven gates**, with 100% implementation, verification and evidence coverage for its 38 approved requirements.
+The self-hosted case study contains **198 objects**: `check` reports **0 errors, 0 warnings**, and `quality` in the **strict** profile passes **all seven gates**, with 100% implementation, verification and evidence coverage for its 41 approved requirements.
 
 [Manual](https://lsbjordao.github.io/quarto-needs/) · [Live case study](https://lsbjordao.github.io/quarto-needs/examples/quarto-needs/) · [Quickstart](notes/quickstart.md) · [Changelog](CHANGELOG.md)
 
@@ -189,19 +189,19 @@ quarto-needs trace SYS-REQ-042
 
 ```console
 $ quarto-needs --root examples/quarto-needs check
-Checked 187 objects: 0 errors, 0 warnings
+Checked 198 objects: 0 errors, 0 warnings
 
 $ quarto-needs --root examples/quarto-needs quality
-Quarto-Needs quality report (profile=strict, reference date=2026-09-07)
-Scope approved-requirements: 37 requirements
-  implementation-trace: 100.0% (37/37)
-  implementation-effective: 100.0% (37/37)
-  verification-trace: 100.0% (37/37)
-  verification-successful: 100.0% (37/37)
-  evidence: 100.0% (37/37)
+Quarto-Needs quality report (profile=strict, reference date=2026-09-11)
+Scope approved-requirements: 41 requirements
+  implementation-trace: 100.0% (41/41)
+  implementation-effective: 100.0% (41/41)
+  verification-trace: 100.0% (41/41)
+  verification-successful: 100.0% (41/41)
+  evidence: 100.0% (41/41)
 Findings: 0 errors, 0 warnings, 0 infos
 [PASS] max-errors (actual 0, threshold 0)
-[PASS] min-implementation-trace (actual 100.0, threshold 100.0, denominator 37, scope approved-requirements)
+[PASS] min-implementation-trace (actual 100.0, threshold 100.0, denominator 41, scope approved-requirements)
 ```
 
 The paired `-trace` and `-effective`/`-successful` measures are the difference between a link existing and that link meaning something: `verification-trace` accepts a requirement that names a test case, while `verification-successful` also requires that test to be passing.

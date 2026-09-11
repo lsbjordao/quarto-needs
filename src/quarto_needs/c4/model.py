@@ -22,6 +22,7 @@ class C4ElementRole(Enum):
     CONTAINER = "container"
     COMPONENT = "component"
     CODE = "code"
+    DEPLOYMENT_NODE = "deployment-node"
 
 
 # The one and only object-type to C4-role mapping. Explicit and canonical:
@@ -35,6 +36,7 @@ C4_ROLE_BY_TYPE: Mapping[str, C4ElementRole] = {
     "container": C4ElementRole.CONTAINER,
     "component": C4ElementRole.COMPONENT,
     "source-module": C4ElementRole.CODE,
+    "deployment-node": C4ElementRole.DEPLOYMENT_NODE,
 }
 
 # Roles that must sit inside a parent: _C4_LAYER_ORDER minus its root, which
@@ -46,7 +48,7 @@ CONTAINMENT_ROLES = (
     C4ElementRole.CODE,
 )
 
-LEVELS = ("system-context", "container", "component", "code")
+LEVELS = ("system-context", "container", "component", "code", "deployment")
 
 # `context` was this project's own spelling before the spec settled on
 # `system-context`; it stays accepted everywhere so existing documents and

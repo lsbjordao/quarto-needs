@@ -46,7 +46,7 @@ def test_self_hosted_example_is_a_valid_engineering_graph() -> None:
 
     assert result.snapshot is not None
     assert result.findings == ()
-    assert len(result.snapshot.objects) == 197
+    assert len(result.snapshot.objects) == 198
 
     ids = {item.id for item in result.snapshot.objects}
     assert {

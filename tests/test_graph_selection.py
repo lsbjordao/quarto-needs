@@ -330,6 +330,8 @@ def test_default_allowlist_is_the_catalogs_public_relations() -> None:
         "constrains",
         "decomposes",
         "depends-on",
+        "deployed-on",
+        "deploys",
         "derives-from",
         "evidenced-by",
         "evidences",

@@ -14,6 +14,7 @@ Elementos C4 são declarados através de blocos `.need` normais com tipos dedica
 | `container` | Container | `CONTAINER-` | `architecture-element` |
 | `component` | Component | `COMP-` | `architecture-element` |
 | `source-module` | Code | `SRC-` | `implementation-artifact` |
+| `deployment-node` | Deployment | `DEPLOY-` | `architecture-element` |
 
 ## Relações Hierárquicas
 
@@ -24,6 +25,7 @@ Diagramas C4 derivam sua estrutura de duas relações principais:
    - `component` é `part-of` um `container`
    - `source-module` é `part-of` um `component`
 2. **`depends-on`**: define interação e dependências entre elementos. Pode carregar atributos inline: `label` substitui a descrição do relacionamento em todos os diagramas, e `technology` é renderizada como a tecnologia do relacionamento onde o backend suporta (`Rel(..., "label", "technology")` em Mermaid e PlantUML; dobrada no rótulo da aresta no D2).
+3. **`deployed-on`**: posiciona um artefato em um nó de deployment (`container` ou `component` é `deployed-on` um `deployment-node`), e nós de deployment aninhados são `part-of` seu nó pai.
 
 Exemplo:
 
@@ -53,6 +55,7 @@ Utilize o shortcode `{{< need-c4 >}}` para renderizar as visualizações:
 {{< need-c4 root="SYS-APP" level="container" >}}
 {{< need-c4 root="CONTAINER-API" level="component" >}}
 {{< need-c4 root="COMP-AUTH" level="code" >}}
+{{< need-c4 root="DEPLOY-PROD" level="deployment" >}}
 ```
 
 ### Níveis Suportados
@@ -61,6 +64,7 @@ Utilize o shortcode `{{< need-c4 >}}` para renderizar as visualizações:
 - **`container`**: Detalha um `system` mostrando seus `container`s e conexões externas.
 - **`component`**: Detalha um `container` revelando seus `component`s internos e dependências.
 - **`code`**: Materializa a superfície de implementação como uma tabela Markdown de artefatos `source-module`, caminhos de arquivo, linguagens e requisitos implementados.
+- **`deployment`**: Foca em um `deployment-node`, mostrando nós aninhados e os artefatos `deployed-on` ele.
 
 ### Múltiplos Backends de Diagramação
 
@@ -75,6 +79,8 @@ O Quarto-Needs suporta múltiplos backends através do argumento `backend`:
 
 - **`mermaid`** (padrão): Embutido diretamente no HTML como SVG inline responsivo.
 - **`plantuml`**, **`structurizr`**, **`d2`**: Se a respectiva ferramenta estiver instalada localmente, pré-renderiza imagens SVG/PNG; caso contrário, faz fallback gracioso para o código-fonte do diagrama com realce de sintaxe.
+
+A saída PlantUML de nível deployment inclui o stdlib `C4_Deployment`; um PlantUML antigo demais para ter esse arquivo cai no fallback de código-fonte exatamente como um backend ausente.
 
 Como esse fallback é silencioso, um pipeline de publicação pode acabar publicando código-fonte onde deveriam estar os diagramas. Execute `tools/install_diagram_backends.sh` para provisionar os três no Linux; o CI executa o mesmo script e depois falha a build se algum diagrama tiver sido renderizado como código.
 

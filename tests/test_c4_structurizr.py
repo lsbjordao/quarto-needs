@@ -110,3 +110,20 @@ def test_relationship_attributes_reach_the_structurizr_relationship() -> None:
         line for line in source.splitlines() if " -> " in line and "calls over HTTPS" in line
     )
     assert '"calls over HTTPS" "HTTPS/JSON"' in relationship
+
+
+def test_deployment_view_uses_an_environment_and_deployment_nodes() -> None:
+    snapshot = _snapshot(
+        _obj("DEPLOY-1", type="deployment-node", title="Production"),
+        _obj(
+            "CONTAINER-1", type="container", title="Python package",
+            attributes={"technology": "Python 3.12"},
+            relations=[Relation("deployed-on", "CONTAINER-1", "DEPLOY-1")],
+        ),
+    )
+    projection = build_c4_view(snapshot, focus_id="DEPLOY-1", level="deployment")
+    source = c4_structurizr_source(projection, focus_id="DEPLOY-1", level="deployment")
+    assert 'deploymentEnvironment "Production"' in source
+    assert 'deployment * "Production"' in source
+    assert "deploymentNode" in source
+    assert "Python 3.12" in source

@@ -33,6 +33,7 @@ return {
   ["COMP-RULES"] = { title = "Governance rule engine", href = "architecture.html#COMP-RULES", type = "component", status = "implemented" },
   ["CONTAINER-PYTHON-PKG"] = { title = "Python package", href = "architecture.html#CONTAINER-PYTHON-PKG", type = "container", status = "approved" },
   ["CONTAINER-QUARTO-EXT"] = { title = "Quarto presentation extension", href = "architecture.html#CONTAINER-QUARTO-EXT", type = "container", status = "approved" },
+  ["DEPLOY-LOCAL"] = { title = "Developer workstation", href = "architecture.html#DEPLOY-LOCAL", type = "deployment-node", status = "approved" },
   ["EVD-001"] = { title = "Analysis and export regression suite", href = "verification.html#EVD-001", type = "evidence", status = "verified" },
   ["EVD-002"] = { title = "Graph render and multilingual render smoke surfaces", href = "verification.html#EVD-002", type = "evidence", status = "verified" },
   ["EVD-003"] = { title = "Rule and quality-gate test suite", href = "verification.html#EVD-003", type = "evidence", status = "verified" },
