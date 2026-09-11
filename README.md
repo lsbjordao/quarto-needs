@@ -358,6 +358,12 @@ Contributors can set `QUARTO_NEEDS_ENGINE_SOURCE` to a local checkout or wheel w
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the contribution workflow and [`ARCHITECTURE.md`](ARCHITECTURE.md) for the internal module map.
 
+## Comparison with related tools
+
+[`docs/src/comparison.qmd`](docs/src/comparison.qmd) compares Quarto-Needs against Sphinx-Needs, StrictDoc, Doorstop and OpenFastTrace across authoring, gating, evidence, change analysis, interchange, editor support and ecosystem. Every cell names its source, the version verified, and the date.
+
+Read the "When not to use Quarto-Needs" section first if you are evaluating: this project is pre-1.0 with a single maintainer and no tool qualification, it offers no Sphinx-Needs compatibility, and for several use cases one of the others is the better answer.
+
 ## Inspirations and related work
 
 Quarto-Needs has its own Quarto/Pandoc-native architecture, but it is informed by mature ideas and ecosystems:
