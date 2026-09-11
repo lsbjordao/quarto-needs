@@ -15,6 +15,12 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
+    env:
+      # The suite skips the collation axis when no locale is installed, so a
+      # contributor on a slim image is not met with seven unrelated failures.
+      # A gate must not inherit that leniency: here the missing locale is the
+      # failure it has always been.
+      QUARTO_NEEDS_REQUIRE_COLLATION: "1"
     strategy:
       fail-fast: false
       matrix:

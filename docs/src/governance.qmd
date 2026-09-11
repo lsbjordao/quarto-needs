@@ -150,6 +150,35 @@ Without that opt-in the CLI says `[UNMEASURED]`. Both explain that the scope
 matched no eligible objects. Missing measurements and disabled dependencies
 cannot be waived.
 
+### When `allow-empty-scopes` is legitimate
+
+It is legitimate when the emptiness is a true statement about a project that
+has not filled in yet: a repository adopting Quarto-Needs before authoring
+requirements, or a new component whose gates are declared up front so that
+they are already in place when content arrives. The claim being waived is "we
+know this measures nothing right now", and it is meant to stop being true.
+
+It is a patch when it hides a scope that should be matching and is not. The
+symptom looks identical — zero eligible objects — but the cause is drift: a
+named query whose predicate no longer matches how statuses are written, a
+`scope` pointing at the wrong query, or a risk model that was never authored
+while `require-risk-mitigation` claims risk is managed. Waiving that converts
+a broken configuration into a permanent green check.
+
+Two habits keep the two apart:
+
+- Before waiving, confirm the emptiness by hand. `quarto-needs query <scope>`
+  returns the population; if you expected objects and got none, the scope is
+  broken, not empty.
+- Treat the waiver as temporary and review it. A waiver that has outlived
+  several releases is describing drift, not a beginning.
+
+Note that the waiver is project-wide rather than per gate. Enabling it to
+accept one empty population also accepts every other empty population in the
+same project, so a scope that breaks later is waived without anyone deciding
+to waive it. This is the main reason to remove the waiver once the project has
+content, rather than leaving it in place because it is harmless today.
+
 Quality JSON v1 exposes optional `measurementStatus`: `measured`, `empty`, or
 `unavailable`. Unmeasured gates have `actual: null`; the coverage metric itself
 still reports 100.0 for 0/0 for compatibility. `max-errors` measures findings
