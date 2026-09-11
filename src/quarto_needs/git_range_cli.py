@@ -36,6 +36,12 @@ def _recompute(argv: Sequence[str]) -> bool:
     return value == "current"
 
 
+#: The commands this layer claims when they carry `--git`. Named so the
+#: stability registry can be checked against the real routing rather than
+#: against a second list written beside it.
+GIT_RANGE_COMMANDS = ("diff", "impact", "suspect", "pr-report", "github-report")
+
+
 def git_action(argv: Sequence[str]) -> tuple[str, str] | None:
     """Return a Git-native change command and its two-dot range."""
     values = list(argv)
@@ -43,7 +49,7 @@ def git_action(argv: Sequence[str]) -> tuple[str, str] | None:
         (
             index
             for index, value in enumerate(values)
-            if value in {"diff", "impact", "suspect", "pr-report", "github-report"}
+            if value in set(GIT_RANGE_COMMANDS)
         ),
         None,
     )

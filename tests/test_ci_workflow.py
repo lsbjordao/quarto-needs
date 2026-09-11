@@ -197,3 +197,45 @@ def test_quarto_job_provisions_the_optional_c4_backends_before_publishing() -> N
     assert "make install-diagram-backends" in steps[install]["run"]
     assert 'echo "$HOME/.local/bin" >> "$GITHUB_PATH"' in steps[install]["run"]
     assert "make check-rendered-diagrams" in steps[gate]["run"]
+
+
+def test_reproducibility_matrix_has_a_blocking_aggregate():
+    workflow = yaml.safe_load((WORKFLOW.parent / 'reproducibility.yml').read_text(encoding='utf-8'))
+    assert {'push', 'pull_request'} <= set(workflow['on'])
+    jobs = workflow['jobs']
+    matrix = jobs['artifacts']['strategy']['matrix']
+    assert matrix['python-version'] == ['3.10', '3.11', '3.12', '3.13', '3.14']
+    assert matrix['os'] == ['ubuntu-latest', 'macos-latest', 'windows-latest']
+    aggregate = jobs['reproducibility']
+    assert aggregate['name'] == 'reproducibility'
+    assert aggregate['needs'] == 'artifacts'
+    assert aggregate['if'] == 'always()'
+    assert aggregate.get('continue-on-error', False) is False
+    steps = jobs['artifacts']['steps']
+    assert any('locale-gen pt_BR.UTF-8' in str(step.get('run', '')) for step in steps)
+    assert any('tools/reproducibility.py matrix' in str(step.get('run', '')) for step in steps)
+    assert any('tools/reproducibility.py compare' in str(step.get('run', '')) for step in aggregate['steps'])
+
+
+def test_ci_requires_the_collation_locale_the_suite_may_otherwise_skip():
+    """`pytest -q` skips the collation axis when no locale is installed.
+
+    That leniency is for contributors on slim images, not for CI. Without
+    this assertion someone drops the variable, the seven perturbation tests
+    turn green by skipping, and the axis goes silent -- a quieter version of
+    the vacuous pass this project keeps hunting, because a skip is even
+    easier to scroll past than a pass.
+    """
+    core = parsed()["jobs"]["core"]
+    assert core["env"]["QUARTO_NEEDS_REQUIRE_COLLATION"] == "1"
+    run_steps = "\n".join(str(step.get("run", "")) for step in core["steps"])
+    assert "locale-gen pt_BR.UTF-8" in run_steps, (
+        "core requires the locale, so it must provision one rather than "
+        "depend on what the runner image ships"
+    )
+
+    reproducibility = yaml.safe_load(
+        (WORKFLOW.parent / "reproducibility.yml").read_text(encoding="utf-8")
+    )
+    artifacts = reproducibility["jobs"]["artifacts"]
+    assert artifacts["env"]["QUARTO_NEEDS_REQUIRE_COLLATION"] == "1"

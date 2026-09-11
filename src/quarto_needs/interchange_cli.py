@@ -10,6 +10,10 @@ from .config import load_config
 from .exporters import jsonld_export, reqif_export
 
 
+#: Export formats handled outside the legacy export parser.
+INTERCHANGE_FORMATS = ("reqif", "jsonld")
+
+
 def interchange_action(argv: Sequence[str]) -> str | None:
     """Return an interchange format handled outside the legacy export parser."""
     values = list(argv)
@@ -26,7 +30,7 @@ def interchange_action(argv: Sequence[str]) -> str | None:
     if format_index + 1 >= len(tail):
         return None
     value = tail[format_index + 1]
-    return value if value in {"reqif", "jsonld"} else None
+    return value if value in set(INTERCHANGE_FORMATS) else None
 
 
 def _parser() -> argparse.ArgumentParser:

@@ -293,3 +293,39 @@ Executar o CLI real em um diretório com configuração de projeto inválida e v
 
 A regressão executável é `tests/test_cli_version.py::test_version_works_outside_a_project`. Instalações limpas do wheel e do sdist também são verificadas por `tools/check_release_artifacts.py`.
 :::
+
+::: {.need #TC-033 type="test-case" status="passed" tags="pytest;governance;gates" pytest-nodeid="tests/test_vacuous_gates.py::test_unknown_scope_names_valid_scopes" evidenced-by="EVD-033"}
+## Rejeitar resultados de gates por vacuidade
+
+Exercitar cada cobertura percentual, dados ausentes, dispensas explícitas, dependências da regra de risco e falhas estruturais em `tests/test_vacuous_gates.py`.
+:::
+
+::: {.need #EVD-033 type="evidence" status="verified" tags="pytest;governance;gates"}
+## Evidência de regressão de gates por vacuidade
+
+A suíte executável é `tests/test_vacuous_gates.py`; `test_unknown_scope_names_valid_scopes` verifica erros de configuração acionáveis.
+:::
+
+::: {.need #TC-034 type="test-case" status="passed" tags="pytest;determinism;reproducibility" pytest-nodeid="tests/test_reproducibility.py::test_subprocess_perturbations_preserve_artifacts" evidenced-by="EVD-034"}
+## Comparar artefatos entre execuções perturbadas em subprocesso
+
+Executar a mesma análise em interpretadores independentes com ambientes montados explicitamente e comparar os bytes crus dos artefatos e os valores dos fingerprints.
+:::
+
+::: {.need #EVD-034 type="evidence" status="verified" tags="pytest;determinism;reproducibility"}
+## Evidência do harness de perturbação
+
+O harness executável é `tools/reproducibility.py` e sua suíte é `tests/test_reproducibility.py`. As sondas do worker provam que cada perturbação foi de fato aplicada, e `test_harness_detects_injected_leak` prova que o comparador detecta um vazamento injetado de propósito em cada eixo de perturbação. O workflow `reproducibility` repete a matriz em Ubuntu, macOS e Windows para Python 3.10 a 3.14.
+:::
+
+::: {.need #TC-035 type="test-case" status="passed" tags="pytest;stability;surface;cli" pytest-nodeid="tests/test_surface.py::test_argparse_subparsers_and_the_registry_are_the_same_set" evidenced-by="EVD-035"}
+## Comparar a superfície declarada com o parser e o roteamento reais
+
+Constrói o parser argparse e percorre os subparsers registrados, comparando esse conjunto com o registro de estabilidade. O valor esperado deriva do próprio parser, então um comando adicionado sem tier falha.
+:::
+
+::: {.need #EVD-035 type="evidence" status="verified" tags="pytest;stability;surface;cli"}
+## Evidência de não-divergência da superfície
+
+`tests/test_surface.py` prende o registro a todos os seus consumidores: o conjunto de subparsers do argparse, os predicados de roteamento da camada de dispatch e as constantes que eles casam, o epílogo renderizado de `--help`, os blocos de contrato do README e do CHANGELOG, a tabela gerada do manual, e a presença do aviso de runtime em stderr, sua ausência em stdout e sua ausência sob `--help`. Também afirma que uma execução central pura não importa `rdflib` nem `pyld`, com ambos bloqueados no hook de importação em vez de apenas desinstalados.
+:::

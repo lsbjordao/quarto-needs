@@ -6,10 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Upgrade notes
+
+- **`require-risk-mitigation` now fails on a project with no high or critical risks.** Before, the gate counted zero `REQ013` findings and reported `[PASS]`. It now reports the population it measured: zero high/critical risks is a zero denominator, status `empty`, and an empty population fails unless waived. A project that enabled the gate and carries no high-priority risk therefore turns from green to red on upgrade with no change to its sources.
+
+  This is deliberate and is being kept. `require-risk-mitigation = true` asserts that risk is managed here; a project that has modelled no high-priority risk has not demonstrated that, and "nothing was measured" is not a pass. The asymmetry with coverage scopes is narrower than it looks: both now report *what population they measured*, and both fail on an empty one.
+
+  **If you are affected**, choose deliberately rather than reflexively:
+  - model the risks the project actually carries, and give the high/critical ones a mitigation relation — the outcome the gate exists to produce; or
+  - set `[gates] allow-empty-scopes = true` if the project is genuinely starting empty. Read the caveat below before you do; or
+  - remove `require-risk-mitigation` if the project does not manage risk in this model. An absent gate claims nothing, which is honest; a passing unmeasured gate claims something false.
+
+  Caveat on the waiver: `allow-empty-scopes` is project-wide, not per gate. Setting it to silence the risk gate also waives an empty coverage scope in the same project. `quality --format json` distinguishes the cases (`measurementStatus`) and the CLI prints `[WAIVED]` rather than `[PASS]`, so a waived gate stays visible — but the coarseness is real, and narrowing the waiver to a single gate is not yet possible.
+
+### Added
+
+- Stability tiers. Every command, export format and integration is now classified as stable, preview or experimental in a single registry (`src/quarto_needs/surface.py`), from which `--help`, the runtime warning, the manual's Stability chapter, the README's contract list and the CHANGELOG's release-surface section are all rendered or verified. The command surface was previously declared in six places kept in sync by hand; tests now fail when any of them diverges. Experimental commands (`variant`, `migrate`, `oslc`) print one line to stderr when invoked, suppressible with `QUARTO_NEEDS_SUPPRESS_EXPERIMENTAL_WARNING=1`; stdout is unchanged. No command's behaviour changed.
+
+- A subprocess perturbation harness (`tools/reproducibility.py`) and a required `reproducibility` workflow verify that analysis artifacts and the three fingerprints are byte-identical across hash seeds, time zones, collation locales, working directories, `--root` argument forms, source discovery order, Python 3.10 through 3.14, and Ubuntu, macOS and Windows. Determinism was previously asserted by design principle and exercised only indirectly.
+
 ### Changed
 
 - README opens with real coverage and traceability screenshots, an executable authoring example, tested quickstart commands and dynamic CI/PyPI badges; capabilities are summarized after the demonstration.
 - `tools/capture-screenshots.py` renders the self-hosted case study and the README example, serves them locally and captures their actual browser output with an isolated Playwright toolchain.
+
+### Fixed
+
+- Percentage gates passed when their scope was misspelled or matched no requirements because missing scopes passed outright and 0/0 coverage is 100.0. Unknown scopes now fail configuration loading; empty measurements fail unless explicitly waived with `allow-empty-scopes`, and reports distinguish them from measured passes. Risk mitigation also checks that its high/critical-risk population was measured; missing measurements cannot be waived.
+- `source_index._sources` built its mapping from an unordered `rglob` walk, so its insertion order followed the filesystem. The public index sorted at its own boundary, so no published artifact varied, but the mapping itself is now ordered at discovery for any future consumer.
 
 ## [0.1.1] — 2026-09-09
 
@@ -17,8 +41,13 @@ Initial production release at alpha maturity (classifier `Development Status :: 
 
 ### Supported release surface
 
-- Supported: `scan`, `check`, `quality`, `coverage`, `trace`, `query`, `baseline create|inspect`, `diff`, `impact`, Git-range `suspect`/`pr-report`/`github-report`, `evidence check|attest`, `lsp`, and `export --format json|csv|sarif|junit|markdown|reqif|jsonld`; Quarto rendering and documented non-C4 shortcodes.
-- Experimental, outside the stability contract: OSLC, the GitHub Issues adapter, all four migration adapters, `variant`, C4 projections and the VS Code client. A subsequent workstream will define detailed stability tiers.
+Classified into stability tiers in a later release; the list below is generated from `src/quarto_needs/surface.py`.
+
+- **Stable**: `scan`, `check`, `coverage`, `trace`, `export`, `quality`, `query`, `baseline`, `baseline create`, `baseline inspect`, `diff`, `impact`, `export --format json|csv|markdown`, Quarto pre-render, Documented non-C4 shortcodes.
+
+- **Preview**: `evidence`, `evidence check`, `suspect --git BASE..HEAD`, `pr-report --git BASE..HEAD`, `github-report --git BASE..HEAD`, `diff --git BASE..HEAD`, `impact --git BASE..HEAD`, `evidence attest`, `lsp`, `export --format sarif|junit|reqif|jsonld`.
+
+- **Experimental**: `variant list|show NAME`, `migrate SOURCE`, `oslc discover|catalog|query`, C4 projections, GitHub Issues adapter, VS Code client.
 - The existing `v0.1.0` tag and TestPyPI artifact are preserved; `0.1.1` is the first production release.
 
 ### Release validation

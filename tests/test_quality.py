@@ -86,12 +86,12 @@ def test_percentage_gates_use_scope_and_denominators() -> None:
     assert results["min-verification-successful"].denominator == 2
 
 
-def test_missing_scope_gate_reports_full_actual() -> None:
+def test_missing_scope_gate_reports_unavailable() -> None:
     config = make_config('[gates]\nmin-evidence = 80\nscope = "approved-requirements"\n')
     results = evaluate_gates(scopes={}, findings=(), gates=config.gates)
     by_name = {gate.name: gate for gate in results}
-    # An absent scope has no denominator: nothing to demand, so it passes.
-    assert (by_name["min-evidence"].passed, by_name["min-evidence"].actual) == (True, None)
+    # A missing measurement is never a satisfied gate.
+    assert (by_name["min-evidence"].passed, by_name["min-evidence"].actual) == (False, None)
     assert ("max-errors", True) == (by_name["max-errors"].name, by_name["max-errors"].passed)
 
 
@@ -102,7 +102,7 @@ def test_risk_mitigation_gate_uses_findings(tmp_path: Path) -> None:
     def gate_map(findings):
         return {
             gate.name: gate
-            for gate in evaluate_gates(scopes={}, findings=findings, gates=config.gates)
+            for gate in evaluate_gates(scopes={}, findings=findings, gates=config.gates, risk_population=1)
         }
 
     failing = gate_map((Finding("REQ013", "warning", "risk unmitigated", "R1"),))

@@ -1,0 +1,130 @@
+# Stability tiers
+
+Every command, export format and integration Quarto-Needs ships carries a
+stability tier. The tier says what you may rely on, and what may change under
+you.
+
+The tiers are declared once, in `src/quarto_needs/surface.py`. The table
+below, the `--help` output, the runtime warning and the support contract in
+the README are all rendered or verified against that module, so a command
+cannot be listed here at one tier and behave as another. Tests fail if this
+chapter falls behind the registry.
+
+## The three tiers
+
+**Stable.** Covered by Semantic Versioning. A breaking change requires a major
+release. Documented in this manual and exercised across the full CI matrix --
+Python 3.10 through 3.14 on Ubuntu, macOS and Windows. If you build a pipeline
+on stable surface, a minor upgrade will not break it.
+
+**Preview.** Functional and tested, and used by this project's own CI. The
+interface may still change in a minor release, and any such change gets a
+CHANGELOG entry. Preview is not a warning about quality; it is a statement
+that the shape of the interface is not yet settled.
+
+**Experimental.** May change or be removed at any time, without a deprecation
+period and without a CHANGELOG entry. Prints one line to stderr when invoked.
+Does not block a release: an experimental feature that breaks is not a release
+blocker, which is precisely why it cannot carry a compatibility promise.
+
+## What "outside the stability contract" means in practice
+
+For experimental surface, concretely:
+
+- **No compatibility promise.** Flags, output shape, exit codes and the
+  feature's existence may all change in a patch release.
+- **No mandatory CHANGELOG entry.** Changes may land unannounced. The tier is
+  the announcement.
+- **Does not block a release.** A failing experimental feature does not hold
+  up a version that is otherwise ready.
+- **Warns at runtime.** One line on stderr, never stdout, so machine-readable
+  output stays byte-identical. Set
+  `QUARTO_NEEDS_SUPPRESS_EXPERIMENTAL_WARNING=1` to silence it. There is no
+  command-line flag for this on purpose: a flag would have to be added to
+  every subparser, including the ones that never reach argparse, recreating
+  the duplication this registry removed.
+
+Everything else -- stable and preview surface -- is inside the contract, with
+preview carrying the weaker of the two promises.
+
+## The complete surface
+
+The `Layer` column records how a command reaches its implementation:
+`argparse` commands are parsed by the main parser, `dispatch` commands are
+intercepted before argparse runs. It is an implementation detail, listed here
+because it is what the non-divergence tests bind to.
+
+| Surface | Tier | Layer | Summary |
+|---|---|---|---|
+| `scan` | stable | argparse | Parse project and write .quarto-needs/needs.json |
+| `check` | stable | argparse | Validate the requirements graph |
+| `coverage` | stable | argparse | Print coverage metrics |
+| `trace` | stable | argparse | Show upstream/downstream traceability |
+| `export` | stable | argparse | Export canonical graph JSON |
+| `quality` | stable | argparse | Evaluate scoped metrics, findings, and configured gates |
+| `query` | stable | argparse | Evaluate a named query and print its ordered IDs |
+| `evidence` | preview | argparse | Validate machine evidence against the engineering graph |
+| `evidence check` | preview | argparse | Check a pytest evidence artifact against the current graph |
+| `baseline` | stable | argparse | Create or inspect a canonical baseline |
+| `baseline create` | stable | argparse | Write a baseline for the current graph |
+| `baseline inspect` | stable | argparse | Summarize an existing baseline |
+| `diff` | stable | argparse | Compare a baseline against the current graph |
+| `impact` | stable | argparse | Explain what a baseline's changes reach |
+| `suspect --git BASE..HEAD` | preview | dispatch | Traceability claims needing review after a change |
+| `pr-report --git BASE..HEAD` | preview | dispatch | Combined change/impact/suspect review report |
+| `github-report --git BASE..HEAD` | preview | dispatch | Summary, annotations, and check projection for GitHub |
+| `diff --git BASE..HEAD` | preview | dispatch | Compare two committed Git states instead of a baseline |
+| `impact --git BASE..HEAD` | preview | dispatch | Compare two committed Git states instead of a baseline |
+| `evidence attest` | preview | dispatch | Sign and record an evidence attestation |
+| `lsp` | preview | dispatch | Run the language server over stdio |
+| `export --format reqif\|jsonld` | preview | dispatch | ReqIF 1.2 and JSON-LD interchange projections |
+| `variant list\|show NAME` | experimental | dispatch | Inspect configured build variants |
+| `migrate SOURCE` | experimental | dispatch | Migration plans for sphinx-needs, doorstop, strictdoc, openfasttrace |
+| `oslc discover\|catalog\|query` | experimental | dispatch | Bounded read-only OSLC RM federation |
+| `export --format json` | stable | argparse | Export projection |
+| `export --format csv` | stable | argparse | Export projection |
+| `export --format markdown` | stable | argparse | Export projection |
+| `export --format sarif` | preview | argparse | Export projection |
+| `export --format junit` | preview | argparse | Export projection |
+| `export --format reqif` | preview | dispatch | Export projection |
+| `export --format jsonld` | preview | dispatch | Export projection |
+| Quarto pre-render | stable | not a command | The project pre-render contributed by the Quarto extension |
+| Documented non-C4 shortcodes | stable | not a command | need, need-table, need-graph, need-coverage and the other documented shortcodes |
+| C4 projections | experimental | not a command | need-c4 and its PlantUML, D2 and Structurizr backends |
+| GitHub Issues adapter | experimental | not a command | Reconciliation between needs and GitHub Issues |
+| VS Code client | experimental | not a command | The language client packaged from editors/vscode |
+
+## Promotion between tiers
+
+A tier is a claim about maintenance, so moving up requires demonstrating that
+the claim can be kept.
+
+**Experimental to preview** requires all of:
+
+- a stable interface that has not changed shape in at least one minor release;
+- tests covering the normal path and the documented failure modes, running in
+  the standard CI matrix rather than only locally;
+- a manual chapter describing the feature, not just a `--help` line;
+- deterministic output where the feature produces artifacts, verified by the
+  reproducibility matrix like every other artifact-producing command.
+
+**Preview to stable** additionally requires:
+
+- no interface change across at least two minor releases;
+- an explicit decision that the interface is worth supporting through a major
+  version, recorded as an architecture decision;
+- exercise on every supported platform and Python version, not only Linux;
+- a migration path for any prior form, since after promotion removing it costs
+  a major release.
+
+Demotion is also possible and is a breaking change for stable surface, so it
+follows the same rules as a removal: a major release, announced.
+
+## Why the surface is narrow
+
+A single maintainer cannot support a wide interface across many external
+specifications. The decision recorded in
+[Architecture decisions](architecture-decisions.qmd) is that a narrow stable
+surface with a wide experimental one is more honest than a wide surface that
+is nominally supported and actually is not. The tier table is where that
+honesty is made checkable.

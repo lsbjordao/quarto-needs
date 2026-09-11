@@ -136,7 +136,56 @@ Gates são apropriados para propriedades mensuráveis do conjunto, enquanto regr
 
 Os pares `-trace` e `-effective`/`-successful` são a diferença entre um vínculo existir e esse vínculo significar algo. `min-verification-trace` aceita um requisito que nomeia um caso de teste; `min-verification-successful` exige adicionalmente que o teste carregue um status bem-sucedido. Quais status contam é política de `[governance]` — veja a [referência prática](reference.qmd).
 
-Um gate percentual não definido não é avaliado. Um gate cuja consulta de `scope` não seleciona nada passa com denominador vazio, porque uma população ausente não pode estar sub-coberta; `quality` relata o denominador junto de cada percentual, de modo que uma aprovação vazia fique visível em vez de implícita.
+Um gate percentual não definido não é avaliado. O escopo deve ser `catalog`,
+`approved-requirements` ou uma consulta nomeada declarada; erros de digitação
+são rejeitados na carga, com a lista dos escopos válidos.
+
+Um gate percentual sem requisitos elegíveis não foi medido e falha por padrão,
+mesmo com limiar zero. O gate de mitigação também não foi medido quando não há
+riscos altos/críticos. Projetos intencionalmente vazios podem declarar
+`[gates] allow-empty-scopes = true`: o resultado é permitido, mas aparece como
+`[WAIVED]` na CLI, como teste ignorado em JUnit e como dispensa em Markdown.
+Sem esse opt-in, a CLI mostra `[UNMEASURED]`. Ambos explicam que o escopo não
+selecionou objetos elegíveis. Dados ausentes e dependências desabilitadas não
+podem ser dispensados.
+
+### Quando `allow-empty-scopes` é legítimo
+
+É legítimo quando o vazio é uma afirmação verdadeira sobre um projeto que
+ainda não foi preenchido: um repositório que adota o Quarto-Needs antes de
+escrever requisitos, ou um componente novo cujos gates são declarados desde o
+início para já estarem no lugar quando o conteúdo chegar. A afirmação
+dispensada é "sabemos que isto não mede nada agora", e ela deve deixar de ser
+verdadeira.
+
+É remendo quando esconde um escopo que deveria estar casando e não está. O
+sintoma é idêntico — zero objetos elegíveis — mas a causa é divergência: uma
+consulta nomeada cujo predicado não corresponde mais a como os status são
+escritos, um `scope` apontando para a consulta errada, ou um modelo de risco
+que nunca foi escrito enquanto `require-risk-mitigation` afirma que o risco é
+gerenciado. Dispensar isso transforma configuração quebrada em aprovação
+permanente.
+
+Dois hábitos separam os dois casos:
+
+- Antes de dispensar, confirme o vazio à mão. `quarto-needs query <escopo>`
+  devolve a população; se você esperava objetos e não veio nenhum, o escopo
+  está quebrado, não vazio.
+- Trate a dispensa como temporária e revise-a. Uma dispensa que sobreviveu a
+  várias releases está descrevendo divergência, não um começo.
+
+Note que a dispensa vale para o projeto inteiro, não por gate. Habilitá-la
+para aceitar uma população vazia aceita também todas as outras populações
+vazias do mesmo projeto, de modo que um escopo que quebre depois fica
+dispensado sem que ninguém tenha decidido dispensá-lo. Essa é a principal
+razão para removê-la assim que o projeto tiver conteúdo, em vez de mantê-la
+porque hoje é inofensiva.
+
+O JSON de qualidade v1 inclui `measurementStatus` opcional: `measured`, `empty`
+ou `unavailable`. Gates não medidos têm `actual: null`; a métrica de cobertura
+preserva 100.0 para 0/0. `max-errors` conta achados de uma análise executada:
+zero achados é uma contagem válida. Falhas estruturais bloqueiam todos os
+perfis antes da avaliação dos gates de população.
 
 `require-risk-mitigation` conta achados da regra `REQ013`, que é opcional. Habilitar apenas o gate só poderia resultar em aprovação, então esse par é rejeitado como erro de configuração em vez de relatar um sucesso vazio. Habilite os dois:
 
@@ -155,3 +204,13 @@ Um baseline captura o estado analisado e a fingerprint da configuração. O diff
 A análise de impacto usa a direção semântica declarada no catálogo. Relações ADR participam desse mecanismo exatamente como as relações de implementação, verificação e evidência.
 
 Veja a [referência da linha de comando](cli-reference.qmd) para criação/inspeção de baselines, comparação com fontes atuais, `--recompute-with current`, intervalos Git versionados, afirmações suspeitas e geração de relatórios de PR/GitHub.
+
+## Determinismo verificado
+
+Determinismo é uma propriedade verificada, não uma alegação. O `tools/reproducibility.py` executa a mesma análise sobre as mesmas fontes várias vezes e compara os artefatos resultantes como bytes crus: `needs.json`, o índice Lua gerado, o payload de baseline, todos os exports determinísticos (`json`, `csv`, `markdown`, `reqif`, `jsonld`), um índice de fontes materializado e os três fingerprints comparados como valores, além dos bytes.
+
+Cada execução usa um interpretador novo. Isso não é escolha estilística: `PYTHONHASHSEED` é lido uma única vez na inicialização do interpretador, então um teste que o define por `os.environ` no processo atual não mede nada. Toda variação, portanto, roda como subprocesso com um ambiente montado explicitamente, e não herdado.
+
+A matriz varia a semente de hash, o fuso horário, o locale de colação, o diretório de trabalho, a forma do argumento `--root` (absoluto, relativo de dentro da árvore, relativo de fora dela) e a ordem de descoberta das fontes. Cada worker grava uma sonda registrando o que de fato observou, e o harness exige que essas sondas difiram onde a perturbação deveria ter efeito — um locale que caiu silenciosamente para `C` reprova a execução em vez de aprovar um teste que nunca exercitou colação. O `SOURCE_DATE_EPOCH` congela a data de referência, de modo que nenhum campo precisa ser excluído da comparação; a allowlist de campos voláteis vive em um único módulo, está atualmente vazia e é travada por um digest revisado, para que não possa crescer sem uma mudança deliberada.
+
+O workflow `reproducibility` repete toda a matriz em Ubuntu, macOS e Windows para Python 3.10 a 3.14 e então compara os artefatos dos quinze runtimes entre si. Seu job agregado é obrigatório para merge.

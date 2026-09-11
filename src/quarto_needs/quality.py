@@ -5,7 +5,8 @@ from pathlib import Path
 from typing import Mapping, Sequence
 
 from .analysis import analyze_project
-from .config import Gates, NeedsConfig, load_config, reference_date
+from .config import Gates, NeedsConfig, load_config, reference_date, validate_gate_scope
+from .rules import risk_mitigation_population, validate_gate_rule_dependencies
 from .diagnostics import Finding
 from .metrics import COVERAGE_STRENGTHS, CoverageMeasure, ScopeMetrics, compute_report_metrics
 from .queries import materialize_queries
@@ -31,6 +32,21 @@ class GateResult:
     actual: float | int | str | None
     denominator: int | None
     passed: bool
+    measurement_status: str = "measured"
+
+    @property
+    def label(self) -> str:
+        if self.measurement_status != "measured":
+            return "WAIVED" if self.passed else "UNMEASURED"
+        return "PASS" if self.passed else "FAIL"
+
+    @property
+    def measurement_message(self) -> str:
+        if self.measurement_status == "empty":
+            return "scope matched no objects eligible for measurement"
+        if self.measurement_status == "unavailable":
+            return "measurement is unavailable"
+        return ""
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -40,6 +56,7 @@ class GateResult:
             "actual": self.actual,
             "denominator": self.denominator,
             "passed": self.passed,
+            "measurementStatus": self.measurement_status,
         }
 
 
@@ -107,56 +124,49 @@ def evaluate_gates(
     scopes: Mapping[str, ScopeMetrics],
     findings,
     gates: Gates,
+    risk_population: int | None = None,
 ) -> tuple[GateResult, ...]:
-    results: list[GateResult] = []
-    error_count = sum(1 for item in findings if item.severity == "error")
-    results.append(
-        GateResult(
-            name="max-errors",
-            scope="project",
-            threshold=gates.max_errors,
-            actual=error_count,
-            denominator=None,
-            passed=error_count <= gates.max_errors,
-        )
+    # None is unavailable; an empty findings sequence is a completed zero count.
+    measured_findings = None if findings is None else tuple(findings)
+    error_count = None if measured_findings is None else sum(
+        item.severity == "error" for item in measured_findings
     )
+    results = [GateResult(
+        "max-errors", "project", gates.max_errors, error_count, None,
+        error_count is not None and error_count <= gates.max_errors,
+        "unavailable" if error_count is None else "measured",
+    )]
     scope_entry = scopes.get(gates.scope)
     for attribute, strength in GATE_PERCENT_ATTRIBUTES.items():
         threshold = getattr(gates, attribute)
         if threshold is None:
             continue
-        if scope_entry is None:
-            # An absent scope has no denominator; there is nothing to demand yet.
-            results.append(
-                GateResult(
-                    attribute.replace("_", "-"), gates.scope, threshold, None, None, True
-                )
-            )
-            continue
-        measure = scope_entry.coverage[strength]
-        results.append(
-            GateResult(
-                name=attribute.replace("_", "-"),
-                scope=gates.scope,
-                threshold=threshold,
-                actual=measure.percent,
-                denominator=measure.total,
-                passed=measure.percent >= threshold,
-            )
-        )
+        measure = None if scope_entry is None else scope_entry.coverage.get(strength)
+        results.append(_population_gate(
+            attribute.replace("_", "-"), gates.scope, threshold,
+            None if measure is None else measure.percent,
+            None if measure is None else measure.total,
+            measure is not None and measure.percent >= threshold,
+            gates.allow_empty_scopes,
+        ))
     if gates.require_risk_mitigation:
-        unmitigated = sum(1 for item in findings if item.code == "REQ013")
-        results.append(
-            GateResult(
-                name="require-risk-mitigation",
-                scope="project",
-                threshold=0,
-                actual=unmitigated,
-                denominator=None,
-                passed=unmitigated == 0,
-            )
+        unmitigated = None if measured_findings is None else sum(
+            item.code == "REQ013" for item in measured_findings
         )
+        results.append(_population_gate(
+            "require-risk-mitigation", "project", 0, unmitigated,
+            risk_population if measured_findings is not None else None,
+            unmitigated == 0, gates.allow_empty_scopes,
+        ))
     return tuple(results)
+
+
+def _population_gate(name, scope, threshold, actual, denominator, passed, allow_empty):
+    status = "unavailable" if denominator is None else "empty" if denominator == 0 else "measured"
+    if status != "measured":
+        actual = None
+        passed = status == "empty" and allow_empty
+    return GateResult(name, scope, threshold, actual, denominator, passed, status)
 
 
 def _counts(findings) -> tuple[dict[str, int], dict[str, int]]:
@@ -205,10 +215,13 @@ def report_from_snapshot(
     Callers that already hold a snapshot (and often its materialized queries)
     use this so one command still means exactly one analysis pass.
     """
+    validate_gate_rule_dependencies(config)
+    validate_gate_scope(config)
     resolved = dict(queries) if queries is not None else dict(materialize_queries(config, snapshot))
     metrics = compute_report_metrics(snapshot, config, scope_ids=resolved)
     gates_results = evaluate_gates(
-        scopes=metrics.scopes, findings=snapshot.findings, gates=config.gates
+        scopes=metrics.scopes, findings=snapshot.findings, gates=config.gates,
+        risk_population=len(risk_mitigation_population(snapshot, config))
     )
     by_severity, by_code = _counts(snapshot.findings)
     return QualityReport(
@@ -230,6 +243,8 @@ def build_quality_report(
     config: NeedsConfig | None = None,
 ) -> QualityReport:
     effective_config = config if config is not None else load_config(root)
+    validate_gate_rule_dependencies(effective_config)
+    validate_gate_scope(effective_config)
     result = analyze_project(root, config=effective_config)
     snapshot = result.snapshot
     if snapshot is None:
@@ -238,7 +253,8 @@ def build_quality_report(
     queries = materialize_queries(effective_config, snapshot)
     metrics = compute_report_metrics(snapshot, effective_config, scope_ids=dict(queries))
     gates_results = evaluate_gates(
-        scopes=metrics.scopes, findings=snapshot.findings, gates=effective_config.gates
+        scopes=metrics.scopes, findings=snapshot.findings, gates=effective_config.gates,
+        risk_population=len(risk_mitigation_population(snapshot, effective_config))
     )
     by_severity, by_code = _counts(snapshot.findings)
     return QualityReport(

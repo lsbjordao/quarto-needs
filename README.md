@@ -155,11 +155,17 @@ quarto use template lsbjordao/quarto-needs/templates/starter
 
 See [`notes/quickstart.md`](notes/quickstart.md) for the complete first-project walkthrough.
 
-## Release 0.1.1 support contract
+## Stability tiers
 
-The supported surface is core analysis (`scan`, `check`, `quality`, `coverage`, `trace`, `query`), baselines and change reports (`baseline create|inspect`, `diff`, `impact`, Git-range `suspect`, `pr-report`, `github-report`), evidence (`check|attest`), LSP, all documented export formats, and Quarto rendering with the documented non-C4 shortcodes.
+Every command, export format and integration carries a tier. Stable is covered by SemVer and breaks only in a major release; preview is tested but its interface may still change in a minor release; experimental may change or be removed at any time and warns on stderr.
 
-OSLC, the GitHub Issues adapter, all four migration adapters, `variant`, C4 projections and the VS Code client are **experimental** and outside the stability contract. See the [changelog](CHANGELOG.md) and [CLI reference](https://lsbjordao.github.io/quarto-needs/cli-reference.html). Detailed stability tiers follow in a separate workstream.
+- **Stable**: `scan`, `check`, `coverage`, `trace`, `export`, `quality`, `query`, `baseline`, `baseline create`, `baseline inspect`, `diff`, `impact`, `export --format json|csv|markdown`, Quarto pre-render, Documented non-C4 shortcodes.
+
+- **Preview**: `evidence`, `evidence check`, `suspect --git BASE..HEAD`, `pr-report --git BASE..HEAD`, `github-report --git BASE..HEAD`, `diff --git BASE..HEAD`, `impact --git BASE..HEAD`, `evidence attest`, `lsp`, `export --format sarif|junit|reqif|jsonld`.
+
+- **Experimental**: `variant list|show NAME`, `migrate SOURCE`, `oslc discover|catalog|query`, C4 projections, GitHub Issues adapter, VS Code client.
+
+The tiers are declared once, in `src/quarto_needs/surface.py`, and this list is generated from it. See the [Stability chapter](https://lsbjordao.github.io/quarto-needs/stability.html) for what each tier promises and what a feature must demonstrate to be promoted.
 
 ## Command-line workflows
 
@@ -372,6 +378,12 @@ make test
 Contributors can set `QUARTO_NEEDS_ENGINE_SOURCE` to a local checkout or wheel when testing an unpublished engine; remote URLs are refused. The Makefile exports `QUARTO_NEEDS_ENGINE_SOURCE=$(CURDIR)`, so example and manual renders resolve the engine from this checkout instead of the package index.
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the contribution workflow and [`ARCHITECTURE.md`](ARCHITECTURE.md) for the internal module map.
+
+## Comparison with related tools
+
+[`docs/src/comparison.qmd`](docs/src/comparison.qmd) compares Quarto-Needs against Sphinx-Needs, StrictDoc, Doorstop and OpenFastTrace across authoring, gating, evidence, change analysis, interchange, editor support and ecosystem. Every cell names its source, the version verified, and the date.
+
+Read the "When not to use Quarto-Needs" section first if you are evaluating: this project is pre-1.0 with a single maintainer and no tool qualification, it offers no Sphinx-Needs compatibility, and for several use cases one of the others is the better answer.
 
 ## Inspirations and related work
 

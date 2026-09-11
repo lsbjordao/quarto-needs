@@ -70,7 +70,12 @@ def _failed_gates(snapshot: AnalysisSnapshot, config: NeedsConfig) -> list[str]:
     report = report_from_snapshot(snapshot, config)
     failed = [gate for gate in report.gates if not gate.passed]
     rows = [(gate.name, gate.scope, gate.threshold, gate.actual) for gate in failed]
-    return _table(("Gate", "Scope", "Threshold", "Actual"), rows) if rows else ["All gates passed."]
+    lines = _table(("Gate", "Scope", "Threshold", "Actual"), rows) if rows else []
+    lines.extend(
+        f"[{gate.label}] {gate.name}: {gate.measurement_message}."
+        for gate in report.gates if gate.measurement_status != "measured"
+    )
+    return lines or ["All gates passed."]
 
 
 def _impact(report: impact_module.ImpactReport) -> list[str]:

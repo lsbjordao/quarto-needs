@@ -564,3 +564,29 @@ A validação do release cobre a superfície suportada; funcionalidades experime
 
 `TC-025`, `TC-032`.
 :::
+
+::: {.need #ADR-021 type="architecture-decision" status="accepted" date="2026-09-10" revisit-after="2027-09-10" decision-makers="Quarto-Needs maintainers" tags="stability;surface;release;support" addresses="SYS-009;RISK-013" applies-to="COMP-CLI" confirmed-by="TC-035"}
+## Classificar a superfície pública em tiers de estabilidade a partir de um registro único
+
+### Context and Problem Statement
+
+O `ADR-020` publicou uma release suportada estreita e adiou os tiers detalhados. Enquanto isso, a superfície de comandos estava declarada em seis lugares mantidos em sincronia à mão: os subparsers do argparse, uma string de ajuda escrita à mão listando o que a camada externa roteia, o roteamento propriamente dito, o contrato de suporte do README, a seção de superfície do CHANGELOG e o manual. Uma tabela de tiers acrescentada a isso viraria o sétimo lugar a divergir, e um tier que discorda do código é pior que nenhum tier.
+
+### Decision Drivers
+
+- um mantenedor único não sustenta promessas de compatibilidade através de muitas especificações externas;
+- o custo de manter uma superfície escala com o que foi prometido, não com o que existe;
+- uma classificação só vale ser publicada se não puder deixar de ser verdadeira em silêncio.
+
+### Decision Outcome
+
+Declarar todo comando, formato de exportação e integração uma única vez, com seu tier, em `src/quarto_needs/surface.py`, e derivar dele todos os consumidores: o epílogo de `--help` e a linha de ajuda de cada subparser, o aviso em stderr para comandos experimentais, o capítulo de estabilidade do manual e os blocos de contrato do README e do CHANGELOG. Os testes comparam o registro com o parser real e com os predicados reais de roteamento, não com uma segunda lista. Superfície stable estreita com experimental ampla é preferível a superfície ampla nominalmente suportada.
+
+### Consequences
+
+Adicionar um comando agora exige declarar seu tier, e a superfície não pode ser ampliada em silêncio. Comandos experimentais imprimem uma linha em stderr, suprimível e que nunca toca stdout. Os seis locais de declaração viram um; o custo é que o registro precisa permanecer livre de importações pesadas, já que é consultado a cada invocação.
+
+### Confirmation
+
+`TC-035`.
+:::

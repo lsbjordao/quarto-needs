@@ -136,7 +136,54 @@ Gates are appropriate for measurable properties of a set, while rules describe l
 
 The paired `-trace` and `-effective`/`-successful` gates are the difference between a link existing and that link meaning something. `min-verification-trace` accepts a requirement that names a test case; `min-verification-successful` additionally demands that the test carries a successful status. Which statuses count is `[governance]` policy — see [Practical reference](reference.qmd).
 
-An unset percentage gate is not evaluated. A gate whose `scope` query selects nothing passes with an empty denominator, because an absent population cannot be under-covered; `quality` reports the denominator alongside every percentage so a vacuous pass is visible rather than implied.
+An unset percentage gate is not evaluated. The gate scope must be `catalog`,
+`approved-requirements`, or a declared named query; a misspelling is a
+configuration error listing valid scopes. Queries are declared at load time,
+even when their results depend on the graph.
+
+A percentage gate with zero eligible requirements is unmeasured and fails by
+default, including a zero-percent threshold. A risk gate with no high/critical
+risks is likewise unmeasured. Projects intentionally starting empty may set
+`[gates] allow-empty-scopes = true`: the verdict is allowed, but the CLI says
+`[WAIVED]`, JUnit records a skipped check, and Markdown identifies the waiver.
+Without that opt-in the CLI says `[UNMEASURED]`. Both explain that the scope
+matched no eligible objects. Missing measurements and disabled dependencies
+cannot be waived.
+
+### When `allow-empty-scopes` is legitimate
+
+It is legitimate when the emptiness is a true statement about a project that
+has not filled in yet: a repository adopting Quarto-Needs before authoring
+requirements, or a new component whose gates are declared up front so that
+they are already in place when content arrives. The claim being waived is "we
+know this measures nothing right now", and it is meant to stop being true.
+
+It is a patch when it hides a scope that should be matching and is not. The
+symptom looks identical — zero eligible objects — but the cause is drift: a
+named query whose predicate no longer matches how statuses are written, a
+`scope` pointing at the wrong query, or a risk model that was never authored
+while `require-risk-mitigation` claims risk is managed. Waiving that converts
+a broken configuration into a permanent green check.
+
+Two habits keep the two apart:
+
+- Before waiving, confirm the emptiness by hand. `quarto-needs query <scope>`
+  returns the population; if you expected objects and got none, the scope is
+  broken, not empty.
+- Treat the waiver as temporary and review it. A waiver that has outlived
+  several releases is describing drift, not a beginning.
+
+Note that the waiver is project-wide rather than per gate. Enabling it to
+accept one empty population also accepts every other empty population in the
+same project, so a scope that breaks later is waived without anyone deciding
+to waive it. This is the main reason to remove the waiver once the project has
+content, rather than leaving it in place because it is harmless today.
+
+Quality JSON v1 exposes optional `measurementStatus`: `measured`, `empty`, or
+`unavailable`. Unmeasured gates have `actual: null`; the coverage metric itself
+still reports 100.0 for 0/0 for compatibility. `max-errors` measures findings
+from a completed analysis: zero findings is a valid zero count. Structural
+analysis failure blocks every profile before population gates are evaluated.
 
 `require-risk-mitigation` counts findings from rule `REQ013`, which is opt-in. Enabling the gate alone could only ever pass, so that pair is rejected as a configuration error rather than reporting a vacuous success. Enable both:
 
@@ -155,3 +202,13 @@ A baseline captures the analyzed state and configuration fingerprint. Diff disti
 Impact analysis uses semantic direction declared in the catalog. ADR relations participate in this mechanism exactly like implementation, verification, and evidence relations.
 
 See the [command-line reference](cli-reference.qmd) for baseline creation/inspection, comparisons with current sources, `--recompute-with current`, committed Git ranges, suspect claims, and PR/GitHub report generation.
+
+## Verified determinism
+
+Determinism is a checked property, not a claim. `tools/reproducibility.py` runs the same analysis over the same sources several times and compares the resulting artifacts as raw bytes: `needs.json`, the generated Lua index, the baseline payload, every deterministic export (`json`, `csv`, `markdown`, `reqif`, `jsonld`), a materialized source index, and the three fingerprints compared as values in addition to bytes.
+
+Each run is a fresh interpreter. This is not a stylistic choice: `PYTHONHASHSEED` is read once at interpreter start-up, so a test that sets it through `os.environ` in the current process measures nothing. Every variation therefore executes as a subprocess with an explicitly constructed environment rather than an inherited one.
+
+The matrix varies the hash seed, the time zone, the collation locale, the working directory, the form of the `--root` argument (absolute, relative from inside the tree, relative from outside it), and the order in which sources are discovered. Each worker writes a probe recording what it actually observed, and the harness asserts those probes differ where the perturbation was supposed to bite — a locale that silently fell back to `C` fails the run instead of passing a test that never exercised collation. `SOURCE_DATE_EPOCH` freezes the reference date, so no field needs to be excluded from comparison; the allowlist of volatile fields lives in one module, is currently empty, and is locked by a reviewed digest so it cannot grow without a deliberate change.
+
+The `reproducibility` workflow repeats the whole matrix on Ubuntu, macOS, and Windows for Python 3.10 through 3.14, then compares the artifacts of all fifteen runtimes against each other. Its aggregate job is required for merge.

@@ -73,6 +73,7 @@ class Gates:
     min_evidence: float | None = None
     require_risk_mitigation: bool = False
     scope: str = "approved-requirements"
+    allow_empty_scopes: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -196,6 +197,8 @@ class NeedsConfig:
             "variants": variants,
             "gates": {
                 "scope": self.gates.scope,
+                # Preserve fingerprints for configurations without the new opt-in.
+                **({"allow-empty-scopes": True} if self.gates.allow_empty_scopes else {}),
                 "max-errors": self.gates.max_errors,
                 "require-risk-mitigation": self.gates.require_risk_mitigation,
                 "min-implementation-trace": self.gates.min_implementation_trace,
@@ -474,7 +477,7 @@ def _parse_gates(raw: object) -> Gates:
     if not isinstance(raw, dict):
         raise _fail("[gates] must be a table")
     unknown = set(raw) - set(GATE_PERCENT_KEYS) - {
-        "max-errors", "require-risk-mitigation", "scope"
+        "max-errors", "require-risk-mitigation", "scope", "allow-empty-scopes"
     }
     if unknown:
         raise _fail(f"[gates] has unknown keys: {', '.join(sorted(unknown))}")
@@ -485,6 +488,10 @@ def _parse_gates(raw: object) -> Gates:
     if not isinstance(mitigation, bool):
         raise _fail("[gates] require-risk-mitigation must be a boolean")
     values["require_risk_mitigation"] = mitigation
+    allow_empty = raw.get("allow-empty-scopes", False)
+    if not isinstance(allow_empty, bool):
+        raise _fail("[gates] allow-empty-scopes must be a boolean")
+    values["allow_empty_scopes"] = allow_empty
     scope = raw.get("scope", "approved-requirements")
     if not isinstance(scope, str) or not scope.strip():
         raise _fail("[gates] scope must be a non-empty string")
@@ -750,4 +757,18 @@ def load_config(root: Path) -> NeedsConfig:
     from .rules import validate_gate_rule_dependencies
 
     validate_gate_rule_dependencies(config)
+    validate_gate_scope(config)
     return config
+
+
+def validate_gate_scope(config: NeedsConfig) -> None:
+    """Scopes are built-ins or named queries, never dynamically declared."""
+    from .metrics import CATALOG_SCOPE
+    from .queries import DEFAULT_QUERY_NAME
+
+    known = {CATALOG_SCOPE, DEFAULT_QUERY_NAME, *config.named_query_sources}
+    if config.gates.scope not in known:
+        raise _fail(
+            f"[gates] scope {config.gates.scope!r} is not declared "
+            f"(known scopes: {', '.join(sorted(known))})"
+        )

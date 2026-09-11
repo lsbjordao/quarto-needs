@@ -22,6 +22,7 @@ from .metrics import render_measure
 from .queries import materialize_queries
 from .quality import QualityReport, build_quality_report, profile_exit_code, report_from_snapshot
 from .snapshot import AnalysisSnapshot
+from . import surface
 
 
 class ConfigurationFailure(Exception):
@@ -95,9 +96,9 @@ def _print_quality_text(report: QualityReport) -> None:
         f"{counts.get('warning', 0)} warnings, {counts.get('info', 0)} infos"
     )
     for gate in report.gates:
-        mark = "PASS" if gate.passed else "FAIL"
+        mark = gate.label
         line = f"[{mark}] {gate.name}"
-        details = []
+        details = [gate.measurement_message] if gate.measurement_message else []
         if gate.actual is not None:
             details.append(f"actual {gate.actual}")
         if gate.threshold is not None:
@@ -457,70 +458,46 @@ def _export(root: Path, args: argparse.Namespace, config: NeedsConfig | None) ->
     return profile_exit_code(effective.profile, False, report.gate_failures())
 
 
-# Commands intercepted by cli_entry before argparse ever runs. They are not
-# subparsers here, so `--help` would otherwise present this argparse group as
-# the whole CLI and hide half of it. Listing them keeps the entry point's help
-# honest without moving dispatch into argparse.
-DISPATCHED_COMMAND_HELP = """
-commands handled by the outer dispatch layer:
-  suspect --git BASE..HEAD
-                        Traceability claims needing review after a change
-  pr-report --git BASE..HEAD
-                        Combined change/impact/suspect review report
-  github-report --git BASE..HEAD
-                        Summary, annotations, and check projection for GitHub
-  diff|impact --git BASE..HEAD
-                        Compare two committed Git states instead of a baseline
-  variant list|show NAME
-                        Inspect configured build variants
-  export --format reqif|jsonld
-                        ReqIF 1.2 and JSON-LD interchange projections
-  migrate SOURCE        Migration plans for sphinx-needs, doorstop, strictdoc,
-                        openfasttrace
-  oslc discover|catalog|query
-                        Bounded read-only OSLC RM federation
-  lsp                   Run the language server over stdio
+def build_parser() -> argparse.ArgumentParser:
+    """The argparse surface, built separately so tests can introspect it.
 
-`oslc` and `migrate` subcommands accept their own --help. The complete
-reference for every command above is the CLI reference chapter of the manual.
-"""
-
-
-def main(argv: list[str] | None = None) -> int:
+    Every subparser takes its help from `surface`, and the epilog naming the
+    commands intercepted before argparse runs is rendered from the same
+    registry. Dispatch itself deliberately stays outside argparse; what moved
+    is only the duplicated list of what dispatch handles.
+    """
     parser = argparse.ArgumentParser(
         prog="quarto-needs",
         description="Requirements-as-code engine for Quarto",
-        epilog=DISPATCHED_COMMAND_HELP,
+        epilog=surface.dispatched_command_help(),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--root", help="Project root (default: current directory)")
     parser.add_argument("--version", action="version", version=f"quarto-needs {__version__}")
     sub = parser.add_subparsers(dest="command", required=True)
-    sub.add_parser("scan", help="Parse project and write .quarto-needs/needs.json")
-    sub.add_parser("check", help="Validate the requirements graph")
-    sub.add_parser("coverage", help="Print coverage metrics")
-    trace = sub.add_parser("trace", help="Show upstream/downstream traceability")
+    sub.add_parser("scan", help=surface.parser_help(("scan",)))
+    sub.add_parser("check", help=surface.parser_help(("check",)))
+    sub.add_parser("coverage", help=surface.parser_help(("coverage",)))
+    trace = sub.add_parser("trace", help=surface.parser_help(("trace",)))
     trace.add_argument("id")
-    export = sub.add_parser("export", help="Export canonical graph JSON")
+    export = sub.add_parser("export", help=surface.parser_help(("export",)))
     export.add_argument("--output", default=".quarto-needs/needs.json")
     export.add_argument("--format", choices=("json", "csv", "sarif", "junit", "markdown"), default="json")
     export.add_argument("--baseline", help="Baseline for the Markdown change summary (markdown format only)")
-    quality = sub.add_parser(
-        "quality", help="Evaluate scoped metrics, findings, and configured gates"
-    )
+    quality = sub.add_parser("quality", help=surface.parser_help(("quality",)))
     quality.add_argument("--format", choices=("text", "json"), default="text")
     quality.add_argument("--output", help="Write the JSON report atomically to this path")
-    query = sub.add_parser("query", help="Evaluate a named query and print its ordered IDs")
+    query = sub.add_parser("query", help=surface.parser_help(("query",)))
     query.add_argument("name")
     query.add_argument("--format", choices=("text", "json"), default="text")
-    evidence = sub.add_parser("evidence", help="Validate machine evidence against the engineering graph")
+    evidence = sub.add_parser("evidence", help=surface.parser_help(("evidence",)))
     evidence_sub = evidence.add_subparsers(dest="evidence_command", required=True)
-    evidence_check = evidence_sub.add_parser("check", help="Check a pytest evidence artifact against the current graph")
+    evidence_check = evidence_sub.add_parser("check", help=surface.parser_help(("evidence", "check")))
     evidence_check.add_argument("artifact")
     evidence_check.add_argument("--format", choices=("text", "json"), default="text")
-    baseline_parser = sub.add_parser("baseline", help="Create or inspect a canonical baseline")
+    baseline_parser = sub.add_parser("baseline", help=surface.parser_help(("baseline",)))
     baseline_sub = baseline_parser.add_subparsers(dest="baseline_command", required=True)
-    baseline_create = baseline_sub.add_parser("create", help="Write a baseline for the current graph")
+    baseline_create = baseline_sub.add_parser("create", help=surface.parser_help(("baseline", "create")))
     baseline_create.add_argument("--output", default=str(DEFAULT_BASELINE_PATH))
     baseline_create.add_argument("--force", action="store_true", help="Overwrite an existing baseline")
     baseline_create.add_argument(
@@ -529,10 +506,10 @@ def main(argv: list[str] | None = None) -> int:
         help="Write a diagnostic artifact for a structurally invalid project",
     )
     baseline_create.add_argument("--format", choices=("text", "json"), default="text")
-    baseline_inspect = baseline_sub.add_parser("inspect", help="Summarize an existing baseline")
+    baseline_inspect = baseline_sub.add_parser("inspect", help=surface.parser_help(("baseline", "inspect")))
     baseline_inspect.add_argument("baseline")
     baseline_inspect.add_argument("--format", choices=("text", "json"), default="text")
-    diff_parser = sub.add_parser("diff", help="Compare a baseline against the current graph")
+    diff_parser = sub.add_parser("diff", help=surface.parser_help(("diff",)))
     diff_parser.add_argument("baseline")
     diff_parser.add_argument("--format", choices=("text", "json"), default="text")
     diff_parser.add_argument(
@@ -541,7 +518,7 @@ def main(argv: list[str] | None = None) -> int:
         dest="recompute_with",
         help="Re-resolve the baseline's relations under the current configuration and reference date",
     )
-    impact_parser = sub.add_parser("impact", help="Explain what a baseline's changes reach")
+    impact_parser = sub.add_parser("impact", help=surface.parser_help(("impact",)))
     impact_parser.add_argument("baseline")
     impact_parser.add_argument("--format", choices=("text", "json"), default="text")
     impact_parser.add_argument(
@@ -550,7 +527,11 @@ def main(argv: list[str] | None = None) -> int:
         dest="recompute_with",
         help="Re-resolve the baseline's relations under the current configuration and reference date",
     )
-    args = parser.parse_args(argv)
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = build_parser().parse_args(argv)
     root = _root(args.root)
 
     if args.command == "scan":

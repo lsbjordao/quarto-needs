@@ -203,3 +203,39 @@ The standalone CLI shall report the installed engine version through `quarto-nee
 
 Installation diagnostics must work even when the current project is invalid.
 :::
+
+::: {.need #FUN-022 type="functional-requirement" status="approved" priority="high" tags="distribution;cli;stability;surface" derives-from="SYS-009" implemented-by="COMP-CLI" verified-by="TC-035"}
+## Declare a stability tier for every published surface item
+
+Every command, export format and integration the project publishes shall carry a stability tier declared in one registry, from which the command-line help, the runtime warning, the manual and the public support contract are rendered or verified.
+
+### Rationale
+
+A tier maintained beside the surface it describes drifts from it. Declaring it once and deriving every consumer makes the classification checkable rather than aspirational.
+:::
+
+::: {.need #FUN-021 type="functional-requirement" status="approved" priority="critical" tags="governance;gates;measurement" derives-from="SYS-003" implemented-by="COMP-RULES;COMP-CLI" verified-by="TC-033"}
+## Reject unmeasured quality assurance
+
+Quarto-Needs shall reject unknown gate scopes and distinguish measured results
+from empty or unavailable measurements. Empty populations fail unless the
+author explicitly waives them; unavailable measurements never pass.
+
+### Rationale
+
+A passing gate must establish measured assurance or identify an explicit waiver.
+:::
+
+::: {.need #NFR-010 type="non-functional-requirement" status="approved" priority="critical" tags="determinism;reproducibility;ci" derives-from="SYS-003" implemented-by="COMP-ANALYSIS;COMP-CLI" verified-by="TC-034"}
+## Verify determinism under environment perturbation
+
+Analysis artifacts and fingerprints shall be byte-identical across hash seeds,
+time zones, locales, working directories, root argument forms, source discovery
+order, supported Python versions and supported operating systems.
+
+### Rationale
+
+Determinism claimed but unverified fails silently: a broken guarantee still
+reports green. Each perturbation must run in a fresh interpreter, because
+`PYTHONHASHSEED` is fixed at interpreter start-up.
+:::

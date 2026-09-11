@@ -30,6 +30,10 @@ def render(report: QualityReport) -> str:
             "failures": str(failures),
         },
     )
+    skipped = sum(gate.passed and gate.measurement_status != "measured" for gate in gates)
+    if skipped:
+        suites.set("skipped", str(skipped))
+        suite.set("skipped", str(skipped))
     properties = ET.SubElement(suite, "properties")
     for name, value in (
         ("errors", report.findings_by_severity.get("error", 0)),
@@ -45,9 +49,12 @@ def render(report: QualityReport) -> str:
             "testcase",
             {"classname": "quarto-needs.gates", "name": gate.name},
         )
+        if gate.passed and gate.measurement_status != "measured":
+            ET.SubElement(case, "skipped", {"message": gate.measurement_message})
         if not gate.passed:
             message = (
                 f"threshold {_display(gate.threshold)}, actual {_display(gate.actual)}"
+                + (f"; {gate.measurement_message}" if gate.measurement_message else "")
             )
             failure = ET.SubElement(case, "failure", {"message": message})
             failure.text = (
