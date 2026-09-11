@@ -450,7 +450,7 @@ function M.render_shortcode(args, kwargs)
     '<button type="button" class="need-graph-fullscreen">' .. views.tr("Fullscreen", "Tela cheia") .. '</button>' ..
     '<button type="button" class="need-graph-export-png">' .. views.tr("Export PNG", "Exportar PNG") .. '</button></div>')
   local canvas = pandoc.RawBlock("html", '<div class="need-graph-canvas" data-need-graph-canvas="' .. instance_id .. '" role="img" aria-label="' .. views.tr("Interactive traceability graph", "Grafo de rastreabilidade interativo") .. '"><div class="need-graph-loading">' .. views.tr("Loading interactive graph…", "Carregando grafo interativo…") .. '</div><div id="' .. instance_id .. '-minimap" class="cytoscape-navigator" data-need-graph-minimap="' .. instance_id .. '" aria-hidden="true"></div></div>')
-  local data_script = pandoc.RawBlock("html", '<script type="application/json" data-need-graph-data="' .. instance_id .. '">' .. json_payload .. '</script>')
+  local data_script = pandoc.RawBlock("html", '<script type="application/json" data-need-graph-data="' .. instance_id .. '">' .. views.script_json(json_payload) .. '</script>')
   -- The overlay annotation artifact (written by write_graph_overlays when the
   -- project has a comparison baseline) rides along when it exists; its script
   -- tag's presence is the browser-side availability signal.
@@ -461,7 +461,7 @@ function M.render_shortcode(args, kwargs)
     local overlays_contents = overlays_file:read("*a"); overlays_file:close()
     local overlays_ok, overlays_decoded = pcall(pandoc.json.decode, overlays_contents)
     if overlays_ok and type(overlays_decoded) == "table" and type(overlays_decoded.schemaVersion) == "string" then
-      overlays_script = pandoc.RawBlock("html", '<script type="application/json" data-need-graph-overlays="' .. instance_id .. '">' .. overlays_contents .. '</script>')
+      overlays_script = pandoc.RawBlock("html", '<script type="application/json" data-need-graph-overlays="' .. instance_id .. '">' .. views.script_json(overlays_contents) .. '</script>')
     end
   end
   local status = pandoc.RawBlock("html", '<div class="need-graph-status visually-hidden" role="status" data-need-graph-status="' .. instance_id .. '"></div>')

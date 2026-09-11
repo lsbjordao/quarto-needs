@@ -25,6 +25,25 @@ function M.slug(value)
   return text(value):lower():gsub("[^%w]+", "-"):gsub("^-", ""):gsub("-$", "")
 end
 
+-- JSON embedded in a `<script type="application/json">` element is parsed by
+-- the HTML parser before any JSON decoder sees it, and that parser ends the
+-- element at the first `</script>`. JSON string escaping alone leaves `<`, `>`
+-- and `&` raw, so an authored title containing `</script>` would close the
+-- element early and everything after it would be parsed as markup. Escaping
+-- the three HTML-significant characters as JSON unicode escapes keeps the
+-- payload valid JSON — decoders restore the characters — while making a
+-- breakout impossible. The Unicode line separators are escaped for callers
+-- that hand the same payload to JavaScript directly.
+function M.script_json(value)
+  local escaped = tostring(value)
+  escaped = escaped:gsub("&", "\\u0026")
+  escaped = escaped:gsub("<", "\\u003c")
+  escaped = escaped:gsub(">", "\\u003e")
+  escaped = escaped:gsub("\226\128\168", "\\u2028")
+  escaped = escaped:gsub("\226\128\169", "\\u2029")
+  return escaped
+end
+
 -- Shared with needs.css's `.need-badge.need-type-*` rules: the same hex
 -- values, so a node's mermaid diagram color always matches its card badge
 -- color on the same page. Any renderer that draws a typed node (need-flow,

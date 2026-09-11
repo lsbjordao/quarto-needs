@@ -1,0 +1,12 @@
+---
+title: "Projection security fixture"
+---
+
+::: {.need #SEC-1 type=functional-requirement status=approved priority=high}
+## `</script><script>alert("breakout")</script>`
+
+A title whose literal text is a script breakout, carried as code so the
+document itself never contains raw markup.
+:::
+
+{{< need-graph >}}
