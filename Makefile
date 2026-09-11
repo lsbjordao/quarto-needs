@@ -1,4 +1,4 @@
-.PHONY: setup setup-branding setup-babelquarto test branding-assets branding-check scan check coverage render-manual-multilingual preview-self-example sync-self-example check-self-example check-rendered-diagrams evidence-self-example render-self-example install-diagram-backends check-install check-extension-first check-cli-install check-release-build
+.PHONY: setup setup-branding setup-babelquarto test branding-assets branding-check scan check coverage render-manual-multilingual preview-self-example sync-self-example check-self-example check-rendered-diagrams evidence-self-example render-self-example install-diagram-backends check-install check-extension-first check-cli-install check-release-build check-performance-budgets
 .DEFAULT_GOAL := test
 
 VENV_PYTHON := .venv/bin/python
@@ -138,3 +138,11 @@ check-release-build:
 	$(VENV_PYTHON) -m build
 	$(VENV_PYTHON) -m twine check dist/*
 	$(VENV_PYTHON) tools/check_release_artifacts.py
+
+# Performance budgets close the measurement mandate with an executable gate.
+# Run it on the release machine, never in CI: CI asserts no timings, and
+# tests/test_benchmark_budgets.py only checks that the budget document agrees
+# with the recorded evidence. A violation means a real complexity regression
+# or a machine slower than the recorded headroom allows.
+check-performance-budgets:
+	$(VENV_PYTHON) benchmarks/check_budgets.py --sizes 1000,10000,50000

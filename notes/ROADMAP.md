@@ -231,7 +231,7 @@ Baseline comparison is interactive through a pre-rendered overlay annotation art
 
 ---
 
-# Phase 8 — Scale, performance, compatibility, and release hardening 🚧 (first slice: semantic-core stabilization — declaration-native validation, linear-time indexes, reproducible benchmarks, schema compatibility policy, minimum-Quarto verification, minimal example)
+# Phase 8 — Scale, performance, compatibility, and release hardening ✅ (first slice: semantic-core stabilization — declaration-native validation, linear-time indexes, reproducible benchmarks, schema compatibility policy, minimum-Quarto verification, minimal example; release-gate matrix in [`notes/release-gates.md`](release-gates.md))
 
 Maintain synthetic sparse/dense/cyclic/high-fanout corpora around 100, 1,000, 10,000, and 50,000+ objects where practical. Measure parsing, analysis, policies, queries, baseline/diff/impact, evidence, LSP latency, graph projection, export, and Quarto rendering.
 
@@ -256,8 +256,11 @@ result is neighborhood selection, which costs ≈3× more on `high-fanout` than
 on `mixed` at *fewer* edges — in-degree concentration, not edge count,
 drives bounded selection. Per the phase rule, that is a documented
 characteristic and not a bottleneck, so **no caching or incrementality is
-introduced**. See `benchmarks/README.md`. LSP latency and Quarto-rendering
-measurement remain open, as do the release gates.
+introduced**. See `benchmarks/README.md`. LSP latency
+(`benchmark_lsp.py`) and Quarto rendering (`benchmark_render.py`) are
+measured, and the release gates are inventoried in
+[`notes/release-gates.md`](release-gates.md), with performance budgets
+executable through `make check-performance-budgets`.
 
 The third slice (Phase 8B) makes distribution extension-first: the active
 Quarto extension contributes the project pre-render itself and provisions
@@ -365,7 +368,7 @@ Architecture / C4 projections
           ↓
 Graph workbench
           ↓
-Scale + compatibility + release hardening
+Scale + compatibility + release hardening ✅
 ```
 
 C4 projection work may advance earlier when it only consumes already-modeled architecture roles, but it must never fork the canonical model.

@@ -25,6 +25,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - A subprocess perturbation harness (`tools/reproducibility.py`) and a required `reproducibility` workflow verify that analysis artifacts and the three fingerprints are byte-identical across hash seeds, time zones, collation locales, working directories, `--root` argument forms, source discovery order, Python 3.10 through 3.14, and Ubuntu, macOS and Windows. Determinism was previously asserted by design principle and exercised only indirectly.
 
+- A release-gate matrix (`notes/release-gates.md`) names the evidence behind each gate, and `benchmarks/budgets.json` plus `make check-performance-budgets` turn the recorded performance evidence into an executable budget check. The budget document is verified in CI without asserting timings; the fresh measurement stays a release-rehearsal step.
+
 ### Changed
 
 - README opens with real coverage and traceability screenshots, an executable authoring example, tested quickstart commands and dynamic CI/PyPI badges; capabilities are summarized after the demonstration.
@@ -34,6 +36,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Percentage gates passed when their scope was misspelled or matched no requirements because missing scopes passed outright and 0/0 coverage is 100.0. Unknown scopes now fail configuration loading; empty measurements fail unless explicitly waived with `allow-empty-scopes`, and reports distinguish them from measured passes. Risk mitigation also checks that its high/critical-risk population was measured; missing measurements cannot be waived.
 - `source_index._sources` built its mapping from an unordered `rglob` walk, so its insertion order followed the filesystem. The public index sorted at its own boundary, so no published artifact varied, but the mapping itself is now ordered at discovery for any future consumer.
+- The interactive graph embedded projected JSON into `<script type="application/json">` without HTML-significant escaping, so a title containing the literal sequence `</script>` closed the element early and the remainder was parsed as markup. Both the graph data and the overlay payloads now escape `<`, `>`, `&` and the Unicode line separators at the embedding boundary; a real-render regression test uses a hostile title and asserts the payload round-trips without breaking out.
 
 ## [0.1.1] — 2026-09-09
 

@@ -154,9 +154,8 @@ licenses no such work.** Withholding it is the finding.
 * CI runs no timing assertions; `tests/test_benchmarks.py` proves the
   harness and every corpus shape work, and pins the `mixed` corpus bytes —
   it asserts no timings.
-* The roadmap also names LSP latency and Quarto rendering as Phase 8
-  measurement targets. Neither is covered here: both are process-boundary
-  measurements needing a different harness, and they remain open.
+* LSP latency and Quarto rendering are process-boundary measurements with
+  their own harnesses below (`benchmark_lsp.py`, `benchmark_render.py`).
 * Shapes vary topology at a fixed object-type mix; they do not vary the
   configured rule set, derived fields, or variants.
 
@@ -220,3 +219,26 @@ few hundred milliseconds — noise against Quarto's own toolchain overhead
 the wall clock at 98–99%. Engineering effort aimed at "renders feel slow"
 belongs to Quarto, not to the engine; these numbers make that attribution
 measurable instead of assumed.
+
+## Release budgets
+
+`budgets.json` turns the recorded evidence into an executable release gate:
+for every measured stage and size on the reference `mixed` shape, the budget
+is the maximum recorded value across the evidence files times a documented
+headroom, floored so sub-millisecond stages stay meaningful. The budget
+document is checked into the repository, and `tests/test_benchmark_budgets.py`
+proves deterministically (in CI, without timing anything) that every recorded
+measurement still fits its budget and that the checker flags violations.
+
+The fresh measurement is a release-rehearsal step, deliberately not a CI test:
+
+```bash
+make check-performance-budgets
+# equivalent to:
+.venv/bin/python benchmarks/check_budgets.py --sizes 1000,10000,50000
+```
+
+A violation means either a real complexity regression or a machine slower
+than the recorded headroom allows. Recalibrating means recording a new
+baseline with the harness and updating `budgets.json` deliberately — never
+silently widening a budget.
