@@ -16,9 +16,9 @@ A raiz padrão é o diretório atual. Caminhos de saída são relativos ao proje
 
 Use `quarto-needs --version` para diagnosticar o motor instalado sem carregar um projeto.
 
-## Suporte no release 0.1.1
+## Tiers de estabilidade
 
-Análise central, baselines, relatórios de mudança, evidência, LSP, exports e shortcodes Quarto documentados fora de C4 têm suporte. OSLC, adaptador GitHub Issues, adaptadores de migração, `variant`, projeções C4 e cliente VS Code são experimentais e ficam fora do contrato de estabilidade deste release. Tiers detalhados de estabilidade serão definidos separadamente.
+Todo comando abaixo carrega um tier de estabilidade: stable, preview ou experimental. Comandos experimentais imprimem uma linha em stderr quando invocados. Veja [Tiers de estabilidade](stability.qmd) para o que cada tier promete, a tabela completa e a política de promoção.
 
 As distribuições Python incluem schemas e assets canônicos da extensão em `sys.prefix/share/quarto-needs/`. A instalação normal no Quarto continua usando `quarto add lsbjordao/quarto-needs`.
 

@@ -564,3 +564,29 @@ Release validation covers the supported surface; experimental functionality does
 
 `TC-025`, `TC-032`.
 :::
+
+::: {.need #ADR-021 type="architecture-decision" status="accepted" date="2026-09-10" revisit-after="2027-09-10" decision-makers="Quarto-Needs maintainers" tags="stability;surface;release;support" addresses="SYS-009;RISK-013" applies-to="COMP-CLI" confirmed-by="TC-035"}
+## Classify the public surface into stability tiers from a single registry
+
+### Context and Problem Statement
+
+`ADR-020` published a narrow supported release and deferred detailed tiers. Meanwhile the command surface was declared in six places kept in sync by hand: the argparse subparsers, a hand-written help string listing what the outer dispatch layer routes, the routing itself, the README's support contract, the CHANGELOG's release-surface section, and the manual. A tier table added beside those would have become the seventh thing to drift, and a tier that disagrees with the code is worse than no tier at all.
+
+### Decision Drivers
+
+- a single maintainer cannot carry compatibility promises across many external specifications;
+- the cost of maintaining a surface scales with what has been promised, not with what exists;
+- a classification is only worth publishing if it cannot silently stop being true.
+
+### Decision Outcome
+
+Declare every command, export format and integration once, with its tier, in `src/quarto_needs/surface.py`, and derive every consumer from it: the `--help` epilog and each subparser's help line, the stderr warning for experimental commands, the manual's Stability chapter, and the README and CHANGELOG contract blocks. Tests compare the registry against the real parser and the real routing predicates rather than against a second list. A narrow stable surface with a wide experimental one is preferred to a wide surface that is nominally supported.
+
+### Consequences
+
+Adding a command now requires declaring its tier, and the surface cannot be extended silently. Experimental commands print one line to stderr, which is suppressible and never touches stdout. The six declaration sites become one; the cost is that the registry must stay free of heavy imports, since it is consulted on every invocation.
+
+### Confirmation
+
+`TC-035`.
+:::

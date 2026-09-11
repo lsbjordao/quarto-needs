@@ -204,6 +204,16 @@ O CLI independente deve informar a versão instalada do motor por `quarto-needs 
 O diagnóstico da instalação deve funcionar mesmo quando o projeto atual for inválido.
 :::
 
+::: {.need #FUN-022 type="functional-requirement" status="approved" priority="high" tags="distribution;cli;stability;surface" derives-from="SYS-009" implemented-by="COMP-CLI" verified-by="TC-035"}
+## Declarar um tier de estabilidade para cada item publicado da superfície
+
+Todo comando, formato de exportação e integração publicado pelo projeto deve carregar um tier de estabilidade declarado em um único registro, do qual a ajuda de linha de comando, o aviso de runtime, o manual e o contrato público de suporte são renderizados ou verificados.
+
+### Rationale
+
+Um tier mantido ao lado da superfície que descreve diverge dela. Declará-lo uma vez e derivar todos os consumidores torna a classificação verificável em vez de aspiracional.
+:::
+
 ::: {.need #FUN-021 type="functional-requirement" status="approved" priority="critical" tags="governance;gates;measurement" derives-from="SYS-003" implemented-by="COMP-RULES;COMP-CLI" verified-by="TC-033"}
 ## Rejeitar garantia de qualidade não medida
 

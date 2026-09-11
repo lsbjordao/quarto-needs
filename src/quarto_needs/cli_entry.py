@@ -11,6 +11,7 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
+from . import surface
 from .cli_dispatch import main as dispatch_main
 from .console import install_semantic_color, restore_streams
 from .git_range_cli import git_action, run_git_action
@@ -45,28 +46,65 @@ def _top_level_command(argv: Sequence[str]) -> str | None:
     return None
 
 
+def _warn_if_experimental(token: str | None, argv: Sequence[str]) -> None:
+    """One stderr line before an experimental command runs.
+
+    The tier is read from the registry rather than decided here, so a command
+    promoted out of experimental stops warning without this file changing --
+    and the warning cannot disagree with the tier that `--help` and the manual
+    show.
+
+    stdout stays untouched: it is consumed by machines, and a banner there
+    would break pipelines. There is no command-line flag on purpose -- a flag
+    would have to be added to every subparser, including the ones that never
+    reach argparse, which is the duplication this registry exists to remove.
+    """
+    if token is None or surface.tier_of(token) != surface.EXPERIMENTAL:
+        return
+    if os.environ.get(surface.SUPPRESS_WARNING_ENVIRONMENT) == "1":
+        return
+    if "-h" in argv or "--help" in argv:
+        return  # Reading about a command is not using it.
+    print(
+        f"quarto-needs: '{token}' is experimental and outside the stability "
+        "contract: it may change or be removed at any time. Set "
+        f"{surface.SUPPRESS_WARNING_ENVIRONMENT}=1 to silence this.",
+        file=sys.stderr,
+    )
+
+
 def _dispatch(values: list[str]) -> int:
     git = git_action(values)
     if git is not None:
         command, range_spec = git
+        _warn_if_experimental(command, values)
         return run_git_action(_root(values), values, command, range_spec)
     variant = variant_action(values)
     if variant is not None:
         action, name = variant
+        _warn_if_experimental("variant", values)
         return run_variant_action(_root(values), values, action, name)
     interchange = interchange_action(values)
     if interchange is not None:
+        _warn_if_experimental("export", values)
         return run_interchange_export(_root(values), values, interchange)
     migration = migration_action(values)
     if migration is not None:
+        _warn_if_experimental("migrate", values)
         return run_migration_action(_root(values), values, migration)
     oslc = oslc_action(values)
     if oslc is not None:
+        _warn_if_experimental("oslc", values)
         return run_oslc_action(_root(values), values, oslc)
-    if _top_level_command(values) == "lsp":
+    token = _top_level_command(values)
+    if token == "lsp":
         from .lsp_server import run_stdio
 
+        _warn_if_experimental("lsp", values)
         return run_stdio(_root(values))
+    # Everything argparse handles, plus `evidence attest`, warns from here on
+    # the same registry lookup, so no layer is exempt by construction.
+    _warn_if_experimental(token, values)
     return dispatch_main(values)
 
 

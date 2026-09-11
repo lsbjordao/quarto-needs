@@ -1,0 +1,134 @@
+# Tiers de estabilidade
+
+Todo comando, formato de exportação e integração que o Quarto-Needs entrega
+carrega um tier de estabilidade. O tier diz do que você pode depender e o que
+pode mudar sob seus pés.
+
+Os tiers são declarados uma única vez, em `src/quarto_needs/surface.py`. A
+tabela abaixo, a saída de `--help`, o aviso de runtime e o contrato de suporte
+do README são todos renderizados ou verificados contra esse módulo, de modo
+que um comando não pode ser listado aqui em um tier e se comportar como outro.
+Os testes falham se este capítulo ficar atrasado em relação ao registro.
+
+## Os três tiers
+
+**Stable.** Coberto por versionamento semântico. Uma quebra exige release
+maior. Documentado neste manual e exercitado em toda a matriz de CI — Python
+3.10 a 3.14 em Ubuntu, macOS e Windows. Um pipeline construído sobre
+superfície stable não quebra em uma atualização menor.
+
+**Preview.** Funcional e testado, e usado pelo próprio CI deste projeto. A
+interface ainda pode mudar em uma release menor, e qualquer mudança dessas
+recebe entrada no CHANGELOG. Preview não é um aviso sobre qualidade; é a
+afirmação de que o formato da interface ainda não está assentado.
+
+**Experimental.** Pode mudar ou sair a qualquer momento, sem período de
+depreciação e sem entrada no CHANGELOG. Imprime uma linha em stderr quando
+invocado. Não bloqueia release: uma funcionalidade experimental que quebra não
+segura uma versão pronta — que é exatamente por que ela não pode carregar
+promessa de compatibilidade.
+
+## O que "fora do contrato de estabilidade" significa na prática
+
+Para superfície experimental, concretamente:
+
+- **Nenhuma promessa de compatibilidade.** Flags, formato de saída, códigos de
+  saída e a própria existência da funcionalidade podem mudar em release de
+  correção.
+- **Nenhuma entrada obrigatória no CHANGELOG.** Mudanças podem entrar sem
+  anúncio. O tier é o anúncio.
+- **Não bloqueia release.** Uma funcionalidade experimental com defeito não
+  segura uma versão que de resto está pronta.
+- **Avisa em runtime.** Uma linha em stderr, nunca em stdout, para que a saída
+  legível por máquina permaneça byte-idêntica. Defina
+  `QUARTO_NEEDS_SUPPRESS_EXPERIMENTAL_WARNING=1` para silenciá-la. Não há flag
+  de linha de comando para isso de propósito: uma flag teria de ser adicionada
+  a todo subparser, inclusive aos que nunca chegam ao argparse, recriando a
+  duplicação que este registro eliminou.
+
+Todo o resto — superfície stable e preview — está dentro do contrato, com
+preview carregando a mais fraca das duas promessas.
+
+## A superfície completa
+
+A coluna `Camada` registra como um comando chega à sua implementação:
+comandos `argparse` são analisados pelo parser principal, comandos `dispatch`
+são interceptados antes de o argparse rodar. É detalhe de implementação,
+listado aqui porque é a isso que os testes de não-divergência se prendem.
+
+| Superfície | Tier | Camada | Significado |
+|---|---|---|---|
+| `scan` | stable | argparse | Analisa as fontes e escreve .quarto-needs/needs.json |
+| `check` | stable | argparse | Valida o grafo de requisitos |
+| `coverage` | stable | argparse | Imprime métricas de cobertura |
+| `trace` | stable | argparse | Mostra rastreabilidade a montante e a jusante |
+| `export` | stable | argparse | Exporta o JSON canônico do grafo |
+| `quality` | stable | argparse | Avalia métricas por escopo, achados e gates configurados |
+| `query` | stable | argparse | Avalia uma consulta nomeada e imprime seus IDs ordenados |
+| `evidence` | preview | argparse | Valida evidência de máquina contra o grafo de engenharia |
+| `evidence check` | preview | argparse | Verifica um artefato de evidência do pytest contra o grafo atual |
+| `baseline` | stable | argparse | Cria ou inspeciona um baseline canônico |
+| `baseline create` | stable | argparse | Escreve um baseline do grafo atual |
+| `baseline inspect` | stable | argparse | Resume um baseline existente |
+| `diff` | stable | argparse | Compara um baseline com o grafo atual |
+| `impact` | stable | argparse | Explica o que as mudanças de um baseline alcançam |
+| `suspect --git BASE..HEAD` | preview | dispatch | Afirmações de rastreabilidade que precisam de revisão após uma mudança |
+| `pr-report --git BASE..HEAD` | preview | dispatch | Relatório combinado de mudança, impacto e suspeita |
+| `github-report --git BASE..HEAD` | preview | dispatch | Resumo, anotações e projeção de check para o GitHub |
+| `diff --git BASE..HEAD` | preview | dispatch | Compara dois estados versionados em vez de um baseline |
+| `impact --git BASE..HEAD` | preview | dispatch | Compara dois estados versionados em vez de um baseline |
+| `evidence attest` | preview | dispatch | Assina e registra uma atestação de evidência |
+| `lsp` | preview | dispatch | Executa o servidor de linguagem sobre stdio |
+| `export --format reqif\|jsonld` | preview | dispatch | Projeções de intercâmbio ReqIF 1.2 e JSON-LD |
+| `variant list\|show NAME` | experimental | dispatch | Inspeciona variantes de build configuradas |
+| `migrate SOURCE` | experimental | dispatch | Planos de migração para sphinx-needs, doorstop, strictdoc, openfasttrace |
+| `oslc discover\|catalog\|query` | experimental | dispatch | Federação OSLC RM limitada e somente leitura |
+| `export --format json` | stable | argparse | Projeção de exportação |
+| `export --format csv` | stable | argparse | Projeção de exportação |
+| `export --format markdown` | stable | argparse | Projeção de exportação |
+| `export --format sarif` | preview | argparse | Projeção de exportação |
+| `export --format junit` | preview | argparse | Projeção de exportação |
+| `export --format reqif` | preview | dispatch | Projeção de exportação |
+| `export --format jsonld` | preview | dispatch | Projeção de exportação |
+| Quarto pre-render | stable | não é comando | O pre-render de projeto contribuído pela extensão Quarto |
+| Documented non-C4 shortcodes | stable | não é comando | need, need-table, need-graph, need-coverage e os demais shortcodes documentados |
+| C4 projections | experimental | não é comando | need-c4 e seus backends PlantUML, D2 e Structurizr |
+| GitHub Issues adapter | experimental | não é comando | Reconciliação entre needs e GitHub Issues |
+| VS Code client | experimental | não é comando | O cliente de linguagem empacotado em editors/vscode |
+
+## Promoção entre tiers
+
+Um tier é uma afirmação sobre manutenção, então subir exige demonstrar que a
+afirmação pode ser mantida.
+
+**De experimental para preview** exige tudo isto:
+
+- interface estável, sem mudança de formato por pelo menos uma release menor;
+- testes cobrindo o caminho normal e os modos de falha documentados, rodando
+  na matriz padrão de CI e não apenas localmente;
+- um capítulo de manual descrevendo a funcionalidade, não só uma linha de
+  `--help`;
+- saída determinística onde a funcionalidade produz artefatos, verificada pela
+  matriz de reprodutibilidade como qualquer outro comando que produz artefato.
+
+**De preview para stable** exige adicionalmente:
+
+- nenhuma mudança de interface por pelo menos duas releases menores;
+- decisão explícita de que a interface vale ser suportada através de uma
+  versão maior, registrada como decisão de arquitetura;
+- exercício em todas as plataformas e versões de Python suportadas, não apenas
+  Linux;
+- caminho de migração para qualquer forma anterior, já que após a promoção
+  removê-la custa uma release maior.
+
+Rebaixamento também é possível e é quebra para superfície stable, então segue
+as mesmas regras de uma remoção: release maior, anunciada.
+
+## Por que a superfície é estreita
+
+Um mantenedor único não sustenta uma interface ampla através de muitas
+especificações externas. A decisão registrada em
+[Decisões de arquitetura](architecture-decisions.qmd) é que uma superfície
+stable estreita com uma experimental ampla é mais honesta que uma superfície
+ampla nominalmente suportada e de fato não. A tabela de tiers é onde essa
+honestidade se torna verificável.

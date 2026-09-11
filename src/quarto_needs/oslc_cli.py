@@ -46,6 +46,10 @@ class _ResolvedQuery:
     bearer_token_env: str | None
 
 
+#: The bounded read-only federation subcommands this layer serves.
+OSLC_ACTIONS = ("discover", "catalog", "query")
+
+
 def oslc_action(argv: Sequence[str]) -> str | None:
     values = list(argv)
     index = 0
@@ -435,7 +439,7 @@ def _run_query(root: Path, argv: Sequence[str]) -> int:
 
 
 def run_oslc_action(root: Path, argv: Sequence[str], action: str) -> int:
-    if action not in {"discover", "catalog", "query"}:
+    if action not in set(OSLC_ACTIONS):
         if not action:
             print("OSLC action required: discover, catalog, or query", file=sys.stderr)
         else:
