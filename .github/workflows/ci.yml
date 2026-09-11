@@ -15,6 +15,12 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: read
+    env:
+      # `core` is the only job that runs pytest, so it is where the collation
+      # skip would actually silence the axis. Requiring the locale here keeps
+      # this job failing on its absence exactly as it did before the skip
+      # existed, rather than depending on what the runner image happens to ship.
+      QUARTO_NEEDS_REQUIRE_COLLATION: "1"
     strategy:
       fail-fast: false
       matrix:
@@ -29,6 +35,13 @@ jobs:
           cache: pip
       - name: Install project and test dependencies
         run: python -m pip install -e ".[test]"
+      - name: Provision the pt-BR collation locale
+        # Required, not incidental: QUARTO_NEEDS_REQUIRE_COLLATION above turns
+        # a missing locale back into a failure, so this job provisions one
+        # instead of relying on the runner image carrying en_US.
+        run: |
+          sudo locale-gen pt_BR.UTF-8
+          sudo update-locale
       - name: Run test suite
         run: python -m pytest -q
       - name: Scan self-hosted example

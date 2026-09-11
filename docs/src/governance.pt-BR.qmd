@@ -149,6 +149,38 @@ Sem esse opt-in, a CLI mostra `[UNMEASURED]`. Ambos explicam que o escopo não
 selecionou objetos elegíveis. Dados ausentes e dependências desabilitadas não
 podem ser dispensados.
 
+### Quando `allow-empty-scopes` é legítimo
+
+É legítimo quando o vazio é uma afirmação verdadeira sobre um projeto que
+ainda não foi preenchido: um repositório que adota o Quarto-Needs antes de
+escrever requisitos, ou um componente novo cujos gates são declarados desde o
+início para já estarem no lugar quando o conteúdo chegar. A afirmação
+dispensada é "sabemos que isto não mede nada agora", e ela deve deixar de ser
+verdadeira.
+
+É remendo quando esconde um escopo que deveria estar casando e não está. O
+sintoma é idêntico — zero objetos elegíveis — mas a causa é divergência: uma
+consulta nomeada cujo predicado não corresponde mais a como os status são
+escritos, um `scope` apontando para a consulta errada, ou um modelo de risco
+que nunca foi escrito enquanto `require-risk-mitigation` afirma que o risco é
+gerenciado. Dispensar isso transforma configuração quebrada em aprovação
+permanente.
+
+Dois hábitos separam os dois casos:
+
+- Antes de dispensar, confirme o vazio à mão. `quarto-needs query <escopo>`
+  devolve a população; se você esperava objetos e não veio nenhum, o escopo
+  está quebrado, não vazio.
+- Trate a dispensa como temporária e revise-a. Uma dispensa que sobreviveu a
+  várias releases está descrevendo divergência, não um começo.
+
+Note que a dispensa vale para o projeto inteiro, não por gate. Habilitá-la
+para aceitar uma população vazia aceita também todas as outras populações
+vazias do mesmo projeto, de modo que um escopo que quebre depois fica
+dispensado sem que ninguém tenha decidido dispensá-lo. Essa é a principal
+razão para removê-la assim que o projeto tiver conteúdo, em vez de mantê-la
+porque hoje é inofensiva.
+
 O JSON de qualidade v1 inclui `measurementStatus` opcional: `measured`, `empty`
 ou `unavailable`. Gates não medidos têm `actual: null`; a métrica de cobertura
 preserva 100.0 para 0/0. `max-errors` conta achados de uma análise executada:
