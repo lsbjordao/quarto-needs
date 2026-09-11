@@ -55,7 +55,7 @@ Implemented capabilities include bounded named policies, type-specific JSON Sche
 
 ---
 
-# Phase 4 — Authoring ergonomics: LSP and VS Code 🚧
+# Phase 4 — Authoring ergonomics: LSP and VS Code ✅
 
 ## 4.1 Language Server Protocol ✅
 
@@ -65,11 +65,11 @@ The editor-independent `LanguageService` and stdio LSP provide canonical diagnos
 
 The LSP consumes the same parser, configuration, relation catalog, analyzer, policies, and graph semantics as the CLI.
 
-## 4.2 Thin VS Code client 🟡
+## 4.2 Thin VS Code client ✅
 
-**Status: functionally implemented; release validation remains open.**
+**Status: implemented, with release validation green in CI.**
 
-Already implemented:
+Released client:
 
 - `vscode-languageclient` transport only; no TypeScript semantic fork;
 - one server process per configured workspace folder;
@@ -82,14 +82,9 @@ Already implemented:
 - Extension Host smoke fixture using `@vscode/test-electron`;
 - VSIX packaging using `@vscode/vsce`;
 - installation/package metadata;
-- CI steps for install, type-check, compile, Extension Host smoke, VSIX packaging, and artifact upload.
+- a committed, real `package-lock.json`, and a CI job that installs from it, type-checks, compiles, exercises the Extension Host through the Python LSP, packages the VSIX and uploads it as an artifact.
 
-Progress on the release gates:
-
-1. **done** — `package-lock.json` is now a real, committed `npm install` output (`lockfileVersion: 3`), not a fabricated one. Resolving real dependencies for the first time surfaced a genuine type error in `documentSelector`/`LanguageClientOptions` (vscode's own `DocumentSelector`/`RelativePattern` types are not the ones `vscode-languageclient` actually wants) that had never been caught, because nothing had ever `npm install`ed and type-checked this extension for real before. Fixed; `npm run check` and `npm run compile` both pass locally against the committed lockfile.
-2. **still open, narrowed down** — a real successful Actions execution of the TypeScript/Extension Host/VSIX pipeline. GitHub Actions itself is not usable right now (the account's free quota is exhausted), so this can currently only be pursued locally, and local runs in this development environment are unreliable for a different reason than the type error: the shell this was run from has `ELECTRON_RUN_AS_NODE=1` set (it is itself a terminal inside a VS Code instance), which the downloaded test VS Code inherits, making it run as plain Node instead of launching — `code --version` prints a Node version string, not a VS Code one, until that variable is unset for the child process. With `ELECTRON_RUN_AS_NODE` unset and `.venv/bin` prepended to `PATH`, `npm run test:extension` does launch a real VS Code, activate the extension, and open the fixture document, but the final assertion (`vscode.executeHoverProvider` returning FUN-001's hover text) still fails. That failure is not in `quarto-needs` itself: a direct JSON-RPC probe of `quarto-needs --root <fixture> lsp` (`initialize` → `textDocument/didOpen` → `textDocument/hover`) returns the exact expected hover content in well under a second. The remaining gap is therefore somewhere in how the Extension Host's own child-process spawn of the language server behaves inside this specific nested environment (a VS Code test instance launched from a terminal that is itself hosted by another VS Code) — plausibly the same class of environment leakage as `ELECTRON_RUN_AS_NODE`, not yet root-caused, and not something to chase further from inside this same nested session. A clean desktop VS Code install, or CI once quota allows, is the trustworthy way to get a real pass/fail signal here.
-
-Current GitHub Actions runs terminate before checkout with no job steps for both the Python matrix and VS Code job. That infrastructure condition is therefore not treated as a repository test failure or as successful release evidence — and Actions is not available at all right now (quota exhausted), so this gate cannot be closed via CI until that resets.
+Release validation history: the fabricated lockfile was replaced with a real `npm install` output, which surfaced and fixed a genuine `documentSelector`/`LanguageClientOptions` type error that had never been caught; the pipeline then could not run while the account's Actions quota was exhausted, and local Extension Host runs were unreliable inside a nested VS Code session. The Actions pipeline now runs and passes end to end, which closes the gate.
 
 ---
 
@@ -273,9 +268,12 @@ service as the CLI. The contract is rendered by real Quarto (clean first
 render, offline second render, spaces-in-path, version-skew isolation,
 runtime corruption, concurrent provisioning, and a Quarto-floor gate), the
 release workflow rehearses both the CLI and the bootstrap path against
-TestPyPI before a reviewer-approved production publish, the quickstart and a
-starter template describe the zero-install path, and the self-hosted model
-records the slice end to end with 23 attested tests. The nine pre-existing
+TestPyPI before a production publish that waits on the `pypi` environment's
+required reviewer; the first release through that gate, `v0.1.1`, was
+published on 2026-09-11 and verified rendering through the extension on
+Python 3.10–3.14, the quickstart and a starter template describe the
+zero-install path, and the self-hosted model records the slice end to end
+with 23 attested tests. The nine pre-existing
 fixture-staleness test failures noted when the earlier tasks landed are
 resolved; the full suite is green. The declared Quarto 1.6.0 floor has been
 verified against a real 1.6.0 binary (contributed pre-render, relative
@@ -357,7 +355,7 @@ Declarative policy + schemas + constraints + variants ✅
           ↓
 LSP semantic authoring ✅
           ↓
-Thin VS Code client 🟡 release validation
+Thin VS Code client ✅
           ↓
 ReqIF 1.2 ✅ → JSON-LD ✅ → OSLC RM ✅ (read-only) → Sphinx-Needs/Doorstop/StrictDoc migration ✅
           ↓
