@@ -47,6 +47,49 @@ Valida tokens bearer e aplica políticas de permissão.
 :::
 ```
 
+## Cookbook de modelagem
+
+### Modelando um deployment
+
+Declare um `deployment-node` por lugar onde as coisas rodam, coloque nós aninhados como `part-of` do pai, e posicione cada artefato num nó com `deployed-on`:
+
+```markdown
+::: {.need #DEPLOY-PROD type="deployment-node" status="approved" environment="production"}
+## Produção
+O runtime gerenciado que serve os contêineres.
+:::
+
+::: {.need #CONTAINER-API type="container" status="approved" technology="FastAPI / Python" part-of="SYS-APP" deployed-on="DEPLOY-PROD"}
+## Contêiner REST API
+:::
+```
+
+```markdown
+{{< need-c4 root="DEPLOY-PROD" level="deployment" >}}
+```
+
+`level="deployment"` exige um foco `deployment-node`. A visão desenha a fronteira do nó com seus nós aninhados e os contêineres/componentes implantados nele; um artefato sem aresta `deployed-on` simplesmente não aparece. `deployed-on` é a direção de autoria (`artefato → nó`); `deploys` é a inversa aceita. O Mermaid renderiza `C4Deployment`, o PlantUML inclui `C4_Deployment`, o Structurizr usa um `deploymentEnvironment`, e o D2 aninha pacotes.
+
+### Modelando um cenário dynamic
+
+Ordene interações de runtime com `interacts-with` e um atributo `order`; `label` e `technology` renderizam como em qualquer outro relacionamento:
+
+```markdown
+::: {.need #ACTOR-ENGINEER type="actor" status="approved" interacts-with='CONTAINER-WEB order="1" label="submits a request"'}
+## Engenheiro
+:::
+
+::: {.need #CONTAINER-WEB type="container" status="approved" technology="React" part-of="SYS-APP" interacts-with='CONTAINER-API order="2" label="calls the API" technology="HTTPS/JSON"'}
+## Aplicação Web
+:::
+```
+
+```markdown
+{{< need-c4 root="SYS-APP" level="dynamic" >}}
+```
+
+`level="dynamic"` exige um foco `system`. Os participantes são o foco, seus contêineres diretos e todo parceiro de interação desse conjunto — uma interação entre dois contêineres é desenhada mesmo que nenhum deles toque o sistema diretamente. As interações são numeradas por `order` (arestas sem ordem vão por último, de forma determinística). O Mermaid renderiza `C4Dynamic` com `RelIndex`, o PlantUML um diagrama de sequência, o Structurizr uma visão `dynamic`, e o D2 um diagrama de sequência.
+
 ## Renderizando Diagramas C4
 
 Utilize o shortcode `{{< need-c4 >}}` para renderizar as visualizações:

@@ -68,6 +68,71 @@ quarto-needs migrate sphinx-needs docs/needs.json \
 
 Writes are all-or-nothing: every item must be `ready-create`, `ready-update` or `no-change`; each updated file must still carry the digest the plan recorded, each created canonical ID must still be absent, each block must be locatable, and the project is re-scanned afterwards — any structural failure restores every touched file and removes every file this run created before the command fails. An upstream that changed an item and one that gained an item apply in the same run (the new block is appended to its reviewed destination); `--apply-plan --write` remains the first-migration path. Re-running the sync finds everything `no-change`, or refuses a stale create whose ID now exists — that refusal is the idempotence contract. `--apply-update` cannot be combined with `--apply-plan`.
 
+## Worked example: keeping a migrated project in sync
+
+The first migration writes the source marker into every block, which is what a later run matches on:
+
+```markdown
+::: {.need #REQ_001 type="functional-requirement" status="approved" source-tool="sphinx-needs" source-project="Legacy docs" source-id="REQ_001"}
+verified-by: TC_001
+
+## Authenticate users
+
+The system shall authenticate users.
+:::
+```
+
+Later, the upstream changes `REQ_001` and gains `REQ_002`. Review the sync plan before touching anything:
+
+```console
+$ quarto-needs migrate sphinx-needs needs.json \
+    --type-map req=functional-requirement --type-map test=test-case \
+    --relation-map tests=verified-by --update-plan
+Sphinx-Needs update plan: 3 item(s), applicable=False
+[ready-update] REQ_001 -> REQ_001 changes=title,body (requirements.qmd)
+  matched by source-marker; file digest 94e45ab02d73b53062bf0c30f1a2669f932bc3bca8091dccb4b8b9a4c4d568dd
+[review-required] REQ_002 -> REQ_002 (no destination)
+  reasons: destination file requires explicit review
+[no-change] TC_001 -> TC_001 (verification.qmd)
+  matched by source-marker; file digest bdeadc92c96e4fcf0e2d5851ad822fc7a2b6335beed8fef6a9158d152b6dd1d5
+```
+
+`applicable=False` is the decision point: the new item has no destination yet. Name it and apply the whole sync in one reviewed run:
+
+```console
+$ quarto-needs migrate sphinx-needs needs.json \
+    --type-map req=functional-requirement --type-map test=test-case \
+    --relation-map tests=verified-by --destination REQ_002=requirements.qmd \
+    --update-plan --apply-update --write
+Applied 2 change(s):
+  updated REQ_001 -> REQ_001 (requirements.qmd)
+  created REQ_002 -> REQ_002 (requirements.qmd)
+```
+
+Updates replace their block in place; creates append to the reviewed destination. Running the same plan again finds everything `no-change` — or refuses a create whose ID now exists.
+
+### ReqIF round trip
+
+Exports import through the same flow. Export a project and import it into a fresh root:
+
+```console
+$ quarto-needs export --format reqif --output graph.reqif
+Wrote ReqIF 1.2 to graph.reqif (3 objects, 1 relations)
+
+$ quarto-needs migrate reqif graph.reqif \
+    --type-map functional-requirement=functional-requirement \
+    --type-map test-case=test-case --relation-map verified-by=verified-by \
+    --destination REQ_001=requirements.qmd --destination REQ_002=requirements.qmd \
+    --destination TC_001=verification.qmd \
+    --update-plan --apply-update --write
+Applied 3 change(s):
+  created REQ_001 -> REQ_001 (requirements.qmd)
+  created REQ_002 -> REQ_002 (requirements.qmd)
+  created TC_001 -> TC_001 (verification.qmd)
+```
+
+The re-import recovers canonical IDs (the export carries each object's `quarto-needs.canonical-id`, which wins over the opaque ReqIF identifier), titles, statuses, bodies, rationales and relations, and writes `source-tool="reqif"` markers, so a following `--update-plan` reports `no-change`. Source-specific extra attributes stay in the plan's `extras` for review instead of being guessed into authored blocks.
+
 ## Mapping Principles
 
 - **Stable Identity**: Existing IDs (e.g. `REQ_001` or `SYS-042`) are preserved by default; remapping is explicit.
