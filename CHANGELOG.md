@@ -31,6 +31,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Deployment views. `deployment-node` objects and the `deployed-on`/`deploys` relation extend the C4 projections with a `deployment` level: `need-c4 root="DEPLOY-..." level="deployment"` draws the focus node's boundary with nested deployment nodes and the artifacts deployed on it, from the same bounded selection as every other level. The relation catalog moves to version 5, and the self-hosted case study models its developer workstation with both containers deployed on it.
 
+- Dynamic views. The `interacts-with` relation carries ordered runtime interactions (`order`, `label`, `technology`), and `need-c4 root="SYS-..." level="dynamic"` draws them as a numbered sequence: Mermaid `C4Dynamic` with `RelIndex`, a PlantUML sequence diagram, a Structurizr `dynamic` view referencing model relationships, and a D2 sequence diagram. The relation catalog moves to version 6, and the self-hosted case study records its render scenario as three ordered interactions.
+
 ### Changed
 
 - README opens with real coverage and traceability screenshots, an executable authoring example, tested quickstart commands and dynamic CI/PyPI badges; capabilities are summarized after the demonstration.

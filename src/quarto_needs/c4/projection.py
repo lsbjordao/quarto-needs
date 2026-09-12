@@ -42,6 +42,7 @@ SCOPE_TYPE_BY_LEVEL: Mapping[str, str] = {
     "component": "container",
     "code": "component",
     "deployment": "deployment-node",
+    "dynamic": "system",
 }
 
 # What a level draws *inside* its boundary. system-context draws nothing
@@ -51,9 +52,11 @@ _CHILD_TYPE_BY_LEVEL: Mapping[str, str] = {
     "component": "component",
     "code": "source-module",
     "deployment": "deployment-node",
+    "dynamic": "container",
 }
 
-_INTERACTION_RELATION = "depends-on"
+_DEPENDENCY_RELATION = "depends-on"
+_INTERACTION_RELATION = "interacts-with"
 _CONTAINMENT_RELATIONS = ("part-of", "decomposes")
 
 
@@ -94,6 +97,21 @@ def _label_for(relation: RelationRecord) -> str:
 def _technology_for(relation: RelationRecord) -> str | None:
     value = relation.attributes.get("technology")
     return value if isinstance(value, str) and value.strip() else None
+
+
+def _order_for(relation: RelationRecord) -> int | None:
+    """The authored interaction sequence number, when one is usable."""
+    value = relation.attributes.get("order")
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str):
+        try:
+            return int(value.strip())
+        except ValueError:
+            return None
+    return None
 
 
 def _element(record: ObjectRecord, *, parent_id: str | None) -> C4Element:
@@ -180,17 +198,29 @@ def project_c4(
             if artifact is not None and artifact.type in C4_ROLE_BY_TYPE:
                 parents.setdefault(artifact_id, scope_id)
 
-    for relation in snapshot.relations:
-        if relation.v1_name != _INTERACTION_RELATION:
-            continue
-        if relation.source == scope_id:
-            other = relation.target
-        elif relation.target == scope_id:
-            other = relation.source
-        else:
-            continue
-        if other not in parents and other in snapshot.objects_by_id:
-            parents[other] = None
+    if canonical == "dynamic":
+        # Interaction partners of the focus or its children join the view, so
+        # an interaction between two children is drawn even though neither
+        # touches the focus.
+        for relation in snapshot.relations:
+            if relation.v1_name != _INTERACTION_RELATION:
+                continue
+            if relation.source in parents and relation.target in snapshot.objects_by_id:
+                parents.setdefault(relation.target, None)
+            elif relation.target in parents and relation.source in snapshot.objects_by_id:
+                parents.setdefault(relation.source, None)
+    else:
+        for relation in snapshot.relations:
+            if relation.v1_name != _DEPENDENCY_RELATION:
+                continue
+            if relation.source == scope_id:
+                other = relation.target
+            elif relation.target == scope_id:
+                other = relation.source
+            else:
+                continue
+            if other not in parents and other in snapshot.objects_by_id:
+                parents[other] = None
 
     # Only architecture objects are C4 elements. A `depends-on` neighbour of
     # any other type (a requirement, say) is a perfectly valid graph edge
@@ -202,29 +232,58 @@ def project_c4(
     )
     element_ids = {element.id for element in elements}
 
-    relationships = tuple(
-        sorted(
-            (
-                C4Relationship(
-                    id=relationship_id(
-                        relation.source, relation.target, relation.v1_name
-                    ),
-                    source_id=relation.source,
-                    target_id=relation.target,
-                    relation_type=relation.v1_name,
-                    description=_label_for(relation),
-                    technology=_technology_for(relation),
-                )
-                for relation in snapshot.relations
-                if relation.v1_name == _INTERACTION_RELATION
-                and relation.source in element_ids
-                and relation.target in element_ids
-            ),
-            key=lambda item: _sort_key(item.source_id)
-            + _sort_key(item.target_id)
-            + _sort_key(item.relation_type),
+    if canonical == "dynamic":
+        relationships = tuple(
+            sorted(
+                (
+                    C4Relationship(
+                        id=relationship_id(
+                            relation.source, relation.target, relation.v1_name
+                        ),
+                        source_id=relation.source,
+                        target_id=relation.target,
+                        relation_type=relation.v1_name,
+                        description=_label_for(relation),
+                        technology=_technology_for(relation),
+                        order=_order_for(relation),
+                    )
+                    for relation in snapshot.relations
+                    if relation.v1_name == _INTERACTION_RELATION
+                    and relation.source in element_ids
+                    and relation.target in element_ids
+                ),
+                key=lambda item: (
+                    item.order is None,
+                    item.order if item.order is not None else 0,
+                    _sort_key(item.source_id),
+                    _sort_key(item.target_id),
+                ),
+            )
         )
-    )
+    else:
+        relationships = tuple(
+            sorted(
+                (
+                    C4Relationship(
+                        id=relationship_id(
+                            relation.source, relation.target, relation.v1_name
+                        ),
+                        source_id=relation.source,
+                        target_id=relation.target,
+                        relation_type=relation.v1_name,
+                        description=_label_for(relation),
+                        technology=_technology_for(relation),
+                    )
+                    for relation in snapshot.relations
+                    if relation.v1_name == _DEPENDENCY_RELATION
+                    and relation.source in element_ids
+                    and relation.target in element_ids
+                ),
+                key=lambda item: _sort_key(item.source_id)
+                + _sort_key(item.target_id)
+                + _sort_key(item.relation_type),
+            )
+        )
 
     return C4View(
         id=f"{canonical}-{scope_id}",

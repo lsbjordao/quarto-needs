@@ -811,3 +811,25 @@ def test_write_c4_projections_writes_one_deployment_view_per_node(tmp_path) -> N
         assert payload["kind"] == "source"
         assert payload["language"] == backend
         assert payload["source"].strip()
+
+
+def test_write_c4_projections_writes_one_dynamic_view_per_system(tmp_path) -> None:
+    (tmp_path / "arch.qmd").write_text(
+        '::: {.need #SYS-1 type="system" status="approved"}\n## System\n:::\n\n'
+        '::: {.need #CONTAINER-1 type="container" status="approved" technology="Python" '
+        'part-of="SYS-1"}\n## Container\n:::\n\n'
+        '::: {.need #ACTOR-1 type="actor" status="approved" '
+        'interacts-with=\'CONTAINER-1 order="1" label="runs render"\'}\n## Actor\n:::\n',
+        encoding="utf-8",
+    )
+    result = analyze_project(tmp_path)
+    assert result.snapshot is not None
+
+    graph_output.write_c4_projections(tmp_path, result.snapshot)
+
+    graph_dir = tmp_path / ".quarto-needs" / "graphs"
+    mermaid = json.loads((graph_dir / "c4-dynamic-SYS-1.json").read_text(encoding="utf-8"))
+    assert mermaid["kind"] == "mermaid"
+    assert mermaid["source"].splitlines()[0] == "C4Dynamic"
+    assert "RelIndex(1," in mermaid["source"]
+    assert "runs render" in mermaid["source"]

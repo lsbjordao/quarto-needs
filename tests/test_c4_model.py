@@ -47,7 +47,14 @@ def test_containment_roles_are_the_layers_below_the_root() -> None:
 
 
 def test_levels_and_the_legacy_context_alias() -> None:
-    assert LEVELS == ("system-context", "container", "component", "code", "deployment")
+    assert LEVELS == (
+        "system-context",
+        "container",
+        "component",
+        "code",
+        "deployment",
+        "dynamic",
+    )
     # Published, not private: the artifact manifest hands this table to Lua
     # so the shortcode resolves an alias by lookup instead of by a rule of
     # its own (Task 8's index.json, Task 10's reader).
@@ -57,6 +64,7 @@ def test_levels_and_the_legacy_context_alias() -> None:
     assert normalize_level("container") == "container"
     assert normalize_level("code") == "code"
     assert normalize_level("deployment") == "deployment"
+    assert normalize_level("dynamic") == "dynamic"
     assert normalize_level("") is None
     assert normalize_level("codex") is None
 
@@ -100,6 +108,7 @@ def test_relationship_to_dict_and_deterministic_id() -> None:
         "relationType": "depends-on",
         "description": "Depends on",
         "technology": None,
+        "order": None,
         "tags": [],
     }
 

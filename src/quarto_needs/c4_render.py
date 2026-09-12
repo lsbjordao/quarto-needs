@@ -76,6 +76,42 @@ def _is_child_edge(edge: PublicEdge, *, focus_id: str, child_id: str) -> bool:
     return False
 
 
+def _interaction_key(edge: PublicEdge) -> tuple[object, ...]:
+    """Authored order first, then a deterministic endpoint tie-break.
+
+    Interactions without an order sort after ordered ones, so a partially
+    ordered view never renumbers the explicit sequence.
+    """
+    return (
+        edge.order is None,
+        edge.order if edge.order is not None else 0,
+        edge.source.casefold(),
+        edge.source,
+        edge.target.casefold(),
+        edge.target,
+    )
+
+
+def _ordered_interactions(projection: GraphProjection) -> list[PublicEdge]:
+    return sorted(
+        (edge for edge in projection.edges if edge.relation == "interacts-with"),
+        key=_interaction_key,
+    )
+
+
+def _dynamic_mermaid_source(projection: GraphProjection) -> str:
+    lines = ["C4Dynamic"]
+    for node in projection.nodes:
+        lines.append(f"  {_macro_call(node)}")
+    for index, edge in enumerate(_ordered_interactions(projection), start=1):
+        technology = f', "{_escape(edge.technology)}"' if edge.technology else ""
+        lines.append(
+            f"  RelIndex({index}, {_ref(edge.source)}, {_ref(edge.target)}, "
+            f'"{_escape(edge.label)}"{technology})'
+        )
+    return "\n".join(lines) + "\n"
+
+
 def c4_mermaid_source(projection: GraphProjection, *, focus_id: str, level: str) -> str:
     """Deterministic Mermaid C4 source for one focus node's view.
 
@@ -83,6 +119,8 @@ def c4_mermaid_source(projection: GraphProjection, *, focus_id: str, level: str)
     same determinism guarantee graph_render.py's mermaid_source makes), so
     two renders of an equivalent projection are byte-identical.
     """
+    if level == "dynamic":
+        return _dynamic_mermaid_source(projection)
     diagram_type = _DIAGRAM_TYPE[level]
     focus = next(node for node in projection.nodes if node.id == focus_id)
     children = [

@@ -126,6 +126,63 @@ def _deployment_source(
     return "\n".join(lines) + "\n"
 
 
+def _interaction_key(edge: PublicEdge) -> tuple[object, ...]:
+    return (
+        edge.order is None,
+        edge.order if edge.order is not None else 0,
+        edge.source.casefold(),
+        edge.source,
+        edge.target.casefold(),
+        edge.target,
+    )
+
+
+def _relationship_line(edge: PublicEdge, *, indent: str) -> str:
+    technology = f' "{_escape(edge.technology)}"' if edge.technology else ""
+    return (
+        f'{indent}{_sanitize(edge.source)} -> {_sanitize(edge.target)} '
+        f'"{_escape(edge.label)}"{technology}'
+    )
+
+
+def _dynamic_source(
+    *,
+    focus: PublicNode,
+    focus_variable: str,
+    children: list[PublicNode],
+    others: list[PublicNode],
+    interactions: list[PublicEdge],
+) -> str:
+    """A Structurizr dynamic view: ordered interactions in a view block.
+
+    Structurizr requires every view interaction to exist in the model, so
+    each interaction is declared in the model first (inside the focus block
+    when it has children, where both nested and outer variables are in
+    scope) and referenced again inside the `dynamic` view, whose declaration
+    order is the sequence number.
+    """
+    lines = ["workspace {", "  model {"]
+    for node in others:
+        lines.append(_element_line(node, indent="    "))
+    if children:
+        keyword = _ELEMENT_KEYWORD[focus.type]
+        lines.append(f'    {focus_variable} = {keyword} "{_escape(focus.title)}" {{')
+        for node in children:
+            lines.append(_element_line(node, indent="      "))
+        for edge in interactions:
+            lines.append(_relationship_line(edge, indent="      "))
+        lines.append("    }")
+    else:
+        lines.append(_element_line(focus, indent="    "))
+        for edge in interactions:
+            lines.append(_relationship_line(edge, indent="    "))
+    lines.extend(["  }", "  views {", f"    dynamic {focus_variable} {{"])
+    for edge in interactions:
+        lines.append(_relationship_line(edge, indent="      "))
+    lines.extend(["    }", "  }", "}"])
+    return "\n".join(lines) + "\n"
+
+
 def c4_structurizr_source(projection: GraphProjection, *, focus_id: str, level: str) -> str:
     """Deterministic Structurizr DSL source for one focus node's view.
 
@@ -147,6 +204,17 @@ def c4_structurizr_source(projection: GraphProjection, *, focus_id: str, level: 
     depends_on_edges = [edge for edge in projection.edges if edge.relation == "depends-on"]
 
     focus_variable = _sanitize(focus.id)
+    if level == "dynamic":
+        return _dynamic_source(
+            focus=focus,
+            focus_variable=focus_variable,
+            children=children,
+            others=others,
+            interactions=sorted(
+                (edge for edge in projection.edges if edge.relation == "interacts-with"),
+                key=_interaction_key,
+            ),
+        )
     if level == "deployment":
         return _deployment_source(
             focus=focus,

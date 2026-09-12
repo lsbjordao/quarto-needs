@@ -68,8 +68,44 @@ def _is_child_edge(edge: PublicEdge, *, focus_id: str, child_id: str) -> bool:
     return False
 
 
+def _interaction_key(edge: PublicEdge) -> tuple[object, ...]:
+    return (
+        edge.order is None,
+        edge.order if edge.order is not None else 0,
+        edge.source.casefold(),
+        edge.source,
+        edge.target.casefold(),
+        edge.target,
+    )
+
+
+def _dynamic_plantuml_source(projection: GraphProjection) -> str:
+    """A PlantUML sequence diagram: the idiomatic dynamic C4 rendering.
+
+    C4-PlantUML has no dynamic macro set on the PlantUML versions this
+    project provisions, so the ordered interactions are emitted as a plain
+    sequence diagram, which every supported PlantUML renders.
+    """
+    lines = ["@startuml"]
+    for node in projection.nodes:
+        lines.append(f'participant "{_escape(node.title)}" as {_ref(node.id)}')
+    ordered = sorted(
+        (edge for edge in projection.edges if edge.relation == "interacts-with"),
+        key=_interaction_key,
+    )
+    for index, edge in enumerate(ordered, start=1):
+        text = f"{index}. {_escape(edge.label)}"
+        if edge.technology:
+            text = f"{text} [{_escape(edge.technology)}]"
+        lines.append(f"{_ref(edge.source)} -> {_ref(edge.target)}: {text}")
+    lines.append("@enduml")
+    return "\n".join(lines) + "\n"
+
+
 def c4_plantuml_source(projection: GraphProjection, *, focus_id: str, level: str) -> str:
     """Deterministic C4-PlantUML source for one focus node's view."""
+    if level == "dynamic":
+        return _dynamic_plantuml_source(projection)
     include = _INCLUDE_BY_LEVEL[level]
     focus = next(node for node in projection.nodes if node.id == focus_id)
     children = [

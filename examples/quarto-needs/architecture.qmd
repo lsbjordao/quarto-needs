@@ -10,7 +10,7 @@ Requirements describe obligations; architecture explains how the product is orga
 The engineering-traceability tool this case study documents: a requirements/decisions/risk/test/evidence graph authored in Quarto Markdown, analyzed by a Python core, and presented through a Quarto extension.
 :::
 
-::: {.need #ACTOR-ENGINEER type="actor" status="approved" tags="architecture;c4" depends-on="SYS-QUARTO-NEEDS"}
+::: {.need #ACTOR-ENGINEER type="actor" status="approved" tags="architecture;c4" depends-on="SYS-QUARTO-NEEDS" interacts-with='CONTAINER-QUARTO-EXT order="1" label="runs quarto render"'}
 ## Requirements engineer
 
 Authors, reviews, and approves engineering objects; reads generated views to understand traceability and coverage.
@@ -30,13 +30,13 @@ An external OSLC Requirements Management provider Quarto-Needs federates from as
 
 ## Containers
 
-::: {.need #CONTAINER-PYTHON-PKG type="container" status="approved" tags="architecture;c4" technology="Python 3.12" part-of="SYS-QUARTO-NEEDS" deployed-on="DEPLOY-LOCAL"}
+::: {.need #CONTAINER-PYTHON-PKG type="container" status="approved" tags="architecture;c4" technology="Python 3.12" part-of="SYS-QUARTO-NEEDS" deployed-on="DEPLOY-LOCAL" interacts-with='CONTAINER-QUARTO-EXT order="3" label="writes the projected graph"'}
 ## Python package
 
 The installable `quarto-needs` library and CLI: parsing, analysis, governance rules, graph projection, baselines, and localization checks.
 :::
 
-::: {.need #CONTAINER-QUARTO-EXT type="container" status="approved" tags="architecture;c4" technology="Quarto/Pandoc Lua filters" part-of="SYS-QUARTO-NEEDS" deployed-on="DEPLOY-LOCAL"}
+::: {.need #CONTAINER-QUARTO-EXT type="container" status="approved" tags="architecture;c4" technology="Quarto/Pandoc Lua filters" part-of="SYS-QUARTO-NEEDS" deployed-on="DEPLOY-LOCAL" interacts-with='CONTAINER-PYTHON-PKG order="2" label="provisions and invokes the engine"'}
 ## Quarto presentation extension
 
 The `_extensions/quarto-needs/` bundle: build-time Lua filters and the browser-side JavaScript they ship, together as one installed Quarto extension.
@@ -538,6 +538,8 @@ The book records {{< need-count types="architecture-decision" >}} architecture d
 {{< need-c4 root="CONTAINER-PYTHON-PKG" level="component" >}}
 
 {{< need-c4 root="DEPLOY-LOCAL" level="deployment" >}}
+
+{{< need-c4 root="SYS-QUARTO-NEEDS" level="dynamic" >}}
 
 ## Additional C4 diagram backends
 

@@ -88,6 +88,10 @@ Esses prefixos são convenções, não nomes reservados. Configure-os conforme o
 
 - `deployed-on` / `deploys`
 
+### Runtime interaction
+
+- `interacts-with` (ordenada pelo atributo `order` nas visões dynamic do C4)
+
 ## Padrões de rastreabilidade
 
 ### Requirement to evidence

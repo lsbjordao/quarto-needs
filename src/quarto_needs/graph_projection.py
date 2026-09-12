@@ -21,7 +21,7 @@ from .snapshot import AnalysisSnapshot, ObjectRecord, RelationRecord
 SCHEMA_VERSION = "graph-public-v1"
 
 PUBLIC_NODE_FIELDS = ("id", "title", "type", "status", "priority", "tags", "href", "change", "technology")
-PUBLIC_EDGE_FIELDS = ("source", "target", "relation", "label", "change", "pathMember", "technology")
+PUBLIC_EDGE_FIELDS = ("source", "target", "relation", "label", "change", "pathMember", "technology", "order")
 PUBLIC_LIMIT_FIELDS = ("nodes", "edges")
 
 DEFAULT_LIMITS = {"nodes": 100, "edges": 300}
@@ -71,6 +71,7 @@ class PublicEdge:
     change: str | None = None
     path_member: bool | None = None
     technology: str | None = None
+    order: int | None = None
 
     def to_dict(self) -> dict[str, object]:
         payload: dict[str, object] = {
@@ -85,6 +86,8 @@ class PublicEdge:
             payload["pathMember"] = self.path_member
         if self.technology is not None:
             payload["technology"] = self.technology
+        if self.order is not None:
+            payload["order"] = self.order
         return payload
 
 
@@ -176,6 +179,21 @@ def _label_for(relation: RelationRecord) -> str:
 def _relation_technology(relation: RelationRecord) -> str | None:
     value = relation.attributes.get("technology")
     return value if isinstance(value, str) and value.strip() else None
+
+
+def _relation_order(relation: RelationRecord) -> int | None:
+    """The authored sequence number of an interaction, when one is usable."""
+    value = relation.attributes.get("order")
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str):
+        try:
+            return int(value.strip())
+        except ValueError:
+            return None
+    return None
 
 
 def _technology_of(record: ObjectRecord) -> str | None:
@@ -364,6 +382,7 @@ def build_projection(
             relation=relation.v1_name,
             label=_label_for(relation),
             technology=_relation_technology(relation),
+            order=_relation_order(relation),
         )
         for relation in snapshot.relations
         if relation.source in selected

@@ -77,7 +77,7 @@ class RelationCatalog:
 
 
 DEFAULT_RELATION_CATALOG = RelationCatalog.create(
-    "5",
+    "6",
     (
         RelationKind("derives-from", "derives-from", "derives-from", "derivation", "Derives from", "Source for", "derived", "source", "target_to_source", "target_to_source"),
         RelationKind("derived-from", "derives-from", "derives-from", "derivation", "Derives from", "Source for", "derived", "source", "target_to_source", "target_to_source"),
@@ -90,6 +90,10 @@ DEFAULT_RELATION_CATALOG = RelationCatalog.create(
         # it, exactly like depends-on's direction.
         RelationKind("deployed-on", "deployed-on", "deployed-on", "deployment", "Deployed on", "Deploys", "artifact", "deployment-node", "target_to_source", "target_to_source"),
         RelationKind("deploys", "deploys", "deploys", "deployment", "Deploys", "Deployed on", "deployment-node", "artifact", "source_to_target", "source_to_target"),
+        # A runtime interaction for C4 dynamic views. The `order` relation
+        # attribute sequences the interactions; the label/technology
+        # attributes render like any other relationship.
+        RelationKind("interacts-with", "interacts-with", "interacts-with", "interaction", "Interacts with", "Interacted with by", "initiator", "participant", "target_to_source", "target_to_source"),
         RelationKind("conflicts-with", "conflicts-with", "conflicts-with", "conflict", "Conflicts with", "Conflicts with", "subject", "subject", "both", "none"),
         RelationKind("constrains", "constrains", "constrains", "constraint", "Constrains", "Constrained by", "constraint", "subject", "none", "source_to_target"),
         RelationKind("implements", "implements", "implements", "implementation", "Implements", "Implemented by", "implementation-artifact", "requirement", "target_to_source", "target_to_source"),
@@ -126,6 +130,7 @@ TRAVERSAL_PROFILES: Mapping[str, tuple[str, ...]] = MappingProxyType(
             "decision-addressing",
             "decision-scope",
             "deployment",
+            "interaction",
             "implementation",
             "constraint",
             "dependency",

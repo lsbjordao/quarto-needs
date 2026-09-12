@@ -57,8 +57,40 @@ def _is_child_edge(edge: PublicEdge, *, focus_id: str, child_id: str) -> bool:
     return False
 
 
+def _interaction_key(edge: PublicEdge) -> tuple[object, ...]:
+    return (
+        edge.order is None,
+        edge.order if edge.order is not None else 0,
+        edge.source.casefold(),
+        edge.source,
+        edge.target.casefold(),
+        edge.target,
+    )
+
+
+def _dynamic_d2_source(projection: GraphProjection) -> str:
+    """A D2 sequence diagram: the order is the message sequence itself."""
+    lines = ["shape: sequence_diagram"]
+    for node in projection.nodes:
+        lines.append(f'{_sanitize(node.id)}: "{_escape(node.title)}"')
+    ordered = sorted(
+        (edge for edge in projection.edges if edge.relation == "interacts-with"),
+        key=_interaction_key,
+    )
+    for index, edge in enumerate(ordered, start=1):
+        text = f"{index}. {edge.label}"
+        if edge.technology:
+            text = f"{text} ({edge.technology})"
+        lines.append(
+            f'{_sanitize(edge.source)} -> {_sanitize(edge.target)}: "{_escape(text)}"'
+        )
+    return "\n".join(lines) + "\n"
+
+
 def c4_d2_source(projection: GraphProjection, *, focus_id: str, level: str) -> str:
     """Deterministic D2 source for one focus node's view."""
+    if level == "dynamic":
+        return _dynamic_d2_source(projection)
     focus = next(node for node in projection.nodes if node.id == focus_id)
     children = [
         node

@@ -26,6 +26,7 @@ Diagramas C4 derivam sua estrutura de duas relações principais:
    - `source-module` é `part-of` um `component`
 2. **`depends-on`**: define interação e dependências entre elementos. Pode carregar atributos inline: `label` substitui a descrição do relacionamento em todos os diagramas, e `technology` é renderizada como a tecnologia do relacionamento onde o backend suporta (`Rel(..., "label", "technology")` em Mermaid e PlantUML; dobrada no rótulo da aresta no D2).
 3. **`deployed-on`**: posiciona um artefato em um nó de deployment (`container` ou `component` é `deployed-on` um `deployment-node`), e nós de deployment aninhados são `part-of` seu nó pai.
+4. **`interacts-with`**: uma interação de runtime ordenada entre dois elementos para uma visão dynamic (`initiator` é `interacts-with` `participant`). O atributo `order` sequencia as interações; `label` e `technology` renderizam como em qualquer outro relacionamento.
 
 Exemplo:
 
@@ -56,6 +57,7 @@ Utilize o shortcode `{{< need-c4 >}}` para renderizar as visualizações:
 {{< need-c4 root="CONTAINER-API" level="component" >}}
 {{< need-c4 root="COMP-AUTH" level="code" >}}
 {{< need-c4 root="DEPLOY-PROD" level="deployment" >}}
+{{< need-c4 root="SYS-APP" level="dynamic" >}}
 ```
 
 ### Níveis Suportados
@@ -65,6 +67,7 @@ Utilize o shortcode `{{< need-c4 >}}` para renderizar as visualizações:
 - **`component`**: Detalha um `container` revelando seus `component`s internos e dependências.
 - **`code`**: Materializa a superfície de implementação como uma tabela Markdown de artefatos `source-module`, caminhos de arquivo, linguagens e requisitos implementados.
 - **`deployment`**: Foca em um `deployment-node`, mostrando nós aninhados e os artefatos `deployed-on` ele.
+- **`dynamic`**: Foca em um `system` e desenha suas interações de runtime ordenadas como uma sequência numerada (Mermaid `C4Dynamic`, um diagrama de sequência PlantUML, uma visão `dynamic` do Structurizr ou um diagrama de sequência D2).
 
 ### Múltiplos Backends de Diagramação
 

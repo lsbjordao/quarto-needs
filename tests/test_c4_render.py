@@ -304,3 +304,41 @@ def test_deployment_diagram_wraps_deployed_members_in_a_deployment_node() -> Non
     boundary_block = source.split("Deployment_Node(", 1)[1].split("}", 1)[0]
     assert "Container(" in boundary_block
     assert "Python 3.12" in boundary_block
+
+
+def test_dynamic_diagram_numbers_interactions_in_authored_order() -> None:
+    snapshot = _snapshot(
+        _obj("SYS-1", type="system", title="Quarto-Needs"),
+        _obj(
+            "CONTAINER-A", type="container", title="Python package",
+            relations=[
+                Relation("part-of", "CONTAINER-A", "SYS-1"),
+                Relation(
+                    "interacts-with", "CONTAINER-A", "CONTAINER-B",
+                    attributes={"order": "2", "label": "writes the graph"},
+                ),
+            ],
+        ),
+        _obj(
+            "CONTAINER-B", type="container", title="Extension",
+            relations=[Relation("part-of", "CONTAINER-B", "SYS-1")],
+        ),
+        _obj(
+            "ACTOR-1", type="actor", title="Engineer",
+            relations=[
+                Relation(
+                    "interacts-with", "ACTOR-1", "CONTAINER-A",
+                    attributes={"order": "1", "label": "runs quarto render"},
+                )
+            ],
+        ),
+    )
+    projection = build_c4_view(snapshot, focus_id="SYS-1", level="dynamic")
+    source = c4_mermaid_source(projection, focus_id="SYS-1", level="dynamic")
+
+    assert source.splitlines()[0] == "C4Dynamic"
+    first = next(line for line in source.splitlines() if "RelIndex(1," in line)
+    second = next(line for line in source.splitlines() if "RelIndex(2," in line)
+    assert "runs quarto render" in first
+    assert "writes the graph" in second
+    assert "Engineer" in source

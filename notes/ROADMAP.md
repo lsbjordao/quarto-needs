@@ -209,7 +209,7 @@ Phase 5.5's planned scope is complete; the next milestone is Phase 6.
 
 ---
 
-# Phase 6 — Architecture model and C4 projections ✅ (first slice: actor/external-system/system/container types, Context/Container/Component views, self-hosted retrofit; second slice: deployment nodes, Deployment views, relation attributes, self-hosted retrofit)
+# Phase 6 — Architecture model and C4 projections ✅ (first slice: actor/external-system/system/container types, Context/Container/Component views, self-hosted retrofit; second slice: deployment nodes, Deployment views, relation attributes, self-hosted retrofit; third slice: dynamic views and ordered interactions, self-hosted retrofit)
 
 C4-like views must be **projections of the same engineering graph**, not a second architecture database.
 
@@ -217,7 +217,7 @@ Planned work includes actors/people, external systems, system boundaries, hierar
 
 Every architecture projection remains traceable to requirements, decisions, risks, implementation, tests, and evidence.
 
-The delivered first slice covers the C4 semantic model and Context/Container views with a self-hosted retrofit; its two deliberate simplifications are known limitations of the generic mechanism, not silent gaps — interaction edges reach only the focus node, never its children two hops away, and the generic cardinality rule rejects duplicate parents without ever guaranteeing an orphan-free model. The second slice adds deployment nodes (`deployed-on`/`deploys`), Deployment views across the renderer boundary, the relation-attribute authoring syntax (`depends-on: TARGET technology="..."`), and the self-hosted retrofit. What remains is dynamic (ordered-interaction) C4 views.
+The delivered first slice covers the C4 semantic model and Context/Container views with a self-hosted retrofit; its two deliberate simplifications are known limitations of the generic mechanism, not silent gaps — interaction edges reach only the focus node, never its children two hops away, and the generic cardinality rule rejects duplicate parents without ever guaranteeing an orphan-free model. The second slice adds deployment nodes (`deployed-on`/`deploys`), Deployment views across the renderer boundary, the relation-attribute authoring syntax (`depends-on: TARGET technology="..."`), and the self-hosted retrofit. The third slice adds dynamic views: the `interacts-with` relation with an authored `order`, rendered as a numbered sequence across all four backends, with the self-hosted render scenario modeled as three ordered interactions. Phase 6's planned scope is complete.
 
 ---
 

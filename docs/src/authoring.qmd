@@ -69,7 +69,7 @@ expires: 2027-01-31
 
 Multiple targets are written either as one value separated by commas or semicolons, or as a `-` list on the following lines. The two forms are equivalent.
 
-A relation value may carry inline attributes after its targets: `name=value`, with a quoted value when it contains spaces. Attributes on one value apply to every target on that value; use the list form for targets that need different attributes. The C4 projections read `label` as the relationship description and `technology` as the relationship technology:
+A relation value may carry inline attributes after its targets: `name=value`, with a quoted value when it contains spaces. Attributes on one value apply to every target on that value; use the list form for targets that need different attributes. The C4 projections read `label` as the relationship description, `technology` as the relationship technology, and `order` as the sequence number of an `interacts-with` interaction in a dynamic view:
 
 ```markdown
 depends-on: CONTAINER-API technology="HTTPS/JSON" label="calls over HTTPS"

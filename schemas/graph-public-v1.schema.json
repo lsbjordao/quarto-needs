@@ -100,6 +100,7 @@
           "change": {"enum": ["added", "removed", "unchanged"]},
           "pathMember": {"type": "boolean"},
           "technology": {"type": ["string", "null"]},
+          "order": {"type": ["integer", "null"]},
           "provenance": {
             "type": "array",
             "items": {
