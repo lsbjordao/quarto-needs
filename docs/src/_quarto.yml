@@ -29,6 +29,7 @@ book:
     - language-server.qmd
     - cli-reference.qmd
     - stability.qmd
+    - failure-gallery.qmd
     - comparison.qmd
     - reference.qmd
 
