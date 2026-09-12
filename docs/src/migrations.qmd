@@ -66,7 +66,7 @@ quarto-needs migrate sphinx-needs docs/needs.json \
   --update-plan --apply-update --write
 ```
 
-Writes are all-or-nothing: every item must be `ready-update` or `no-change` (create new items first with `--apply-plan --write`), each matched file must still carry the digest the plan recorded, each block must be locatable, and the project is re-scanned afterwards — any structural failure restores every touched file before the command fails. Re-applying the same plan is refused by its digest; that refusal is the idempotence contract. `--apply-update` cannot be combined with `--apply-plan`.
+Writes are all-or-nothing: every item must be `ready-create`, `ready-update` or `no-change`; each updated file must still carry the digest the plan recorded, each created canonical ID must still be absent, each block must be locatable, and the project is re-scanned afterwards — any structural failure restores every touched file and removes every file this run created before the command fails. An upstream that changed an item and one that gained an item apply in the same run (the new block is appended to its reviewed destination); `--apply-plan --write` remains the first-migration path. Re-running the sync finds everything `no-change`, or refuses a stale create whose ID now exists — that refusal is the idempotence contract. `--apply-update` cannot be combined with `--apply-plan`.
 
 ## Mapping Principles
 

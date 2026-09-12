@@ -174,9 +174,10 @@ def test_applying_an_outdated_plan_is_refused_without_touching_the_file(
     assert path.read_text(encoding="utf-8") == edited
 
 
-def test_a_plan_with_non_update_items_is_refused_before_any_write(
+def test_a_mixed_plan_applies_updates_and_creates_in_one_sync(
     tmp_path: Path,
 ) -> None:
+    """An upstream that changed an item and gained one applies in one run."""
     _author(tmp_path, with_test_case=False)
     plan = _update_plan(tmp_path)
     assert {item.source_id: item.status for item in plan.items} == {
@@ -184,12 +185,75 @@ def test_a_plan_with_non_update_items_is_refused_before_any_write(
         "TC_001": "ready-create",
     }
 
-    with pytest.raises(MigrationUpdateError, match="not fully ready"):
+    result = apply_migration_update_plan(tmp_path, plan, _config())
+
+    assert [(entry["sourceId"], entry["action"]) for entry in result.to_dict()["updated"]] == [
+        ("REQ_001", "ready-update"),
+        ("TC_001", "ready-create"),
+    ]
+    requirements = (tmp_path / "requirements.qmd").read_text(encoding="utf-8")
+    assert "## Authenticate users\n" in requirements
+    assert "## Authenticate users (old)" not in requirements
+    verification = (tmp_path / "verification.qmd").read_text(encoding="utf-8")
+    assert 'source-id="TC_001"' in verification
+
+    rescanned = analyze_project(tmp_path, config=_config())
+    assert rescanned.snapshot is not None
+    assert {"REQ_001", "TC_001"} <= set(rescanned.snapshot.objects_by_id)
+
+
+def test_a_ready_create_stale_plan_is_refused_without_touching_any_file(
+    tmp_path: Path,
+) -> None:
+    _author(tmp_path, with_test_case=False)
+    plan = _update_plan(tmp_path)
+
+    # The upstream item was authored locally between plan and apply.
+    (tmp_path / "verification.qmd").write_text(VERIFICATION, encoding="utf-8")
+
+    with pytest.raises(MigrationUpdateError, match="already exists"):
         apply_migration_update_plan(tmp_path, plan, _config())
 
     assert "## Authenticate users (old)" in (
         tmp_path / "requirements.qmd"
     ).read_text(encoding="utf-8")
+
+
+def test_post_write_failure_removes_a_created_file_and_restores_an_updated_one(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _author(tmp_path, with_test_case=False)
+    plan = _update_plan(tmp_path)
+
+    class _Failed:
+        snapshot = None
+        findings = ()
+
+    calls = {"count": 0}
+    original = update_write.analyze_project
+
+    def flaky(*args, **kwargs):
+        calls["count"] += 1
+        return _Failed() if calls["count"] > 1 else original(*args, **kwargs)
+
+    monkeypatch.setattr(update_write, "analyze_project", flaky)
+
+    with pytest.raises(MigrationUpdateError, match="rolling back"):
+        apply_migration_update_plan(tmp_path, plan, _config())
+
+    assert not (tmp_path / "verification.qmd").exists()
+    authored = REQUIREMENTS.replace("verified-by: TC_001\n\n", "")
+    assert (tmp_path / "requirements.qmd").read_text(encoding="utf-8") == authored
+
+
+def test_second_apply_of_a_mixed_plan_is_refused(tmp_path: Path) -> None:
+    _author(tmp_path, with_test_case=False)
+    plan = _update_plan(tmp_path)
+
+    apply_migration_update_plan(tmp_path, plan, _config())
+
+    with pytest.raises(MigrationUpdateError, match="already exists"):
+        apply_migration_update_plan(tmp_path, plan, _config())
 
 
 def test_a_plan_with_no_updates_is_refused(tmp_path: Path) -> None:
@@ -205,7 +269,7 @@ def test_a_plan_with_no_updates_is_refused(tmp_path: Path) -> None:
         ),
     )
 
-    with pytest.raises(MigrationUpdateError, match="no items to update"):
+    with pytest.raises(MigrationUpdateError, match="no items to apply"):
         apply_migration_update_plan(tmp_path, no_change, _config())
 
 
@@ -219,7 +283,14 @@ def test_post_write_verification_failure_rolls_the_file_back(
         snapshot = None
         findings = ()
 
-    monkeypatch.setattr(update_write, "analyze_project", lambda *a, **k: _Failed())
+    calls = {"count": 0}
+    original = update_write.analyze_project
+
+    def flaky(*args, **kwargs):
+        calls["count"] += 1
+        return _Failed() if calls["count"] > 1 else original(*args, **kwargs)
+
+    monkeypatch.setattr(update_write, "analyze_project", flaky)
 
     with pytest.raises(MigrationUpdateError, match="rolling back"):
         apply_migration_update_plan(tmp_path, plan, _config())
