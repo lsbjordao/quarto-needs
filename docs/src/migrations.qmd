@@ -10,8 +10,11 @@ Quarto-Needs provides conservative migration adapters for bringing requirements 
 | **Doorstop** | Directory of YAML/JSON documents | `quarto-needs migrate doorstop <dir> --output <plan.json>` |
 | **StrictDoc** | `.sdoc` files / folder | `quarto-needs migrate strictdoc <path> --output <plan.json>` |
 | **OpenFastTrace** | XML trace exchange | `quarto-needs migrate openfasttrace <path> --output <plan.json>` |
+| **ReqIF 1.2** | `.reqif` document | `quarto-needs migrate reqif <path> --output <plan.json>` |
 
 `--output` is the **migration-plan JSON**, not a destination `.qmd` file.
+
+The ReqIF adapter recovers identity from the document's identifiers, but when a `quarto-needs.canonical-id` value is present (as in a Quarto-Needs ReqIF export) it takes precedence, so an export/import round trip preserves canonical IDs, titles, statuses, bodies, rationales, relations and attributes. Typed values are recovered as text — enumerations as their `LONG-NAME`, XHTML flattened — and every lossy conversion is reported as a plan issue rather than applied silently. DOCTYPE/ENTITY declarations are refused.
 
 ## Migration Workflow
 

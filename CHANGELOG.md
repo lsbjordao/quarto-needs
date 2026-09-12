@@ -37,6 +37,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Migration update application. `migrate <source> --update-plan --apply-update --write` applies approved updates in place: every item must be `ready-update` or `no-change` (ready-create items belong to `--apply-plan --write`), each matched file must still carry the digest the plan recorded, every block must be locatable, writes are atomic per file, and a post-write rescan restores every touched file before failing on any structural error. Re-applying a stale plan is refused by its digest; `--apply-update` cannot be combined with `--apply-plan`.
 
+- ReqIF 1.2 import. `quarto-needs migrate reqif <document>` parses a ReqIF document into the shared migration plan, reusing the same review-first apply and update contracts as every other adapter. Identity recovery prefers an embedded `quarto-needs.canonical-id` value over the opaque ReqIF identifier, so a Quarto-Needs ReqIF export re-imports with canonical IDs, titles, statuses, bodies, rationales, relations and attributes intact. Typed values are recovered explicitly — enumerations by `LONG-NAME`, XHTML flattened — and every lossy conversion is a plan issue rather than a silent change. DOCTYPE/ENTITY-bearing and oversized documents are refused.
+
 ### Changed
 
 - README opens with real coverage and traceability screenshots, an executable authoring example, tested quickstart commands and dynamic CI/PyPI badges; capabilities are summarized after the demonstration.

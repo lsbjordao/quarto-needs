@@ -79,7 +79,7 @@ because it is what the non-divergence tests bind to.
 | `lsp` | preview | dispatch | Run the language server over stdio |
 | `export --format reqif\|jsonld` | preview | dispatch | ReqIF 1.2 and JSON-LD interchange projections |
 | `variant list\|show NAME` | experimental | dispatch | Inspect configured build variants |
-| `migrate SOURCE` | experimental | dispatch | Migration plans for sphinx-needs, doorstop, strictdoc, openfasttrace |
+| `migrate SOURCE` | experimental | dispatch | Migration plans for sphinx-needs, doorstop, strictdoc, openfasttrace, reqif |
 | `oslc discover\|catalog\|query` | experimental | dispatch | Bounded read-only OSLC RM federation |
 | `export --format json` | stable | argparse | Export projection |
 | `export --format csv` | stable | argparse | Export projection |

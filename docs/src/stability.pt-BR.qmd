@@ -81,7 +81,7 @@ listado aqui porque é a isso que os testes de não-divergência se prendem.
 | `lsp` | preview | dispatch | Executa o servidor de linguagem sobre stdio |
 | `export --format reqif\|jsonld` | preview | dispatch | Projeções de intercâmbio ReqIF 1.2 e JSON-LD |
 | `variant list\|show NAME` | experimental | dispatch | Inspeciona variantes de build configuradas |
-| `migrate SOURCE` | experimental | dispatch | Planos de migração para sphinx-needs, doorstop, strictdoc, openfasttrace |
+| `migrate SOURCE` | experimental | dispatch | Planos de migração para sphinx-needs, doorstop, strictdoc, openfasttrace, reqif |
 | `oslc discover\|catalog\|query` | experimental | dispatch | Federação OSLC RM limitada e somente leitura |
 | `export --format json` | stable | argparse | Projeção de exportação |
 | `export --format csv` | stable | argparse | Projeção de exportação |

@@ -10,8 +10,11 @@ O Quarto-Needs inclui adaptadores conservadores para trazer requisitos de outros
 | **Doorstop** | Diretório de documentos YAML/JSON | `quarto-needs migrate doorstop <dir> --output <plano.json>` |
 | **StrictDoc** | Arquivos `.sdoc` / diretório | `quarto-needs migrate strictdoc <caminho> --output <plano.json>` |
 | **OpenFastTrace** | Troca de rastreabilidade em XML | `quarto-needs migrate openfasttrace <caminho> --output <plano.json>` |
+| **ReqIF 1.2** | Documento `.reqif` | `quarto-needs migrate reqif <caminho> --output <plano.json>` |
 
 `--output` é o **JSON do plano de migração**, não um arquivo `.qmd` de destino.
+
+O adapter ReqIF recupera a identidade a partir dos identificadores do documento, mas quando um valor `quarto-needs.canonical-id` está presente (como em uma exportação ReqIF do Quarto-Needs) ele tem precedência, de modo que um ciclo exportar/importar preserva IDs canônicos, títulos, status, corpos, justificativas, relações e atributos. Valores tipados são recuperados como texto — enumerações pelo seu `LONG-NAME`, XHTML achatado — e toda conversão com perda é reportada como issue do plano em vez de ser aplicada em silêncio. Declarações DOCTYPE/ENTITY são recusadas.
 
 ## Fluxo de Migração
 

@@ -151,10 +151,11 @@ quarto-needs variant show assurance-slice --format json
 | Doorstop | `quarto-needs migrate doorstop source/doorstop` | Prefixo de documento em `--type-map`; prefixo do documento filho em `--relation-map`. |
 | StrictDoc | `quarto-needs migrate strictdoc source/spec.sdoc` | Tag do nó em `--type-map`; `TYPE` da relação em `--relation-map`. |
 | OpenFastTrace | `quarto-needs migrate openfasttrace source/trace.xml` | `doctype` em `--type-map`; palavra-chave do link em `--relation-map`. |
+| ReqIF 1.2 | `quarto-needs migrate reqif source/export.reqif` | LONG-NAME do `SPEC-OBJECT-TYPE` em `--type-map`; LONG-NAME do `SPEC-RELATION-TYPE` em `--relation-map`. |
 
 Cada comando grava `.quarto-needs/migrations/<source>-plan.json` por padrão. `--output` muda o destino desse plano, não o destino autoral `.qmd`. Uma migração com pendências ainda grava um plano revisável e retorna `1`.
 
-Os quatro adaptadores aceitam opções repetidas `--type-map SOURCE=TARGET`, `--relation-map SOURCE=RELATION`, `--destination SOURCE_ID=path.qmd` e `--id-map SOURCE_ID=CANONICAL_ID`. Os mapeamentos de destino e ID são aplicados quando `--apply-plan` está selecionado:
+Os cinco adaptadores aceitam opções repetidas `--type-map SOURCE=TARGET`, `--relation-map SOURCE=RELATION`, `--destination SOURCE_ID=path.qmd` e `--id-map SOURCE_ID=CANONICAL_ID`. Os mapeamentos de destino e ID são aplicados quando `--apply-plan` está selecionado:
 
 ```bash
 quarto-needs migrate sphinx-needs source/needs.json \

@@ -151,10 +151,11 @@ quarto-needs variant show assurance-slice --format json
 | Doorstop | `quarto-needs migrate doorstop source/doorstop` | Document prefix for `--type-map`; child-document prefix for `--relation-map`. |
 | StrictDoc | `quarto-needs migrate strictdoc source/spec.sdoc` | Node tag for `--type-map`; relation `TYPE` for `--relation-map`. |
 | OpenFastTrace | `quarto-needs migrate openfasttrace source/trace.xml` | `doctype` for `--type-map`; link keyword for `--relation-map`. |
+| ReqIF 1.2 | `quarto-needs migrate reqif source/export.reqif` | `SPEC-OBJECT-TYPE` LONG-NAME for `--type-map`; `SPEC-RELATION-TYPE` LONG-NAME for `--relation-map`. |
 
 Each command writes `.quarto-needs/migrations/<source>-plan.json` by default. `--output` changes that plan destination, not the authored `.qmd` destination. An unresolved migration still writes a reviewable plan and returns `1`.
 
-All four adapters accept repeated `--type-map SOURCE=TARGET`, `--relation-map SOURCE=RELATION`, `--destination SOURCE_ID=path.qmd`, and `--id-map SOURCE_ID=CANONICAL_ID` options. Destination and ID mappings are applied when `--apply-plan` is selected:
+All five adapters accept repeated `--type-map SOURCE=TARGET`, `--relation-map SOURCE=RELATION`, `--destination SOURCE_ID=path.qmd`, and `--id-map SOURCE_ID=CANONICAL_ID` options. Destination and ID mappings are applied when `--apply-plan` is selected:
 
 ```bash
 quarto-needs migrate sphinx-needs source/needs.json \
