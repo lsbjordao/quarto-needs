@@ -1,0 +1,61 @@
+# Galeria de falhas
+
+O Quarto-Needs mantém uma galeria de projetos deliberadamente quebrados em
+[`examples/broken/`](https://github.com/lsbjordao/quarto-needs/tree/main/examples/broken).
+Cada diretório é um projeto real e autocontido cujo defeito ensina um modo de
+falha específico: o que o motor diz, com que gravidade diz, e o que o leitor
+deve fazer a respeito.
+
+Nada na galeria é importado, renderizado ou compartilhado com o
+[estudo de caso self-hosted](https://lsbjordao.github.io/quarto-needs/examples/quarto-needs/);
+uma fixture quebrada nunca contamina o modelo canônico.
+
+Toda expectativa abaixo é executável:
+[`tests/test_teaching_fixtures.py`](https://github.com/lsbjordao/quarto-needs/blob/main/tests/test_teaching_fixtures.py)
+roda o motor contra cada projeto e falha se um diagnóstico divergir desta
+página. Para explorar à mão, rode o mesmo comando que os testes usam:
+
+```bash
+quarto-needs --root examples/broken/missing-evidence check
+```
+
+## As fixtures
+
+| Fixture | O erro | O que o motor faz | Diagnóstico |
+| --- | --- | --- | --- |
+| [`missing-evidence/`](https://github.com/lsbjordao/quarto-needs/tree/main/examples/broken/missing-evidence) | Um teste com status passed não tem evidência por trás. | Warning no teste; o projeto ainda escaneia e renderiza. | `REQ012` |
+| [`invalid-relations/`](https://github.com/lsbjordao/quarto-needs/tree/main/examples/broken/invalid-relations) | Uma relação aponta para um objeto não declarado e um identificador é declarado duas vezes. | Dois erros; o snapshot é recusado — nada renderiza. | `REQ005`, `REQ004` |
+| [`relation-typo/`](https://github.com/lsbjordao/quarto-needs/tree/main/examples/broken/relation-typo) | Um nome de relação é digitado errado (`linked-to` em vez de um nome do catálogo). | **Nenhum diagnóstico**: a aresta silenciosamente não existe e o erro de digitação sobrevive como atributo inerte. A armadilha que torna o `check` obrigatório no CI. | — |
+| [`orphan-requirements/`](https://github.com/lsbjordao/quarto-needs/tree/main/examples/broken/orphan-requirements) | Requisitos bem formados conectados a nada. | Findings de info nomeando os dois objetos; o scan continua. | `REQ014` |
+| [`overdue-decision/`](https://github.com/lsbjordao/quarto-needs/tree/main/examples/broken/overdue-decision) | A data `revisit-after` de uma decisão aceita passou. | Warning na decisão, nomeando a revisão atrasada. | `DEC006` |
+| [`expired-evidence/`](https://github.com/lsbjordao/quarto-needs/tree/main/examples/broken/expired-evidence) | Evidência com um atributo `expires` no passado. | Warning no objeto de evidência; freshness é reverificada, nunca presumida. | `REQ015` |
+| [`stale-evidence/`](https://github.com/lsbjordao/quarto-needs/tree/main/examples/broken/stale-evidence) | Evidência atestada contra um grafo semântico anterior: payload íntegro, provider de acordo e nada expirado. | O `evidence check` recusa — expiração é data, staleness é vínculo. | `EVD203` |
+| [`localization-drift/`](https://github.com/lsbjordao/quarto-needs/tree/main/examples/broken/localization-drift) | O irmão pt-BR altera silenciosamente o status de um requisito. | A checagem de paridade semântica recusa o par pelo nome antes da publicação. | — |
+| [`migration-loss/`](https://github.com/lsbjordao/quarto-needs/tree/main/examples/broken/migration-loss) | Uma exportação Sphinx-Needs com um tipo e um campo de link sem mapeamento. | O plano de import registra a perda como itens de revisão — planejada, nunca adivinhada. | `TYPE_UNMAPPED`, `LINK_FIELD_UNMAPPED` |
+| [`interchange-loss/`](https://github.com/lsbjordao/quarto-needs/tree/main/examples/broken/interchange-loss) | Tratar a exportação ReqIF/JSON-LD como round trip sem perda. | O projeto escaneia limpo, e ambas as projeções documentam dentro da exportação exatamente quais detalhes autorais ficam para trás. | `PROJECTION-NOTE` |
+| [`editor-refactor/`](https://github.com/lsbjordao/quarto-needs/tree/main/examples/broken/editor-refactor) | Renomear `REQ-2` para o `REQ-1` existente em um buffer não salvo. | O rename do LSP recusa com o diagnóstico canônico do motor em vez de escrever um duplicado; um rename para um identificador livre ainda edita todas as referências. | — |
+
+## O membro dinâmico
+
+`suspect-after-change` não tem diretório versionado de propósito: seu ponto
+são dois estados de um projeto através de um histórico Git, não um snapshot
+único. A aresta `verified-by` de um requisito pode continuar estruturalmente
+válida enquanto o requisito por trás dela muda de significado, e só comparar
+dois estados de engenharia captura isso. O
+[README da galeria](https://github.com/lsbjordao/quarto-needs/blob/main/examples/broken/README.md)
+traz uma receita pronta para copiar; a versão curta são dois commits e um
+comando:
+
+```bash
+quarto-needs --root . suspect --git HEAD~1..HEAD
+```
+
+## Gravidade, não só falha
+
+A lição real da galeria é o gradiente. Um erro estrutural (`REQ004`,
+`REQ005`) recusa o snapshot de imediato. Um warning (`REQ012`, `REQ015`,
+`DEC006`) mostra o problema mas ainda publica. Um finding de info (`REQ014`)
+permanece visível sem afirmar que o projeto está quebrado. E o erro de
+digitação em relação não produz **nada** — o resultado mais perigoso, porque
+parece sucesso. Esse gradiente é o motivo de o `quarto-needs check` pertencer
+ao CI e de a publicação ser um passo separado e deliberado.
