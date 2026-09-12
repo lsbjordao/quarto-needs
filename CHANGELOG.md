@@ -33,6 +33,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Dynamic views. The `interacts-with` relation carries ordered runtime interactions (`order`, `label`, `technology`), and `need-c4 root="SYS-..." level="dynamic"` draws them as a numbered sequence: Mermaid `C4Dynamic` with `RelIndex`, a PlantUML sequence diagram, a Structurizr `dynamic` view referencing model relationships, and a D2 sequence diagram. The relation catalog moves to version 6, and the self-hosted case study records its render scenario as three ordered interactions.
 
+- Migration update matching. Written migration blocks now carry a durable source marker (`source-tool`, `source-project` when the source declares one, and `source-id`), and `migrate <source> --update-plan` matches the current upstream items against those markers without touching authored files: `ready-create` for new items, `ready-update` with the changed fields and a file digest for matched items, `no-change`, and `blocked` for anything needing a decision. A canonical ID that already exists without a source marker is never treated as an implicit update. `--write` is refused with `--update-plan`; applying updates is a separate reviewed step.
+
 ### Changed
 
 - README opens with real coverage and traceability screenshots, an executable authoring example, tested quickstart commands and dynamic CI/PyPI badges; capabilities are summarized after the demonstration.

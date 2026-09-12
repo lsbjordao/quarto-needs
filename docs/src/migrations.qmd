@@ -43,9 +43,21 @@ Quarto-Needs provides conservative migration adapters for bringing requirements 
 
 For more than one source object, repeat `--destination SOURCE_ID=path.qmd`. `--id-map SOURCE_ID=CANONICAL_ID` is available when preserving the source ID is not appropriate. Writes are create-only and reject unresolved mappings, collisions, or unsafe destination paths rather than inferring identity.
 
+### Updating a migrated project
+
+Every written block records its source identity (`source-tool`, `source-project` when the source declares one, and `source-id`). Re-running with `--update-plan` matches the current upstream items against those markers and classifies each one without touching authored files:
+
+```bash
+quarto-needs migrate sphinx-needs docs/needs.json \
+  --type-map req=functional-requirement \
+  --update-plan
+```
+
+The plan (`.quarto-needs/migrations/sphinx-needs-update-plan.json`) reports `ready-create` for new items, `ready-update` with the changed fields for matched items, `no-change`, and `blocked` for anything needing a decision — including a canonical ID that already exists without a source marker, which is never treated as an implicit update. Each matched item carries a digest of its authored file so a later write can refuse a stale plan. Applying updates is a separate, reviewed step; `--update-plan` only produces the plan and `--write` is refused with it.
+
 ## Mapping Principles
 
 - **Stable Identity**: Existing IDs (e.g. `REQ_001` or `SYS-042`) are preserved by default; remapping is explicit.
 - **Relation Translation**: Source links are mapped into the Quarto-Needs canonical relation catalog through explicit relation mappings where needed.
-- **Review Before Mutation**: Planning and apply-planning are non-mutating; `--write` is a separate, explicit step.
+- **Review Before Mutation**: Planning, apply-planning and update-planning are non-mutating; `--write` is a separate, explicit step.
 - **Quarto-Native Output**: Ready candidates are rendered as standard Pandoc Div declarations (`::: {.need ...} ... :::`).
