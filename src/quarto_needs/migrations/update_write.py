@@ -1,11 +1,18 @@
 """Apply a reviewed migration update plan to already-migrated authored files.
 
-Mirrors `apply_write.py`'s safety contracts for the update path: every item
-is preflighted before any write (the plan must be fully ready, each matched
-file must still carry the digest the plan recorded, and every block must be
-locatable), writes are atomic per file, the project is re-scanned afterwards,
-and any structural failure restores every touched file before the error
-propagates. A stale plan is refused rather than applied to changed content.
+Mirrors `apply_write.py`'s safety contracts for the sync path: every item is
+preflighted before any write (the plan must be fully ready, each updated
+block's file must still carry the digest the plan recorded, each create's
+canonical ID must still be absent, and every destination must be safe), writes
+are atomic per file, the project is re-scanned afterwards, and any structural
+failure restores every touched file — or removes every file this call created
+— before the error propagates. A stale plan is refused rather than applied to
+changed content.
+
+The plan's `ready-create` items are applied here too: an upstream source that
+gained an item is part of the same reviewed sync, and sending the user to the
+first-migration create path would refuse anyway because the already-migrated
+IDs collide there.
 """
 from __future__ import annotations
 
@@ -26,14 +33,19 @@ class MigrationUpdateError(Exception):
 
 @dataclass(frozen=True, slots=True)
 class MigrationUpdateResult:
-    updated: tuple[tuple[str, str, str], ...]
+    applied: tuple[tuple[str, str, str, str], ...]
 
     def to_dict(self) -> dict[str, object]:
         return {
             "schema": "migration-update-result-v1",
             "updated": [
-                {"sourceId": source_id, "canonicalId": canonical_id, "file": file}
-                for source_id, canonical_id, file in sorted(self.updated)
+                {
+                    "sourceId": source_id,
+                    "canonicalId": canonical_id,
+                    "file": file,
+                    "action": action,
+                }
+                for source_id, canonical_id, file, action in sorted(self.applied)
             ],
         }
 
@@ -53,19 +65,9 @@ def _block_span(lines: list[str], identifier: str) -> tuple[int, int] | None:
     return None
 
 
-def _updated_file(
-    path: Path, items: list[MigrationUpdateItem], destination_file: str
-) -> str:
-    original = path.read_text(encoding="utf-8")
-    digest = hashlib.sha256(path.read_bytes()).hexdigest()
-    for item in items:
-        if item.current_file_digest != digest:
-            raise MigrationUpdateError(
-                f"stale update plan: {destination_file!r} changed since the "
-                "plan was built; rebuild the plan and review it again"
-            )
-
-    lines = original.splitlines(keepends=True)
+def _apply_updates(
+    lines: list[str], items: list[MigrationUpdateItem], destination_file: str
+) -> None:
     located: list[tuple[int, int, MigrationUpdateItem]] = []
     for item in items:
         span = _block_span(lines, item.canonical_id)
@@ -83,7 +85,46 @@ def _updated_file(
         if replacement and not replacement[-1].endswith("\n"):
             replacement[-1] += "\n"
         lines[start : end + 1] = replacement
-    return "".join(lines)
+
+
+def _append_creates(text: str, items: list[MigrationUpdateItem]) -> str:
+    for item in items:
+        assert item.content_preview is not None
+        preview = item.content_preview.strip("\n")
+        if text.strip():
+            text = text.rstrip("\n") + "\n\n" + preview + "\n"
+        else:
+            text = preview + "\n"
+    return text
+
+
+def _file_text(
+    path: Path,
+    *,
+    destination_file: str,
+    updates: list[MigrationUpdateItem],
+    creates: list[MigrationUpdateItem],
+) -> str:
+    if updates and not path.is_file():
+        raise MigrationUpdateError(
+            f"destination file {destination_file!r} does not exist"
+        )
+    if path.is_file():
+        original = path.read_text(encoding="utf-8")
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        for item in updates:
+            if item.current_file_digest != digest:
+                raise MigrationUpdateError(
+                    f"stale update plan: {destination_file!r} changed since the "
+                    "plan was built; rebuild the plan and review it again"
+                )
+    else:
+        original = ""
+
+    lines = original.splitlines(keepends=True)
+    if updates:
+        _apply_updates(lines, updates, destination_file)
+    return _append_creates("".join(lines), creates)
 
 
 def apply_migration_update_plan(
@@ -91,55 +132,89 @@ def apply_migration_update_plan(
     plan: MigrationUpdatePlan,
     config: NeedsConfig,
 ) -> MigrationUpdateResult:
-    """Write every ``ready-update`` item to its already-authored file."""
+    """Apply every ready-create and ready-update item in one reviewed sync."""
     if not plan.items:
         raise MigrationUpdateError("update plan has no items")
     not_ready = sorted(
         f"{item.source_id} ({item.status})"
         for item in plan.items
-        if item.status not in {"ready-update", "no-change"}
+        if item.status not in {"ready-create", "ready-update", "no-change"}
     )
     if not_ready:
         raise MigrationUpdateError(
             "update plan is not fully ready; refusing to write any file: "
             + ", ".join(not_ready)
-            + ". Apply ready-create items with --apply-plan --write first."
+            + ". Add the missing destinations or mappings and rebuild the plan."
         )
     updates = [item for item in plan.items if item.status == "ready-update"]
-    if not updates:
-        raise MigrationUpdateError("update plan has no items to update")
+    creates = [item for item in plan.items if item.status == "ready-create"]
+    if not updates and not creates:
+        raise MigrationUpdateError("update plan has no items to apply")
+
+    create_ids = sorted(item.canonical_id for item in creates)
+    if len(set(create_ids)) != len(create_ids):
+        raise MigrationUpdateError(
+            "update plan proposes the same canonical ID more than once: "
+            + ", ".join(sorted({value for value in create_ids if create_ids.count(value) > 1}))
+        )
 
     resolved_root = Path(root).resolve()
-    by_file: dict[str, list[MigrationUpdateItem]] = {}
-    for item in updates:
+    preflight = analyze_project(root, config=config)
+    if preflight.snapshot is None:
+        raise MigrationUpdateError(
+            "the project does not currently form a valid engineering graph; "
+            "refusing to write any file"
+        )
+    existing = set(preflight.snapshot.objects_by_id)
+    for item in creates:
+        if item.canonical_id in existing:
+            raise MigrationUpdateError(
+                f"canonical ID {item.canonical_id!r} already exists; "
+                "rebuild the plan and review it again"
+            )
+
+    updates_by_file: dict[str, list[MigrationUpdateItem]] = {}
+    creates_by_file: dict[str, list[MigrationUpdateItem]] = {}
+    for item in plan.items:
+        if item.status == "no-change":
+            continue
         if item.destination_file is None or item.content_preview is None:
             raise MigrationUpdateError(
-                f"{item.source_id} is ready-update but missing a destination or preview"
+                f"{item.source_id} is {item.status} but missing a destination or preview"
             )
-        by_file.setdefault(item.destination_file, []).append(item)
+        target = (
+            updates_by_file if item.status == "ready-update" else creates_by_file
+        )
+        target.setdefault(item.destination_file, []).append(item)
 
-    originals: dict[Path, str] = {}
+    originals: dict[Path, str | None] = {}
     new_texts: dict[Path, str] = {}
-    for destination_file, items in sorted(by_file.items()):
+    for destination_file in sorted(set(updates_by_file) | set(creates_by_file)):
         path = (resolved_root / destination_file).resolve()
         if not path.is_relative_to(resolved_root):
             raise MigrationUpdateError(
                 f"destination file {destination_file!r} resolves outside the project root"
             )
-        if not path.is_file():
-            raise MigrationUpdateError(
-                f"destination file {destination_file!r} does not exist"
-            )
-        originals[path] = path.read_text(encoding="utf-8")
-        new_texts[path] = _updated_file(path, items, destination_file)
+        originals[path] = path.read_text(encoding="utf-8") if path.is_file() else None
+        new_texts[path] = _file_text(
+            path,
+            destination_file=destination_file,
+            updates=updates_by_file.get(destination_file, []),
+            creates=sorted(
+                creates_by_file.get(destination_file, []),
+                key=lambda item: (item.canonical_id.casefold(), item.canonical_id),
+            ),
+        )
 
-    updated: list[tuple[str, str, str]] = []
+    applied: list[tuple[str, str, str, str]] = []
     try:
         for path, text in new_texts.items():
             _write_atomic_text(path, text)
-        for destination_file, items in by_file.items():
-            for item in items:
-                updated.append((item.source_id, item.canonical_id, destination_file))
+        for item in plan.items:
+            if item.status in {"ready-create", "ready-update"}:
+                applied.append(
+                    (item.source_id, item.canonical_id, item.destination_file or "", item.status)
+                )
 
         result = analyze_project(root, config=config)
         error_findings = [
@@ -155,7 +230,10 @@ def apply_migration_update_plan(
             )
     except BaseException:
         for path, original in originals.items():
-            path.write_text(original, encoding="utf-8")
+            if original is None:
+                path.unlink(missing_ok=True)
+            else:
+                path.write_text(original, encoding="utf-8")
         raise
 
-    return MigrationUpdateResult(updated=tuple(sorted(updated)))
+    return MigrationUpdateResult(applied=tuple(sorted(applied)))

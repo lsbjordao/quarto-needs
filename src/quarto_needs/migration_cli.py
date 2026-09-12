@@ -466,9 +466,10 @@ def run_migration_action(root: Path, argv: Sequence[str], source: str) -> int:
 
             if update_result is not None:
                 print()
-                print(f"Updated {len(update_result.updated)} object(s):")
-                for source_id, canonical_id, destination_file in update_result.updated:
-                    print(f"  {source_id} -> {canonical_id} ({destination_file})")
+                print(f"Applied {len(update_result.applied)} change(s):")
+                for source_id, canonical_id, destination_file, action in update_result.applied:
+                    label = "created" if action == "ready-create" else "updated"
+                    print(f"  {label} {source_id} -> {canonical_id} ({destination_file})")
 
     # A plan with unresolved semantics or an apply plan that is not fully
     # ready-to-create is useful output but not migration-ready.
