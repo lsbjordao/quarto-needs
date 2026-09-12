@@ -1,9 +1,10 @@
 # OSLC remote writes
 
-**Status:** first executable slice. The roadmap kept every POST/PUT/PATCH/DELETE
-deferred until eight contracts were explicit; they are stated here, and this
-slice implements the *update* operation (PUT) under them. Remote create and
-delete remain deferred, as does a CLI exposure.
+**Status:** delivered for update, create and delete, with a review-first CLI.
+The roadmap kept every POST/PUT/PATCH/DELETE deferred until eight contracts
+were explicit; they are stated here, and the three operations are implemented
+under them. Only automatic destructive behaviour remains deferred: a delete
+is never derived from a diff, only named by a reviewer.
 
 ## The eight contracts
 
@@ -39,12 +40,20 @@ delete remain deferred, as does a CLI exposure.
 
 ## Slice scope
 
-- `oslc_write.py`: requires a reconciled binding and a trusted observation to
-  build a request; projects a conservative payload (identifier, title,
-  description, object type, status, rationale, attributes, canonical ID and
-  graph fingerprint) and deliberately does not resend `@id`, `@type`,
-  `serviceProvider` or relation triples.
-- `oslc_write_http.py`: one bounded `PUT` at a time, no redirects followed,
-  request and response byte caps, request-only credentials.
-- Next slice: remote create (with an explicit identity/idempotency key) and
-  delete, and the CLI pipeline that builds a plan from the observation cache.
+- `oslc_write.py`: builds a reviewed plan for the three operations.
+  **Updates** need a trusted bound observation with an ETag and a payload
+  that differs from the recorded audit. **Creates** are only the canonical
+  IDs a reviewer names, target an explicit collection URI, carry a
+  deterministic advisory `Idempotency-Key`, and refuse an ID that is already
+  bound. **Deletes** are only the canonical IDs a reviewer names, need a
+  single trusted bound observation with an ETag, and never follow from a
+  diff. The payload is conservative: identifier, title, description, object
+  type, status, rationale, attributes, canonical ID and graph fingerprint,
+  and never `@id`, `@type` or `serviceProvider`.
+- `oslc_write_http.py`: one bounded request at a time (`PUT`, `POST`,
+  `DELETE`), no redirects followed, request and response byte caps,
+  request-only credentials, `https` required.
+- `quarto-needs oslc write`: review-first CLI over an observation export and
+  an explicit bindings map; `--apply` sends and always writes the audit.
+- Remaining: nothing destructive is automatic, and there is no retry or merge
+  policy beyond stop-on-first-failure — that is deliberate.

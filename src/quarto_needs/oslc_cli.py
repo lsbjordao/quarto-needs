@@ -9,6 +9,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Sequence
 
+from .analysis import analyze_project
+from .config import load_config
 from .oslc_catalog import OslcCatalogResult, discover_oslc_catalog
 from .oslc_federation import OslcDiscoveryResult, discover_oslc_rm
 from .oslc_http import HttpFetchPolicy, OslcTransportError
@@ -16,6 +18,14 @@ from .oslc_profiles import OslcFederationProfile, OslcProfileError, load_oslc_pr
 from .oslc_query import OslcQueryResult, execute_oslc_query
 from .oslc_rdf import OslcRdfError
 from .oslc_rm import CachePolicy
+from .oslc_write import (
+    OslcWriteError,
+    apply_write_plan,
+    bindings_from_document,
+    build_write_plan,
+    load_previous_audit,
+    observations_from_document,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -46,8 +56,10 @@ class _ResolvedQuery:
     bearer_token_env: str | None
 
 
-#: The bounded read-only federation subcommands this layer serves.
-OSLC_ACTIONS = ("discover", "catalog", "query")
+#: The bounded federation subcommands this layer serves. `write` is the only
+#: one that can mutate a remote system, and it is review-first: it builds a
+#: plan unless `--apply` is given explicitly.
+OSLC_ACTIONS = ("discover", "catalog", "query", "write")
 
 
 def oslc_action(argv: Sequence[str]) -> str | None:
@@ -113,6 +125,37 @@ def _query_parser() -> argparse.ArgumentParser:
     )
     _add_common_options(parser)
     parser.add_argument("--max-members", type=int, default=None)
+    return parser
+
+
+def _write_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="quarto-needs oslc write",
+        description=(
+            "Review the remote writes a federation would send, and apply them only with "
+            "--apply. Updates need a trusted bound observation with an ETag; creates need "
+            "an explicit collection URI; deletes must be named explicitly."
+        ),
+    )
+    parser.add_argument("--observations", required=True, help="JSON observation export")
+    parser.add_argument("--bindings", help="JSON object of external URI -> canonical ID")
+    parser.add_argument("--create", action="append", default=[], metavar="CANONICAL_ID")
+    parser.add_argument("--delete", action="append", default=[], metavar="CANONICAL_ID")
+    parser.add_argument("--collection-uri", help="Requirement collection URI for --create")
+    parser.add_argument("--previous-audit", help="Previous oslc-write-audit-v1 document")
+    parser.add_argument(
+        "--output", default=".quarto-needs/federation/oslc-write-plan.json"
+    )
+    parser.add_argument(
+        "--audit", default=".quarto-needs/federation/oslc-write-audit.json"
+    )
+    parser.add_argument(
+        "--apply",
+        action="store_true",
+        help="Send the reviewed plan; requires a bearer token environment variable",
+    )
+    parser.add_argument("--profile", help="Named OSLC profile from .quarto-needs.toml")
+    _add_common_options(parser)
     return parser
 
 
@@ -438,10 +481,113 @@ def _run_query(root: Path, argv: Sequence[str]) -> int:
     return 0
 
 
+_TRANSPORT_WRITE_CODES = {
+    "transport-error",
+    "server-error",
+    "client-error",
+    "redirect-refused",
+    "precondition-failed",
+    "conflict",
+    "authorization-failed",
+}
+
+
+def _run_write(root: Path, argv: Sequence[str]) -> int:
+    parser = _write_parser()
+    args = parser.parse_args(_strip_dispatch_tokens(argv, "write"))
+
+    observations_document = json.loads(
+        _cache_root(root, args.observations).read_text(encoding="utf-8")
+    )
+    observations = observations_from_document(observations_document)
+    bindings: dict[str, str] = {}
+    if args.bindings:
+        bindings = bindings_from_document(
+            json.loads(_cache_root(root, args.bindings).read_text(encoding="utf-8"))
+        )
+    previous = (
+        load_previous_audit(_cache_root(root, args.previous_audit))
+        if args.previous_audit
+        else None
+    )
+
+    config = load_config(root)
+    result = analyze_project(root, config=config)
+    if result.snapshot is None:
+        for finding in result.findings:
+            print(f"[ERROR] {finding.code}: {finding.message}", file=sys.stderr)
+        return 2
+
+    plan = build_write_plan(
+        result.snapshot,
+        observations,
+        bindings,
+        creates=args.create,
+        deletes=args.delete,
+        collection_uri=args.collection_uri,
+        previous_audit=previous,
+    )
+    output = _cache_root(root, args.output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(
+        json.dumps(plan.to_dict(), indent=2, sort_keys=True, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+
+    audit = None
+    if args.apply:
+        profile = _profile(root, args.profile)
+        env_name = args.bearer_token_env or (
+            profile.bearer_token_env if profile is not None else None
+        )
+        headers = _auth_headers(env_name)
+        if headers is None:
+            raise ValueError(
+                "--apply requires --bearer-token-env or a profile with a bearer token environment"
+            )
+        audit = apply_write_plan(
+            plan,
+            authorization=headers["Authorization"],
+            audit_path=_cache_root(root, args.audit),
+        )
+        payload: object = audit.to_dict()
+    else:
+        payload = plan.to_dict()
+
+    if args.format == "json":
+        print(json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False))
+        return 0
+
+    if audit is not None:
+        print(
+            f"OSLC write result: {sum(1 for entry in audit.entries if entry.error is None)} "
+            f"of {len(audit.entries)} request(s) accepted"
+        )
+        for entry in audit.entries:
+            state = entry.status if entry.status is not None else entry.error
+            print(f"  [{entry.method}] {entry.canonical_id} -> {entry.uri}: {state}")
+        print(f"Audit: {_cache_root(root, args.audit)}")
+        return 0
+
+    print(
+        f"OSLC write plan: {len(plan.requests)} request(s), "
+        f"{len(plan.skipped)} skipped (not applied; pass --apply to send)"
+    )
+    print(f"Plan: {output}")
+    for request in plan.requests:
+        precondition = f" If-Match {request.if_match}" if request.if_match else ""
+        print(f"  [{request.method}] {request.canonical_id} -> {request.uri}{precondition}")
+    for item in plan.skipped:
+        print(f"  [skipped] {item.uri}: {item.reason}")
+    return 0
+
+
 def run_oslc_action(root: Path, argv: Sequence[str], action: str) -> int:
     if action not in set(OSLC_ACTIONS):
         if not action:
-            print("OSLC action required: discover, catalog, or query", file=sys.stderr)
+            print(
+                f"OSLC action required: {', '.join(OSLC_ACTIONS)}", file=sys.stderr
+            )
         else:
             print(f"Unknown OSLC action: {action}", file=sys.stderr)
         return 2
@@ -451,7 +597,18 @@ def run_oslc_action(root: Path, argv: Sequence[str], action: str) -> int:
             return _run_discover(root, argv)
         if action == "catalog":
             return _run_catalog(root, argv)
+        if action == "write":
+            return _run_write(root, argv)
         return _run_query(root, argv)
+    except OslcWriteError as error:
+        stream = sys.stderr
+        label = (
+            "OSLC write transport error"
+            if error.code in _TRANSPORT_WRITE_CODES
+            else "OSLC write error"
+        )
+        print(f"{label} [{error.code}]: {error}", file=stream)
+        return 3 if error.code in _TRANSPORT_WRITE_CODES else 2
     except (ValueError, OslcProfileError, OslcRdfError) as error:
         print(f"OSLC configuration/data error: {error}", file=sys.stderr)
         return 2

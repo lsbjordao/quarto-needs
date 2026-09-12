@@ -41,6 +41,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - OSLC remote writes, first slice. The eight contracts the roadmap required before any POST/PUT/PATCH/DELETE are stated in `notes/oslc-remote-writes.md`, and the update operation is delivered under them: a reviewed `oslc-write-plan-v1` builds one `PUT` per trusted, bound observation that carries an ETag — an observation without one is skipped, never overwritten unconditionally — a bounded transport sends one request at a time with request-only credentials and no redirects, a `412`/`409` stops the run, and an `oslc-write-audit-v1` records every outcome before the failure propagates. A previous audit makes unchanged payloads skippable. Remote create/delete and the CLI pipeline remain the next slice.
 
+- OSLC remote writes: create, delete and the review-first CLI. `quarto-needs oslc write` builds the plan from an observation export and sends nothing without `--apply`; `--create` targets an explicit `--collection-uri`, refuses an already-bound ID and carries a deterministic advisory `Idempotency-Key`; `--delete` must be named explicitly and requires a single trusted bound observation with an ETag. Applying reads the bearer token from the environment and writes `oslc-write-audit-v1` — including the create `Location` — before any failure propagates. Nothing destructive is ever derived from a diff.
+
 ### Changed
 
 - README opens with real coverage and traceability screenshots, an executable authoring example, tested quickstart commands and dynamic CI/PyPI badges; capabilities are summarized after the demonstration.
@@ -64,7 +66,7 @@ Classified into stability tiers in a later release; the list below is generated 
 
 - **Preview**: `evidence`, `evidence check`, `suspect --git BASE..HEAD`, `pr-report --git BASE..HEAD`, `github-report --git BASE..HEAD`, `diff --git BASE..HEAD`, `impact --git BASE..HEAD`, `evidence attest`, `lsp`, `export --format sarif|junit|reqif|jsonld`.
 
-- **Experimental**: `variant list|show NAME`, `migrate SOURCE`, `oslc discover|catalog|query`, C4 projections, GitHub Issues adapter, VS Code client.
+- **Experimental**: `variant list|show NAME`, `migrate SOURCE`, `oslc discover|catalog|query|write`, C4 projections, GitHub Issues adapter, VS Code client.
 - The existing `v0.1.0` tag and TestPyPI artifact are preserved; `0.1.1` is the first production release.
 
 ### Release validation

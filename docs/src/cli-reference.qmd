@@ -178,9 +178,13 @@ quarto-needs oslc catalog https://provider.example/oslc/catalog --format json
 quarto-needs oslc discover https://provider.example/oslc/sp/requirements --format json
 quarto-needs oslc query https://provider.example/oslc/query/requirements \
   --service-provider-uri https://provider.example/oslc/sp/requirements --format json
+quarto-needs oslc write --observations observations.json --bindings bindings.json \
+  --previous-audit .quarto-needs/federation/oslc-write-audit.json
 ```
 
 Replace the example addresses with endpoints advertised by your provider. `catalog` lists provider and nested-catalog URIs without following nested catalogs. `discover` inspects one provider's RM services, query capabilities, and resource shapes; `--no-shapes` disables shape retrieval and `--shapes` forces it on, overriding a profile that turned it off. `query` performs a bounded GET and reports member URIs and nodes already inline in that response. It does not fetch every member, reconcile objects, or create local requirements.
+
+`write` is review-first: it builds `.quarto-needs/federation/oslc-write-plan.json` from an observation export and sends nothing without `--apply`. Updates require a trusted bound observation with an ETag; `--create CANONICAL_ID` needs `--collection-uri`; `--delete CANONICAL_ID` must be named explicitly. Applying needs a bearer token (`--bearer-token-env` or a profile) and writes `.quarto-needs/federation/oslc-write-audit.json`, including on failure. See `notes/oslc-remote-writes.md` for the eight contracts.
 
 For reusable provider settings, configure `.quarto-needs.toml`:
 

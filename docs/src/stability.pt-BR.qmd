@@ -82,7 +82,7 @@ listado aqui porque é a isso que os testes de não-divergência se prendem.
 | `export --format reqif\|jsonld` | preview | dispatch | Projeções de intercâmbio ReqIF 1.2 e JSON-LD |
 | `variant list\|show NAME` | experimental | dispatch | Inspeciona variantes de build configuradas |
 | `migrate SOURCE` | experimental | dispatch | Planos de migração para sphinx-needs, doorstop, strictdoc, openfasttrace, reqif |
-| `oslc discover\|catalog\|query` | experimental | dispatch | Federação OSLC RM limitada e somente leitura |
+| `oslc discover\|catalog\|query\|write` | experimental | dispatch | Federação OSLC RM limitada: descoberta/consulta somente leitura e um caminho de escrita revisado |
 | `export --format json` | stable | argparse | Projeção de exportação |
 | `export --format csv` | stable | argparse | Projeção de exportação |
 | `export --format markdown` | stable | argparse | Projeção de exportação |
