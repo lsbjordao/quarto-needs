@@ -163,7 +163,7 @@ Every command, export format and integration carries a tier. Stable is covered b
 
 - **Preview**: `evidence`, `evidence check`, `suspect --git BASE..HEAD`, `pr-report --git BASE..HEAD`, `github-report --git BASE..HEAD`, `diff --git BASE..HEAD`, `impact --git BASE..HEAD`, `evidence attest`, `lsp`, `export --format sarif|junit|reqif|jsonld`.
 
-- **Experimental**: `variant list|show NAME`, `migrate SOURCE`, `oslc discover|catalog|query`, C4 projections, GitHub Issues adapter, VS Code client.
+- **Experimental**: `variant list|show NAME`, `migrate SOURCE`, `oslc discover|catalog|query|write`, C4 projections, GitHub Issues adapter, VS Code client.
 
 The tiers are declared once, in `src/quarto_needs/surface.py`, and this list is generated from it. See the [Stability chapter](https://lsbjordao.github.io/quarto-needs/stability.html) for what each tier promises and what a feature must demonstrate to be promoted.
 

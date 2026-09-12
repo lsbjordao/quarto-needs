@@ -152,10 +152,10 @@ COMMANDS: tuple[Command, ...] = (
             "Migration plans for sphinx-needs, doorstop, strictdoc, openfasttrace, reqif",
             DISPATCH, "migrate",
             dispatched_help="migrate SOURCE"),
-    Command("oslc discover|catalog|query", EXPERIMENTAL,
-            "Bounded read-only OSLC RM federation",
+    Command("oslc discover|catalog|query|write", EXPERIMENTAL,
+            "Bounded OSLC RM federation: read-only discovery/query and a reviewed write path",
             DISPATCH, "oslc",
-            dispatched_help="oslc discover|catalog|query"),
+            dispatched_help="oslc discover|catalog|query|write"),
 )
 
 EXPORT_FORMATS: tuple[ExportFormat, ...] = (

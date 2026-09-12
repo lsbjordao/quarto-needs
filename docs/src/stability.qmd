@@ -80,7 +80,7 @@ because it is what the non-divergence tests bind to.
 | `export --format reqif\|jsonld` | preview | dispatch | ReqIF 1.2 and JSON-LD interchange projections |
 | `variant list\|show NAME` | experimental | dispatch | Inspect configured build variants |
 | `migrate SOURCE` | experimental | dispatch | Migration plans for sphinx-needs, doorstop, strictdoc, openfasttrace, reqif |
-| `oslc discover\|catalog\|query` | experimental | dispatch | Bounded read-only OSLC RM federation |
+| `oslc discover\|catalog\|query\|write` | experimental | dispatch | Bounded OSLC RM federation: read-only discovery/query and a reviewed write path |
 | `export --format json` | stable | argparse | Export projection |
 | `export --format csv` | stable | argparse | Export projection |
 | `export --format markdown` | stable | argparse | Export projection |

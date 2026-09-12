@@ -26,13 +26,13 @@ A projeção JSON-LD utiliza IRIs determinísticos, vocabulários de schema e ma
 
 ## Federação Baseada em Padrões: OSLC RM
 
-O Quarto-Needs oferece um adaptador somente-leitura com limites estritos para **OSLC Requirements Management (RM)**:
+O Quarto-Needs oferece um adaptador com limites estritos para **OSLC Requirements Management (RM)**: descoberta e consulta são somente leitura, e um caminho de escrita revisado pode publicar requisitos locais de volta sob contratos explícitos.
 
 ```bash
 pip install 'quarto-needs[oslc]'
 ```
 
-As dependências opcionais fornecem normalização de JSON-LD, Turtle e RDF/XML. O CLI público expõe três operações:
+As dependências opcionais fornecem normalização de JSON-LD, Turtle e RDF/XML. O CLI público expõe quatro operações:
 
 1. **Inspeção de Catálogo**: Lista URIs de Service Providers e de catálogos aninhados sem seguir esses catálogos:
    ```bash
@@ -47,6 +47,13 @@ As dependências opcionais fornecem normalização de JSON-LD, Turtle e RDF/XML.
    quarto-needs oslc query https://provider.example/oslc/query/requirements \
      --service-provider-uri https://provider.example/oslc/sp/requirements
    ```
+4. **Escritas Revisadas**: Monta um `oslc-write-plan-v1` a partir de uma exportação de observações e só o envia com `--apply`. Atualizações exigem uma observação trusted, vinculada e com ETag; criações precisam de uma URI de coleção explícita; exclusões precisam ser nomeadas explicitamente:
+   ```bash
+   quarto-needs oslc write --observations observations.json --bindings bindings.json \
+     --apply --bearer-token-env OSLC_TOKEN
+   ```
+
+Os oito contratos do caminho de escrita — staleness, conflito, colocação em arquivo autoral, atomicidade, rollback, concorrência otimista, autorização e auditoria — estão documentados em `notes/oslc-remote-writes.md`, e toda execução grava um `oslc-write-audit-v1` antes de qualquer falha propagar.
 
 O resultado da consulta relata URIs de membros, nós já incluídos na resposta e o digest e timestamp de recuperação da resposta. O CLI não materializa observações independentes de requisitos nem as reconcilia com objetos locais.
 

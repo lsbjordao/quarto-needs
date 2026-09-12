@@ -203,5 +203,5 @@ def test_oslc_cli_rejects_profile_and_uri_together(tmp_path: Path, capsys) -> No
 
 
 def test_oslc_cli_rejects_unknown_action(tmp_path: Path, capsys) -> None:
-    assert main(["--root", str(tmp_path), "oslc", "write"]) == 2
-    assert "Unknown OSLC action: write" in capsys.readouterr().err
+    assert main(["--root", str(tmp_path), "oslc", "publish"]) == 2
+    assert "Unknown OSLC action: publish" in capsys.readouterr().err

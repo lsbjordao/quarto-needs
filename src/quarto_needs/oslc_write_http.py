@@ -42,6 +42,7 @@ class _NoRedirect(HTTPRedirectHandler):
 class WriteResponse:
     status: int
     etag: str | None
+    location: str | None
     body: bytes
 
 
@@ -97,7 +98,7 @@ def send_write_request(
 ) -> WriteResponse:
     """Send exactly one bounded write. Redirects are never followed."""
     resolved = policy if policy is not None else WritePolicy()
-    if method != "PUT":
+    if method not in {"PUT", "POST", "DELETE"}:
         raise OslcWriteTransportError(
             "unsupported-method", f"unsupported write method: {method!r}"
         )
@@ -107,6 +108,10 @@ def send_write_request(
             "authorization-required",
             "a non-empty authorization credential is required for remote writes",
         )
+    if method == "DELETE" and body:
+        raise OslcWriteTransportError(
+            "body-not-allowed", "a DELETE request must not carry a body"
+        )
     if len(body) > resolved.max_request_bytes:
         raise OslcWriteTransportError(
             "request-too-large",
@@ -115,12 +120,15 @@ def send_write_request(
 
     request_headers = dict(headers)
     request_headers["Authorization"] = authorization
-    request = Request(uri, data=body, headers=request_headers, method=method)
+    request = Request(
+        uri, data=body if body else None, headers=request_headers, method=method
+    )
     active_opener = opener if opener is not None else build_opener(_NoRedirect())
     try:
         with active_opener.open(request, timeout=resolved.timeout_seconds) as response:
             status = int(getattr(response, "status", None) or response.getcode())
             etag = response.headers.get("ETag")
+            location = response.headers.get("Location")
             payload = _read_bounded(response, resolved.max_response_bytes)
     except HTTPError as error:
         code = _classify(error.code)
@@ -142,4 +150,4 @@ def send_write_request(
         raise OslcWriteTransportError(
             _classify(status), f"provider returned HTTP {status} for the write"
         )
-    return WriteResponse(status=status, etag=etag, body=payload)
+    return WriteResponse(status=status, etag=etag, location=location, body=payload)

@@ -106,7 +106,7 @@ Implemented capabilities include deterministic JSON-LD 1.1 projection, stable ob
 
 ## 5.3 OSLC Requirements Management ✅ (read-only)
 
-**Status: read-only federation is implemented end to end through discovery, bounded query execution, independently provenance-bearing member observations, explicit reconciliation, and a reviewed, non-mutating import plan — all executed locally against the self-hosted example. The update write path is now delivered under explicit contracts; remote create, delete and the CLI pipeline that builds write plans from the observation cache remain the deferred slice.**
+**Status: read-only federation is implemented end to end through discovery, bounded query execution, independently provenance-bearing member observations, explicit reconciliation, and a reviewed, non-mutating import plan — all executed locally against the self-hosted example. The reviewed write path (update, create, delete) is delivered under explicit contracts and exposed through `quarto-needs oslc write`.**
 
 Implemented capabilities include:
 
@@ -132,14 +132,14 @@ Implemented capabilities include:
 - centralized validation of `[federation.oslc.profiles.*]` inside ordinary `load_config()`, with read-only connectivity kept outside the canonical configuration fingerprint;
 - the self-hosted evidence gate re-validated end to end: `_self_hosted_records()`/`_complete_provider_payload()`/`_complete_pytest_payload()` had silently drifted since `TC-014` (missing TC-014 through TC-018, and a missing requirement on TC-005) and are now generated against, and checked to match, `make evidence-self-example`'s real output.
 
-The eight write contracts are now explicit (`notes/oslc-remote-writes.md`), and the update operation is delivered under them:
+The eight write contracts are now explicit (`notes/oslc-remote-writes.md`), and all three operations are delivered under them:
 
-1. reviewed `oslc-write-plan-v1` requests built only from a trusted, bound observation with an ETag — no unconditional overwrite, and a previous audit makes unchanged payloads skippable;
-2. a bounded single-request transport with request-only credentials, `https` enforcement and no redirects;
+1. reviewed `oslc-write-plan-v1` requests: updates only from a trusted bound observation with an ETag (no unconditional overwrite, and a previous audit makes unchanged payloads skippable), creates only from an explicitly named canonical ID with an explicit collection URI and a deterministic advisory `Idempotency-Key`, deletes only from an explicitly named canonical ID with a single trusted bound ETag — never derived from a diff;
+2. a bounded single-request transport (`PUT`/`POST`/`DELETE`) with request-only credentials, `https` enforcement and no redirects;
 3. stop-on-first-failure semantics with `412`/`409` conflicts recorded, since a remote write cannot be rolled back;
-4. an `oslc-write-audit-v1` written before any failure propagates.
+4. an `oslc-write-audit-v1` written before any failure propagates, including create `Location` headers.
 
-Remote create (with an explicit identity/idempotency key), delete, and the CLI pipeline that builds plans from the observation cache remain the next slices.
+`quarto-needs oslc write` exposes the review-first pipeline over an observation export and explicit bindings; nothing is sent without `--apply`, and no retry or merge policy exists beyond stop-on-first-failure — that is deliberate.
 
 The terminal artifact for this phase is therefore a reviewable import plan, not automatic mutation.
 

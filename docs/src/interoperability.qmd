@@ -26,13 +26,13 @@ The JSON-LD projection uses deterministic IRIs, schema vocabularies, and full co
 
 ## Standards-Based Federation: OSLC RM
 
-Quarto-Needs provides a bounded read-only adapter for **OSLC Requirements Management (RM)**:
+Quarto-Needs provides a bounded adapter for **OSLC Requirements Management (RM)**: discovery and query are read-only, and a reviewed write path can publish local requirements back under explicit contracts.
 
 ```bash
 pip install 'quarto-needs[oslc]'
 ```
 
-The optional dependencies provide JSON-LD, Turtle, and RDF/XML normalization. The public CLI exposes three operations:
+The optional dependencies provide JSON-LD, Turtle, and RDF/XML normalization. The public CLI exposes four operations:
 
 1. **Catalog Inspection**: Lists Service Provider and nested-catalog URIs without following nested catalogs:
    ```bash
@@ -47,6 +47,13 @@ The optional dependencies provide JSON-LD, Turtle, and RDF/XML normalization. Th
    quarto-needs oslc query https://provider.example/oslc/query/requirements \
      --service-provider-uri https://provider.example/oslc/sp/requirements
    ```
+4. **Reviewed Writes**: Builds an `oslc-write-plan-v1` from an observation export and sends it only with `--apply`. Updates require a trusted, bound observation that carries an ETag; creates need an explicit collection URI; deletes must be named explicitly:
+   ```bash
+   quarto-needs oslc write --observations observations.json --bindings bindings.json \
+     --apply --bearer-token-env OSLC_TOKEN
+   ```
+
+The write path's eight contracts — staleness, conflict, authored-file placement, atomicity, rollback, optimistic concurrency, authorization and audit — are documented in `notes/oslc-remote-writes.md`, and every run writes an `oslc-write-audit-v1` before any failure propagates.
 
 The query result reports member URIs, any nodes already inline in the response, and the response's digest and retrieval timestamp. The CLI does not materialize independent requirement observations or reconcile them with local objects.
 
