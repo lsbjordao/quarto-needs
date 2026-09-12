@@ -460,7 +460,7 @@ def test_cli_update_plan_writes_the_artifact_and_refuses_write(
         ]
     )
     assert refused == 2
-    assert "update application is a separate reviewed step" in capsys.readouterr().err
+    assert "--apply-update" in capsys.readouterr().err
 
 
 def _migration_payload() -> dict[str, object]:

@@ -169,7 +169,7 @@ Implemented capabilities include:
 Next 5.4 slices:
 
 1. add further source-specific adapters, converging only at the shared migration-plan/apply-plan/write contracts (as Doorstop, StrictDoc, and OpenFastTrace did, with no change to that shared code);
-2. update/match identity: **first slice delivered** — every written block carries a durable source marker (`source-tool`, optional `source-project`, `source-id`), and `migrate <source> --update-plan` matches a changed upstream source onto those markers, classifying each item as `ready-create`, `ready-update` (with its changed fields and a file digest), `no-change` or `blocked`, and never treating an existing canonical ID without a marker as an implicit update. Applying updates (digest preflight, atomic writes, rollback, refusal-based idempotence) remains the next slice.
+2. update/match identity: **delivered** — every written block carries a durable source marker (`source-tool`, optional `source-project`, `source-id`), and `migrate <source> --update-plan` matches a changed upstream source onto those markers, classifying each item as `ready-create`, `ready-update` (with its changed fields and a file digest), `no-change` or `blocked`, and never treating an existing canonical ID without a marker as an implicit update. Applying updates is `--apply-update --write`: all-or-nothing, digest-preflighted, atomic per file, rolled back on any post-write failure, and stale re-applies are refused by the digest.
 
 Sphinx-Needs, Doorstop, StrictDoc, and OpenFastTrace remain supported migration sources and inspirations for Quarto-Needs; compatibility claims are limited to the explicitly implemented adapter behavior for each.
 

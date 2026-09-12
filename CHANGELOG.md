@@ -35,6 +35,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Migration update matching. Written migration blocks now carry a durable source marker (`source-tool`, `source-project` when the source declares one, and `source-id`), and `migrate <source> --update-plan` matches the current upstream items against those markers without touching authored files: `ready-create` for new items, `ready-update` with the changed fields and a file digest for matched items, `no-change`, and `blocked` for anything needing a decision. A canonical ID that already exists without a source marker is never treated as an implicit update. `--write` is refused with `--update-plan`; applying updates is a separate reviewed step.
 
+- Migration update application. `migrate <source> --update-plan --apply-update --write` applies approved updates in place: every item must be `ready-update` or `no-change` (ready-create items belong to `--apply-plan --write`), each matched file must still carry the digest the plan recorded, every block must be locatable, writes are atomic per file, and a post-write rescan restores every touched file before failing on any structural error. Re-applying a stale plan is refused by its digest; `--apply-update` cannot be combined with `--apply-plan`.
+
 ### Changed
 
 - README opens with real coverage and traceability screenshots, an executable authoring example, tested quickstart commands and dynamic CI/PyPI badges; capabilities are summarized after the demonstration.
