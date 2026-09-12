@@ -88,7 +88,7 @@ Release validation history: the fabricated lockfile was replaced with a real `np
 
 ---
 
-# Phase 5 — Interchange, migration, and federation 🚧
+# Phase 5 — Interchange, migration, and federation ✅
 
 ## 5.1 ReqIF 1.2 ✅
 
@@ -143,9 +143,9 @@ The eight write contracts are now explicit (`notes/oslc-remote-writes.md`), and 
 
 The terminal artifact for this phase is therefore a reviewable import plan, not automatic mutation.
 
-## 5.4 Migration adapters ✅ (Sphinx-Needs, Doorstop, StrictDoc, OpenFastTrace)
+## 5.4 Migration adapters ✅ (Sphinx-Needs, Doorstop, StrictDoc, OpenFastTrace, ReqIF 1.2)
 
-**Status: four adapters are implemented end to end on one shared contract — deterministic plan, reviewable non-mutating apply plan with a `.need` block content preview, and a create-only, atomic, rollback-protected `--write` step. Additional source adapters remain future work.**
+**Status: five adapters are implemented end to end on one shared contract — deterministic plan, reviewed apply plan and reviewed update plan with a `.need` block content preview, and create/update writes that are atomic per file, all-or-nothing across files, post-write re-verified, rollback-protected and digest-preflighted. Further source adapters remain future work.**
 
 Implemented capabilities include:
 
@@ -169,14 +169,16 @@ Implemented capabilities include:
 - `quarto-needs migrate sphinx-needs ... --apply-plan --write`: create-only (an existing destination file refuses the whole write), atomic per file, all-or-nothing across files with real rollback (verified by forcing an OS-level failure on a later file and confirming an earlier one is deleted), post-write `scan`/`check` re-verification that rolls back on any new structural failure or error finding (verified by injecting a synthetic error), and a refusal-based idempotence contract — a rerun is refused, not silently duplicated, because the canonical IDs it would create already exist;
 - a second adapter, `quarto-needs migrate doorstop ...`, converging on that exact same apply-plan/render/write implementation without changing it: reads nested `.doorstop.yml` document trees (prefix-keyed type/relation mapping, since Doorstop items have no per-item type or status field), preserves `active`/`derived`/`normative`/`ref`/`level` as extras, and emits explicit `TYPE_UNMAPPED`/`RELATION_UNMAPPED`/`EXTERNAL_LINK_TARGET` diagnostics plus fail-closed duplicate-UID rejection, each with its own default artifact paths independent of Sphinx-Needs';
 - the shared migration-plan artifact's `tool`/`schema` are now parameters (`SphinxNeedsMigrationPlan.tool`/`.schema`, defaulting to the original Sphinx-Needs values) rather than a hardcoded literal, so a second adapter's provenance is never mislabeled;
-- a third adapter, `quarto-needs migrate strictdoc ...`, parsing StrictDoc's own `.sdoc` grammar (`[TAG]` blocks, `>>>`/`<<<` multi-line fields, `RELATIONS:` lists) across multiple files with globally-unique, cross-file UID resolution, TAG-keyed type mapping, relation-TYPE-keyed relation mapping, `RATIONALE` folded into content as a `### Rationale` subsection, and non-UID (`TYPE: File`) relations preserved rather than misresolved — validated against StrictDoc's own real, self-hosted `.sdoc` documentation, which surfaced and drove the handling of `[GRAMMAR]`-block and file-relation edge cases that synthetic fixtures alone had not covered.
+- a third adapter, `quarto-needs migrate strictdoc ...`, parsing StrictDoc's own `.sdoc` grammar (`[TAG]` blocks, `>>>`/`<<<` multi-line fields, `RELATIONS:` lists) across multiple files with globally-unique, cross-file UID resolution, TAG-keyed type mapping, relation-TYPE-keyed relation mapping, `RATIONALE` folded into content as a `### Rationale` subsection, and non-UID (`TYPE: File`) relations preserved rather than misresolved — validated against StrictDoc's own real, self-hosted `.sdoc` documentation, which surfaced and drove the handling of `[GRAMMAR]`-block and file-relation edge cases that synthetic fixtures alone had not covered;
+- the fifth source adapter, `quarto-needs migrate reqif ...`, parsing ReqIF 1.2 documents into the shared plan while refusing DOCTYPE/ENTITY-bearing, oversized, malformed or duplicate-identity inputs. Identity recovery prefers an embedded `quarto-needs.canonical-id` value over the opaque ReqIF `IDENTIFIER`, so a Quarto-Needs export re-imports with canonical IDs, titles, statuses, bodies, rationales, relations and attributes intact. Typed values recover enumerations by their `LONG-NAME` and flatten XHTML, and every lossy conversion is a plan issue (`VALUE_FLATTENED`, `ATTRIBUTE_UNMAPPED`, `ATTRIBUTE_RENAMED`, `TYPE_UNMAPPED`, `RELATION_UNMAPPED`, `RELATION_TARGET_UNKNOWN`, `HIERARCHY_UNMAPPED`) rather than a silent change.
 
-Next 5.4 slices:
+Remaining 5.4 work:
 
-1. add further source-specific adapters, converging only at the shared migration-plan/apply-plan/write contracts (as Doorstop, StrictDoc, and OpenFastTrace did, with no change to that shared code);
-2. update/match identity: **delivered** — every written block carries a durable source marker (`source-tool`, optional `source-project`, `source-id`), and `migrate <source> --update-plan` matches a changed upstream source onto those markers, classifying each item as `ready-create`, `ready-update` (with its changed fields and a file digest), `no-change` or `blocked`, and never treating an existing canonical ID without a marker as an implicit update. Applying updates is `--apply-update --write`: all-or-nothing, digest-preflighted, atomic per file, rolled back on any post-write failure, and stale re-applies are refused by the digest.
+- further source-specific adapters, converging only at the shared migration-plan/apply-plan/write contracts (as Doorstop, StrictDoc, OpenFastTrace and ReqIF did, with no change to that shared code).
 
-Sphinx-Needs, Doorstop, StrictDoc, and OpenFastTrace remain supported migration sources and inspirations for Quarto-Needs; compatibility claims are limited to the explicitly implemented adapter behavior for each.
+The update/match identity contract is delivered: every written block carries a durable source marker (`source-tool`, optional `source-project`, `source-id`), and `migrate <source> --update-plan` matches a changed upstream source onto those markers, classifying each item as `ready-create`, `ready-update` (with its changed fields and a file digest), `no-change` or `blocked`, and never treating an existing canonical ID without a marker as an implicit update. Applying updates is `--apply-update --write`: all-or-nothing, digest-preflighted, atomic per file, rolled back on any post-write failure, and stale re-applies are refused by the digest.
+
+Sphinx-Needs, Doorstop, StrictDoc, OpenFastTrace and ReqIF remain supported migration sources and inspirations for Quarto-Needs; compatibility claims are limited to the explicitly implemented adapter behavior for each.
 
 ## 5.5 External service adapters ✅ (ten slices plus trust transitions, apply step, and retry policy)
 
