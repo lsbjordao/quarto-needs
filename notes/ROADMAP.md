@@ -96,7 +96,7 @@ Release validation history: the fabricated lockfile was replaced with a real `np
 
 Implemented and validated capabilities include deterministic ReqIF 1.2 projection, normative XSD validation, independent parser acceptance, stable identity mapping, loss semantics, deterministic XML output, and installed CLI export.
 
-ReqIF import remains intentionally deferred until conflict policy, typed attribute recovery, provenance handling, and round-trip guarantees are designed explicitly.
+ReqIF import is now delivered as a fifth migration adapter (`quarto-needs migrate reqif <document>`), converging on the same review-first plan → apply → update contracts as the other sources. It closes the round trip: identity recovery prefers an embedded `quarto-needs.canonical-id` over the opaque ReqIF identifier, so a Quarto-Needs export re-imports with canonical IDs, titles, statuses, bodies, rationales, relations and attributes intact. Typed attribute recovery is explicit — enumerations recover their `LONG-NAME`, XHTML is flattened, and every lossy conversion is a plan issue — and conflict policy/provenance reuse the migration update/match contract (source markers, digest-preflighted application). DOCTYPE/ENTITY-bearing and malformed documents are refused.
 
 ## 5.2 JSON-LD ✅
 

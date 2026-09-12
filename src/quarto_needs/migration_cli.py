@@ -26,6 +26,11 @@ from .migrations.openfasttrace import (
     load_specobjects,
 )
 from .migrations.openfasttrace import build_migration_plan as build_openfasttrace_plan
+from .migrations.reqif import (
+    ReqifMigrationError,
+    build_migration_plan as build_reqif_plan,
+    load_reqif_document,
+)
 from .migrations.strictdoc import StrictDocMigrationError, load_strictdoc_documents
 from .migrations.strictdoc import build_migration_plan as build_strictdoc_plan
 from .migrations.sphinx_needs import (
@@ -36,25 +41,28 @@ from .migrations.sphinx_needs import (
     write_migration_plan,
 )
 
-SOURCES = ("sphinx-needs", "doorstop", "strictdoc", "openfasttrace")
+SOURCES = ("sphinx-needs", "doorstop", "strictdoc", "openfasttrace", "reqif")
 
 DEFAULT_PLAN_PATHS = {
     "sphinx-needs": ".quarto-needs/migrations/sphinx-needs-plan.json",
     "doorstop": ".quarto-needs/migrations/doorstop-plan.json",
     "strictdoc": ".quarto-needs/migrations/strictdoc-plan.json",
     "openfasttrace": ".quarto-needs/migrations/openfasttrace-plan.json",
+    "reqif": ".quarto-needs/migrations/reqif-plan.json",
 }
 DEFAULT_APPLY_PLAN_PATHS = {
     "sphinx-needs": ".quarto-needs/migrations/sphinx-needs-apply-plan.json",
     "doorstop": ".quarto-needs/migrations/doorstop-apply-plan.json",
     "strictdoc": ".quarto-needs/migrations/strictdoc-apply-plan.json",
     "openfasttrace": ".quarto-needs/migrations/openfasttrace-apply-plan.json",
+    "reqif": ".quarto-needs/migrations/reqif-apply-plan.json",
 }
 DEFAULT_UPDATE_PLAN_PATHS = {
     "sphinx-needs": ".quarto-needs/migrations/sphinx-needs-update-plan.json",
     "doorstop": ".quarto-needs/migrations/doorstop-update-plan.json",
     "strictdoc": ".quarto-needs/migrations/strictdoc-update-plan.json",
     "openfasttrace": ".quarto-needs/migrations/openfasttrace-update-plan.json",
+    "reqif": ".quarto-needs/migrations/reqif-update-plan.json",
 }
 
 
@@ -200,6 +208,20 @@ def _strictdoc_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _reqif_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="quarto-needs migrate reqif", add_help=True)
+    parser.add_argument("document")
+    parser.add_argument("--root")
+    parser.add_argument(
+        "--type-map", action="append", default=[], metavar="SOURCE=TARGET"
+    )
+    parser.add_argument(
+        "--relation-map", action="append", default=[], metavar="TYPE=RELATION"
+    )
+    _add_apply_flags(parser, "reqif")
+    return parser
+
+
 def _strip_dispatch_tokens(argv: Sequence[str], source: str) -> list[str]:
     values = list(argv)
     result: list[str] = []
@@ -260,6 +282,18 @@ def _build_plan(
         items = load_specobjects(_root_relative(root, args.openfasttrace_root))
         plan = build_openfasttrace_plan(
             items, type_map=type_map, relation_map=relation_map
+        )
+        return plan, args
+
+    if source == "reqif":
+        parser = _reqif_parser()
+        args = parser.parse_args(_strip_dispatch_tokens(argv, source))
+        _validate_migration_flags(args)
+        type_map = _mapping(args.type_map, "--type-map")
+        relation_map = _mapping(args.relation_map, "--relation-map")
+        document = load_reqif_document(_root_relative(root, args.document))
+        plan = build_reqif_plan(
+            document, type_map=type_map, relation_map=relation_map
         )
         return plan, args
 
@@ -337,6 +371,7 @@ def run_migration_action(root: Path, argv: Sequence[str], source: str) -> int:
         DoorstopMigrationError,
         StrictDocMigrationError,
         OpenFastTraceMigrationError,
+        ReqifMigrationError,
         MigrationApplyError,
         MigrationUpdateError,
     ) as error:

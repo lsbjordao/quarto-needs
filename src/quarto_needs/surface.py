@@ -149,7 +149,7 @@ COMMANDS: tuple[Command, ...] = (
             DISPATCH, "variant",
             dispatched_help="variant list|show NAME"),
     Command("migrate SOURCE", EXPERIMENTAL,
-            "Migration plans for sphinx-needs, doorstop, strictdoc, openfasttrace",
+            "Migration plans for sphinx-needs, doorstop, strictdoc, openfasttrace, reqif",
             DISPATCH, "migrate",
             dispatched_help="migrate SOURCE"),
     Command("oslc discover|catalog|query", EXPERIMENTAL,
