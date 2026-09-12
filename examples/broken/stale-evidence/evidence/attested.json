@@ -1,0 +1,34 @@
+{
+  "artifact": {
+    "digest": "sha256:325083a3808614623e0a60a2f078291bcf21f1d4ed71c56fa3c23ac85bf1381f",
+    "payload": {
+      "checks": [
+        {
+          "evidenceObjects": [
+            "EVD-001"
+          ],
+          "id": "CHK-SIGN-1",
+          "outcome": "passed",
+          "requirements": [],
+          "testCases": []
+        }
+      ],
+      "provider": "pytest",
+      "providerVersion": "8.0",
+      "schemaVersion": "1"
+    },
+    "schema": "evidence-checks-v1"
+  },
+  "generatedAt": "2026-08-30T12:00:00Z",
+  "kind": "quarto-needs-evidence",
+  "provider": {
+    "name": "pytest",
+    "version": "8.0"
+  },
+  "schemaVersion": "1",
+  "subject": {
+    "configurationFingerprint": "f0740a6b85b5d8c5fe5fbe62f051de38735ab1d5da882421bc2ed05cc8b45f36",
+    "representationFingerprint": "5a648d79a10e5f0ce85cbad6392d0216fd42a759ed2868f71e978d683fde94e2",
+    "semanticGraphFingerprint": "sha256:9b85c6f4e37b7db2bb4e4253df61bb4098e7fba221e5717bc8252685e4f02d32"
+  }
+}

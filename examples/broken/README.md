@@ -25,6 +25,7 @@ quarto-needs --root examples/broken/missing-evidence check
 | `orphan-requirements/` | Well-formed requirements connected to nothing (REQ014 enabled). | Info findings naming both objects; scanning succeeds. |
 | `overdue-decision/` | An accepted decision's `revisit-after` date has passed (DEC006 enabled). | Warning on `ADR-001` naming the overdue review. |
 | `expired-evidence/` | Evidence carrying an `expires` date in the past (REQ015 enabled). | Warning on `EVD-001`; freshness is re-checked, never assumed. |
+| `stale-evidence/` | Evidence attested against an earlier semantic graph: the payload is intact, the provider agrees and nothing expired. | `quarto-needs evidence check` refuses it with `EVD203` — expiry is a date, staleness is a binding. |
 | `localization-drift/` | The pt-BR sibling quietly changes a requirement's status. | The semantic-parity check refuses the pair by name (`REQ-001`) before publication. |
 | `migration-loss/` | A Sphinx-Needs export with an unmapped type and an unmapped link field. | The import plan records `TYPE_UNMAPPED` and `LINK_FIELD_UNMAPPED` as review items — loss is planned, never guessed. |
 | `interchange-loss/` | Treating the ReqIF/JSON-LD export as a lossless round trip. | The project scans clean, and both projections document inside the export exactly which authored details stay behind (source `file:line` provenance, and in ReqIF non-string cells) via `PROJECTION-NOTE` / `quartoNeedsProjectionNotes`. |
