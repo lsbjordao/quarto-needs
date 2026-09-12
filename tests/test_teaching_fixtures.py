@@ -16,6 +16,7 @@ than forced into a single checked-in snapshot.
 """
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import subprocess
@@ -113,6 +114,33 @@ def test_expired_evidence_is_flagged_before_publication() -> None:
     assert ("REQ015", "EVD-001") in {
         (finding.code, finding.object_id) for finding in result.findings
     }
+
+
+def test_stale_evidence_is_refused_by_the_semantic_graph_fingerprint(capsys) -> None:
+    """Intact, unexpired, provider-matching evidence is still refused when the
+    model changed after it was attested: the payload is not the problem, the
+    fingerprint binding is.
+    """
+    root = BROKEN / "stale-evidence"
+
+    exit_code = cli_main(
+        [
+            "--root",
+            str(root),
+            "evidence",
+            "check",
+            "evidence/attested.json",
+            "--format",
+            "json",
+        ]
+    )
+
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 1
+    assert payload["valid"] is False
+    assert payload["attested"] is True
+    assert payload["checks"] == 1
+    assert [issue["code"] for issue in payload["issues"]] == ["EVD203"]
 
 
 def test_localization_drift_is_refused_naming_the_object() -> None:

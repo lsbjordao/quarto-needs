@@ -1,0 +1,31 @@
+---
+title: "Stale evidence"
+---
+
+The evidence below was attested against an earlier semantic graph. The
+project changed afterwards; its configuration and representation did not.
+The envelope still carries the old semantic-graph fingerprint, so
+`quarto-needs evidence check` refuses it even though the payload is intact,
+the provider still agrees, and nothing has expired.
+
+::: {.need #REQ-001 type="functional-requirement" status="approved" verified-by="TC-001"}
+## Sign payloads with SHA-256
+
+The service shall sign payloads using SHA-256.
+
+### Rationale
+
+Approved on the strength of evidence attested against an earlier graph.
+:::
+
+::: {.need #TC-001 type="test-case" status="passed" evidenced-by="EVD-001"}
+## Payload signature test
+
+Exercises the signing path against the current implementation.
+:::
+
+::: {.need #EVD-001 type="evidence" status="verified" provider="pytest" artifact="evidence/attested.json"}
+## Signature machine evidence
+
+Captured once, against a model state that no longer exists.
+:::

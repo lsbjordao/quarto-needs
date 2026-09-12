@@ -291,17 +291,17 @@ build/twine checks have a local `make check-release-build` path.
 
 ---
 
-# Phase 9 — Teaching, self-hosting, and failure scenarios 🚧 (first slice: the broken gallery — ten executable failure fixtures; second slice: suspect-after-change; third slice: interchange-loss and editor-refactor)
+# Phase 9 — Teaching, self-hosting, and failure scenarios 🚧 (first slice: the broken gallery — eleven executable failure fixtures; second slice: suspect-after-change; third slice: interchange-loss and editor-refactor; fourth slice: stale evidence)
 
 `examples/quarto-needs/` increasingly acts as the official engineering model of Quarto-Needs itself. Significant features should update requirements/decisions/implementation/tests/evidence in the same change.
 
-The first slice is `examples/broken/`: ten deliberately failing, fully
+The first slice is `examples/broken/`: eleven deliberately failing, fully
 self-contained projects whose diagnostics are asserted by
 `tests/test_teaching_fixtures.py` — missing evidence, invalid relations
 (ghost target, duplicate ID), the relation-typo trap, orphan requirements,
 overdue decisions, expired evidence, localization drift, migration
-loss, interchange loss, and editor/refactor failures — each one teaching a
-different severity relationship to publication.
+loss, interchange loss, editor/refactor failures, and stale evidence — each
+one teaching a different severity relationship to publication.
 
 The second slice is `suspect-after-change`, the one gallery member with no
 checked-in directory: a project's `verified-by` edge can stay structurally
@@ -319,6 +319,12 @@ in ReqIF the typed structure of attribute cells — surfaced through
 consumer reads the loss instead of discovering it. The editor fixture pins
 that an LSP rename colliding with an existing ID is refused with the same
 canonical diagnostic the engine uses everywhere else.
+
+The fourth slice is `stale-evidence`: an evidence envelope whose payload is
+intact, whose provider still agrees, and which has expired nothing — and is
+still refused as `EVD203` because its semantic-graph fingerprint predates a
+model change. Expiry is a date; staleness is a binding, and the fixture makes
+`quarto-needs evidence check` demonstrate the difference.
 
 Target vertical slice:
 

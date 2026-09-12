@@ -43,6 +43,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - OSLC remote writes: create, delete and the review-first CLI. `quarto-needs oslc write` builds the plan from an observation export and sends nothing without `--apply`; `--create` targets an explicit `--collection-uri`, refuses an already-bound ID and carries a deterministic advisory `Idempotency-Key`; `--delete` must be named explicitly and requires a single trusted bound observation with an ETag. Applying reads the bearer token from the environment and writes `oslc-write-audit-v1` — including the create `Location` — before any failure propagates. Nothing destructive is ever derived from a diff.
 
+- Stale-evidence teaching fixture. `examples/broken/stale-evidence/` carries an evidence envelope whose payload is intact, whose provider still agrees and which has expired nothing, and `quarto-needs evidence check` still refuses it with `EVD203` because its semantic-graph fingerprint predates a model change — expiry is a date, staleness is a binding.
+
 ### Changed
 
 - README opens with real coverage and traceability screenshots, an executable authoring example, tested quickstart commands and dynamic CI/PyPI badges; capabilities are summarized after the demonstration.
