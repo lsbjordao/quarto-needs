@@ -55,6 +55,71 @@ As dependências opcionais fornecem normalização de JSON-LD, Turtle e RDF/XML.
 
 Os oito contratos do caminho de escrita — staleness, conflito, colocação em arquivo autoral, atomicidade, rollback, concorrência otimista, autorização e auditoria — estão documentados em `notes/oslc-remote-writes.md`, e toda execução grava um `oslc-write-audit-v1` antes de qualquer falha propagar.
 
+### Um plano de escrita na prática
+
+As entradas são uma exportação de observações e vínculos explícitos. Uma observação é a forma normalizada que o adapter de federação já produz (`ExternalRequirementObservation.to_dict()`); uma escrita precisa da sua identidade (`resourceUri`, `etag`, `trustState`, `digest`, `fetchedAt`) e do conteúdo revisável:
+
+```json
+{
+  "observations": [
+    {
+      "identity": {
+        "resourceUri": "https://provider.example/oslc/requirements/4711",
+        "serviceProviderUri": "https://provider.example/oslc/sp/requirements",
+        "digest": "sha256:8a182aa272a00a767dcecc12425cdfdc23abe54c4e1da276cd0aece79dab16c0",
+        "fetchedAt": "2026-09-10T12:00:00Z",
+        "trustState": "trusted",
+        "etag": "\"provider-etag-7\"",
+        "lastModified": null
+      },
+      "title": "Authenticate users",
+      "description": "The system shall authenticate users with a passkey.",
+      "externalIdentifier": null,
+      "attributes": {}
+    }
+  ]
+}
+```
+
+`bindings.json` é a ponte de identidade explícita — não existe casamento heurístico:
+
+```json
+{ "https://provider.example/oslc/requirements/4711": "REQ-1" }
+```
+
+Montar o plano não envia nada:
+
+```console
+$ quarto-needs oslc write --observations observations.json --bindings bindings.json
+OSLC write plan: 1 request(s), 0 skipped (not applied; pass --apply to send)
+Plan: .quarto-needs/federation/oslc-write-plan.json
+  [PUT] REQ-1 -> https://provider.example/oslc/requirements/4711 If-Match "provider-etag-7"
+```
+
+Com `--apply --bearer-token-env OSLC_TOKEN`, a execução para na primeira recusa do provedor e sempre grava a auditoria:
+
+```json
+{
+  "schema": "oslc-write-audit-v1",
+  "completed": true,
+  "entries": [
+    {
+      "uri": "https://provider.example/oslc/requirements/4711",
+      "canonicalId": "REQ-1",
+      "method": "PUT",
+      "ifMatch": "\"provider-etag-7\"",
+      "bodyDigest": "sha256:86ef43564d153dc38a28dffa68a2d278e5a205ed9376f5eab55add8dc2cd4aeb",
+      "status": 200,
+      "responseEtag": "\"provider-etag-8\"",
+      "responseLocation": null,
+      "error": null
+    }
+  ]
+}
+```
+
+Um `412` ou `409` registra a requisição que falhou com `status: null` e o código `precondition-failed`/`conflict`, e então para; um create registra o `Location` do provedor em `responseLocation`. A exportação de observações vem da superfície de biblioteca de federação descrita abaixo.
+
 O resultado da consulta relata URIs de membros, nós já incluídos na resposta e o digest e timestamp de recuperação da resposta. O CLI não materializa observações independentes de requisitos nem as reconcilia com objetos locais.
 
 Essas operações adicionais são APIs da biblioteca Python: `quarto_needs.oslc_observe.materialize_query_observations()` produz observações externas com proveniência individual, e `quarto_needs.oslc_reconcile.reconcile_external_requirements()` compara observações com objetos canônicos usando vínculos explícitos URI-para-ID. Elas exigem entradas fornecidas pelo chamador e não executam implicitamente após `oslc query`.

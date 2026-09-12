@@ -68,6 +68,71 @@ quarto-needs migrate sphinx-needs docs/needs.json \
 
 As escritas são tudo-ou-nada: todo item precisa ser `ready-create`, `ready-update` ou `no-change`; cada arquivo atualizado precisa ainda carregar o digest registrado no plano, cada ID canônico criado precisa ainda estar ausente, cada bloco precisa ser localizável, e o projeto é reanalisado depois — qualquer falha estrutural restaura todos os arquivos tocados e remove todo arquivo criado nesta execução antes de o comando falhar. Uma origem que alterou um item e outra que ganhou um item aplicam na mesma execução (o bloco novo é anexado ao destino revisado); `--apply-plan --write` continua sendo o caminho da primeira migração. Reexecutar a sincronização encontra tudo `no-change`, ou recusa um create obsoleto cujo ID já existe — essa recusa é o contrato de idempotência. `--apply-update` não pode ser combinado com `--apply-plan`.
 
+## Exemplo prático: mantendo um projeto migrado em sincronia
+
+A primeira migração grava o marcador de origem em cada bloco, e é por ele que a próxima execução casa:
+
+```markdown
+::: {.need #REQ_001 type="functional-requirement" status="approved" source-tool="sphinx-needs" source-project="Legacy docs" source-id="REQ_001"}
+verified-by: TC_001
+
+## Autenticar usuários
+
+O sistema deve autenticar usuários.
+:::
+```
+
+Depois, a origem altera `REQ_001` e ganha `REQ_002`. Revise o plano de sincronização antes de tocar em qualquer arquivo:
+
+```console
+$ quarto-needs migrate sphinx-needs needs.json \
+    --type-map req=functional-requirement --type-map test=test-case \
+    --relation-map tests=verified-by --update-plan
+Sphinx-Needs update plan: 3 item(s), applicable=False
+[ready-update] REQ_001 -> REQ_001 changes=title,body (requirements.qmd)
+  matched by source-marker; file digest 94e45ab02d73b53062bf0c30f1a2669f932bc3bca8091dccb4b8b9a4c4d568dd
+[review-required] REQ_002 -> REQ_002 (no destination)
+  reasons: destination file requires explicit review
+[no-change] TC_001 -> TC_001 (verification.qmd)
+  matched by source-marker; file digest bdeadc92c96e4fcf0e2d5851ad822fc7a2b6335beed8fef6a9158d152b6dd1d5
+```
+
+O `applicable=False` é o ponto de decisão: o item novo ainda não tem destino. Nomeie-o e aplique a sincronização inteira numa única execução revisada:
+
+```console
+$ quarto-needs migrate sphinx-needs needs.json \
+    --type-map req=functional-requirement --type-map test=test-case \
+    --relation-map tests=verified-by --destination REQ_002=requirements.qmd \
+    --update-plan --apply-update --write
+Applied 2 change(s):
+  updated REQ_001 -> REQ_001 (requirements.qmd)
+  created REQ_002 -> REQ_002 (requirements.qmd)
+```
+
+Updates substituem o bloco no lugar; creates são anexados ao destino revisado. Rodar o mesmo plano de novo encontra tudo `no-change` — ou recusa um create cujo ID agora existe.
+
+### Round trip ReqIF
+
+Exportações importam pelo mesmo fluxo. Exporte um projeto e importe-o em uma raiz nova:
+
+```console
+$ quarto-needs export --format reqif --output graph.reqif
+Wrote ReqIF 1.2 to graph.reqif (3 objects, 1 relations)
+
+$ quarto-needs migrate reqif graph.reqif \
+    --type-map functional-requirement=functional-requirement \
+    --type-map test-case=test-case --relation-map verified-by=verified-by \
+    --destination REQ_001=requirements.qmd --destination REQ_002=requirements.qmd \
+    --destination TC_001=verification.qmd \
+    --update-plan --apply-update --write
+Applied 3 change(s):
+  created REQ_001 -> REQ_001 (requirements.qmd)
+  created REQ_002 -> REQ_002 (requirements.qmd)
+  created TC_001 -> TC_001 (verification.qmd)
+```
+
+A reimportação recupera os IDs canônicos (a exportação carrega o `quarto-needs.canonical-id` de cada objeto, que vence o identificador ReqIF opaco), títulos, status, corpos, justificativas e relações, e grava marcadores `source-tool="reqif"`, de modo que um `--update-plan` seguinte reporta `no-change`. Atributos extras específicos da origem ficam nos `extras` do plano para revisão, em vez de serem adivinhados dentro dos blocos autorais.
+
 ## Princípios de Mapeamento
 
 - **Identidade Estável**: IDs existentes (ex.: `REQ_001` ou `SYS-042`) são preservados por padrão; remapeamentos são explícitos.

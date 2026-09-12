@@ -47,6 +47,49 @@ Validates bearer tokens and enforces permissions.
 :::
 ```
 
+## Modeling cookbook
+
+### Modeling a deployment
+
+Declare one `deployment-node` per place things run, put nested nodes `part-of` their parent, and place each artifact on a node with `deployed-on`:
+
+```markdown
+::: {.need #DEPLOY-PROD type="deployment-node" status="approved" environment="production"}
+## Production
+The managed runtime that serves the containers.
+:::
+
+::: {.need #CONTAINER-API type="container" status="approved" technology="FastAPI / Python" part-of="SYS-APP" deployed-on="DEPLOY-PROD"}
+## REST API Container
+:::
+```
+
+```markdown
+{{< need-c4 root="DEPLOY-PROD" level="deployment" >}}
+```
+
+`level="deployment"` requires a `deployment-node` focus. The view draws the node's boundary with its nested nodes and the containers/components deployed on it; an artifact with no `deployed-on` edge is simply not shown. `deployed-on` is the authoring direction (`artifact → node`); `deploys` is its accepted inverse. Mermaid renders `C4Deployment`, PlantUML includes `C4_Deployment`, Structurizr uses a `deploymentEnvironment`, and D2 nests packages.
+
+### Modeling a dynamic scenario
+
+Order runtime interactions with `interacts-with` and an `order` attribute; `label` and `technology` render like any other relationship:
+
+```markdown
+::: {.need #ACTOR-ENGINEER type="actor" status="approved" interacts-with='CONTAINER-WEB order="1" label="submits a request"'}
+## Engineer
+:::
+
+::: {.need #CONTAINER-WEB type="container" status="approved" technology="React" part-of="SYS-APP" interacts-with='CONTAINER-API order="2" label="calls the API" technology="HTTPS/JSON"'}
+## Web Application
+:::
+```
+
+```markdown
+{{< need-c4 root="SYS-APP" level="dynamic" >}}
+```
+
+`level="dynamic"` requires a `system` focus. Participants are the focus, its direct containers, and every interaction partner of that set — an interaction between two containers is drawn even though neither touches the system directly. Interactions are numbered by `order` (un-ordered edges sort last, deterministically). Mermaid renders `C4Dynamic` with `RelIndex`, PlantUML a sequence diagram, Structurizr a `dynamic` view, and D2 a sequence diagram.
+
 ## Rendering C4 Diagrams
 
 Use the `{{< need-c4 >}}` shortcode to render architecture views:
