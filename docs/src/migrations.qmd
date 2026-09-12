@@ -53,7 +53,17 @@ quarto-needs migrate sphinx-needs docs/needs.json \
   --update-plan
 ```
 
-The plan (`.quarto-needs/migrations/sphinx-needs-update-plan.json`) reports `ready-create` for new items, `ready-update` with the changed fields for matched items, `no-change`, and `blocked` for anything needing a decision — including a canonical ID that already exists without a source marker, which is never treated as an implicit update. Each matched item carries a digest of its authored file so a later write can refuse a stale plan. Applying updates is a separate, reviewed step; `--update-plan` only produces the plan and `--write` is refused with it.
+The plan (`.quarto-needs/migrations/sphinx-needs-update-plan.json`) reports `ready-create` for new items, `ready-update` with the changed fields for matched items, `no-change`, and `blocked` for anything needing a decision — including a canonical ID that already exists without a source marker, which is never treated as an implicit update. Each matched item carries a digest of its authored file so a stale plan can be refused.
+
+Applying a reviewed update plan is explicit:
+
+```bash
+quarto-needs migrate sphinx-needs docs/needs.json \
+  --type-map req=functional-requirement \
+  --update-plan --apply-update --write
+```
+
+Writes are all-or-nothing: every item must be `ready-update` or `no-change` (create new items first with `--apply-plan --write`), each matched file must still carry the digest the plan recorded, each block must be locatable, and the project is re-scanned afterwards — any structural failure restores every touched file before the command fails. Re-applying the same plan is refused by its digest; that refusal is the idempotence contract. `--apply-update` cannot be combined with `--apply-plan`.
 
 ## Mapping Principles
 

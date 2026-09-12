@@ -15,6 +15,10 @@ from .migrations.apply_plan import (
     write_update_plan,
 )
 from .migrations.apply_write import MigrationApplyError, apply_migration_plan
+from .migrations.update_write import (
+    MigrationUpdateError,
+    apply_migration_update_plan,
+)
 from .migrations.doorstop import DoorstopMigrationError, load_doorstop_documents
 from .migrations.doorstop import build_migration_plan as build_doorstop_plan
 from .migrations.openfasttrace import (
@@ -55,13 +59,17 @@ DEFAULT_UPDATE_PLAN_PATHS = {
 
 
 def _validate_migration_flags(args: argparse.Namespace) -> None:
-    if args.write and not args.apply_plan:
-        raise ValueError("--write requires --apply-plan")
-    if args.update_plan and args.write:
+    if args.apply_update and not args.update_plan:
+        raise ValueError("--apply-update requires --update-plan")
+    if args.update_plan and args.apply_update and args.apply_plan:
+        raise ValueError("--apply-update cannot be combined with --apply-plan")
+    if args.update_plan and args.write and not args.apply_update:
         raise ValueError(
-            "--write is not available for an update plan; "
+            "--update-plan --write requires --apply-update; "
             "update application is a separate reviewed step"
         )
+    if args.write and not args.apply_plan and not args.apply_update:
+        raise ValueError("--write requires --apply-plan or --update-plan --apply-update")
 
 
 def migration_action(argv: Sequence[str]) -> str | None:
@@ -116,6 +124,7 @@ def _add_apply_flags(parser: argparse.ArgumentParser, source: str) -> None:
     parser.add_argument("--apply-output", default=DEFAULT_APPLY_PLAN_PATHS[source])
     parser.add_argument("--update-plan", action="store_true")
     parser.add_argument("--update-output", default=DEFAULT_UPDATE_PLAN_PATHS[source])
+    parser.add_argument("--apply-update", action="store_true")
     parser.add_argument("--show-content", action="store_true")
     parser.add_argument("--write", action="store_true")
 
@@ -278,6 +287,7 @@ def run_migration_action(root: Path, argv: Sequence[str], source: str) -> int:
     apply_result = None
     update_plan = None
     update_output = None
+    update_result = None
     try:
         plan, args = _build_plan(root, source, argv)
         output = _root_relative(root, args.output)
@@ -316,6 +326,11 @@ def run_migration_action(root: Path, argv: Sequence[str], source: str) -> int:
                 )
                 update_output = _root_relative(root, args.update_output)
                 write_update_plan(update_output, update_plan)
+
+                if args.apply_update and args.write:
+                    update_result = apply_migration_update_plan(
+                        root, update_plan, config
+                    )
     except (
         ValueError,
         SphinxNeedsMigrationError,
@@ -323,6 +338,7 @@ def run_migration_action(root: Path, argv: Sequence[str], source: str) -> int:
         StrictDocMigrationError,
         OpenFastTraceMigrationError,
         MigrationApplyError,
+        MigrationUpdateError,
     ) as error:
         print(f"Migration error: {error}", file=sys.stderr)
         return 2
@@ -331,7 +347,9 @@ def run_migration_action(root: Path, argv: Sequence[str], source: str) -> int:
         return 3
 
     if args.format == "json":
-        if apply_result is not None:
+        if update_result is not None:
+            payload = update_result.to_dict()
+        elif apply_result is not None:
             payload = apply_result.to_dict()
         elif update_plan is not None:
             payload = update_plan.to_dict()
@@ -410,6 +428,12 @@ def run_migration_action(root: Path, argv: Sequence[str], source: str) -> int:
                     print("  content preview:")
                     for line in item.content_preview.splitlines():
                         print(f"    {line}")
+
+            if update_result is not None:
+                print()
+                print(f"Updated {len(update_result.updated)} object(s):")
+                for source_id, canonical_id, destination_file in update_result.updated:
+                    print(f"  {source_id} -> {canonical_id} ({destination_file})")
 
     # A plan with unresolved semantics or an apply plan that is not fully
     # ready-to-create is useful output but not migration-ready.
