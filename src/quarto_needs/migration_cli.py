@@ -8,7 +8,12 @@ from pathlib import Path
 
 from .analysis import analyze_project
 from .config import load_config
-from .migrations.apply_plan import build_sphinx_apply_plan, write_apply_plan
+from .migrations.apply_plan import (
+    build_migration_update_plan,
+    build_sphinx_apply_plan,
+    write_apply_plan,
+    write_update_plan,
+)
 from .migrations.apply_write import MigrationApplyError, apply_migration_plan
 from .migrations.doorstop import DoorstopMigrationError, load_doorstop_documents
 from .migrations.doorstop import build_migration_plan as build_doorstop_plan
@@ -41,6 +46,22 @@ DEFAULT_APPLY_PLAN_PATHS = {
     "strictdoc": ".quarto-needs/migrations/strictdoc-apply-plan.json",
     "openfasttrace": ".quarto-needs/migrations/openfasttrace-apply-plan.json",
 }
+DEFAULT_UPDATE_PLAN_PATHS = {
+    "sphinx-needs": ".quarto-needs/migrations/sphinx-needs-update-plan.json",
+    "doorstop": ".quarto-needs/migrations/doorstop-update-plan.json",
+    "strictdoc": ".quarto-needs/migrations/strictdoc-update-plan.json",
+    "openfasttrace": ".quarto-needs/migrations/openfasttrace-update-plan.json",
+}
+
+
+def _validate_migration_flags(args: argparse.Namespace) -> None:
+    if args.write and not args.apply_plan:
+        raise ValueError("--write requires --apply-plan")
+    if args.update_plan and args.write:
+        raise ValueError(
+            "--write is not available for an update plan; "
+            "update application is a separate reviewed step"
+        )
 
 
 def migration_action(argv: Sequence[str]) -> str | None:
@@ -93,6 +114,8 @@ def _add_apply_flags(parser: argparse.ArgumentParser, source: str) -> None:
     parser.add_argument("--destination", action="append", default=[], metavar="SOURCE=PATH")
     parser.add_argument("--id-map", action="append", default=[], metavar="SOURCE=CANONICAL")
     parser.add_argument("--apply-output", default=DEFAULT_APPLY_PLAN_PATHS[source])
+    parser.add_argument("--update-plan", action="store_true")
+    parser.add_argument("--update-output", default=DEFAULT_UPDATE_PLAN_PATHS[source])
     parser.add_argument("--show-content", action="store_true")
     parser.add_argument("--write", action="store_true")
 
@@ -200,8 +223,7 @@ def _build_plan(
     if source == "sphinx-needs":
         parser = _sphinx_parser()
         args = parser.parse_args(_strip_dispatch_tokens(argv, source))
-        if args.write and not args.apply_plan:
-            raise ValueError("--write requires --apply-plan")
+        _validate_migration_flags(args)
         type_map = _mapping(args.type_map, "--type-map")
         relation_map = _mapping(args.relation_map, "--relation-map")
         document = load_needs_json(_root_relative(root, args.needs_json))
@@ -213,8 +235,7 @@ def _build_plan(
     if source == "doorstop":
         parser = _doorstop_parser()
         args = parser.parse_args(_strip_dispatch_tokens(argv, source))
-        if args.write and not args.apply_plan:
-            raise ValueError("--write requires --apply-plan")
+        _validate_migration_flags(args)
         type_map = _mapping(args.type_map, "--type-map")
         relation_map = _mapping(args.relation_map, "--relation-map")
         documents = load_doorstop_documents(_root_relative(root, args.doorstop_root))
@@ -224,8 +245,7 @@ def _build_plan(
     if source == "openfasttrace":
         parser = _openfasttrace_parser()
         args = parser.parse_args(_strip_dispatch_tokens(argv, source))
-        if args.write and not args.apply_plan:
-            raise ValueError("--write requires --apply-plan")
+        _validate_migration_flags(args)
         type_map = _mapping(args.type_map, "--type-map")
         relation_map = _mapping(args.relation_map, "--relation-map")
         items = load_specobjects(_root_relative(root, args.openfasttrace_root))
@@ -256,12 +276,14 @@ def run_migration_action(root: Path, argv: Sequence[str], source: str) -> int:
     apply_plan = None
     apply_output = None
     apply_result = None
+    update_plan = None
+    update_output = None
     try:
         plan, args = _build_plan(root, source, argv)
         output = _root_relative(root, args.output)
         write_migration_plan(output, plan)
 
-        if args.apply_plan:
+        if args.apply_plan or args.update_plan:
             destinations = _mapping(args.destination, "--destination")
             id_map = _mapping(args.id_map, "--id-map")
             config = load_config(root)
@@ -270,18 +292,30 @@ def run_migration_action(root: Path, argv: Sequence[str], source: str) -> int:
                 for finding in result.findings:
                     print(f"[ERROR] {finding.code}: {finding.message}", file=sys.stderr)
                 return 2
-            apply_plan = build_sphinx_apply_plan(
-                plan,
-                result.snapshot,
-                config,
-                destinations=destinations,
-                id_map=id_map,
-            )
-            apply_output = _root_relative(root, args.apply_output)
-            write_apply_plan(apply_output, apply_plan)
+            if args.apply_plan:
+                apply_plan = build_sphinx_apply_plan(
+                    plan,
+                    result.snapshot,
+                    config,
+                    destinations=destinations,
+                    id_map=id_map,
+                )
+                apply_output = _root_relative(root, args.apply_output)
+                write_apply_plan(apply_output, apply_plan)
 
-            if args.write:
-                apply_result = apply_migration_plan(root, apply_plan, config)
+                if args.write:
+                    apply_result = apply_migration_plan(root, apply_plan, config)
+            if args.update_plan:
+                update_plan = build_migration_update_plan(
+                    plan,
+                    result.snapshot,
+                    config,
+                    root=root,
+                    destinations=destinations,
+                    id_map=id_map,
+                )
+                update_output = _root_relative(root, args.update_output)
+                write_update_plan(update_output, update_plan)
     except (
         ValueError,
         SphinxNeedsMigrationError,
@@ -299,6 +333,8 @@ def run_migration_action(root: Path, argv: Sequence[str], source: str) -> int:
     if args.format == "json":
         if apply_result is not None:
             payload = apply_result.to_dict()
+        elif update_plan is not None:
+            payload = update_plan.to_dict()
         elif apply_plan is not None:
             payload = apply_plan.to_dict()
         else:
@@ -347,10 +383,40 @@ def run_migration_action(root: Path, argv: Sequence[str], source: str) -> int:
                 for destination_file in apply_result.written:
                     print(f"  {destination_file}")
 
+        if update_plan is not None:
+            print()
+            print(
+                f"{plan.tool} update plan: {len(update_plan.items)} item(s), "
+                f"applicable={update_plan.applicable}"
+            )
+            print(f"Update plan: {update_output}")
+            for item in update_plan.items:
+                destination = item.destination_file or "no destination"
+                changes = (
+                    f" changes={','.join(item.changes)}" if item.changes else ""
+                )
+                print(
+                    f"[{item.status}] {item.source_id} -> {item.canonical_id}"
+                    f"{changes} ({destination})"
+                )
+                if item.matched_by is not None:
+                    print(
+                        f"  matched by {item.matched_by}; "
+                        f"file digest {item.current_file_digest}"
+                    )
+                if item.reasons:
+                    print(f"  reasons: {'; '.join(item.reasons)}")
+                if args.show_content and item.content_preview is not None:
+                    print("  content preview:")
+                    for line in item.content_preview.splitlines():
+                        print(f"    {line}")
+
     # A plan with unresolved semantics or an apply plan that is not fully
     # ready-to-create is useful output but not migration-ready.
     if plan.issues:
         return 1
     if apply_plan is not None and not apply_plan.ready:
+        return 1
+    if update_plan is not None and not update_plan.applicable:
         return 1
     return 0

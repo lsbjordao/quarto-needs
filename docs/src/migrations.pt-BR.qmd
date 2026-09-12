@@ -43,9 +43,21 @@ O Quarto-Needs inclui adaptadores conservadores para trazer requisitos de outros
 
 Para mais de um objeto de origem, repita `--destination ID_ORIGEM=caminho.qmd`. Use `--id-map ID_ORIGEM=ID_CANONICO` quando preservar o ID original não for apropriado. A escrita é somente para criação e rejeita mapeamentos não resolvidos, colisões ou destinos inseguros em vez de inferir identidade.
 
+### Atualizando um projeto migrado
+
+Todo bloco gravado registra sua identidade de origem (`source-tool`, `source-project` quando a origem declara um, e `source-id`). Executar novamente com `--update-plan` casa os itens atuais da origem contra esses marcadores e classifica cada um sem tocar nos arquivos autorais:
+
+```bash
+quarto-needs migrate sphinx-needs docs/needs.json \
+  --type-map req=functional-requirement \
+  --update-plan
+```
+
+O plano (`.quarto-needs/migrations/sphinx-needs-update-plan.json`) reporta `ready-create` para itens novos, `ready-update` com os campos alterados para itens casados, `no-change`, e `blocked` para o que precisa de decisão — incluindo um ID canônico que já existe sem marcador de origem, que nunca é tratado como atualização implícita. Cada item casado carrega um digest do arquivo autoral para que uma escrita futura possa recusar um plano obsoleto. Aplicar atualizações é uma etapa separada e revisada; `--update-plan` só produz o plano e recusa `--write`.
+
 ## Princípios de Mapeamento
 
 - **Identidade Estável**: IDs existentes (ex.: `REQ_001` ou `SYS-042`) são preservados por padrão; remapeamentos são explícitos.
 - **Tradução de Relações**: Links da origem são convertidos para o catálogo canônico de relações do Quarto-Needs por mapeamentos explícitos quando necessários.
-- **Revisão Antes da Mutação**: Gerar os planos de migração e aplicação não altera conteúdo; `--write` é uma etapa separada e explícita.
+- **Revisão Antes da Mutação**: Gerar os planos de migração, aplicação e atualização não altera conteúdo; `--write` é uma etapa separada e explícita.
 - **Saída Nativa do Quarto**: Candidatos prontos são renderizados como declarações Pandoc Div padrão (`::: {.need ...} ... :::`).

@@ -10,6 +10,64 @@ def _unsafe_attribute_value(value: str) -> bool:
     return '"' in value or "}" in value
 
 
+def source_tool_slug(tool: str) -> str:
+    """The stable slug a migration source is authored and matched by."""
+    return re.sub(r"[^a-z0-9]+", "-", tool.casefold()).strip("-")
+
+
+def _marker_value_problem(label: str, value: object) -> str | None:
+    if not isinstance(value, str) or not value.strip():
+        return f"migration provenance {label} must be a non-empty string"
+    if _unsafe_attribute_value(value) or "\n" in value or "\r" in value:
+        return f"migration provenance {label} cannot be authored as a .need block attribute"
+    return None
+
+
+def source_marker_attributes(provenance: Mapping[str, object] | None) -> list[str]:
+    """The authored source-identity marker for a migrated block.
+
+    This is what lets a later run match a changed upstream item to the block
+    it created, instead of treating the canonical ID as an implicit update.
+    """
+    if not provenance:
+        return []
+    attributes: list[str] = []
+    tool = provenance.get("tool")
+    if isinstance(tool, str) and tool.strip():
+        attributes.append(f'source-tool="{source_tool_slug(tool)}"')
+    project = provenance.get("project")
+    if isinstance(project, str) and project.strip():
+        attributes.append(f'source-project="{project.strip()}"')
+    source_id = provenance.get("sourceId")
+    if isinstance(source_id, str) and source_id.strip():
+        attributes.append(f'source-id="{source_id.strip()}"')
+    return attributes
+
+
+def marker_problems(provenance: Mapping[str, object] | None) -> list[str]:
+    """Whether a provenance mapping can be rendered as a source marker."""
+    if not provenance:
+        return []
+    problems: list[str] = []
+    tool = provenance.get("tool")
+    if not isinstance(tool, str) or not source_tool_slug(tool):
+        problems.append("migration provenance tool has no usable slug")
+    else:
+        problem = _marker_value_problem("tool", tool)
+        if problem:
+            problems.append(problem)
+    project = provenance.get("project")
+    if project is not None:
+        problem = _marker_value_problem("project", project)
+        if problem:
+            problems.append(problem)
+    source_id = provenance.get("sourceId")
+    problem = _marker_value_problem("sourceId", source_id)
+    if problem:
+        problems.append(problem)
+    return problems
+
+
 def need_block_problems(
     *,
     canonical_id: str,
@@ -19,6 +77,7 @@ def need_block_problems(
     body: str,
     tags: Sequence[str],
     relations: Sequence[Mapping[str, str]],
+    provenance: Mapping[str, object] | None = None,
 ) -> list[str]:
     """Detect content that cannot be represented in the authored .need grammar.
 
@@ -71,6 +130,8 @@ def need_block_problems(
                 f"relation target {target!r} cannot be authored as a .need block id"
             )
 
+    problems.extend(marker_problems(provenance))
+
     return problems
 
 
@@ -83,6 +144,7 @@ def render_need_block(
     body: str,
     tags: Sequence[str],
     relations: Sequence[Mapping[str, str]],
+    provenance: Mapping[str, object] | None = None,
 ) -> str:
     """Render a candidate as authored ``.need`` block text.
 
@@ -95,6 +157,7 @@ def render_need_block(
         attrs.append(f'status="{target_status}"')
     if tags:
         attrs.append('tags="' + ";".join(tags) + '"')
+    attrs.extend(source_marker_attributes(provenance))
 
     grouped: dict[str, list[str]] = {}
     for relation in relations:
