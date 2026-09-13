@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "tag": "v0.2.0",
+  "tag_commit": "74b35d341adbd4ef9e5c62124a1c21b221d8a53f",
+  "released": "2026-09-13",
+  "model": "tiered",
+  "tag_changelog_section": "unreleased",
+  "contract_lines": [
+    "- **Stable**: `scan`, `check`, `coverage`, `trace`, `export`, `quality`, `query`, `baseline`, `baseline create`, `baseline inspect`, `diff`, `impact`, `export --format json|csv|markdown`, Quarto pre-render, Documented non-C4 shortcodes.",
+    "- **Preview**: `evidence`, `evidence check`, `suspect --git BASE..HEAD`, `pr-report --git BASE..HEAD`, `github-report --git BASE..HEAD`, `diff --git BASE..HEAD`, `impact --git BASE..HEAD`, `evidence attest`, `lsp`, `export --format sarif|junit|reqif|jsonld`.",
+    "- **Experimental**: `variant list|show NAME`, `migrate SOURCE`, `oslc discover|catalog|query|write`, C4 projections, GitHub Issues adapter, VS Code client."
+  ]
+}
