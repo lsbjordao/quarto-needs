@@ -29,6 +29,18 @@ def _unreleased_section(text: str) -> str:
     return section.split("\n## [", 1)[0]
 
 
+def _historical_contract_section(
+    text: str, version: str, source: str
+) -> str:
+    if source == "release":
+        return _release_section(text, version)
+    if source == "unreleased":
+        return _unreleased_section(text)
+    raise AssertionError(
+        f"unsupported tag_changelog_section {source!r} for release {version}"
+    )
+
+
 def _git(*args: str) -> str:
     completed = subprocess.run(
         ["git", "-C", str(ROOT), *args],
@@ -74,10 +86,12 @@ def test_every_published_surface_snapshot_is_frozen_in_the_changelog() -> None:
     for path, data in _published_manifests():
         version = str(data["version"])
         tag_commit = str(data["tag_commit"])
+        tag_section = str(data.get("tag_changelog_section", "release"))
         assert path.stem == version
         assert data["tag"] == f"v{version}"
         assert len(tag_commit) == 40
         int(tag_commit, 16)
+        assert tag_section in {"release", "unreleased"}
 
         section = _release_section(text, version)
         for line in data["contract_lines"]:
@@ -90,6 +104,7 @@ def test_published_surface_snapshots_match_their_immutable_tags() -> None:
         tag = str(data["tag"])
         version = str(data["version"])
         anchored_commit = str(data["tag_commit"])
+        tag_section = str(data.get("tag_changelog_section", "release"))
 
         resolved_commit = _require_tag(tag)
         assert resolved_commit == anchored_commit, (
@@ -98,7 +113,9 @@ def test_published_surface_snapshots_match_their_immutable_tags() -> None:
         )
 
         historical_changelog = _git("show", f"{tag}:CHANGELOG.md")
-        historical_section = _release_section(historical_changelog, version)
+        historical_section = _historical_contract_section(
+            historical_changelog, version, tag_section
+        )
         for line in data["contract_lines"]:
             assert str(line) in historical_section, (
                 f"{path.name} does not match the immutable {tag} CHANGELOG"

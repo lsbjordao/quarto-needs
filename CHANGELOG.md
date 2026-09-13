@@ -16,6 +16,20 @@ The live contract below describes the next release and is verified against `src/
 
 - **Experimental**: `variant list|show NAME`, `migrate SOURCE`, `oslc discover|catalog|query|write`, C4 projections, GitHub Issues adapter, VS Code client.
 
+## [0.2.0] — 2026-09-13
+
+Second production release. This release introduces the tiered public-surface contract, strengthens reproducibility and release gates, expands migration and OSLC workflows, and extends the C4 model with deployment and dynamic views.
+
+### Supported release surface
+
+Frozen from `release-surfaces/0.2.0.json`, anchored to tag `v0.2.0` at commit `74b35d341adbd4ef9e5c62124a1c21b221d8a53f`. The tag was created before changelog finalization, so immutable-tag verification reads this same contract from the tag's historical `[Unreleased]` section as explicitly recorded by the snapshot.
+
+- **Stable**: `scan`, `check`, `coverage`, `trace`, `export`, `quality`, `query`, `baseline`, `baseline create`, `baseline inspect`, `diff`, `impact`, `export --format json|csv|markdown`, Quarto pre-render, Documented non-C4 shortcodes.
+
+- **Preview**: `evidence`, `evidence check`, `suspect --git BASE..HEAD`, `pr-report --git BASE..HEAD`, `github-report --git BASE..HEAD`, `diff --git BASE..HEAD`, `impact --git BASE..HEAD`, `evidence attest`, `lsp`, `export --format sarif|junit|reqif|jsonld`.
+
+- **Experimental**: `variant list|show NAME`, `migrate SOURCE`, `oslc discover|catalog|query|write`, C4 projections, GitHub Issues adapter, VS Code client.
+
 ### Upgrade notes
 
 - **`require-risk-mitigation` now fails on a project with no high or critical risks.** Before, the gate counted zero `REQ013` findings and reported `[PASS]`. It now reports the population it measured: zero high/critical risks is a zero denominator, status `empty`, and an empty population fails unless waived. A project that enabled the gate and carries no high-priority risk therefore turns from green to red on upgrade with no change to its sources.
