@@ -389,6 +389,23 @@ def build_migration_plan(
                 else f"### Rationale\n{rationale}"
             )
 
+        field_tags = tuple(
+            part.strip()
+            for part in str(fields.get("tags", "")).split(";")
+            if part.strip()
+        )
+        lifted_tags: tuple[str, ...] = ()
+        if "tags" in extras:
+            lifted = extras.pop("tags")
+            if isinstance(lifted, list):
+                lifted_tags = tuple(
+                    str(value).strip() for value in lifted if str(value).strip()
+                )
+            elif isinstance(lifted, str):
+                lifted_tags = tuple(
+                    part.strip() for part in lifted.split(";") if part.strip()
+                )
+
         candidates.append(
             SphinxNeedCandidate(
                 source_id=source_id,
@@ -402,11 +419,7 @@ def build_migration_plan(
                 ),
                 content=content_text,
                 status=str(fields.get("status", "")).strip() or None,
-                tags=tuple(
-                    part.strip()
-                    for part in str(fields.get("tags", "")).split(";")
-                    if part.strip()
-                ),
+                tags=field_tags or lifted_tags,
                 relations=tuple(
                     sorted(
                         migrated.get(identifier, ()),

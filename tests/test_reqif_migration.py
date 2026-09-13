@@ -76,8 +76,8 @@ def test_the_export_round_trips_through_the_import_plan(tmp_path: Path) -> None:
             source="REQ-1", relation="verified-by", target="TC-1", source_field="verified-by"
         ),
     )
-    assert requirement.extras["tags"] == "security"
-    assert requirement.extras["priority"] == "high"
+    assert requirement.tags == ("security",)
+    assert requirement.extras == {"priority": "high"}
 
     test_case = by_id["TC-1"]
     assert test_case.status == "passed"
@@ -258,6 +258,8 @@ def test_cli_round_trip_writes_markers_and_the_update_plan_is_no_change(
     assert 'source-tool="reqif"' in requirements
     assert 'source-id="REQ-1"' in requirements
     assert "verified-by: TC-1" in requirements
+    assert 'tags="security"' in requirements
+    assert "priority: high" in requirements
 
     capsys.readouterr()
     classified = main(common + ["--update-plan", "--format", "json"])
