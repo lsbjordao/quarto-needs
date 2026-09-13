@@ -131,7 +131,7 @@ Applied 3 change(s):
   created TC_001 -> TC_001 (verification.qmd)
 ```
 
-The re-import recovers canonical IDs (the export carries each object's `quarto-needs.canonical-id`, which wins over the opaque ReqIF identifier), titles, statuses, bodies, rationales and relations, and writes `source-tool="reqif"` markers, so a following `--update-plan` reports `no-change`. Source-specific extra attributes stay in the plan's `extras` for review instead of being guessed into authored blocks.
+The re-import recovers canonical IDs (the export carries each object's `quarto-needs.canonical-id`, which wins over the opaque ReqIF identifier), titles, statuses, bodies, rationales and relations, and writes `source-tool="reqif"` markers, so a following `--update-plan` reports `no-change`. Scalar source-specific extras (`priority`, `owner`, numbers, booleans) are authored as preamble attributes, and a `tags` value embedded in the export's attributes payload is recovered as tags; values the grammar cannot represent — lists, mappings, multi-line text, or a name reserved by the grammar or the relation catalog — stay in the plan's `extras` for review instead of being silently altered.
 
 ## Mapping Principles
 

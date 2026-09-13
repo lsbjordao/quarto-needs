@@ -22,6 +22,7 @@ from quarto_needs.migrations.update_write import (
 REQUIREMENTS = """Intro prose.
 
 ::: {.need #REQ_001 type="system-requirement" status="approved" tags="security" source-tool="sphinx-needs" source-project="Legacy engineering docs" source-id="REQ_001"}
+priority: high
 verified-by: TC_001
 
 ## Authenticate users (old)
@@ -70,7 +71,7 @@ def _config() -> NeedsConfig:
     )
 
 
-def _migration_payload() -> dict[str, object]:
+def _migration_payload(priority: str = "high") -> dict[str, object]:
     return {
         "project": "Legacy engineering docs",
         "current_version": "1.0",
@@ -86,6 +87,7 @@ def _migration_payload() -> dict[str, object]:
                         "content": "The system shall authenticate users.",
                         "status": "approved",
                         "tags": ["security"],
+                        "priority": priority,
                         "tests": ["TC_001"],
                     },
                     "TC_001": {
@@ -102,9 +104,9 @@ def _migration_payload() -> dict[str, object]:
     }
 
 
-def _migration():
+def _migration(priority: str = "high"):
     return build_migration_plan(
-        _migration_payload(),
+        _migration_payload(priority),
         type_map={"req": "system-requirement", "test": "test-case"},
         relation_map={"tests": "verified-by"},
     )
@@ -174,6 +176,27 @@ def test_applying_an_outdated_plan_is_refused_without_touching_the_file(
     assert path.read_text(encoding="utf-8") == edited
 
 
+def test_changed_extras_classify_an_update_and_are_authored(tmp_path: Path) -> None:
+    _author(tmp_path)
+    result = analyze_project(tmp_path, config=_config())
+    plan = build_migration_update_plan(
+        _migration(priority="critical"),
+        result.snapshot,
+        _config(),
+        root=tmp_path,
+        destinations={"REQ_001": "requirements.qmd", "TC_001": "verification.qmd"},
+    )
+
+    req = next(item for item in plan.items if item.source_id == "REQ_001")
+    assert req.status == "ready-update"
+    assert "attributes" in req.changes
+
+    apply_migration_update_plan(tmp_path, plan, _config())
+
+    requirements = (tmp_path / "requirements.qmd").read_text(encoding="utf-8")
+    assert "priority: critical" in requirements
+
+
 def test_a_mixed_plan_applies_updates_and_creates_in_one_sync(
     tmp_path: Path,
 ) -> None:
@@ -194,6 +217,7 @@ def test_a_mixed_plan_applies_updates_and_creates_in_one_sync(
     requirements = (tmp_path / "requirements.qmd").read_text(encoding="utf-8")
     assert "## Authenticate users\n" in requirements
     assert "## Authenticate users (old)" not in requirements
+    assert "priority: high" in requirements
     verification = (tmp_path / "verification.qmd").read_text(encoding="utf-8")
     assert 'source-id="TC_001"' in verification
 

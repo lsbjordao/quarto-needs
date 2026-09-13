@@ -131,7 +131,7 @@ Applied 3 change(s):
   created TC_001 -> TC_001 (verification.qmd)
 ```
 
-A reimportação recupera os IDs canônicos (a exportação carrega o `quarto-needs.canonical-id` de cada objeto, que vence o identificador ReqIF opaco), títulos, status, corpos, justificativas e relações, e grava marcadores `source-tool="reqif"`, de modo que um `--update-plan` seguinte reporta `no-change`. Atributos extras específicos da origem ficam nos `extras` do plano para revisão, em vez de serem adivinhados dentro dos blocos autorais.
+A reimportação recupera os IDs canônicos (a exportação carrega o `quarto-needs.canonical-id` de cada objeto, que vence o identificador ReqIF opaco), títulos, status, corpos, justificativas e relações, e grava marcadores `source-tool="reqif"`, de modo que um `--update-plan` seguinte reporta `no-change`. Extras escalares específicos da origem (`priority`, `owner`, números, booleanos) são autorados como atributos de preâmbulo, e um valor `tags` embutido no payload de atributos da exportação é recuperado como tags; valores que a gramática não representa — listas, mapeamentos, texto multi-linha ou um nome reservado pela gramática ou pelo catálogo de relações — ficam nos `extras` do plano para revisão, em vez de serem alterados em silêncio.
 
 ## Princípios de Mapeamento
 

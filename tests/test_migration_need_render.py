@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from quarto_needs.migrations.render import need_block_problems, render_need_block
+from quarto_needs.migrations.render import (
+    authorable_extras,
+    need_block_problems,
+    render_need_block,
+)
 from quarto_needs.parser import parse_qmd_text_declarations
 
 
@@ -159,3 +163,50 @@ def test_need_block_problems_is_empty_for_well_formed_input() -> None:
         relations=({"relation": "verified-by", "target": "TC_001"},),
     )
     assert problems == []
+
+
+def test_authorable_extras_keeps_only_scalars_with_grammar_safe_names() -> None:
+    authored = authorable_extras(
+        {
+            "priority": "high",
+            "effort": 3,
+            "ratio": 1.5,
+            "urgent": True,
+            "tags": ["a", "b"],
+            "verified-by": "TC-1",
+            "source-id": "REQ_1",
+            "nested": {"a": 1},
+            "missing": None,
+            "multi\nline": "x",
+            " leading": "x",
+            "trailing ": "x",
+            "empty": "  ",
+        }
+    )
+
+    assert authored == (
+        ("effort", "3"),
+        ("priority", "high"),
+        ("ratio", "1.5"),
+        ("urgent", "true"),
+    )
+
+
+def test_render_need_block_authors_extras_that_round_trip() -> None:
+    text = render_need_block(
+        canonical_id="REQ_007",
+        target_type="system-requirement",
+        target_status="approved",
+        title="Audit authentication events",
+        body="The system shall record authentication events.",
+        tags=("audit",),
+        relations=({"relation": "verified-by", "target": "TC_001"},),
+        extras={"priority": "high", "effort": 3},
+    )
+
+    declaration = parse_qmd_text_declarations(text, "generated.qmd").declarations[0]
+
+    assert declaration.attributes["priority"] == "high"
+    assert declaration.attributes["effort"] == "3"
+    assert "priority: high" in text
+    assert "verified-by: TC_001" in text

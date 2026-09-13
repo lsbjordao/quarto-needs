@@ -3,7 +3,20 @@ from __future__ import annotations
 import re
 from collections.abc import Mapping, Sequence
 
+from ..relations import DEFAULT_RELATION_CATALOG
+
 _ID_RE = re.compile(r"^[A-Za-z0-9_.:-]+$")
+_ATTRIBUTE_NAME_RE = re.compile(r"^[A-Za-z0-9_-]+$")
+
+# Preamble keys the block grammar already consumes, keys the source marker
+# owns, and relation names (a preamble key naming a relation declares one
+# rather than an attribute). An extra with any of these names stays in the
+# plan instead of being authored.
+_RESERVED_EXTRA_NAMES = frozenset(
+    {"id", "type", "status", "title", "tags", "rationale"}
+    | {"source-tool", "source-project", "source-id"}
+    | set(DEFAULT_RELATION_CATALOG.names)
+)
 
 
 def _unsafe_attribute_value(value: str) -> bool:
@@ -66,6 +79,51 @@ def marker_problems(provenance: Mapping[str, object] | None) -> list[str]:
     if problem:
         problems.append(problem)
     return problems
+
+
+def _authorable_value(value: object) -> str | None:
+    """The authored text for one scalar extra value, or None if unrepresentable."""
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, int):
+        return str(value)
+    if isinstance(value, float):
+        if value != value or value in (float("inf"), float("-inf")):
+            return None
+        return repr(value)
+    if isinstance(value, str):
+        if not value.strip() or value != value.strip():
+            return None
+        if "\n" in value or "\r" in value:
+            return None
+        return value
+    return None
+
+
+def authorable_extras(
+    extras: Mapping[str, object] | None,
+) -> tuple[tuple[str, str], ...]:
+    """Scalar extras the `.need` grammar can author, sorted by name.
+
+    Lists, mappings, nulls, multi-line strings and values with surrounding
+    whitespace cannot round-trip through the grammar; they stay in the plan's
+    ``extras`` for review rather than being silently altered. Reserved names
+    and relation names stay there too, because the grammar would consume them
+    as something other than an attribute.
+    """
+    if not extras:
+        return ()
+    authored: list[tuple[str, str]] = []
+    for name, value in sorted(extras.items()):
+        if not isinstance(name, str) or not _ATTRIBUTE_NAME_RE.match(name):
+            continue
+        if name in _RESERVED_EXTRA_NAMES:
+            continue
+        text = _authorable_value(value)
+        if text is None:
+            continue
+        authored.append((name, text))
+    return tuple(authored)
 
 
 def need_block_problems(
@@ -145,6 +203,7 @@ def render_need_block(
     tags: Sequence[str],
     relations: Sequence[Mapping[str, str]],
     provenance: Mapping[str, object] | None = None,
+    extras: Mapping[str, object] | None = None,
 ) -> str:
     """Render a candidate as authored ``.need`` block text.
 
@@ -167,6 +226,7 @@ def render_need_block(
     ]
 
     lines = [f"::: {{.need #{canonical_id} {' '.join(attrs)}}}"]
+    lines.extend(f"{name}: {value}" for name, value in authorable_extras(extras))
     lines.extend(relation_lines)
     lines.append("")
     lines.append(f"## {title}")

@@ -9,7 +9,12 @@ from typing import Literal, Mapping
 from ..config import NeedsConfig
 from ..relations import DEFAULT_RELATION_CATALOG
 from ..snapshot import AnalysisSnapshot, ObjectRecord, RelationRecord
-from .render import need_block_problems, render_need_block, source_tool_slug
+from .render import (
+    authorable_extras,
+    need_block_problems,
+    render_need_block,
+    source_tool_slug,
+)
 from .sphinx_needs import SphinxNeedCandidate, SphinxNeedsMigrationPlan
 
 ApplyStatus = Literal["ready-create", "blocked", "review-required"]
@@ -188,6 +193,7 @@ def _render_candidate(
         tags=candidate.tags,
         relations=relations,
         provenance=provenance,
+        extras=candidate.extras,
     )
 
 
@@ -426,6 +432,10 @@ def _candidate_changes(
     desired = {(item["relation"], item["target"]) for item in desired_relations}
     if existing != desired:
         changes.append("relations")
+    for name, value in authorable_extras(candidate.extras):
+        if str(record.attributes.get(name)) != value:
+            changes.append("attributes")
+            break
     return tuple(changes)
 
 
