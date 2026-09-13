@@ -78,7 +78,7 @@ def _one_edit_apart(left: str, right: str) -> bool:
     return True
 
 
-def probable_relation_names(
+def _probable_relation_names(
     attribute_name: str,
     relation_catalog: RelationCatalog = DEFAULT_RELATION_CATALOG,
 ) -> tuple[str, ...]:
@@ -169,24 +169,28 @@ def validate_declarations(
 
     for declaration in declarations:
         for attribute_name in declaration.attributes:
-            suggestions = probable_relation_names(attribute_name, relation_catalog)
+            suggestions = _probable_relation_names(attribute_name, relation_catalog)
             if not suggestions:
                 continue
             if len(suggestions) == 1:
-                suggested = f"relation {suggestions[0]!r}"
-                replacement = suggestions[0]
-            else:
-                suggested = "relations " + ", ".join(
-                    repr(name) for name in suggestions
+                message = (
+                    f"Attribute {attribute_name!r} on {declaration.id} resembles "
+                    f"catalog relation {suggestions[0]!r}. It remains an ordinary "
+                    "attribute and creates no graph edge; use "
+                    f"{suggestions[0]!r} if a relation was intended."
                 )
-                replacement = suggestions[0]
+            else:
+                candidates = ", ".join(repr(name) for name in suggestions)
+                message = (
+                    f"Attribute {attribute_name!r} on {declaration.id} resembles "
+                    f"catalog relations {candidates}. It remains an ordinary "
+                    "attribute and creates no graph edge; choose the intended "
+                    "catalog relation explicitly if a relation was intended."
+                )
             findings.append(Finding(
                 "QND005",
                 "warning",
-                f"Attribute {attribute_name!r} on {declaration.id} resembles "
-                f"catalog {suggested}. It remains an ordinary attribute and "
-                "creates no graph edge; use "
-                f"{replacement!r} if a relation was intended.",
+                message,
                 declaration.id,
                 declaration.location,
             ))
