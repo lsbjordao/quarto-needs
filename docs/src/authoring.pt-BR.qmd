@@ -81,9 +81,11 @@ depends-on:
 
 Uma atribuição malformada — valor entre aspas não terminado, ou `nome=` sem valor — é reportada como `QND004`, e a cauda malformada nunca é anexada silenciosamente a um alvo.
 
+Chaves desconhecidas continuam sendo atributos customizados válidos. Para capturar apenas o caso estreito em que uma relação pretendida provavelmente foi digitada errado, a validação reporta `QND005` quando uma chave desconhecida está exatamente a uma inserção, remoção, substituição ou transposição adjacente de um nome real de relação do catálogo. Por exemplo, `verifed-by: TC-020` avisa que a chave se parece com `verified-by`. O warning nunca reescreve a chave nem cria uma aresta: o valor original permanece um atributo comum até o autor corrigi-lo. Nomes fora desse raio de uma edição permanecem silenciosos, preservando o namespace aberto de atributos customizados.
+
 Declare cada chave **uma única vez** por bloco. O preâmbulo é um mapeamento, então repetir uma chave preserva apenas a última ocorrência; escreva `verified-by: TC-020, TC-021` ou a forma de lista em vez de duas linhas `verified-by:`. Uma chave repetida é reportada como `QND003`, de modo que o valor descartado não passe despercebido.
 
-Alvos de relação não são resolvidos durante o parsing. Um alvo que não nomeia nenhum objeto declarado é reportado como `REQ005` na validação, e é assim que erros de digitação aparecem em vez de virarem becos sem saída silenciosos.
+Alvos de relação não são resolvidos durante o parsing. Um alvo que não nomeia nenhum objeto declarado é reportado como `REQ005` na validação. Erros quase idênticos no nome da relação são o aviso separado `QND005` descrito acima; nenhum dos dois diagnósticos corrige silenciosamente o dado autoral.
 
 ## Referências e visualizações
 

@@ -34,6 +34,68 @@ def finding_key(item: Finding) -> tuple[object, ...]:
     )
 
 
+def _one_edit_apart(left: str, right: str) -> bool:
+    """Return whether two names differ by exactly one conservative typo edit.
+
+    The accepted edits are one insertion, deletion, substitution, or adjacent
+    transposition. This deliberately stops at one edit: project-specific
+    attributes remain an open namespace, so a fuzzy matcher must not turn every
+    relation-looking attribute into a warning.
+    """
+    if left == right or abs(len(left) - len(right)) > 1:
+        return False
+
+    if len(left) == len(right):
+        mismatches = [
+            index
+            for index, (left_char, right_char) in enumerate(zip(left, right))
+            if left_char != right_char
+        ]
+        if len(mismatches) == 1:
+            return True
+        if len(mismatches) != 2:
+            return False
+        first, second = mismatches
+        return (
+            second == first + 1
+            and left[first] == right[second]
+            and left[second] == right[first]
+        )
+
+    shorter, longer = (left, right) if len(left) < len(right) else (right, left)
+    short_index = 0
+    long_index = 0
+    skipped = False
+    while short_index < len(shorter) and long_index < len(longer):
+        if shorter[short_index] == longer[long_index]:
+            short_index += 1
+            long_index += 1
+            continue
+        if skipped:
+            return False
+        skipped = True
+        long_index += 1
+    return True
+
+
+def _probable_relation_names(
+    attribute_name: str,
+    relation_catalog: RelationCatalog = DEFAULT_RELATION_CATALOG,
+) -> tuple[str, ...]:
+    """Return catalog relations one typo edit away from an attribute name.
+
+    Unknown `.need` keys are valid custom attributes, so this helper never
+    reinterprets them. It only supports an advisory diagnostic at validation
+    time; the original key/value remains authored data and no graph edge is
+    created automatically.
+    """
+    return tuple(
+        name
+        for name in relation_catalog.names
+        if _one_edit_apart(attribute_name, name)
+    )
+
+
 def resolved_v1_name(
     token_authored_name: str,
     relation_catalog: RelationCatalog,
@@ -60,7 +122,8 @@ def validate_declarations(
 
     This is the canonical pre-snapshot validation surface; it operates on
     ``ObjectDeclaration`` and the relation catalog and never constructs
-    legacy DTOs. It produces the historical diagnostic set:
+    legacy DTOs. It produces the historical diagnostic set plus the
+    conservative relation-name typo advisory:
 
     * ``REQ004`` duplicate ID (error, blocks snapshot construction);
     * ``REQ005`` unknown relation target (error, blocks snapshot
@@ -69,14 +132,16 @@ def validate_declarations(
       construction);
     * ``REQ002`` missing rationale (warning);
     * ``REQ006`` approved requirement without a verification relation
-      (warning).
+      (warning);
+    * ``QND005`` unknown attribute one typo edit from a catalog relation
+      (warning; the attribute is preserved and no relation is invented).
 
-    REQ002/REQ006 are object-local checks that need no resolved graph. They
-    deliberately stay in this pre-snapshot pass (instead of the post-snapshot
-    rules engine) because structurally blocked projects produce no snapshot,
-    and their findings tuple is the only diagnostic surface such a project
-    has; characterization tests pin that these warnings remain observable
-    there.
+    REQ002/REQ006 and QND005 are object-local checks that need no resolved
+    graph. They deliberately stay in this pre-snapshot pass (instead of the
+    post-snapshot rules engine) because structurally blocked projects produce
+    no snapshot, and their findings tuple is the only diagnostic surface such
+    a project has; characterization tests pin that these warnings remain
+    observable there.
     """
     rationale_types = (
         DEFAULT_RATIONALE_TYPES
@@ -103,6 +168,33 @@ def validate_declarations(
             ))
 
     for declaration in declarations:
+        for attribute_name in declaration.attributes:
+            suggestions = _probable_relation_names(attribute_name, relation_catalog)
+            if not suggestions:
+                continue
+            if len(suggestions) == 1:
+                message = (
+                    f"Attribute {attribute_name!r} on {declaration.id} resembles "
+                    f"catalog relation {suggestions[0]!r}. It remains an ordinary "
+                    "attribute and creates no graph edge; use "
+                    f"{suggestions[0]!r} if a relation was intended."
+                )
+            else:
+                candidates = ", ".join(repr(name) for name in suggestions)
+                message = (
+                    f"Attribute {attribute_name!r} on {declaration.id} resembles "
+                    f"catalog relations {candidates}. It remains an ordinary "
+                    "attribute and creates no graph edge; choose the intended "
+                    "catalog relation explicitly if a relation was intended."
+                )
+            findings.append(Finding(
+                "QND005",
+                "warning",
+                message,
+                declaration.id,
+                declaration.location,
+            ))
+
         for token in declaration.relations:
             try:
                 v1_name = relation_catalog.resolve(token.authored_name).v1_name
