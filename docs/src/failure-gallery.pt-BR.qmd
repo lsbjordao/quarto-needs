@@ -10,9 +10,8 @@ Nada na galeria é importado, renderizado ou compartilhado com o
 [estudo de caso self-hosted](https://lsbjordao.github.io/quarto-needs/examples/quarto-needs/);
 uma fixture quebrada nunca contamina o modelo canônico.
 
-Toda expectativa abaixo é executável:
-[`tests/test_teaching_fixtures.py`](https://github.com/lsbjordao/quarto-needs/blob/main/tests/test_teaching_fixtures.py)
-roda o motor contra cada projeto e falha se um diagnóstico divergir desta
+As expectativas abaixo são executáveis: as regressões das fixtures didáticas
+rodam o motor contra cada projeto e falham se um diagnóstico divergir desta
 página. Para explorar à mão, rode o mesmo comando que os testes usam:
 
 ```bash
@@ -25,7 +24,8 @@ quarto-needs --root examples/broken/missing-evidence check
 | --- | --- | --- | --- |
 | [`missing-evidence/`](https://github.com/lsbjordao/quarto-needs/tree/main/examples/broken/missing-evidence) | Um teste com status passed não tem evidência por trás. | Warning no teste; o projeto ainda escaneia e renderiza. | `REQ012` |
 | [`invalid-relations/`](https://github.com/lsbjordao/quarto-needs/tree/main/examples/broken/invalid-relations) | Uma relação aponta para um objeto não declarado e um identificador é declarado duas vezes. | Dois erros; o snapshot é recusado — nada renderiza. | `REQ005`, `REQ004` |
-| [`relation-typo/`](https://github.com/lsbjordao/quarto-needs/tree/main/examples/broken/relation-typo) | Um nome de relação é digitado errado (`linked-to` em vez de um nome do catálogo). | **Nenhum diagnóstico**: a aresta silenciosamente não existe e o erro de digitação sobrevive como atributo inerte. A armadilha que torna o `check` obrigatório no CI. | — |
+| [`probable-relation-typo/`](https://github.com/lsbjordao/quarto-needs/tree/main/examples/broken/probable-relation-typo) | Um nome de relação provavelmente foi digitado errado: `verifed-by` está a uma remoção de `verified-by`. | O warning nomeia a relação próxima do catálogo, mas a chave autoral continua sendo atributo comum e nenhuma aresta é inventada. | `QND005` |
+| [`relation-typo/`](https://github.com/lsbjordao/quarto-needs/tree/main/examples/broken/relation-typo) | `linked-to` parece nome de relação, mas não pertence ao catálogo e está fora do raio conservador de uma edição. | Não há `QND005`: o atributo customizado sobrevive inalterado e não cria aresta. É o limite que mantém válidos metadados arbitrários do projeto. | — |
 | [`orphan-requirements/`](https://github.com/lsbjordao/quarto-needs/tree/main/examples/broken/orphan-requirements) | Requisitos bem formados conectados a nada. | Findings de info nomeando os dois objetos; o scan continua. | `REQ014` |
 | [`overdue-decision/`](https://github.com/lsbjordao/quarto-needs/tree/main/examples/broken/overdue-decision) | A data `revisit-after` de uma decisão aceita passou. | Warning na decisão, nomeando a revisão atrasada. | `DEC006` |
 | [`expired-evidence/`](https://github.com/lsbjordao/quarto-needs/tree/main/examples/broken/expired-evidence) | Evidência com um atributo `expires` no passado. | Warning no objeto de evidência; freshness é reverificada, nunca presumida. | `REQ015` |
@@ -54,8 +54,13 @@ quarto-needs --root . suspect --git HEAD~1..HEAD
 
 A lição real da galeria é o gradiente. Um erro estrutural (`REQ004`,
 `REQ005`) recusa o snapshot de imediato. Um warning (`REQ012`, `REQ015`,
-`DEC006`) mostra o problema mas ainda publica. Um finding de info (`REQ014`)
-permanece visível sem afirmar que o projeto está quebrado. E o erro de
-digitação em relação não produz **nada** — o resultado mais perigoso, porque
-parece sucesso. Esse gradiente é o motivo de o `quarto-needs check` pertencer
-ao CI e de a publicação ser um passo separado e deliberado.
+`DEC006`, `QND005`) mostra o problema mas ainda publica. Um finding de info
+(`REQ014`) permanece visível sem afirmar que o projeto está quebrado.
+
+As duas fixtures com nomes parecidos com relação fixam deliberadamente o
+limite da inferência. `probable-relation-typo/` está a uma edição de uma
+relação real do catálogo, então o motor avisa, preserva o atributo original e
+se recusa a inventar uma aresta. `relation-typo/` está fora desse raio estreito
+e permanece como metadado customizado silencioso. O objetivo do par é capturar
+erros prováveis sem transformar atributos arbitrários em schema por
+aproximação.
