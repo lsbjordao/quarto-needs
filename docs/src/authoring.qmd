@@ -99,7 +99,7 @@ The book can project the graph with shortcodes such as:
 {{< need-inspector ADR-002 >}}
 {{< need-graph view="graph-exploration" >}}
 {{< need-c4 root="SYS-001" level="context" >}}
-{{< adr-table status="accepted" tags="security" >}}
+{{< adr-table status="accepted" >}}
 {{< adr-count status="accepted" >}}
 ```
 
