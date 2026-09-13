@@ -1,6 +1,13 @@
+from pathlib import Path
+
 from quarto_needs.model import EngineeringObject, Relation, SourceLocation
+from quarto_needs.parser import parse_qmd_declarations
 from quarto_needs.snapshot import LocationRecord
-from quarto_needs.validation import validate
+from quarto_needs.validation import (
+    _probable_relation_names,
+    validate,
+    validate_declarations,
+)
 
 
 def test_validation_reports_duplicate_and_unknown_target_without_throwing() -> None:
@@ -123,4 +130,110 @@ def test_validation_output_is_deterministically_ordered() -> None:
         ("error", "REQ005", "REQ-1"),
         ("warning", "REQ002", "REQ-1"),
         ("warning", "REQ006", "REQ-1"),
+    ]
+
+
+def test_probable_relation_name_match_is_deliberately_one_edit_only() -> None:
+    assert _probable_relation_names("verifed-by") == ("verified-by",)
+    assert _probable_relation_names("verifeid-by") == ("verified-by",)
+    assert _probable_relation_names("verified-bx") == ("verified-by",)
+    assert _probable_relation_names("derive-from") == (
+        "derived-from",
+        "derives-from",
+    )
+    assert _probable_relation_names("linked-to") == ()
+    assert _probable_relation_names("owner") == ()
+
+
+def test_probable_relation_typo_warns_without_inventing_an_edge() -> None:
+    requirement = EngineeringObject(
+        "REQ-1",
+        "need",
+        "Requirement",
+        attributes={"verifed-by": "TC-1"},
+        source=SourceLocation("requirements.qmd", 7, "REQ-1"),
+    )
+    test_case = EngineeringObject("TC-1", "test-case", "Test")
+
+    findings = validate([requirement, test_case])
+
+    assert [
+        (item.code, item.severity, item.object_id, item.location)
+        for item in findings
+    ] == [
+        (
+            "QND005",
+            "warning",
+            "REQ-1",
+            LocationRecord("requirements.qmd", 7, "REQ-1"),
+        )
+    ]
+    assert "resembles catalog relation 'verified-by'" in findings[0].message
+    assert "creates no graph edge" in findings[0].message
+    assert requirement.attributes == {"verifed-by": "TC-1"}
+    assert requirement.relations == []
+
+
+def test_ambiguous_near_miss_lists_candidates_without_choosing_one() -> None:
+    requirement = EngineeringObject(
+        "REQ-1",
+        "need",
+        "Requirement",
+        attributes={"derive-from": "REQ-0"},
+    )
+
+    finding = next(
+        item for item in validate([requirement]) if item.code == "QND005"
+    )
+
+    assert "'derived-from', 'derives-from'" in finding.message
+    assert "choose the intended catalog relation explicitly" in finding.message
+    assert "use 'derived-from'" not in finding.message
+
+
+def test_custom_attributes_outside_one_edit_radius_remain_silent() -> None:
+    requirement = EngineeringObject(
+        "REQ-A",
+        "need",
+        "Requirement",
+        attributes={
+            "linked-to": "REQ-B",
+            "source-id": "REQ-A",
+            "owner": "Platform team",
+            "priority": "high",
+        },
+    )
+    related = EngineeringObject("REQ-B", "need", "Related")
+
+    assert [
+        item for item in validate([requirement, related]) if item.code == "QND005"
+    ] == []
+
+
+def test_parsed_near_miss_stays_attribute_and_validation_reports_qnd005(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "requirements.qmd"
+    source.write_text(
+        "::: {.need #REQ-1 type=\"need\" verifed-by=\"TC-1\"}\n"
+        "## Requirement\n"
+        "Body.\n"
+        ":::\n"
+        "\n"
+        "::: {.need #TC-1 type=\"test-case\"}\n"
+        "## Test\n"
+        "Body.\n"
+        ":::\n",
+        encoding="utf-8",
+    )
+
+    batch = parse_qmd_declarations(source, tmp_path)
+    findings = validate_declarations(batch.declarations)
+    requirement = next(item for item in batch.declarations if item.id == "REQ-1")
+
+    assert batch.findings == ()
+    assert requirement.attributes["verifed-by"] == "TC-1"
+    assert requirement.relations == ()
+    assert [(item.code, item.object_id) for item in findings] == [
+        ("QND005", "REQ-1")
     ]
