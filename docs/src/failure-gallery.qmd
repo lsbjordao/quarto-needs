@@ -10,10 +10,9 @@ Nothing in the gallery is imported by, rendered into, or otherwise shared
 with the [self-hosted case study](https://lsbjordao.github.io/quarto-needs/examples/quarto-needs/);
 a broken fixture can never contaminate the canonical model.
 
-Every expectation below is executable:
-[`tests/test_teaching_fixtures.py`](https://github.com/lsbjordao/quarto-needs/blob/main/tests/test_teaching_fixtures.py)
-runs the engine against each project and fails if a diagnostic ever drifts
-from this page. To explore by hand, run the same command the tests use:
+Every expectation below is executable: the teaching-fixture regressions run
+the engine against each project and fail if a diagnostic ever drifts from
+this page. To explore by hand, run the same command the tests use:
 
 ```bash
 quarto-needs --root examples/broken/missing-evidence check
@@ -25,7 +24,8 @@ quarto-needs --root examples/broken/missing-evidence check
 | --- | --- | --- | --- |
 | [`missing-evidence/`](https://github.com/lsbjordao/quarto-needs/tree/main/examples/broken/missing-evidence) | A passed test has no evidence behind it. | Warning on the test; the project still scans and renders. | `REQ012` |
 | [`invalid-relations/`](https://github.com/lsbjordao/quarto-needs/tree/main/examples/broken/invalid-relations) | A relation targets an undeclared object and an identifier is declared twice. | Two errors; the snapshot is refused — nothing renders. | `REQ005`, `REQ004` |
-| [`relation-typo/`](https://github.com/lsbjordao/quarto-needs/tree/main/examples/broken/relation-typo) | A relation name is mistyped (`linked-to` instead of a catalog name). | **No finding at all**: the edge silently does not exist and the typo survives as an inert attribute. The trap that makes `check` a CI requirement. | — |
+| [`probable-relation-typo/`](https://github.com/lsbjordao/quarto-needs/tree/main/examples/broken/probable-relation-typo) | A relation name is probably mistyped: `verifed-by` is one deletion away from `verified-by`. | Warning names the nearby catalog relation, but the authored key stays an ordinary attribute and no edge is invented. | `QND005` |
+| [`relation-typo/`](https://github.com/lsbjordao/quarto-needs/tree/main/examples/broken/relation-typo) | `linked-to` looks relation-like but is not a catalog relation and is outside the conservative one-edit typo radius. | No `QND005`: the custom attribute survives unchanged and creates no graph edge. This is the boundary that keeps arbitrary project metadata valid. | — |
 | [`orphan-requirements/`](https://github.com/lsbjordao/quarto-needs/tree/main/examples/broken/orphan-requirements) | Well-formed requirements connected to nothing. | Info findings naming both objects; scanning succeeds. | `REQ014` |
 | [`overdue-decision/`](https://github.com/lsbjordao/quarto-needs/tree/main/examples/broken/overdue-decision) | An accepted decision's `revisit-after` date has passed. | Warning on the decision, naming the overdue review. | `DEC006` |
 | [`expired-evidence/`](https://github.com/lsbjordao/quarto-needs/tree/main/examples/broken/expired-evidence) | Evidence carrying an `expires` date in the past. | Warning on the evidence object; freshness is re-checked, never assumed. | `REQ015` |
@@ -54,8 +54,12 @@ quarto-needs --root . suspect --git HEAD~1..HEAD
 
 The gallery's real lesson is the gradient. A structural error (`REQ004`,
 `REQ005`) refuses the snapshot outright. A warning (`REQ012`, `REQ015`,
-`DEC006`) surfaces the problem but still publishes. An info finding
-(`REQ014`) stays visible without claiming the project is broken. And the
-relation typo produces **nothing** — the most dangerous outcome, because it
-looks like success. That gradient is why `quarto-needs check` belongs in CI
-and why publication is a separate, deliberate step.
+`DEC006`, `QND005`) surfaces the problem but still publishes. An info finding
+(`REQ014`) stays visible without claiming the project is broken.
+
+The two relation-looking fixtures deliberately pin the boundary of inference.
+`probable-relation-typo/` is one edit from a real catalog relation, so the
+engine warns while preserving the original attribute and refusing to invent
+an edge. `relation-typo/` is outside that narrow radius, so it stays silent
+custom metadata. Catching likely mistakes without treating arbitrary
+attributes as schema is the point of the pair.

@@ -1,0 +1,31 @@
+---
+title: "The probable relation typo that warns but never autocorrects"
+---
+
+REQ-A intends to use the catalog relation `verified-by`, but the authored key
+is `verifed-by` — one deletion away. Quarto-Needs reports `QND005` as a
+warning because the key is a conservative one-edit near miss of a real
+relation name.
+
+The advisory never repairs the source and never invents an edge. The original
+`verifed-by` key remains an ordinary attribute until the author explicitly
+changes it to `verified-by`. This preserves the open custom-attribute
+namespace while surfacing the most likely accidental relation misspellings.
+
+::: {.need #REQ-A type="functional-requirement" status="draft" verifed-by="TC-B"}
+## Signed payloads
+
+The service shall sign every payload it emits.
+
+### Rationale
+
+The author intended TC-B to verify this requirement, but the misspelled key
+must not silently become a graph relation.
+:::
+
+::: {.need #TC-B type="test-case" status="draft"}
+## Payload signature verification
+
+A draft verification case that would be the relation target after the author
+corrects `verifed-by` to `verified-by`.
+:::

@@ -42,7 +42,7 @@ The Quarto project declares `output-dir: _book`, so local rendering produces `ex
 
 That directory is **generated output** and is intentionally ignored by Git. Its absence from the repository is therefore expected; the authored case study remains in the `.qmd` sources.
 
-On CI, a successful multilingual render uploads `_book/` as a build artifact. On pushes to `main`, the publication job places that rendered artifact under `docs/examples/quarto-needs/`, inside the repository's GitHub Pages tree.
+CI renders both the multilingual manual and this self-hosted case study, assembles them into one immutable `pages-site/` tree, validates the expected English, pt-BR, Failure Gallery, and case-study entry points, and uploads the complete tree as a build artifact. On pushes to `main`, the same tree is uploaded as the GitHub Pages artifact and deployed through the `github-pages` environment. Generated HTML is never committed or pushed back to `main`.
 
 Published case study: **https://lsbjordao.github.io/quarto-needs/examples/quarto-needs/**
 
@@ -72,7 +72,7 @@ The example is organized around six reusable vertical slices (two more, covering
 5. margin-TOC usability;
 6. extension-first distribution.
 
-Each slice can be followed from stakeholder motivation through requirements and architecture into source modules, modeled verification, and evidence. The target evolution extends those slices further into executable tests, machine evidence, and Git/change-review state.
+Each slice can be followed from stakeholder motivation through requirements and architecture into source modules, modeled verification, and evidence. The target evolution extends those slices further into executable tests, machine evidence, and change/review state.
 
 ## Local workflows
 

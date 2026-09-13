@@ -2,7 +2,7 @@
   "name": "quarto-needs-vscode",
   "displayName": "Quarto-Needs",
   "description": "Thin VS Code client for the Quarto-Needs language server.",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "private": true,
   "publisher": "lsbjordao",
   "license": "MIT",
