@@ -4,7 +4,7 @@ from quarto_needs.model import EngineeringObject, Relation, SourceLocation
 from quarto_needs.parser import parse_qmd_declarations
 from quarto_needs.snapshot import LocationRecord
 from quarto_needs.validation import (
-    probable_relation_names,
+    _probable_relation_names,
     validate,
     validate_declarations,
 )
@@ -134,11 +134,15 @@ def test_validation_output_is_deterministically_ordered() -> None:
 
 
 def test_probable_relation_name_match_is_deliberately_one_edit_only() -> None:
-    assert probable_relation_names("verifed-by") == ("verified-by",)
-    assert probable_relation_names("verifeid-by") == ("verified-by",)
-    assert probable_relation_names("verified_bx") == ("verified-by",)
-    assert probable_relation_names("linked-to") == ()
-    assert probable_relation_names("owner") == ()
+    assert _probable_relation_names("verifed-by") == ("verified-by",)
+    assert _probable_relation_names("verifeid-by") == ("verified-by",)
+    assert _probable_relation_names("verified-bx") == ("verified-by",)
+    assert _probable_relation_names("derive-from") == (
+        "derived-from",
+        "derives-from",
+    )
+    assert _probable_relation_names("linked-to") == ()
+    assert _probable_relation_names("owner") == ()
 
 
 def test_probable_relation_typo_warns_without_inventing_an_edge() -> None:
@@ -168,6 +172,23 @@ def test_probable_relation_typo_warns_without_inventing_an_edge() -> None:
     assert "creates no graph edge" in findings[0].message
     assert requirement.attributes == {"verifed-by": "TC-1"}
     assert requirement.relations == []
+
+
+def test_ambiguous_near_miss_lists_candidates_without_choosing_one() -> None:
+    requirement = EngineeringObject(
+        "REQ-1",
+        "need",
+        "Requirement",
+        attributes={"derive-from": "REQ-0"},
+    )
+
+    finding = next(
+        item for item in validate([requirement]) if item.code == "QND005"
+    )
+
+    assert "'derived-from', 'derives-from'" in finding.message
+    assert "choose the intended catalog relation explicitly" in finding.message
+    assert "use 'derived-from'" not in finding.message
 
 
 def test_custom_attributes_outside_one_edit_radius_remain_silent() -> None:
