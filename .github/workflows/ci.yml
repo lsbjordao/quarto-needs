@@ -132,9 +132,8 @@ jobs:
         run: .venv/bin/python -m pytest -q tests/test_projection_security.py
       - name: Install optional C4 diagram backends
         # need-c4's PlantUML, D2 and Structurizr backends degrade to a code
-        # block when their CLI is missing, and this job's artifact is what gets
-        # published to docs/examples. Without these tools the published site
-        # shows DSL source where diagrams belong, and nothing fails.
+        # block when their CLI is missing. Publishing must never turn those
+        # diagrams back into DSL source silently.
         run: |
           make install-diagram-backends
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
@@ -154,6 +153,29 @@ jobs:
           name: quarto-needs-self-example-html
           path: examples/quarto-needs/_book/
           if-no-files-found: error
+      - name: Assemble complete published site
+        run: |
+          rm -rf pages-site
+          mkdir -p pages-site/examples/quarto-needs
+          cp -a docs/. pages-site/
+          rm -rf pages-site/src
+          cp -a examples/quarto-needs/_book/. pages-site/examples/quarto-needs/
+          test -f pages-site/index.html
+          test -f pages-site/pt-BR/index.html
+          test -f pages-site/failure-gallery.html
+          test -f pages-site/pt-BR/failure-gallery.html
+          test -f pages-site/examples/quarto-needs/index.html
+      - name: Upload complete site preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: quarto-needs-site-html
+          path: pages-site/
+          if-no-files-found: error
+      - name: Upload GitHub Pages artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: pages-site/
 
   install:
     name: Installed consumer path
@@ -297,37 +319,19 @@ jobs:
         with:
           sarif_file: artifacts/findings.sarif
 
-  publish-self-example:
-    name: Publish self-hosted example
+  deploy-pages:
+    name: Deploy GitHub Pages
     needs: quarto
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Check out main
-        uses: actions/checkout@v7
-        with:
-          ref: main
-      - name: Replace published example tree
-        run: |
-          rm -rf docs/examples/quarto-needs
-          mkdir -p docs/examples/quarto-needs
-      - name: Download rendered self-hosted example
-        uses: actions/download-artifact@v4
-        with:
-          name: quarto-needs-self-example-html
-          path: docs/examples/quarto-needs
-      - name: Commit published example when changed
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/examples/quarto-needs
-          if git diff --cached --quiet
-          then
-            echo "Published self-hosted example is already current."
-          else
-            git commit -m "docs: publish self-hosted example"
-            git push origin HEAD:main
-          fi
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
