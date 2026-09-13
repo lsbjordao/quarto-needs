@@ -1,0 +1,12 @@
+{
+  "version": "0.1.1",
+  "tag": "v0.1.1",
+  "tag_commit": "d4247bfd9a170e1160706967178e90304766a8a6",
+  "released": "2026-09-09",
+  "model": "pre-tiered",
+  "contract_lines": [
+    "- Supported: `scan`, `check`, `quality`, `coverage`, `trace`, `query`, `baseline create|inspect`, `diff`, `impact`, Git-range `suspect`/`pr-report`/`github-report`, `evidence check|attest`, `lsp`, and `export --format json|csv|sarif|junit|markdown|reqif|jsonld`; Quarto rendering and documented non-C4 shortcodes.",
+    "- Experimental, outside the stability contract: OSLC, the GitHub Issues adapter, all four migration adapters, `variant`, C4 projections and the VS Code client. A subsequent workstream will define detailed stability tiers.",
+    "- The existing `v0.1.0` tag and TestPyPI artifact are preserved; `0.1.1` is the first production release."
+  ]
+}

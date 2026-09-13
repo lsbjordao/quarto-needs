@@ -1,17 +1,17 @@
 ---
-title: "The relation typo that does not fail"
+title: "The relation-looking attribute that must stay silent"
 ---
 
-REQ-A below wanted to say `links-to` (a catalog name) but typed
-`linked-to`. Only catalog names parse as relations; anything else is kept
-as an ordinary attribute. There is no finding, no error, no warning: the
-project scans clean, and the edge the author meant to write simply does
-not exist.
+`linked-to` below looks relation-like, but it is **not** a catalog relation and
+is deliberately outside the conservative one-edit radius used by `QND005`.
+Unknown `.need` keys remain an open namespace for project metadata, so the
+engine must not turn every relation-looking custom attribute into a warning.
 
-This is the trap the gallery exists to teach: run `quarto-needs check` (or
-render, and read the card) and look at the object -- the inert attribute is
-visible in the inspector, and the missing edge is visible in every view
-that would have used it.
+There is therefore no `QND005`, no graph edge, and no automatic guess. The
+value survives exactly as authored as the ordinary `linked-to` attribute.
+This fixture is the negative boundary for the neighboring
+`probable-relation-typo/` fixture, where `verifed-by` is only one edit away
+from the real `verified-by` relation and does receive an advisory.
 
 ::: {.need #REQ-A type="functional-requirement" status="draft" linked-to="REQ-B"}
 ## Signed payloads
@@ -20,11 +20,13 @@ The service shall sign every payload it emits.
 
 ### Rationale
 
-The author believed this requirement was linked to REQ-B. It is not.
+`linked-to` is intentional project metadata in this fixture. It must not be
+reinterpreted as a relation merely because its name looks relation-like.
 :::
 
 ::: {.need #REQ-B type="functional-requirement" status="draft"}
 ## Payload signing keys
 
-The related requirement the typo disconnected.
+A second object makes it obvious that the custom attribute does not create an
+edge between the two requirements.
 :::
