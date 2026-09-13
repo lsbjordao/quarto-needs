@@ -299,8 +299,7 @@ def _build_plan(
 
     parser = _strictdoc_parser()
     args = parser.parse_args(_strip_dispatch_tokens(argv, source))
-    if args.write and not args.apply_plan:
-        raise ValueError("--write requires --apply-plan")
+    _validate_migration_flags(args)
     type_map = _mapping(args.type_map, "--type-map")
     relation_map = _mapping(args.relation_map, "--relation-map")
     documents = load_strictdoc_documents(_root_relative(root, args.strictdoc_root))

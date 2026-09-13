@@ -111,6 +111,43 @@ def test_strictdoc_cli_apply_plan_and_write_produce_authored_files(tmp_path: Pat
     assert "derives-from: SRS-1" in llr_text
 
 
+def test_strictdoc_cli_update_plan_can_apply_reviewed_updates(tmp_path: Path) -> None:
+    _write_project(tmp_path)
+    common = [
+        "--root",
+        str(tmp_path),
+        "migrate",
+        "strictdoc",
+        ".",
+        "--type-map",
+        "REQUIREMENT=system-requirement",
+        "--relation-map",
+        "Parent=derives-from",
+        "--destination",
+        "SRS-1=requirements/config.qmd",
+        "--destination",
+        "LLR-1=implementation/config-writer.qmd",
+        "--format",
+        "json",
+    ]
+
+    assert main([*common, "--apply-plan", "--write"]) == 0
+
+    srs_source = tmp_path / "srs.sdoc"
+    srs_source.write_text(
+        srs_source.read_text(encoding="utf-8").replace(
+            "Persist configuration", "Persist configuration safely"
+        ),
+        encoding="utf-8",
+    )
+
+    exit_code = main([*common, "--update-plan", "--apply-update", "--write"])
+
+    assert exit_code == 0
+    authored = (tmp_path / "requirements" / "config.qmd").read_text(encoding="utf-8")
+    assert "Persist configuration safely" in authored
+
+
 def test_strictdoc_cli_returns_one_but_keeps_plan_when_semantics_are_unresolved(
     tmp_path: Path,
 ) -> None:

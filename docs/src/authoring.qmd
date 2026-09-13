@@ -81,9 +81,11 @@ depends-on:
 
 A malformed assignment — an unterminated quoted value, or `name=` with no value — is reported as `QND004`, and the malformed tail is never silently attached to a target.
 
+Unknown keys remain valid custom attributes. To catch the narrow case where an intended relation was probably misspelled, validation reports `QND005` when an unknown key is exactly one insertion, deletion, substitution, or adjacent transposition away from a real authored relation name. For example, `verifed-by: TC-020` warns that it resembles `verified-by`. The warning never rewrites the key and never creates an edge: the original value remains an ordinary attribute until the author fixes it. Names outside that one-edit radius stay silent, preserving the open custom-attribute namespace.
+
 Declare each key **once** per block. The preamble is a mapping, so repeating a key keeps only its last occurrence; write `verified-by: TC-020, TC-021` or the list form instead of two `verified-by:` lines. A repeated key is reported as `QND003` so the discarded value cannot pass unnoticed.
 
-Relation targets are not resolved while parsing. A target that names no declared object is reported as `REQ005` during validation, which is how typos surface instead of becoming silent dead ends.
+Relation targets are not resolved while parsing. A target that names no declared object is reported as `REQ005` during validation. Relation-name near misses are the separate `QND005` advisory above; neither diagnostic silently repairs authored data.
 
 ## References and views
 
