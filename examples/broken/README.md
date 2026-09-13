@@ -7,9 +7,9 @@ about it. Nothing here is imported by, rendered into, or otherwise shared
 with the canonical self-hosted model in `examples/quarto-needs/`.
 
 Every expectation described below is executable: `tests/test_teaching_fixtures.py`
-runs the engine against each fixture and fails if the engine's actual
-diagnostics ever drift from this page. To explore by hand, run the same
-command the tests use, for example:
+and the focused teaching regressions run the engine against each fixture and
+fail if the engine's actual diagnostics drift from this page. To explore by
+hand, run the same command the tests use, for example:
 
 ```bash
 quarto-needs --root examples/broken/missing-evidence check
@@ -21,7 +21,8 @@ quarto-needs --root examples/broken/missing-evidence check
 | --- | --- | --- |
 | `missing-evidence/` | A passed test has no evidence behind it (REQ012 enabled). | Warning on `TC-001`; the project still scans and renders. |
 | `invalid-relations/` | A relation targets an undeclared object (REQ005) and an identifier is declared twice (REQ004). | Two error findings; the snapshot is refused — nothing renders. |
-| `relation-typo/` | A relation name is mistyped (`linked-to` instead of a catalog name). | No finding at all: the edge silently does not exist, and the typo survives as an inert attribute. The trap that makes `check` a CI requirement. |
+| `probable-relation-typo/` | `verifed-by` is one deletion away from the catalog relation `verified-by`. | `QND005` warning suggests the nearby catalog name, but the authored key stays an ordinary attribute and no edge is invented. |
+| `relation-typo/` | `linked-to` looks relation-like but is not a catalog relation and is outside the conservative one-edit typo radius. | No `QND005`: the custom attribute survives unchanged and creates no graph edge. This is the negative boundary that keeps the custom-attribute namespace open. |
 | `orphan-requirements/` | Well-formed requirements connected to nothing (REQ014 enabled). | Info findings naming both objects; scanning succeeds. |
 | `overdue-decision/` | An accepted decision's `revisit-after` date has passed (DEC006 enabled). | Warning on `ADR-001` naming the overdue review. |
 | `expired-evidence/` | Evidence carrying an `expires` date in the past (REQ015 enabled). | Warning on `EVD-001`; freshness is re-checked, never assumed. |
@@ -71,11 +72,14 @@ cannot produce a graph at all; `missing-evidence/` produces a graph plus a
 warning; `orphan-requirements/` produces info-level visibility. Three
 severities, three different relationships to publication.
 
-**Silence is a failure mode too.** `relation-typo/` produces zero findings
-and is the most dangerous fixture in the gallery: the author's intent is
-lost without any diagnostic. Only catalog names parse as relations, so a
-mistyped name becomes an inert attribute — visible in the inspector, dead
-in the graph. The engine refuses to guess, but it also cannot read minds.
+**A typo warning must not become fuzzy schema inference.**
+`probable-relation-typo/` shows the narrow positive case: `verifed-by` is one
+edit from `verified-by`, so `QND005` warns while preserving the original key
+and refusing to invent an edge. `relation-typo/` is the negative boundary:
+`linked-to` is outside that radius and remains silent custom metadata. The
+pair is intentional — Quarto-Needs can catch likely relation misspellings
+without closing the project's attribute namespace or pretending it knows the
+author's intent.
 
 **Freshness is data, not belief.** `expired-evidence/` and
 `overdue-decision/` both encode "this was true when written" — the engine
